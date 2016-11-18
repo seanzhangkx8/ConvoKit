@@ -1,0 +1,11 @@
+*.pyc
+/dist/
+/*.egg-info
+*.swp
+*.p
+datasets/supreme-corpus/*.txt
+datasets/supreme-corpus/*.dat
+datasets/supreme-corpus/*.json
+datasets/wiki-corpus/*.txt
+datasets/wiki-corpus/*.dat
+datasets/wiki-corpus/*.json
