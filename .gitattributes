@@ -1,8 +1,0 @@
-*.dat filter=lfs diff=lfs merge=lfs -text
-*.json filter=lfs diff=lfs merge=lfs -text
-datasets/*.json filter=lfs diff=lfs merge=lfs -text
-datasets/*.json filter=lfs diff=lfs merge=lfs -text
-datasets/*.json filter=lfs diff=lfs merge=lfs -text
-datasets/supreme-corpus/full.json filter=lfs diff=lfs merge=lfs -text
-datasets/wiki-corpus/full.json filter=lfs diff=lfs merge=lfs -text
-*.json filter=lfs diff=lfs merge=lfs -text
