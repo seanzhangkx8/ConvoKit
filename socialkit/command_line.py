@@ -1,3 +1,5 @@
+"""Command-line interface for computing all features."""
+
 from collections import defaultdict
 import argparse
 import os

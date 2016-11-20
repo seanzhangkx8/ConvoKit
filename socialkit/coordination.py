@@ -1,3 +1,6 @@
+"""Coordination features
+(https://www.cs.cornell.edu/~cristian/Echoes_of_power.html)."""
+
 import pkg_resources
 import re
 from collections import defaultdict
@@ -6,11 +9,25 @@ CoordinationWordCategories = ["article", "auxverb", "conj", "adverb",
         "ppron", "ipron", "preps", "quant"]
 
 class Coordination:
+    """Encapsulates computation of coordination-based features for a particular
+    model.
+
+    Args:
+        model (Model): the model to compute features for.
+
+    Attributes:
+        model (Model): the model associated with the coordination object.
+    """
+
     def __init__(self, model):
         self.model = model
         self.precomputed = False
 
     def precompute(self):
+        """Call this to run the time-consuming annotation process explicitly.
+        For example, this lets you save the annotated coordination object as a
+        pickle to cache the precomputation results."""
+
         if not self.precomputed:
             self.compute_liwc_reverse_dict()
             self.annot_liwc_cats()
@@ -19,6 +36,56 @@ class Coordination:
     def score(self, speakers, group, speaker_thresh=0, target_thresh=3,
             utterances_thresh=0, speaker_thresh_indiv=0, target_thresh_indiv=0,
             utterances_thresh_indiv=0, utterance_thresh_func=None):
+        """Computes the coordination scores for each speaker, given a set of
+            speakers and a group of targets.
+
+        Args:
+            speakers: A collection of usernames or user objects corresponding to
+                the speakers we want to compute scores for. Can also be a single
+                username/user object if only one speaker. If a user object is
+                passed in, the scoring will count users as unique if they have
+                different user infos, which can be used to compare the same user
+                across different attributes.
+            group: A collection of usernames or user objects corresponding to
+                the group of targets. Can also be a single username/user object
+                if only one target.
+            speaker_thresh (int, optional, default=0): Thresholds based on
+                minimum number of times the speaker uses each coordination
+                marker.
+            target_thresh (int, optional, default=3): Thresholds based on
+                minimum number of times the target uses each coordination
+                marker.
+            utterances_thresh (int, optional, default=0): Thresholds based on
+                the minimum number of utterances for each speaker.
+            speaker_thresh_indiv (int, optional, default=0): Like
+                `speaker_thresh` but only considers the utterances
+                between a speaker and a single target; thresholds whether the
+                utterances for a single target should be considered for a
+                particular speaker.
+            target_thresh_indiv (int, optional, default=0): Like
+                `target_thresh` but thresholds whether a single target's
+                utterances should be considered for a particular speaker.
+            utterances_thresh_indiv (int, optional, default=0): Like
+                `utterances_thresh` but thresholds whether a single target's
+                utterances should be considered for a particular speaker.
+            utterance_thresh_func (function, optional): Optional utterance-level
+                threshold function that takes in a speaker `Utterance` and
+                the `Utterance` the speaker replied to, and returns a `bool`
+                corresponding to whether or not to include the utterance in
+                scoring.
+
+        Returns:
+            A dictionary of scores:
+
+            {
+                speaker_1: { dictionary of scores by coordination marker },
+                speaker_2: scores,
+                ...
+            }
+
+            The keys are of the same types as the input: if a username was 
+                passed in, the corresponding key will be a username, etc.
+        """
         if isinstance(speakers, str): speakers = [speakers]
         if isinstance(group, str): group = [group]
 
@@ -53,6 +120,22 @@ class Coordination:
     def pairwise_scores(self, pairs, speaker_thresh=0, target_thresh=3,
             utterances_thresh=0, speaker_thresh_indiv=0, target_thresh_indiv=0,
             utterances_thresh_indiv=0, utterance_thresh_func=None):
+        """Computes all pairwise coordination scores given a collection of
+            (speaker, target) pairs.
+        
+        Args:
+            pairs (Collection): collection of (speaker, target) pairs where
+                each speaker and target can be either a username or a user
+                object.
+            
+            Also accepted: all threshold arguments accepted by `score`.
+
+        Returns:
+            Dictionary of scores indexed by (speaker, target) pairs.
+
+            Each value is itself a dictionary with scores indexed by
+                coordination marker.
+        """
         self.precompute()
         all_scores = {}
         for (speaker, target), utterances in pairs.items():
@@ -66,6 +149,32 @@ class Coordination:
         return all_scores
 
     def score_report(self, all_scores):
+        """Create a "score report" of aggregate scores given a score output
+            produced by `score` or `pairwise_scores`.
+
+        - Aggregate 1: average scores only over users with a score for each
+            coordination marker.
+        - Aggregate 2: fill in missing scores for a user by using the group
+            score for each missing marker. (Assumes different people in a group
+            coordinate the same way.)
+        - Aggregate 3: fill in missing scores for a user by using the average
+            score over the markers we can compute coordination for for that 
+            user. (Assumes a user coordinates the same way across different
+            coordination markers.)
+
+        Args:
+            scores (dict): Scores to produce a report for.
+
+        Returns:
+            A tuple (marker_a1, marker, agg1, agg2, agg3):
+            - marker_a1 is a dictionary of aggregate scores by marker,
+                using the scores only over users included in Aggregate 1.
+            - marker is a dictionary of aggregate scores by marker,
+                using the scores of all users with a coordination score for
+                that marker.
+            - agg1, agg2 and agg3 are Aggregate 1, 2 and 3 scores respectively.
+        """
+
         a1_scores_by_marker = defaultdict(list)
         scores_by_marker = defaultdict(list)
         for speaker, scores in all_scores.items():

@@ -1,15 +1,21 @@
+"""The objects used to represent a dataset."""
+
 import json
 from collections import defaultdict
 
-KeyId = "id"
-KeyUser = "user"
-KeyConvoRoot = "root"
-KeyReplyTo = "reply-to"
-KeyTimestamp = "timestamp"
-KeyText = "text"
-KeyUserInfo = "user-info"  # can store any extra data
-
 class User:
+    """Represents a single user in a dataset.
+   
+    Args:
+        name (str, optional): name of the user.
+        info (dict, optional): arbitrary dictionary of attributes associated
+            with the user.
+
+    Attributes:
+        name (str): name of the user.
+        info (str): dictionary of attributes associated with the user.
+    """
+    
     def __init__(self, name=None, info={}):
         self._name = name
         self._info = info
@@ -41,6 +47,26 @@ class User:
         return self._uid
 
 class Utterance:
+    """Represents a single utterance in the dataset.
+
+    Args:
+        id: the unique id of the utterance. Can be any hashable type.
+        user (User, optional): the user giving the utterance.
+        root (optional): the id of the root utterance of the conversation.
+        reply_to (optional): id of the utterance this was a reply to.
+        timestamp (optional): timestamp of the utterance. Can be any
+            comparable type.
+        text (str, optional): text of the utterance.
+
+    Attributes:
+        id: the unique id of the utterance.
+        user: the user giving the utterance.
+        root: the id of the root utterance of the conversation.
+        reply_to: id of the utterance this was a reply to.
+        timestamp: timestamp of the utterance.
+        text: text of the utterance.
+    """
+
     def __init__(self, id=None, user=None, root=None, reply_to=None,
             timestamp=None, text=None):
         self.id = id
@@ -57,12 +83,30 @@ class Utterance:
         return "Utterance(" + str(self.__dict__) + ")"
 
 class Model:
-    # filename: path of json file to load
-    # utterances: list of utterances to load
-    # merge_lines: whether to merge adjacent lines from same author if
-    #     the two utterances have the same root. Uses the older version
-    #     of the other attribs.
+    """Represents a dataset, which can be loaded from a JSON file or a list
+        of utterances.
+
+    Args:
+        filename (str, optional): path of json file to load
+        utterances (list, optional): list of utterances to load
+        merge_lines (bool, default=False): whether to merge adjacent
+            lines from same author if the two utterances have the same root.
+            Uses the older version of the other attribs.
+
+    Attributes:
+        utterances (dict): dictionary of utterances in the dataset, indexed by
+            id.
+    """
+
     def __init__(self, filename=None, utterances=None, merge_lines=False):
+        KeyId = "id"
+        KeyUser = "user"
+        KeyConvoRoot = "root"
+        KeyReplyTo = "reply-to"
+        KeyTimestamp = "timestamp"
+        KeyText = "text"
+        KeyUserInfo = "user-info"  # can store any extra data
+
         if filename is not None:
             utterances = json.load(open(filename, "r"))
             self.utterances = {}
@@ -92,31 +136,86 @@ class Model:
                     new_utterances[u.id] = u
             self.utterances = new_utterances
 
-    # selector: optional function that takes in an utterance and returns
-    #     a bool of whether to include the user of the utterance
     def users(self, selector=None):
+        """Get users in the dataset.
+
+        Args:
+            selector (function, optional): optional function that takes in a
+                `User` and returns True to include the user in the
+                resulting list, or False otherwise.
+
+        Returns:
+            Set containing all users selected by the selector function,
+                or all users in the dataset if no selector function was
+                used.
+        """
         if selector is None:
             return self.all_users
         else:
             return set([u for u in self.all_users if selector(u)])
 
     def user_names(self, selector=None):
+        """Get names of users in the dataset.
+
+        Args:
+            selector (function, optional): optional function that takes in a
+                `User` and returns True to include the user's name in the
+                resulting list, or False otherwise.
+
+        Returns:
+            Set containing all user names selected by the selector function,
+                or all user names in the dataset if no selector function was
+                used.
+        """
         return set([u.name for u in self.users(selector)])
 
-    def speaking_pairs(self):
+    def speaking_pairs(self, user_names_only=False, selector=None):
+        """Get all directed speaking pairs (a, b) of users such that a replies
+            to b at least once in the dataset.
+
+        Args:
+            user_names_only (bool, default=False): if True, return just pairs of
+                user names rather than user objects.
+            selector (function, optional): optional function that takes in
+                a speaker user and a replied-to user and returns True to include
+                the pair in the result, or False otherwise.
+
+        Returns:
+            Set containing all speaking pairs selected by the selector function,
+                or all speaking pairs in the dataset if no selector function
+                was used.
+        """
         pairs = set()
         for u2 in self.utterances.values():
             if u2.user is not None and u2.reply_to is not None:
                 u1 = self.utterances[u2.reply_to]
                 if u1.user is not None:
-                    pairs.add((u2.user, u1.user))
+                    if selector is None or selector(u1.user, u2.user):
+                        pairs.add((u2.user.name, u1.user.name) if 
+                                user_names_only else (u2.user, u1.user))
         return pairs
 
-    def pairwise_convos(self):
+    def pairwise_exchanges(self, user_names_only=False, selector=None):
+        """Get all directed pairwise exchanges in the dataset.
+
+        Args:
+            user_names_only (bool, default=False): if True, index conversations
+                by user names rather than user objects.
+            selector (function, optional): optional function that takes in a
+                speaker user and a replied-to user and returns True to include
+                the pair in the result, or False otherwise.
+
+        Returns:
+            Dictionary mapping (speaker, target) tuples to a list of utterances
+                given by the speaker in reply to the target.
+        """
         pairs = defaultdict(list)
         for u2 in self.utterances.values():
             if u2.user is not None and u2.reply_to is not None:
                 u1 = self.utterances[u2.reply_to]
                 if u1.user is not None:
-                    pairs[u2.user, u1.user].append(u2)
+                    if selector is None or selector(u1.user, u2.user):
+                        key = ((u2.user.name, u1.user.name) if 
+                                user_names_only else (u2.user, u1.user))
+                        pairs[key].append(u2)
         return pairs
