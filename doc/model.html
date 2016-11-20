@@ -1,0 +1,177 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html><head><title>Python: module model</title>
+<meta charset="utf-8">
+</head><body bgcolor="#f0f0f8">
+
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="heading">
+<tr bgcolor="#7799ee">
+<td valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong>model</strong></big></big></font></td
+><td align=right valign=bottom
+><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:/home/ubuntu/socialkit/socialkit/model.py">/home/ubuntu/socialkit/socialkit/model.py</a></font></td></tr></table>
+    <p><tt>The&nbsp;objects&nbsp;used&nbsp;to&nbsp;represent&nbsp;a&nbsp;dataset.</tt></p>
+<p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#aa55cc">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Modules</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#aa55cc"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="json.html">json</a><br>
+</td><td width="25%" valign=top></td><td width="25%" valign=top></td><td width="25%" valign=top></td></tr></table></td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ee77aa">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Classes</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#ee77aa"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl>
+<dt><font face="helvetica, arial"><a href="model.html#Model">Model</a>
+</font></dt><dt><font face="helvetica, arial"><a href="model.html#User">User</a>
+</font></dt><dt><font face="helvetica, arial"><a href="model.html#Utterance">Utterance</a>
+</font></dt></dl>
+ <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="Model">class <strong>Model</strong></a></font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt>Represents&nbsp;a&nbsp;dataset,&nbsp;which&nbsp;can&nbsp;be&nbsp;loaded&nbsp;from&nbsp;a&nbsp;JSON&nbsp;file&nbsp;or&nbsp;a&nbsp;list<br>
+&nbsp;&nbsp;&nbsp;&nbsp;of&nbsp;utterances.<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;filename&nbsp;(str,&nbsp;optional):&nbsp;path&nbsp;of&nbsp;json&nbsp;file&nbsp;to&nbsp;load<br>
+&nbsp;&nbsp;&nbsp;&nbsp;utterances&nbsp;(list,&nbsp;optional):&nbsp;list&nbsp;of&nbsp;utterances&nbsp;to&nbsp;load<br>
+&nbsp;&nbsp;&nbsp;&nbsp;merge_lines&nbsp;(bool,&nbsp;default=False):&nbsp;whether&nbsp;to&nbsp;merge&nbsp;adjacent<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lines&nbsp;from&nbsp;same&nbsp;author&nbsp;if&nbsp;the&nbsp;two&nbsp;utterances&nbsp;have&nbsp;the&nbsp;same&nbsp;root.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Uses&nbsp;the&nbsp;older&nbsp;version&nbsp;of&nbsp;the&nbsp;other&nbsp;attribs.<br>
+&nbsp;<br>
+Attributes:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;utterances&nbsp;(dict):&nbsp;dictionary&nbsp;of&nbsp;utterances&nbsp;in&nbsp;the&nbsp;dataset,&nbsp;indexed&nbsp;by<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;id.<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%">Methods defined here:<br>
+<dl><dt><a name="Model-__init__"><strong>__init__</strong></a>(self, filename<font color="#909090">=None</font>, utterances<font color="#909090">=None</font>, merge_lines<font color="#909090">=False</font>)</dt></dl>
+
+<dl><dt><a name="Model-pairwise_exchanges"><strong>pairwise_exchanges</strong></a>(self, user_names_only<font color="#909090">=False</font>, selector<font color="#909090">=None</font>)</dt><dd><tt>Get&nbsp;all&nbsp;directed&nbsp;pairwise&nbsp;exchanges&nbsp;in&nbsp;the&nbsp;dataset.<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;user_names_only&nbsp;(bool,&nbsp;default=False):&nbsp;if&nbsp;True,&nbsp;index&nbsp;conversations<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;by&nbsp;user&nbsp;names&nbsp;rather&nbsp;than&nbsp;user&nbsp;objects.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;selector&nbsp;(function,&nbsp;optional):&nbsp;optional&nbsp;function&nbsp;that&nbsp;takes&nbsp;in&nbsp;a<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;speaker&nbsp;user&nbsp;and&nbsp;a&nbsp;replied-to&nbsp;user&nbsp;and&nbsp;returns&nbsp;True&nbsp;to&nbsp;include<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;the&nbsp;pair&nbsp;in&nbsp;the&nbsp;result,&nbsp;or&nbsp;False&nbsp;otherwise.<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Dictionary&nbsp;mapping&nbsp;(speaker,&nbsp;target)&nbsp;tuples&nbsp;to&nbsp;a&nbsp;list&nbsp;of&nbsp;utterances<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;given&nbsp;by&nbsp;the&nbsp;speaker&nbsp;in&nbsp;reply&nbsp;to&nbsp;the&nbsp;target.</tt></dd></dl>
+
+<dl><dt><a name="Model-speaking_pairs"><strong>speaking_pairs</strong></a>(self, user_names_only<font color="#909090">=False</font>, selector<font color="#909090">=None</font>)</dt><dd><tt>Get&nbsp;all&nbsp;directed&nbsp;speaking&nbsp;pairs&nbsp;(a,&nbsp;b)&nbsp;of&nbsp;users&nbsp;such&nbsp;that&nbsp;a&nbsp;replies<br>
+&nbsp;&nbsp;&nbsp;&nbsp;to&nbsp;b&nbsp;at&nbsp;least&nbsp;once&nbsp;in&nbsp;the&nbsp;dataset.<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;user_names_only&nbsp;(bool,&nbsp;default=False):&nbsp;if&nbsp;True,&nbsp;return&nbsp;just&nbsp;pairs&nbsp;of<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;user&nbsp;names&nbsp;rather&nbsp;than&nbsp;user&nbsp;objects.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;selector&nbsp;(function,&nbsp;optional):&nbsp;optional&nbsp;function&nbsp;that&nbsp;takes&nbsp;in<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;a&nbsp;speaker&nbsp;user&nbsp;and&nbsp;a&nbsp;replied-to&nbsp;user&nbsp;and&nbsp;returns&nbsp;True&nbsp;to&nbsp;include<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;the&nbsp;pair&nbsp;in&nbsp;the&nbsp;result,&nbsp;or&nbsp;False&nbsp;otherwise.<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Set&nbsp;containing&nbsp;all&nbsp;speaking&nbsp;pairs&nbsp;selected&nbsp;by&nbsp;the&nbsp;selector&nbsp;function,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;or&nbsp;all&nbsp;speaking&nbsp;pairs&nbsp;in&nbsp;the&nbsp;dataset&nbsp;if&nbsp;no&nbsp;selector&nbsp;function<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;was&nbsp;used.</tt></dd></dl>
+
+<dl><dt><a name="Model-user_names"><strong>user_names</strong></a>(self, selector<font color="#909090">=None</font>)</dt><dd><tt>Get&nbsp;names&nbsp;of&nbsp;users&nbsp;in&nbsp;the&nbsp;dataset.<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;selector&nbsp;(function,&nbsp;optional):&nbsp;optional&nbsp;function&nbsp;that&nbsp;takes&nbsp;in&nbsp;a<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`<a href="#User">User</a>`&nbsp;and&nbsp;returns&nbsp;True&nbsp;to&nbsp;include&nbsp;the&nbsp;user's&nbsp;name&nbsp;in&nbsp;the<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resulting&nbsp;list,&nbsp;or&nbsp;False&nbsp;otherwise.<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Set&nbsp;containing&nbsp;all&nbsp;user&nbsp;names&nbsp;selected&nbsp;by&nbsp;the&nbsp;selector&nbsp;function,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;or&nbsp;all&nbsp;user&nbsp;names&nbsp;in&nbsp;the&nbsp;dataset&nbsp;if&nbsp;no&nbsp;selector&nbsp;function&nbsp;was<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;used.</tt></dd></dl>
+
+<dl><dt><a name="Model-users"><strong>users</strong></a>(self, selector<font color="#909090">=None</font>)</dt><dd><tt>Get&nbsp;users&nbsp;in&nbsp;the&nbsp;dataset.<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;selector&nbsp;(function,&nbsp;optional):&nbsp;optional&nbsp;function&nbsp;that&nbsp;takes&nbsp;in&nbsp;a<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`<a href="#User">User</a>`&nbsp;and&nbsp;returns&nbsp;True&nbsp;to&nbsp;include&nbsp;the&nbsp;user&nbsp;in&nbsp;the<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resulting&nbsp;list,&nbsp;or&nbsp;False&nbsp;otherwise.<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Set&nbsp;containing&nbsp;all&nbsp;users&nbsp;selected&nbsp;by&nbsp;the&nbsp;selector&nbsp;function,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;or&nbsp;all&nbsp;users&nbsp;in&nbsp;the&nbsp;dataset&nbsp;if&nbsp;no&nbsp;selector&nbsp;function&nbsp;was<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;used.</tt></dd></dl>
+
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="User">class <strong>User</strong></a></font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt>Represents&nbsp;a&nbsp;single&nbsp;user&nbsp;in&nbsp;a&nbsp;dataset.<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;name&nbsp;(str,&nbsp;optional):&nbsp;name&nbsp;of&nbsp;the&nbsp;user.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;info&nbsp;(dict,&nbsp;optional):&nbsp;arbitrary&nbsp;dictionary&nbsp;of&nbsp;attributes&nbsp;associated<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;with&nbsp;the&nbsp;user.<br>
+&nbsp;<br>
+Attributes:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;name&nbsp;(str):&nbsp;name&nbsp;of&nbsp;the&nbsp;user.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;info&nbsp;(str):&nbsp;dictionary&nbsp;of&nbsp;attributes&nbsp;associated&nbsp;with&nbsp;the&nbsp;user.<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%">Methods defined here:<br>
+<dl><dt><a name="User-__eq__"><strong>__eq__</strong></a>(self, other)</dt></dl>
+
+<dl><dt><a name="User-__hash__"><strong>__hash__</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="User-__init__"><strong>__init__</strong></a>(self, name<font color="#909090">=None</font>, info<font color="#909090">={}</font>)</dt></dl>
+
+<dl><dt><a name="User-__repr__"><strong>__repr__</strong></a>(self)</dt></dl>
+
+<hr>
+Data descriptors defined here:<br>
+<dl><dt><strong>info</strong></dt>
+</dl>
+<dl><dt><strong>name</strong></dt>
+</dl>
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="Utterance">class <strong>Utterance</strong></a></font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt>Represents&nbsp;a&nbsp;single&nbsp;utterance&nbsp;in&nbsp;the&nbsp;dataset.<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;id:&nbsp;the&nbsp;unique&nbsp;id&nbsp;of&nbsp;the&nbsp;utterance.&nbsp;Can&nbsp;be&nbsp;any&nbsp;hashable&nbsp;type.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;user&nbsp;(<a href="#User">User</a>,&nbsp;optional):&nbsp;the&nbsp;user&nbsp;giving&nbsp;the&nbsp;utterance.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;root&nbsp;(optional):&nbsp;the&nbsp;id&nbsp;of&nbsp;the&nbsp;root&nbsp;utterance&nbsp;of&nbsp;the&nbsp;conversation.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;reply_to&nbsp;(optional):&nbsp;id&nbsp;of&nbsp;the&nbsp;utterance&nbsp;this&nbsp;was&nbsp;a&nbsp;reply&nbsp;to.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;timestamp&nbsp;(optional):&nbsp;timestamp&nbsp;of&nbsp;the&nbsp;utterance.&nbsp;Can&nbsp;be&nbsp;any<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;comparable&nbsp;type.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;text&nbsp;(str,&nbsp;optional):&nbsp;text&nbsp;of&nbsp;the&nbsp;utterance.<br>
+&nbsp;<br>
+Attributes:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;id:&nbsp;the&nbsp;unique&nbsp;id&nbsp;of&nbsp;the&nbsp;utterance.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;user:&nbsp;the&nbsp;user&nbsp;giving&nbsp;the&nbsp;utterance.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;root:&nbsp;the&nbsp;id&nbsp;of&nbsp;the&nbsp;root&nbsp;utterance&nbsp;of&nbsp;the&nbsp;conversation.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;reply_to:&nbsp;id&nbsp;of&nbsp;the&nbsp;utterance&nbsp;this&nbsp;was&nbsp;a&nbsp;reply&nbsp;to.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;timestamp:&nbsp;timestamp&nbsp;of&nbsp;the&nbsp;utterance.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;text:&nbsp;text&nbsp;of&nbsp;the&nbsp;utterance.<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%">Methods defined here:<br>
+<dl><dt><a name="Utterance-__eq__"><strong>__eq__</strong></a>(self, other)</dt></dl>
+
+<dl><dt><a name="Utterance-__init__"><strong>__init__</strong></a>(self, id<font color="#909090">=None</font>, user<font color="#909090">=None</font>, root<font color="#909090">=None</font>, reply_to<font color="#909090">=None</font>, timestamp<font color="#909090">=None</font>, text<font color="#909090">=None</font>)</dt></dl>
+
+<dl><dt><a name="Utterance-__repr__"><strong>__repr__</strong></a>(self)</dt></dl>
+
+</td></tr></table></td></tr></table>
+</body></html>
