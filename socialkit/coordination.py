@@ -12,11 +12,10 @@ class Coordination:
     """Encapsulates computation of coordination-based features for a particular
     model.
 
-    Args:
-        model (Model): the model to compute features for.
+    :param model: the model to compute features for
+    :type model: Model
 
-    Attributes:
-        model (Model): the model associated with the coordination object.
+    :ivar model: the coordination object's model. 
     """
 
     def __init__(self, model):
@@ -37,54 +36,63 @@ class Coordination:
             utterances_thresh=0, speaker_thresh_indiv=0, target_thresh_indiv=0,
             utterances_thresh_indiv=0, utterance_thresh_func=None):
         """Computes the coordination scores for each speaker, given a set of
-            speakers and a group of targets.
+        speakers and a group of targets.
 
-        Args:
-            speakers: A collection of usernames or user objects corresponding to
-                the speakers we want to compute scores for. Can also be a single
-                username/user object if only one speaker. If a user object is
-                passed in, the scoring will count users as unique if they have
-                different user infos, which can be used to compare the same user
-                across different attributes.
-            group: A collection of usernames or user objects corresponding to
-                the group of targets. Can also be a single username/user object
-                if only one target.
-            speaker_thresh (int, optional, default=0): Thresholds based on
-                minimum number of times the speaker uses each coordination
-                marker.
-            target_thresh (int, optional, default=3): Thresholds based on
-                minimum number of times the target uses each coordination
-                marker.
-            utterances_thresh (int, optional, default=0): Thresholds based on
-                the minimum number of utterances for each speaker.
-            speaker_thresh_indiv (int, optional, default=0): Like
-                `speaker_thresh` but only considers the utterances
-                between a speaker and a single target; thresholds whether the
-                utterances for a single target should be considered for a
-                particular speaker.
-            target_thresh_indiv (int, optional, default=0): Like
-                `target_thresh` but thresholds whether a single target's
-                utterances should be considered for a particular speaker.
-            utterances_thresh_indiv (int, optional, default=0): Like
-                `utterances_thresh` but thresholds whether a single target's
-                utterances should be considered for a particular speaker.
-            utterance_thresh_func (function, optional): Optional utterance-level
-                threshold function that takes in a speaker `Utterance` and
-                the `Utterance` the speaker replied to, and returns a `bool`
-                corresponding to whether or not to include the utterance in
-                scoring.
+        :param speakers: A collection of usernames or user objects corresponding
+            to the speakers we want to compute scores for. Can also be a single
+            username/user object if only one speaker. If a user object is passed
+            in, the scoring will count users as unique if they have different
+            user infos, which can be used to compare the same user across
+            different attributes.
+        :param group: A collection of usernames or user objects corresponding to
+            the group of targets. Can also be a single username/user object
+            if only one target.
+        :param speaker_thresh: Thresholds based on
+            minimum number of times the speaker uses each coordination
+            marker.
+        :type speaker_thresh: int
 
-        Returns:
+        :param target_thresh: Thresholds based on
+            minimum number of times the target uses each coordination
+            marker.
+        :type target_thresh: int
+        :param utterances_thresh: Thresholds based on
+            the minimum number of utterances for each speaker.
+        :type utterances_thresh: int
+        :param speaker_thresh_indiv: Like
+            `speaker_thresh` but only considers the utterances
+            between a speaker and a single target; thresholds whether the
+            utterances for a single target should be considered for a
+            particular speaker.
+        :type speaker_thresh_indiv: int
+        :param target_thresh_indiv: Like
+            `target_thresh` but thresholds whether a single target's
+            utterances should be considered for a particular speaker.
+        :type target_thresh_indiv: int
+        :param utterances_thresh_indiv: Like
+            `utterances_thresh` but thresholds whether a single target's
+            utterances should be considered for a particular speaker.
+        :type utterances_thresh_indiv: int
+        :param utterance_thresh_func: Optional utterance-level
+            threshold function that takes in a speaker `Utterance` and
+            the `Utterance` the speaker replied to, and returns a `bool`
+            corresponding to whether or not to include the utterance in
+            scoring.
+        :type utterance_thresh_func: function
+
+        :return:
             A dictionary of scores:
 
-            {
-                speaker_1: { dictionary of scores by coordination marker },
-                speaker_2: scores,
-                ...
-            }
+            ::
+
+                {
+                    speaker_1: { dictionary of scores by coordination marker },
+                    speaker_2: scores,
+                    ...
+                }
 
             The keys are of the same types as the input: if a username was 
-                passed in, the corresponding key will be a username, etc.
+            passed in, the corresponding key will be a username, etc.
         """
         if isinstance(speakers, str): speakers = [speakers]
         if isinstance(group, str): group = [group]
@@ -121,24 +129,32 @@ class Coordination:
             utterances_thresh=0, speaker_thresh_indiv=0, target_thresh_indiv=0,
             utterances_thresh_indiv=0, utterance_thresh_func=None):
         """Computes all pairwise coordination scores given a collection of
-            (speaker, target) pairs.
+        (speaker, target) pairs.
         
-        Args:
-            pairs (Collection): collection of (speaker, target) pairs where
-                each speaker and target can be either a username or a user
-                object.
-            
-            Also accepted: all threshold arguments accepted by `score`.
+        :param pairs: collection of (speaker, target) pairs where
+            each speaker and target can be either a username or a user
+            object.
+        :type pairs: Collection
+        
+        Also accepted: all threshold arguments accepted by :func:`score()`.
 
-        Returns:
+        :return:
             Dictionary of scores indexed by (speaker, target) pairs.
 
             Each value is itself a dictionary with scores indexed by
-                coordination marker.
+            coordination marker.
         """
         self.precompute()
+        pairs = set(pairs)
+        any_speaker = next(iter(pairs))[0]
+        if isinstance(any_speaker, str):
+            pairs_utts = self.model.pairwise_exchanges(lambda x, y:
+                    (x.name, y.name) in pairs, user_names_only=True)
+        else:
+            pairs_utts = self.model.pairwise_exchanges(lambda x, y:
+                    (x, y) in pairs, user_names_only=False)
         all_scores = {}
-        for (speaker, target), utterances in pairs.items():
+        for (speaker, target), utterances in pairs_utts.items():
             scores = self.scores_over_utterances([speaker], utterances,
                     speaker_thresh, target_thresh, utterances_thresh,
                     speaker_thresh_indiv, target_thresh_indiv,
@@ -150,7 +166,7 @@ class Coordination:
 
     def score_report(self, all_scores):
         """Create a "score report" of aggregate scores given a score output
-            produced by `score` or `pairwise_scores`.
+        produced by `score` or `pairwise_scores`.
 
         - Aggregate 1: average scores only over users with a score for each
             coordination marker.
@@ -162,17 +178,18 @@ class Coordination:
             user. (Assumes a user coordinates the same way across different
             coordination markers.)
 
-        Args:
-            scores (dict): Scores to produce a report for.
+        :param all_scores: Scores to produce a report for.
+        :type all_scores: dict
 
-        Returns:
-            A tuple (marker_a1, marker, agg1, agg2, agg3):
+        :return: A tuple (marker_a1, marker, agg1, agg2, agg3):
+
             - marker_a1 is a dictionary of aggregate scores by marker,
                 using the scores only over users included in Aggregate 1.
             - marker is a dictionary of aggregate scores by marker,
                 using the scores of all users with a coordination score for
                 that marker.
             - agg1, agg2 and agg3 are Aggregate 1, 2 and 3 scores respectively.
+
         """
 
         a1_scores_by_marker = defaultdict(list)
@@ -222,11 +239,8 @@ class Coordination:
         return re.compile(liwc_patterns1,re.I)
 
     def compute_liwc_reverse_dict(self):
-        '''
-        Created on Jan 19, 2012
-
-        @author: cristian
-        '''
+        # Created on Jan 19, 2012
+        # @author: cristian
 
         lkey={}
         liwc={}

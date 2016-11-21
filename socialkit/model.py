@@ -6,14 +6,14 @@ from collections import defaultdict
 class User:
     """Represents a single user in a dataset.
    
-    Args:
-        name (str, optional): name of the user.
-        info (dict, optional): arbitrary dictionary of attributes associated
-            with the user.
+    :param name: name of the user.
+    :type name: str
+    :param info: arbitrary dictionary of attributes associated
+        with the user.
+    :type info: dict
 
-    Attributes:
-        name (str): name of the user.
-        info (str): dictionary of attributes associated with the user.
+    :ivar name: name of the user.
+    :ivar info: dictionary of attributes associated with the user.
     """
     
     def __init__(self, name=None, info={}):
@@ -49,22 +49,21 @@ class User:
 class Utterance:
     """Represents a single utterance in the dataset.
 
-    Args:
-        id: the unique id of the utterance. Can be any hashable type.
-        user (User, optional): the user giving the utterance.
-        root (optional): the id of the root utterance of the conversation.
-        reply_to (optional): id of the utterance this was a reply to.
-        timestamp (optional): timestamp of the utterance. Can be any
-            comparable type.
-        text (str, optional): text of the utterance.
+    :param id: the unique id of the utterance. Can be any hashable type.
+    :param user: the user giving the utterance.
+    :param root: the id of the root utterance of the conversation.
+    :param reply_to: id of the utterance this was a reply to.
+    :param timestamp: timestamp of the utterance. Can be any
+        comparable type.
+    :param text: text of the utterance.
+    :type text: str
 
-    Attributes:
-        id: the unique id of the utterance.
-        user: the user giving the utterance.
-        root: the id of the root utterance of the conversation.
-        reply_to: id of the utterance this was a reply to.
-        timestamp: timestamp of the utterance.
-        text: text of the utterance.
+    :ivar id: the unique id of the utterance.
+    :ivar user: the user giving the utterance.
+    :ivar root: the id of the root utterance of the conversation.
+    :ivar reply_to: id of the utterance this was a reply to.
+    :ivar timestamp: timestamp of the utterance.
+    :ivar text: text of the utterance.
     """
 
     def __init__(self, id=None, user=None, root=None, reply_to=None,
@@ -84,18 +83,15 @@ class Utterance:
 
 class Model:
     """Represents a dataset, which can be loaded from a JSON file or a list
-        of utterances.
+    of utterances.
 
-    Args:
-        filename (str, optional): path of json file to load
-        utterances (list, optional): list of utterances to load
-        merge_lines (bool, default=False): whether to merge adjacent
-            lines from same author if the two utterances have the same root.
-            Uses the older version of the other attribs.
+    :param filename: path of json file to load
+    :param utterances: list of utterances to load
+    :param merge_lines: whether to merge adjacent
+        lines from same author if the two utterances have the same root.
+        Uses the older version of the other attribs.
 
-    Attributes:
-        utterances (dict): dictionary of utterances in the dataset, indexed by
-            id.
+    :ivar utterances: dictionary of utterances in the dataset, indexed by id.
     """
 
     def __init__(self, filename=None, utterances=None, merge_lines=False):
@@ -139,15 +135,13 @@ class Model:
     def users(self, selector=None):
         """Get users in the dataset.
 
-        Args:
-            selector (function, optional): optional function that takes in a
-                `User` and returns True to include the user in the
-                resulting list, or False otherwise.
+        :param selector: optional function that takes in a
+            `User` and returns True to include the user in the
+            resulting list, or False otherwise.
 
-        Returns:
-            Set containing all users selected by the selector function,
-                or all users in the dataset if no selector function was
-                used.
+        :return: Set containing all users selected by the selector function,
+            or all users in the dataset if no selector function was
+            used.
         """
         if selector is None:
             return self.all_users
@@ -157,33 +151,30 @@ class Model:
     def user_names(self, selector=None):
         """Get names of users in the dataset.
 
-        Args:
-            selector (function, optional): optional function that takes in a
-                `User` and returns True to include the user's name in the
-                resulting list, or False otherwise.
+        :param selector: optional function that takes in a
+            `User` and returns True to include the user's name in the
+            resulting list, or False otherwise.
 
-        Returns:
-            Set containing all user names selected by the selector function,
-                or all user names in the dataset if no selector function was
-                used.
+        :return: Set containing all user names selected by the selector
+            function, or all user names in the dataset if no selector function
+            was used.
         """
         return set([u.name for u in self.users(selector)])
 
-    def speaking_pairs(self, user_names_only=False, selector=None):
+    def speaking_pairs(self, selector=None, user_names_only=False):
         """Get all directed speaking pairs (a, b) of users such that a replies
             to b at least once in the dataset.
 
-        Args:
-            user_names_only (bool, default=False): if True, return just pairs of
-                user names rather than user objects.
-            selector (function, optional): optional function that takes in
-                a speaker user and a replied-to user and returns True to include
-                the pair in the result, or False otherwise.
+        :param selector: optional function that takes in
+            a speaker user and a replied-to user and returns True to include
+            the pair in the result, or False otherwise.
+        :param user_names_only: if True, return just pairs of
+            user names rather than user objects.
+        :type user_names_only: bool
 
-        Returns:
-            Set containing all speaking pairs selected by the selector function,
-                or all speaking pairs in the dataset if no selector function
-                was used.
+        :return: Set containing all speaking pairs selected by the selector
+            function, or all speaking pairs in the dataset if no selector
+            function was used.
         """
         pairs = set()
         for u2 in self.utterances.values():
@@ -195,19 +186,18 @@ class Model:
                                 user_names_only else (u2.user, u1.user))
         return pairs
 
-    def pairwise_exchanges(self, user_names_only=False, selector=None):
+    def pairwise_exchanges(self, selector=None, user_names_only=False):
         """Get all directed pairwise exchanges in the dataset.
 
-        Args:
-            user_names_only (bool, default=False): if True, index conversations
-                by user names rather than user objects.
-            selector (function, optional): optional function that takes in a
-                speaker user and a replied-to user and returns True to include
-                the pair in the result, or False otherwise.
+        :param selector: optional function that takes in a
+            speaker user and a replied-to user and returns True to include
+            the pair in the result, or False otherwise.
+        :param user_names_only: if True, index conversations
+            by user names rather than user objects.
+        :type user_names_only: bool
 
-        Returns:
-            Dictionary mapping (speaker, target) tuples to a list of utterances
-                given by the speaker in reply to the target.
+        :return: Dictionary mapping (speaker, target) tuples to a list of
+            utterances given by the speaker in reply to the target.
         """
         pairs = defaultdict(list)
         for u2 in self.utterances.values():

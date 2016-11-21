@@ -19,7 +19,8 @@ def command_line_main():
     coord = socialkit.Coordination(model)
 
     # pairwise scores
-    pairwise_scores = coord.all_pairwise_scores()
+    pairwise_scores = coord.pairwise_scores(model.speaking_pairs(
+        user_names_only=True))
     pairwise_scores_s = {"'" + s + "' -> '" + t + "'":
             v for (s, t), v in pairwise_scores.items()}
     _, pairwise_average_scores, _, _, _ = coord.score_report(pairwise_scores_s)
