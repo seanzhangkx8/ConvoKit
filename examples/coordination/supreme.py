@@ -7,10 +7,12 @@ import numpy as np
 import os
 import pickle
 
+# cache results in a pickle
 if os.path.isfile("supreme-coord.p"):
     coord = pickle.load(open("supreme-coord.p", "rb"))
 else:
     model = Model(filename="../../datasets/supreme-corpus/full.json")
+    model.subdivide_users_by_attribs(["case", "justice-is-favorable"])
     coord = Coordination(model)
     coord.precompute()
     pickle.dump(coord, open("supreme-coord.p", "wb"))
@@ -23,6 +25,8 @@ fav_justices = model.users(lambda u: u.info["is-justice"] and
         u.info["justice-is-favorable"])
 unfav_justices = model.users(lambda u: u.info["is-justice"] and
         not u.info["justice-is-favorable"])
+print(len(everyone))
+x = input()
 
 # each of a and b should be a tuple (speakers, targets)
 def make_chart(a, b, a_label, b_label, a_color="b", b_color="g"):

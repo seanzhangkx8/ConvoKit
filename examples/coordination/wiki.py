@@ -19,6 +19,7 @@ else:
     pickle.dump(coord, open("wiki-coord.p", "wb"))
 
 model = coord.model
+model.subdivide_users_by_attribs(["is-admin"])
 everyone = model.users()
 admins = model.users(lambda u: u.info["is-admin"])
 nonadmins = everyone - admins

@@ -19,6 +19,21 @@ class User:
     def __init__(self, name=None, info={}):
         self._name = name
         self._info = info
+        self._split_attribs = set()
+        self._update_uid()
+
+    def identify_by_attribs(self, attribs):
+        """Identify a user by a list of attributes. Sets which user info
+        attributes should distinguish users of the same name in equality tests.
+        For example, in the Supreme Court dataset, users are labeled with the
+        current case id. Call this method with attribs = ["case"] to count
+        the same person across different cases as different users.
+
+        :param attribs: Collection of attribute names.
+        :type attribs: Collection
+        """
+
+        self._split_attribs = set(attribs)
         self._update_uid()
 
     def _get_name(self): return self._name
@@ -34,8 +49,12 @@ class User:
     info = property(_get_info, _set_info)
 
     def _update_uid(self):
-        self._uid = "User({name: '" + self._name + \
-                "', info: " + str(self._info) + "})"
+        rep = {}
+        rep["name"] = self._name
+        if self._split_attribs:
+            rep["attribs"] = {k: self._info[k] for k in self._split_attribs
+                    if k in self._info}
+        self._uid = "User(" + str(rep) + ")"
 
     def __eq__(self, other):
         return self._uid == other._uid
@@ -131,6 +150,26 @@ class Model:
                 if not merged:
                     new_utterances[u.id] = u
             self.utterances = new_utterances
+
+    def subdivide_users_by_attribs(self, attribs):
+        """Use this if you want to count the same user as being different
+        depending on attributes other than username. For example, in the Supreme
+        Court dataset, users are annotated with the current case id. You could
+        use this to count the same person across different cases as being
+        different users.
+
+        Repeated calls to this method will override previous subdivisions.
+
+        :param attribs: Collection of attribute names to subdivide users on.
+        :type attribs: Collection
+        """
+        
+        new_all_users = set()
+        for u in self.utterances.values():
+            if u.user is not None:
+                u.user.identify_by_attribs(attribs)
+                new_all_users.add(u.user)
+        self.all_users = new_all_users
 
     def users(self, selector=None):
         """Get users in the dataset.

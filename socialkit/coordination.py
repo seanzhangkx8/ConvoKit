@@ -12,7 +12,7 @@ class Coordination:
     """Encapsulates computation of coordination-based features for a particular
     model.
 
-    :param model: the model to compute features for
+    :param model: the model to compute features for.
     :type model: Model
 
     :ivar model: the coordination object's model. 
@@ -39,14 +39,9 @@ class Coordination:
         speakers and a group of targets.
 
         :param speakers: A collection of usernames or user objects corresponding
-            to the speakers we want to compute scores for. Can also be a single
-            username/user object if only one speaker. If a user object is passed
-            in, the scoring will count users as unique if they have different
-            user infos, which can be used to compare the same user across
-            different attributes.
+            to the speakers we want to compute scores for.
         :param group: A collection of usernames or user objects corresponding to
-            the group of targets. Can also be a single username/user object
-            if only one target.
+            the group of targets.
         :param speaker_thresh: Thresholds based on
             minimum number of times the speaker uses each coordination
             marker.
@@ -94,9 +89,6 @@ class Coordination:
             The keys are of the same types as the input: if a username was 
             passed in, the corresponding key will be a username, etc.
         """
-        if isinstance(speakers, str): speakers = [speakers]
-        if isinstance(group, str): group = [group]
-
         self.precompute()
         speakers = set(speakers)
         group = set(group)
