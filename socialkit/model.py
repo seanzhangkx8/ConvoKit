@@ -54,7 +54,7 @@ class User:
         if self._split_attribs:
             rep["attribs"] = {k: self._info[k] for k in self._split_attribs
                     if k in self._info}
-        self._uid = "User(" + str(rep) + ")"
+        self._uid = "User(" + str(sorted(rep.items())) + ")"
 
     def __eq__(self, other):
         return self._uid == other._uid

@@ -25,8 +25,6 @@ fav_justices = model.users(lambda u: u.info["is-justice"] and
         u.info["justice-is-favorable"])
 unfav_justices = model.users(lambda u: u.info["is-justice"] and
         not u.info["justice-is-favorable"])
-print(len(everyone))
-x = input()
 
 # each of a and b should be a tuple (speakers, targets)
 def make_chart(a, b, a_label, b_label, a_color="b", b_color="g"):
