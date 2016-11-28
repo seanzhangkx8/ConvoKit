@@ -220,76 +220,20 @@ class Coordination:
         return a1_avg_by_marker, avg_by_marker, agg1, agg2, agg3
 
     # helper functions
-    def get_liwcpattern(self, feature):
-        liwc_patterns1=""
-        for k in self.liwc_reversed[feature]:
-            if not k.endswith("*"):
-                liwc_patterns1+="\\b"+k+"\\b|"
-            else:
-                liwc_patterns1+="\\b"+k.strip("*")+"|"
-        liwc_patterns1=liwc_patterns1[:-1]
-        return re.compile(liwc_patterns1,re.I)
-
     def compute_liwc_reverse_dict(self):
-        # Created on Jan 19, 2012
-        # @author: cristian
-
-        lkey={}
-        liwc={}
-        f=open(pkg_resources.resource_filename("socialkit", "data/LIWC.dic"))
-                #'data/LIWC2007_English080730.dic')
-        lines=f.readlines()
-        f.close()
-
-        lkey2={}
-
-
-        lc=1
-        l=lines[lc].strip()
-        while l != "%":
-            (k,v)=l.split()
-            lkey2[int(k)]=v.lower()
-            lc+=1
-            l=lines[lc].strip()
-
-
-        lc+=1
-        while lc<len(lines):
-            l=lines[lc].strip()
-            entry=l.split()
-            for k in entry[1:]:
-                try: 
-                    liwc.setdefault(entry[0],[]).append(lkey2[int(k)])
-                except ValueError:
-                    pass
-                    #print entry[0],k,"not an integer"
-            lc+=1
-
-        liwc_nostar_toint={} # indexed by lemmas (no "*"s)
-        entry_to_int={}
-        int_to_entry={}
-        ec=0
-        all_entries=list(set(lkey.values()).union(set(lkey2.values())))
-
-        for v in sorted(all_entries):
-            entry_to_int[v]=ec
-            int_to_entry[ec]=v
-            ec+=1
-
-        for k in liwc:
-            liwc_nostar_toint.setdefault(k.strip("*"),[]).extend(
-                    [entry_to_int[v] for v in liwc[k]])
-        self.liwc_reversed = {}
-        for w in liwc:
-            for e in liwc[w]:
-                self.liwc_reversed.setdefault(e,[]).append(w)
+        self.liwc_patterns = {}
+        with open(pkg_resources.resource_filename("socialkit",
+            "data/coord-liwc-patterns.txt"), "r") as f:
+            for line in f:
+                cat, pat = line.strip().split("\t")
+                self.liwc_patterns[cat] = re.compile(pat, re.IGNORECASE)
 
     def annot_liwc_cats(self):
         # add liwc_categories field to each utterance
         for k in self.model.utterances:
             self.model.utterances[k].liwc_categories = set()
         for cat in CoordinationWordCategories:
-            pattern = self.get_liwcpattern(cat)
+            pattern = self.liwc_patterns[cat]
             for k, u in self.model.utterances.items():
                 s = re.search(pattern, u.text)
                 if s is not None:

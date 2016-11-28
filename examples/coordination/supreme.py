@@ -1,4 +1,4 @@
-from socialkit import Utterance, Model, Coordination
+from socialkit import Utterance, Model, Coordination, download
 
 from scipy.stats import ttest_ind
 import matplotlib.pyplot as plt
@@ -11,7 +11,7 @@ import pickle
 if os.path.isfile("supreme-coord.p"):
     coord = pickle.load(open("supreme-coord.p", "rb"))
 else:
-    model = Model(filename="../../datasets/supreme-corpus/full.json")
+    model = Model(filename=download("supreme-corpus"))
     model.subdivide_users_by_attribs(["case", "justice-is-favorable"])
     coord = Coordination(model)
     coord.precompute()

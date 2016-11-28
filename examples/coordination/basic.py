@@ -1,7 +1,7 @@
 import socialkit
 
 # set up model 
-model = socialkit.Model(filename="../../datasets/supreme-corpus/full.json")
+model = socialkit.Model(filename=socialkit.download("supreme-corpus"))
 coord = socialkit.Coordination(model)
 
 # get set of all justices

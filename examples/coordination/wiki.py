@@ -1,4 +1,4 @@
-from socialkit import Utterance, Model, Coordination
+from socialkit import Utterance, Model, Coordination, download
 
 from scipy.stats import ttest_ind
 import matplotlib.pyplot as plt
@@ -11,7 +11,7 @@ if os.path.isfile("wiki-coord.p"):
     coord = pickle.load(open("wiki-coord.p", "rb"))
     print("Loaded model from wiki-coord.p")
 else:
-    model = Model(filename="../../datasets/wiki-corpus/full.json")
+    model = Model(filename=download("wiki-corpus"))
     print("Loaded model")
     coord = Coordination(model)
     coord.precompute()

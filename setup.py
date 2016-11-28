@@ -8,7 +8,7 @@ setup(
     description = "Social features toolkit",
     version = "0.0.1",
     packages = ["socialkit"],
-    package_data = {"socialkit": ["data/*"]},
+    package_data = {"socialkit": ["data/*.txt"]},
     entry_points = {
         "console_scripts": ["socialkit = socialkit:command_line_main"]
     }

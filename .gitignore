@@ -4,6 +4,7 @@
 *.swp
 *.p
 /doc/build/
+/socialkit/data/downloads/
 datasets/supreme-corpus/*.txt
 datasets/supreme-corpus/*.dat
 datasets/supreme-corpus/*.json
