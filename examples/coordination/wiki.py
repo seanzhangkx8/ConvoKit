@@ -1,4 +1,4 @@
-from socialkit import Utterance, Corpus, Coordination, download
+from convokit import Utterance, Corpus, Coordination, download
 
 from scipy.stats import ttest_ind
 import matplotlib.pyplot as plt

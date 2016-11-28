@@ -4,7 +4,7 @@ from collections import defaultdict
 import argparse
 import os
 import json
-import socialkit
+import convokit
 
 def command_line_main():
     parser = argparse.ArgumentParser(description="Social features toolkit.")
@@ -13,10 +13,10 @@ def command_line_main():
             help="file containing groups")
     args = parser.parse_args()
 
-    corpus = socialkit.Corpus(filename=args.filename)
+    corpus = convokit.Corpus(filename=args.filename)
 
     ### coordination
-    coord = socialkit.Coordination(corpus)
+    coord = convokit.Coordination(corpus)
 
     # pairwise scores
     pairwise_scores = coord.pairwise_scores(corpus.speaking_pairs(

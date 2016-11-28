@@ -1,15 +1,15 @@
 from setuptools import setup
 
 setup(
-    name = "socialkit",
-    author = "Andrew Wang",
+    name = "convokit",
+    author = "Cristian Danescu-Niculescu-Mizil, Andrew Wang",
     author_email = "azw7@cornell.edu",
-    url = "https://github.com/qema/socialkit",
-    description = "Social features toolkit",
+    url = "https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit",
+    description = "Cornell Conversational Analysis Toolkit",
     version = "0.0.1",
-    packages = ["socialkit"],
-    package_data = {"socialkit": ["data/*.txt"]},
+    packages = ["convokit"],
+    package_data = {"convokit": ["data/*.txt"]},
     entry_points = {
-        "console_scripts": ["socialkit = socialkit:command_line_main"]
+        "console_scripts": ["convokit = convokit:command_line_main"]
     }
 )

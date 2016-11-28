@@ -1,8 +1,8 @@
-import socialkit
+import convokit
 
 # set up corpus 
-corpus = socialkit.Corpus(filename=socialkit.download("supreme-corpus"))
-coord = socialkit.Coordination(corpus)
+corpus = convokit.Corpus(filename=convokit.download("supreme-corpus"))
+coord = convokit.Coordination(corpus)
 
 # get set of all justices
 justices = corpus.users(lambda user: user.info["is-justice"])
