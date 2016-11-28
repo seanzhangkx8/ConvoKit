@@ -22,8 +22,7 @@ print("Justices, ranked by how much others coordinate to them:")
 coord_to_justices = {}
 for justice in justices:
     everyone_to_justice = coord.score(everyone, [justice])
-    coord_to_justices[justice] = coord.score_report(everyone_to_justice)
-for justice, scores in sorted(coord_to_justices.items(),
-    key=lambda item: item[1][4], reverse=True):  # sort by aggregate 3 score 
-    print(justice.name, round(scores[4], 5))
+    coord_to_justices[justice] = everyone_to_justice.aggregate()
+for justice, score in sorted(coord_to_justices.items(), reverse=True):
+    print(justice.name, round(score, 5))
 print()
