@@ -1,8 +1,9 @@
-# Installing
+# Cornell Conversational Analysis Toolkit
+## Installing
 Run `python3 setup.py install` to install the package.
 Use `import convokit` to import it into your project.
 
-# Basic usage
+## Basic usage
 1. Load corpus: `corpus = Corpus(filename=...)`
 2. Create coordination object: `coord = Coord(corpus)`
 3. Define groups using `corpus.users`:
