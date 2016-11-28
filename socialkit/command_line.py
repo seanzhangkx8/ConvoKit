@@ -13,13 +13,13 @@ def command_line_main():
             help="file containing groups")
     args = parser.parse_args()
 
-    model = socialkit.Model(filename=args.filename)
+    corpus = socialkit.Corpus(filename=args.filename)
 
     ### coordination
-    coord = socialkit.Coordination(model)
+    coord = socialkit.Coordination(corpus)
 
     # pairwise scores
-    pairwise_scores = coord.pairwise_scores(model.speaking_pairs(
+    pairwise_scores = coord.pairwise_scores(corpus.speaking_pairs(
         user_names_only=True))
     pairwise_scores_s = {"'" + s + "' -> '" + t + "'":
             v for (s, t), v in pairwise_scores.items()}

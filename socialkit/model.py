@@ -1,8 +1,10 @@
 """The objects used to represent a dataset."""
 
 import json
+from functools import total_ordering
 from collections import defaultdict
 
+@total_ordering
 class User:
     """Represents a single user in a dataset.
    
@@ -59,6 +61,9 @@ class User:
     def __eq__(self, other):
         return self._uid == other._uid
 
+    def __lt__(self, other):
+        return self._uid < other._uid
+
     def __hash__(self):
         return hash(self._uid)
 
@@ -100,7 +105,7 @@ class Utterance:
     def __repr__(self):
         return "Utterance(" + str(self.__dict__) + ")"
 
-class Model:
+class Corpus:
     """Represents a dataset, which can be loaded from a JSON file or a list
     of utterances.
 

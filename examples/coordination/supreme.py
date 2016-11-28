@@ -1,4 +1,4 @@
-from socialkit import Utterance, Model, Coordination, download
+from socialkit import Utterance, Corpus, Coordination, download
 
 from scipy.stats import ttest_ind
 import matplotlib.pyplot as plt
@@ -11,29 +11,29 @@ import pickle
 if os.path.isfile("supreme-coord.p"):
     coord = pickle.load(open("supreme-coord.p", "rb"))
 else:
-    model = Model(filename=download("supreme-corpus"))
-    model.subdivide_users_by_attribs(["case", "justice-is-favorable"])
-    coord = Coordination(model)
+    corpus = Corpus(filename=download("supreme-corpus"))
+    corpus.subdivide_users_by_attribs(["case", "justice-is-favorable"])
+    coord = Coordination(corpus)
     coord.precompute()
     pickle.dump(coord, open("supreme-coord.p", "wb"))
 
-model = coord.model
-everyone = model.users()
-justices = model.users(lambda u: u.info["is-justice"])
-lawyers = model.users(lambda u: not u.info["is-justice"])
-fav_justices = model.users(lambda u: u.info["is-justice"] and
+corpus = coord.corpus
+everyone = corpus.users()
+justices = corpus.users(lambda u: u.info["is-justice"])
+lawyers = corpus.users(lambda u: not u.info["is-justice"])
+fav_justices = corpus.users(lambda u: u.info["is-justice"] and
         u.info["justice-is-favorable"])
-unfav_justices = model.users(lambda u: u.info["is-justice"] and
+unfav_justices = corpus.users(lambda u: u.info["is-justice"] and
         not u.info["justice-is-favorable"])
 
 # each of a and b should be a tuple (speakers, targets)
 def make_chart(a, b, a_label, b_label, a_color="b", b_color="g"):
     s1, t1 = a
     s2, t2 = b
-    admin_scores = coord.score(s1, t1, target_thresh=5)
+    admin_scores = coord.score(s1, t1, target_thresh=6)
     admin_a1m, admin_m, admin_agg1, admin_agg2, admin_agg3 = \
             coord.score_report(admin_scores)
-    nonadmin_scores = coord.score(s2, t2, target_thresh=5)
+    nonadmin_scores = coord.score(s2, t2, target_thresh=6)
     nonadmin_a1m, nonadmin_m, nonadmin_agg1, nonadmin_agg2, nonadmin_agg3 = \
             coord.score_report(nonadmin_scores)
 

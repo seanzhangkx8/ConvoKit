@@ -1,4 +1,4 @@
-from socialkit import Utterance, Model, Coordination, download
+from socialkit import Utterance, Corpus, Coordination, download
 
 from scipy.stats import ttest_ind
 import matplotlib.pyplot as plt
@@ -9,19 +9,19 @@ import pickle
 
 if os.path.isfile("wiki-coord.p"):
     coord = pickle.load(open("wiki-coord.p", "rb"))
-    print("Loaded model from wiki-coord.p")
+    print("Loaded corpus from wiki-coord.p")
 else:
-    model = Model(filename=download("wiki-corpus"))
-    print("Loaded model")
-    coord = Coordination(model)
+    corpus = Corpus(filename=download("wiki-corpus"))
+    print("Loaded corpus")
+    coord = Coordination(corpus)
     coord.precompute()
     print("Done precomputing")
     pickle.dump(coord, open("wiki-coord.p", "wb"))
 
-model = coord.model
-model.subdivide_users_by_attribs(["is-admin"])
-everyone = model.users()
-admins = model.users(lambda u: u.info["is-admin"])
+corpus = coord.corpus
+corpus.subdivide_users_by_attribs(["is-admin"])
+everyone = corpus.users()
+admins = corpus.users(lambda u: u.info["is-admin"])
 nonadmins = everyone - admins
 
 # each of a and b should be a tuple (speakers, targets)

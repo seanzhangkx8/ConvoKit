@@ -8,18 +8,82 @@ from collections import defaultdict
 CoordinationWordCategories = ["article", "auxverb", "conj", "adverb",
         "ppron", "ipron", "preps", "quant"]
 
+class CoordinationScore(dict):
+    def scores_for_marker(self, marker):
+        return {speaker: scores[marker] for speaker, scores in self.items()}
+
+    def averages_by_user(self):
+        return {speaker: sum(scores.values()) / len(scores)
+                for speaker, scores in self.items()}
+
+    def averages_by_marker(self, strict_thresh=False):
+        self.precompute_aggregates()
+        return self.a1_avg_by_marker if strict_thresh else self.avg_by_marker
+
+    def aggregate(self, method=3):
+        assert 1 <= method and method <= 3
+        self.precompute_aggregates()
+        if method == 1:
+            return self.agg1
+        elif method == 2:
+            return self.agg2
+        else:
+            return self.agg3
+
+    # helper functions
+    def precompute_aggregates(self):
+        a1_scores_by_marker = defaultdict(list)
+        scores_by_marker = defaultdict(list)
+        for speaker, scores in self.items():
+            for cat, score in scores.items():
+                scores_by_marker[cat].append(score)
+                if len(scores) == len(CoordinationWordCategories):
+                    a1_scores_by_marker[cat].append(score)
+        do_agg2 = False
+        if len(scores_by_marker) == len(CoordinationWordCategories):
+            do_agg2 = True
+            avg_score_by_marker = {cat: sum(scores) / len(scores) 
+                    for cat, scores in scores_by_marker.items()}
+        agg1s, agg2s, agg3s = [], [], []
+        for speaker, scoredict in self.items():
+            scores = list(scoredict.values())
+            if len(scores) >= 1:
+                avg = sum(scores) / len(scores)
+                agg3s.append(avg)
+                if len(scores) == len(CoordinationWordCategories):
+                    agg1s.append(avg)
+                if do_agg2:
+                    for cat in avg_score_by_marker:
+                        if cat not in scoredict:
+                            scores.append(avg_score_by_marker[cat])
+                    agg2s.append(sum(scores) / len(scores))
+        agg1 = sum(agg1s) / len(agg1s) if agg1s else None
+        agg2 = sum(agg2s) / len(agg2s) if agg2s else None  
+        agg3 = sum(agg3s) / len(agg3s) if agg3s else None
+
+        a1_avg_by_marker = {cat: sum(scores) / len(scores)
+                for cat, scores in a1_scores_by_marker.items()}
+        avg_by_marker = {cat: sum(scores) / len(scores)
+                for cat, scores in scores_by_marker.items()}
+        self.precomputed_aggregates = True
+        self.a1_avg_by_marker = a1_avg_by_marker
+        self.avg_by_marker = avg_by_marker
+        self.agg1 = agg1
+        self.agg2 = agg2
+        self.agg3 = agg3
+
 class Coordination:
     """Encapsulates computation of coordination-based features for a particular
-    model.
+    corpus.
 
-    :param model: the model to compute features for.
-    :type model: Model
+    :param corpus: the corpus to compute features for.
+    :type corpus: Corpus
 
-    :ivar model: the coordination object's model. 
+    :ivar corpus: the coordination object's corpus. 
     """
 
-    def __init__(self, model):
-        self.model = model
+    def __init__(self, corpus):
+        self.corpus = corpus
         self.precomputed = False
 
     def precompute(self):
@@ -102,11 +166,11 @@ class Coordination:
         fine_grained_targets = not isinstance(any_target, str)
 
         utterances = []
-        for u in self.model.utterances.values():
+        for u in self.corpus.utterances.values():
             speaker = u.user if fine_grained_speakers else u.user.name
             if speaker in speakers:
                 if u.reply_to is not None:
-                    reply_to = self.model.utterances[u.reply_to]
+                    reply_to = self.corpus.utterances[u.reply_to]
                     target = reply_to.user if fine_grained_targets else \
                             reply_to.user.name
                     if target in group:
@@ -140,12 +204,12 @@ class Coordination:
         pairs = set(pairs)
         any_speaker = next(iter(pairs))[0]
         if isinstance(any_speaker, str):
-            pairs_utts = self.model.pairwise_exchanges(lambda x, y:
+            pairs_utts = self.corpus.pairwise_exchanges(lambda x, y:
                     (x.name, y.name) in pairs, user_names_only=True)
         else:
-            pairs_utts = self.model.pairwise_exchanges(lambda x, y:
+            pairs_utts = self.corpus.pairwise_exchanges(lambda x, y:
                     (x, y) in pairs, user_names_only=False)
-        all_scores = {}
+        all_scores = CoordinationScore()
         for (speaker, target), utterances in pairs_utts.items():
             scores = self.scores_over_utterances([speaker], utterances,
                     speaker_thresh, target_thresh, utterances_thresh,
@@ -156,7 +220,7 @@ class Coordination:
                 all_scores[speaker, target] = m
         return all_scores
 
-    def score_report(self, all_scores):
+    def score_report(self, scores):
         """Create a "score report" of aggregate scores given a score output
         produced by `score` or `pairwise_scores`.
 
@@ -170,8 +234,8 @@ class Coordination:
             user. (Assumes a user coordinates the same way across different
             coordination markers.)
 
-        :param all_scores: Scores to produce a report for.
-        :type all_scores: dict
+        :param scores: Scores to produce a report for.
+        :type scores: dict
 
         :return: A tuple (marker_a1, marker, agg1, agg2, agg3):
 
@@ -183,41 +247,12 @@ class Coordination:
             - agg1, agg2 and agg3 are Aggregate 1, 2 and 3 scores respectively.
 
         """
-
-        a1_scores_by_marker = defaultdict(list)
-        scores_by_marker = defaultdict(list)
-        for speaker, scores in all_scores.items():
-            for cat, score in scores.items():
-                scores_by_marker[cat].append(score)
-                if len(scores) == len(CoordinationWordCategories):
-                    a1_scores_by_marker[cat].append(score)
-        do_agg2 = False
-        if len(scores_by_marker) == len(CoordinationWordCategories):
-            do_agg2 = True
-            avg_score_by_marker = {cat: sum(scores) / len(scores) 
-                    for cat, scores in scores_by_marker.items()}
-        agg1s, agg2s, agg3s = [], [], []
-        for speaker, scoredict in all_scores.items():
-            scores = list(scoredict.values())
-            if len(scores) >= 1:
-                avg = sum(scores) / len(scores)
-                agg3s.append(avg)
-                if len(scores) == len(CoordinationWordCategories):
-                    agg1s.append(avg)
-                if do_agg2:
-                    for cat in avg_score_by_marker:
-                        if cat not in scoredict:
-                            scores.append(avg_score_by_marker[cat])
-                    agg2s.append(sum(scores) / len(scores))
-        agg1 = sum(agg1s) / len(agg1s) if agg1s else None
-        agg2 = sum(agg2s) / len(agg2s) if agg2s else None  
-        agg3 = sum(agg3s) / len(agg3s) if agg3s else None
-
-        a1_avg_by_marker = {cat: sum(scores) / len(scores)
-                for cat, scores in a1_scores_by_marker.items()}
-        avg_by_marker = {cat: sum(scores) / len(scores)
-                for cat, scores in scores_by_marker.items()}
-        return a1_avg_by_marker, avg_by_marker, agg1, agg2, agg3
+        marker_a1 = scores.averages_by_marker(strict_thresh=True)  
+        marker = scores.averages_by_marker()
+        agg1 = scores.aggregate(method=1)
+        agg2 = scores.aggregate(method=2)
+        agg3 = scores.aggregate(method=3)
+        return (marker_a1, marker, agg1, agg2, agg3)
 
     # helper functions
     def compute_liwc_reverse_dict(self):
@@ -230,14 +265,14 @@ class Coordination:
 
     def annot_liwc_cats(self):
         # add liwc_categories field to each utterance
-        for k in self.model.utterances:
-            self.model.utterances[k].liwc_categories = set()
+        for k in self.corpus.utterances:
+            self.corpus.utterances[k].liwc_categories = set()
         for cat in CoordinationWordCategories:
             pattern = self.liwc_patterns[cat]
-            for k, u in self.model.utterances.items():
+            for k, u in self.corpus.utterances.items():
                 s = re.search(pattern, u.text)
                 if s is not None:
-                    self.model.utterances[k].liwc_categories.add(cat)
+                    self.corpus.utterances[k].liwc_categories.add(cat)
 
     def scores_over_utterances(self, speakers, utterances,
             speaker_thresh, target_thresh, utterances_thresh,
@@ -246,7 +281,7 @@ class Coordination:
             fine_grained_speakers=False, fine_grained_targets=False):
         assert not isinstance(speakers, str)
 
-        m = self.model
+        m = self.corpus
         tally = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
         cond_tally = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
         cond_total = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
@@ -270,7 +305,7 @@ class Coordination:
                                 cond_total[speaker][cat][target] += 1
                                 if cat in u2.liwc_categories:
                                     cond_tally[speaker][cat][target] += 1
-        out = {}
+        out = CoordinationScore()
         for speaker in speakers:
             coord_w = {}  # coordination score wrt a category
             for cat in CoordinationWordCategories:
