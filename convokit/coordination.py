@@ -257,7 +257,7 @@ class Coordination:
     # helper functions
     def compute_liwc_reverse_dict(self):
         self.liwc_patterns = {}
-        with open(pkg_resources.resource_filename("socialkit",
+        with open(pkg_resources.resource_filename("convokit",
             "data/coord-liwc-patterns.txt"), "r") as f:
             for line in f:
                 cat, pat = line.strip().split("\t")
@@ -329,7 +329,6 @@ class Coordination:
                     coord_w[cat] = threshed_cond_tally / threshed_cond_total - \
                             threshed_tally / threshed_n_utterances
             if len(coord_w) > 0:
-                scores = coord_w.values()
                 out[speaker] = coord_w
         return out
 

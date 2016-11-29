@@ -28,10 +28,12 @@ nonadmins = everyone - admins
 def make_chart(a, b, a_label, b_label):
     s1, t1 = a
     s2, t2 = b
-    admin_scores = coord.score(s1, t1, target_thresh=8)
+    admin_scores = coord.score(s1, t1, utterances_thresh_indiv=4,
+            target_thresh=1)
     admin_a1m, admin_m, admin_agg1, admin_agg2, admin_agg3 = \
             coord.score_report(admin_scores)
-    nonadmin_scores = coord.score(s2, t2, target_thresh=2)
+    nonadmin_scores = coord.score(s2, t2, utterances_thresh_indiv=4,
+            target_thresh=1)
     nonadmin_a1m, nonadmin_m, nonadmin_agg1, nonadmin_agg2, nonadmin_agg3 = \
             coord.score_report(nonadmin_scores)
 
@@ -69,23 +71,5 @@ def make_chart(a, b, a_label, b_label):
 
 make_chart((everyone, admins), (everyone, nonadmins),
         "Target: admins", "Target: nonadmins")
-make_chart((admins, everyone), (nonadmins, everyone),
-        "Speaker: admins", "Speaker: nonadmins")
-#fig, ax = plt.subplots()
-#rects1 = ax.bar(np.arange(len(target_admins)), target_admins,
-#                0.35, color="b")
-#rects2 = ax.bar(np.arange(len(target_nonadmins)) + 0.35, target_nonadmins,
-#                0.35, color="g")
-#ax.set_xticks(np.arange(len(target_nonadmins)) + 0.35)
-#ax.set_xticklabels(labels, rotation='vertical')
-#b_patch = mpatches.Patch(color='blue',
-#                         label='Target: Admins (total: ' +
-#                         str(n_target_admins[0]) + ", " +
-#                         str(n_target_admins[2]) + ")")
-#g_patch = mpatches.Patch(color='green',
-#                         label='Target: Non-admins (total: '  +
-#                         str(n_target_nonadmins[0]) + ", " +
-#                         str(n_target_nonadmins[2]) + ")")
-#plt.legend(handles=[b_patch, g_patch])
-#plt.title("Targets")
-
+#make_chart((admins, everyone), (nonadmins, everyone),
+        #"Speaker: admins", "Speaker: nonadmins")
