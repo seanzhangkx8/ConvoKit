@@ -1,3 +1,7 @@
+# This example uses the supreme court corpus to compute some simple information:
+# - Which justices coordinate the most to others?
+# - Which justices are coordinated to the most?
+
 import convokit
 
 # set up corpus 
