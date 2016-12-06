@@ -24,7 +24,8 @@ corpus.subdivide_users_by_attribs(["case", "justice-is-favorable"])
 # create coordination object
 coord = Coordination(corpus)
 
-# helper function to compare two coordination scores and plot them as a chart
+# helper function to compute two coordination scores and plot them against each
+#   other as a chart
 # a is a tuple (speakers, targets)
 # b is a tuple (speakers, targets)
 # the function will compute and plot the coordination scores for the two
