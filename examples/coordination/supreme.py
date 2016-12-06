@@ -1,23 +1,15 @@
 from convokit import Utterance, Corpus, Coordination, download
 
-from scipy.stats import ttest_ind
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import numpy as np
 import os
 import pickle
 
-# cache results in a pickle
-if os.path.isfile("supreme-coord.p"):
-    coord = pickle.load(open("supreme-coord.p", "rb"))
-else:
-    corpus = Corpus(filename=download("supreme-corpus"))
-    corpus.subdivide_users_by_attribs(["case", "justice-is-favorable"])
-    coord = Coordination(corpus)
-    coord.precompute()
-    pickle.dump(coord, open("supreme-coord.p", "wb"))
+corpus = Corpus(filename=download("supreme-corpus"))
+corpus.subdivide_users_by_attribs(["case", "justice-is-favorable"])
+coord = Coordination(corpus)
 
-corpus = coord.corpus
 everyone = corpus.users()
 justices = corpus.users(lambda u: u.info["is-justice"])
 lawyers = corpus.users(lambda u: not u.info["is-justice"])
@@ -27,7 +19,7 @@ unfav_justices = corpus.users(lambda u: u.info["is-justice"] and
         not u.info["justice-is-favorable"])
 
 # each of a and b should be a tuple (speakers, targets)
-def make_chart(a, b, a_label, b_label, a_color="b", b_color="g"):
+def compare(a, b, a_label, b_label, a_color="b", b_color="g"):
     s1, t1 = a
     s2, t2 = b
     admin_scores = coord.score(s1, t1, target_thresh=6)
@@ -69,30 +61,9 @@ def make_chart(a, b, a_label, b_label, a_color="b", b_color="g"):
     plt.legend(handles=[b_patch, g_patch])
     plt.show()
 
-make_chart((justices, lawyers), (lawyers, justices),
+compare_groups((justices, lawyers), (lawyers, justices),
         "Justices to lawyers", "Lawyers to justices", "g", "b")
-make_chart((lawyers, unfav_justices), (lawyers, fav_justices),
+compare_groups((lawyers, unfav_justices), (lawyers, fav_justices),
         "Target: unfavorable justice", "Target: favorable justice")
-make_chart((unfav_justices, lawyers), (fav_justices, lawyers),
+compare_groups((unfav_justices, lawyers), (fav_justices, lawyers),
         "Speaker: unfavorable justice", "Speaker: favorable justice")
-
-#make_chart((admins, everyone), (nonadmins, everyone))
-#fig, ax = plt.subplots()
-#rects1 = ax.bar(np.arange(len(target_admins)), target_admins,
-#                0.35, color="b")
-#rects2 = ax.bar(np.arange(len(target_nonadmins)) + 0.35, target_nonadmins,
-#                0.35, color="g")
-#ax.set_xticks(np.arange(len(target_nonadmins)) + 0.35)
-#ax.set_xticklabels(labels, rotation='vertical')
-#b_patch = mpatches.Patch(color='blue',
-#                         label='Target: Admins (total: ' +
-#                         str(n_target_admins[0]) + ", " +
-#                         str(n_target_admins[2]) + ")")
-#g_patch = mpatches.Patch(color='green',
-#                         label='Target: Non-admins (total: '  +
-#                         str(n_target_nonadmins[0]) + ", " +
-#                         str(n_target_nonadmins[2]) + ")")
-#plt.legend(handles=[b_patch, g_patch])
-#plt.title("Targets")
-
-
