@@ -23,6 +23,6 @@ coord_to_justices = {}
 for justice in justices:
     everyone_to_justice = coord.score(everyone, [justice])
     coord_to_justices[justice] = everyone_to_justice.aggregate()
-for justice, score in sorted(coord_to_justices.items(), reverse=True):
+for justice, score in sorted(coord_to_justices.items()):
     print(justice.name, round(score, 5))
 print()

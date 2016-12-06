@@ -13,6 +13,7 @@ def download(name, verbose=True):
     }
     name = name.lower()
     data_dir = pkg_resources.resource_filename("convokit", "")
+    print(data_dir)
     dataset_path = os.path.join(data_dir, "downloads", name)
     if not os.path.exists(os.path.dirname(dataset_path)):
         os.makedirs(os.path.dirname(dataset_path))
