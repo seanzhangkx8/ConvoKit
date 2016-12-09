@@ -5,6 +5,7 @@
 *.p
 /doc/build/
 /convokit/data/downloads/
+/convokit/downloads/
 datasets/supreme-corpus/*.txt
 datasets/supreme-corpus/*.dat
 datasets/supreme-corpus/*.json
