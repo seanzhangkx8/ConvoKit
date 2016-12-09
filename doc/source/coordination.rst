@@ -1,6 +1,6 @@
 Coordination
 ============
 
-.. automodule:: socialkit.coordination
+.. automodule:: convokit.coordination
     :members:
 

@@ -1,5 +1,5 @@
 Model
 ============
 
-.. automodule:: socialkit.model
+.. automodule:: convokit.model
     :members:

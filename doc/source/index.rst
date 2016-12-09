@@ -11,4 +11,5 @@ Contents:
 .. toctree::
    Coordination <coordination.rst>
    Model <model.rst>
+   Utility functions <util.rst>
 

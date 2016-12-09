@@ -5,7 +5,7 @@
 import convokit
 
 # set up corpus 
-corpus = convokit.Corpus(filename=convokit.download("supreme-corpus"))
+corpus = convokit.Corpus(filename=convokit.util.download("supreme-corpus"))
 coord = convokit.Coordination(corpus)
 
 # get set of all justices

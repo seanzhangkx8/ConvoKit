@@ -5,7 +5,8 @@
 # - Do users on the whole coordinate more to admins or nonadmins?
 # - Do admins coordinate to other people more than nonadmins do?
 
-from convokit import Utterance, Corpus, Coordination, download
+from convokit import Utterance, Corpus, Coordination
+from convokit.util import download
 
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches

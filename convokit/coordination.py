@@ -9,18 +9,70 @@ CoordinationWordCategories = ["article", "auxverb", "conj", "adverb",
         "ppron", "ipron", "preps", "quant"]
 
 class CoordinationScore(dict):
+    """Encapsulates results of :func:`Coordination.score()` and
+    :func:`Coordination.pairwise_scores()`.
+
+    The simplest way to use it is as a dictionary mapping speakers to their
+    scores:
+
+    ::
+
+        {
+            speaker_1: { dictionary of scores by coordination marker },
+            speaker_2: scores,
+            ...
+        }
+
+    The keys are of the same types as the input: if a username was 
+    passed in, the corresponding key will be a username, etc. For pairwise
+    scores, the keys are tuples (speaker, target).
+
+    There are also helper functions for filtering scores or getting aggregate
+    scores:
+    """
     def scores_for_marker(self, marker):
+        """Return a dictionary from speakers to their scores for just the given
+        marker.
+        
+        :param marker: The marker to return scores for.
+        :type marker: str
+        """ 
         return {speaker: scores[marker] for speaker, scores in self.items()}
 
     def averages_by_user(self):
+        """Return a dictionary from speakers to the average of each speaker's
+        marker scores."""
         return {speaker: sum(scores.values()) / len(scores)
                 for speaker, scores in self.items()}
 
     def averages_by_marker(self, strict_thresh=False):
+        """Return a dictionary mapping markers to the average coordination score
+        on that marker.
+        
+        :param strict_thresh: Whether to only include users with all 8 marker
+            scores. This corresponds to Aggregate 1 in the Echoes paper (see
+            top).
+        :type strict_thresh: bool
+        """
         self.precompute_aggregates()
         return self.a1_avg_by_marker if strict_thresh else self.avg_by_marker
 
     def aggregate(self, method=3):
+        """Return the aggregate coordination score.
+
+        :param method: Can be 1, 2 or 3, corresponding to which aggregate method
+            to use:
+
+            - aggregate 1: average scores only over users with a score for each
+              coordination marker.
+            - aggregate 2: fill in missing scores for a user by using the group
+              score for each missing marker. (assumes different people in a
+              group coordinate the same way.)
+            - aggregate 3: fill in missing scores for a user by using the
+              average score over the markers we can compute coordination for for
+              that user. (assumes a user coordinates the same way across
+              different coordination markers.)
+        """
         assert 1 <= method and method <= 3
         self.precompute_aggregates()
         if method == 1:
@@ -139,19 +191,8 @@ class Coordination:
             scoring.
         :type utterance_thresh_func: function
 
-        :return:
-            A dictionary of scores:
-
-            ::
-
-                {
-                    speaker_1: { dictionary of scores by coordination marker },
-                    speaker_2: scores,
-                    ...
-                }
-
-            The keys are of the same types as the input: if a username was 
-            passed in, the corresponding key will be a username, etc.
+        :return: A :class:`CoordinationScore` object corresponding to the
+            coordination scores for each speaker.
         """
         self.precompute()
         speakers = set(speakers)
@@ -194,11 +235,8 @@ class Coordination:
         
         Also accepted: all threshold arguments accepted by :func:`score()`.
 
-        :return:
-            Dictionary of scores indexed by (speaker, target) pairs.
-
-            Each value is itself a dictionary with scores indexed by
-            coordination marker.
+        :return: A :class:`CoordinationScore` object corresponding to the
+            coordination scores for each (speaker, target) pair.
         """
         self.precompute()
         pairs = set(pairs)
@@ -224,14 +262,14 @@ class Coordination:
         """Create a "score report" of aggregate scores given a score output
         produced by `score` or `pairwise_scores`.
 
-        - Aggregate 1: average scores only over users with a score for each
+        - aggregate 1: average scores only over users with a score for each
             coordination marker.
-        - Aggregate 2: fill in missing scores for a user by using the group
-            score for each missing marker. (Assumes different people in a group
+        - aggregate 2: fill in missing scores for a user by using the group
+            score for each missing marker. (assumes different people in a group
             coordinate the same way.)
-        - Aggregate 3: fill in missing scores for a user by using the average
+        - aggregate 3: fill in missing scores for a user by using the average
             score over the markers we can compute coordination for for that 
-            user. (Assumes a user coordinates the same way across different
+            user. (assumes a user coordinates the same way across different
             coordination markers.)
 
         :param scores: Scores to produce a report for.

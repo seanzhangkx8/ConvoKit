@@ -7,7 +7,8 @@
 # - Do unfavorable justices coordinate to lawyers more than favorable justices,
 #     or vice versa?
 
-from convokit import Utterance, Corpus, Coordination, download
+from convokit import Utterance, Corpus, Coordination
+from convokit.util import download
 
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches

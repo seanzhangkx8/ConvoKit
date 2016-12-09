@@ -10,6 +10,6 @@ setup(
     packages = ["convokit"],
     package_data = {"convokit": ["data/*.txt"]},
     entry_points = {
-        "console_scripts": ["convokit = convokit:command_line_main"]
+        "console_scripts": ["convokit = convokit.command_line:command_line_main"]
     }
 )
