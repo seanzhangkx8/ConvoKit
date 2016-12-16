@@ -1,14 +1,18 @@
 # Cornell Conversational Analysis Toolkit
 ## Installing
-Run `python3 setup.py install` to install the package.
+The toolkit requires Python 3. Run `python3 setup.py install` to install the package.
 Use `import convokit` to import it into your project.
 
 ## Examples
 See `examples/coordination/` for examples on computing coordination (see the [Echoes of Power](https://www.cs.cornell.edu/~cristian/Echoes_of_power.html) paper)
 
+## Documentation
+Documentation is built with [Sphinx](http://www.sphinx-doc.org/en/1.5.1/) (`pip3 install sphinx`). To build the documentation, navigate to `doc/` and run `make html`.
+
 ## Basic usage
-1. Load corpus: `corpus = Corpus(filename=...)`
-2. Create coordination object: `coord = Coord(corpus)`
+### Coordination
+1. Load corpus: `corpus = convokit.Corpus(filename=...)`
+2. Create coordination object: `coord = convokit.Coordination(corpus)`
 3. Define groups using `corpus.users`:
         `group_A = corpus.users(lambda user: user.info["is-justice"])  # [roberts, ginsburg, ...]`
 4. Compute coordination: `scores = coord.score(group_A, group_B)`

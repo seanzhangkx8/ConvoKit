@@ -6,7 +6,7 @@ import re
 from collections import defaultdict
 
 CoordinationWordCategories = ["article", "auxverb", "conj", "adverb",
-        "ppron", "ipron", "preps", "quant"]
+    "ppron", "ipron", "preps", "quant"]
 
 class CoordinationScore(dict):
     """Encapsulates results of :func:`Coordination.score()` and
@@ -43,7 +43,7 @@ class CoordinationScore(dict):
         """Return a dictionary from speakers to the average of each speaker's
         marker scores."""
         return {speaker: sum(scores.values()) / len(scores)
-                for speaker, scores in self.items()}
+            for speaker, scores in self.items()}
 
     def averages_by_marker(self, strict_thresh=False):
         """Return a dictionary mapping markers to the average coordination score
@@ -95,7 +95,7 @@ class CoordinationScore(dict):
         if len(scores_by_marker) == len(CoordinationWordCategories):
             do_agg2 = True
             avg_score_by_marker = {cat: sum(scores) / len(scores) 
-                    for cat, scores in scores_by_marker.items()}
+                for cat, scores in scores_by_marker.items()}
         agg1s, agg2s, agg3s = [], [], []
         for speaker, scoredict in self.items():
             scores = list(scoredict.values())
@@ -114,9 +114,9 @@ class CoordinationScore(dict):
         agg3 = sum(agg3s) / len(agg3s) if agg3s else None
 
         a1_avg_by_marker = {cat: sum(scores) / len(scores)
-                for cat, scores in a1_scores_by_marker.items()}
+            for cat, scores in a1_scores_by_marker.items()}
         avg_by_marker = {cat: sum(scores) / len(scores)
-                for cat, scores in scores_by_marker.items()}
+            for cat, scores in scores_by_marker.items()}
         self.precomputed_aggregates = True
         self.a1_avg_by_marker = a1_avg_by_marker
         self.avg_by_marker = avg_by_marker
@@ -149,8 +149,8 @@ class Coordination:
             self.precomputed = True
 
     def score(self, speakers, group, speaker_thresh=0, target_thresh=3,
-            utterances_thresh=0, speaker_thresh_indiv=0, target_thresh_indiv=0,
-            utterances_thresh_indiv=0, utterance_thresh_func=None):
+        utterances_thresh=0, speaker_thresh_indiv=0, target_thresh_indiv=0,
+        utterances_thresh_indiv=0, utterance_thresh_func=None):
         """Computes the coordination scores for each speaker, given a set of
         speakers and a group of targets.
 
@@ -213,18 +213,18 @@ class Coordination:
                 if u.reply_to is not None:
                     reply_to = self.corpus.utterances[u.reply_to]
                     target = reply_to.user if fine_grained_targets else \
-                            reply_to.user.name
+                        reply_to.user.name
                     if target in group:
                         utterances.append(u)
         return self.scores_over_utterances(speakers, utterances,
-                speaker_thresh, target_thresh, utterances_thresh,
-                speaker_thresh_indiv, target_thresh_indiv,
-                utterances_thresh_indiv, utterance_thresh_func,
-                fine_grained_speakers, fine_grained_targets)
+            speaker_thresh, target_thresh, utterances_thresh,
+            speaker_thresh_indiv, target_thresh_indiv,
+            utterances_thresh_indiv, utterance_thresh_func,
+            fine_grained_speakers, fine_grained_targets)
 
     def pairwise_scores(self, pairs, speaker_thresh=0, target_thresh=3,
-            utterances_thresh=0, speaker_thresh_indiv=0, target_thresh_indiv=0,
-            utterances_thresh_indiv=0, utterance_thresh_func=None):
+        utterances_thresh=0, speaker_thresh_indiv=0, target_thresh_indiv=0,
+        utterances_thresh_indiv=0, utterance_thresh_func=None):
         """Computes all pairwise coordination scores given a collection of
         (speaker, target) pairs.
         
@@ -243,17 +243,17 @@ class Coordination:
         any_speaker = next(iter(pairs))[0]
         if isinstance(any_speaker, str):
             pairs_utts = self.corpus.pairwise_exchanges(lambda x, y:
-                    (x.name, y.name) in pairs, user_names_only=True)
+                (x.name, y.name) in pairs, user_names_only=True)
         else:
             pairs_utts = self.corpus.pairwise_exchanges(lambda x, y:
-                    (x, y) in pairs, user_names_only=False)
+                (x, y) in pairs, user_names_only=False)
         all_scores = CoordinationScore()
         for (speaker, target), utterances in pairs_utts.items():
             scores = self.scores_over_utterances([speaker], utterances,
-                    speaker_thresh, target_thresh, utterances_thresh,
-                    speaker_thresh_indiv, target_thresh_indiv,
-                    utterances_thresh_indiv, utterance_thresh_func,
-                    not isinstance(speaker, str), not isinstance(target, str))
+                speaker_thresh, target_thresh, utterances_thresh,
+                speaker_thresh_indiv, target_thresh_indiv,
+                utterances_thresh_indiv, utterance_thresh_func,
+                not isinstance(speaker, str), not isinstance(target, str))
             for m in scores.values():
                 all_scores[speaker, target] = m
         return all_scores
@@ -313,10 +313,10 @@ class Coordination:
                     self.corpus.utterances[k].liwc_categories.add(cat)
 
     def scores_over_utterances(self, speakers, utterances,
-            speaker_thresh, target_thresh, utterances_thresh,
-            speaker_thresh_indiv, target_thresh_indiv, utterances_thresh_indiv,
-            utterance_thresh_func=None,
-            fine_grained_speakers=False, fine_grained_targets=False):
+        speaker_thresh, target_thresh, utterances_thresh,
+        speaker_thresh_indiv, target_thresh_indiv, utterances_thresh_indiv,
+        utterance_thresh_func=None,
+        fine_grained_speakers=False, fine_grained_targets=False):
         assert not isinstance(speakers, str)
 
         m = self.corpus
@@ -333,7 +333,7 @@ class Coordination:
                 target = u1.user if fine_grained_targets else u1.user.name
                 if speaker != target:
                     if utterance_thresh_func is None or \
-                            utterance_thresh_func(u2, u1):
+                        utterance_thresh_func(u2, u1):
                         targets[speaker].add(target)
                         n_utterances[speaker][target] += 1
                         for cat in u1.liwc_categories | u2.liwc_categories:
@@ -353,20 +353,19 @@ class Coordination:
                 threshed_n_utterances = 0
                 for target in targets[speaker]:
                     if tally[speaker][cat][target] >= speaker_thresh_indiv and \
-                            cond_total[speaker][cat][target] >= \
-                            target_thresh_indiv and \
-                            n_utterances[speaker][target] >= \
-                            utterances_thresh_indiv:
+                        cond_total[speaker][cat][target] >= \
+                        target_thresh_indiv and \
+                        n_utterances[speaker][target] >= \
+                        utterances_thresh_indiv:
                         threshed_cond_total += cond_total[speaker][cat][target]
                         threshed_cond_tally += cond_tally[speaker][cat][target]
                         threshed_tally += tally[speaker][cat][target]
                         threshed_n_utterances += n_utterances[speaker][target]
                 if threshed_cond_total >= max(target_thresh, 1) and \
-                        threshed_tally >= speaker_thresh and \
-                        threshed_n_utterances >= max(utterances_thresh, 1):
+                    threshed_tally >= speaker_thresh and \
+                    threshed_n_utterances >= max(utterances_thresh, 1):
                     coord_w[cat] = threshed_cond_tally / threshed_cond_total - \
                             threshed_tally / threshed_n_utterances
             if len(coord_w) > 0:
                 out[speaker] = coord_w
         return out
-
