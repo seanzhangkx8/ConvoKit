@@ -17,16 +17,14 @@ everyone = corpus.users()
 print("Justices, ranked by how much they coordinate to others:")
 justices_to_everyone = coord.score(justices, everyone)
 for justice, score in sorted(justices_to_everyone.averages_by_user().items(),
-        reverse=True):
+    key=lambda x: x[1], reverse=True):
     print(justice.name, round(score, 5))
 print()
 
 # compute coordination from everyone to each justice
 print("Justices, ranked by how much others coordinate to them:")
-coord_to_justices = {}
-for justice in justices:
-    everyone_to_justice = coord.score(everyone, [justice])
-    coord_to_justices[justice] = everyone_to_justice.aggregate()
-for justice, score in sorted(coord_to_justices.items()):
+everyone_to_justices = coord.score(everyone, justices, focus="targets")
+for justice, score in sorted(everyone_to_justices.averages_by_user().items(), 
+    key=lambda x: x[1], reverse=True):
     print(justice.name, round(score, 5))
 print()

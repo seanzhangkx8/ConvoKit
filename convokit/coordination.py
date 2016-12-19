@@ -148,7 +148,8 @@ class Coordination:
             self.annot_liwc_cats()
             self.precomputed = True
 
-    def score(self, speakers, group, speaker_thresh=0, target_thresh=3,
+    def score(self, speakers, group, focus="speakers",
+        speaker_thresh=0, target_thresh=3,
         utterances_thresh=0, speaker_thresh_indiv=0, target_thresh_indiv=0,
         utterances_thresh_indiv=0, utterance_thresh_func=None):
         """Computes the coordination scores for each speaker, given a set of
@@ -220,7 +221,7 @@ class Coordination:
             speaker_thresh, target_thresh, utterances_thresh,
             speaker_thresh_indiv, target_thresh_indiv,
             utterances_thresh_indiv, utterance_thresh_func,
-            fine_grained_speakers, fine_grained_targets)
+            fine_grained_speakers, fine_grained_targets, focus)
 
     def pairwise_scores(self, pairs, speaker_thresh=0, target_thresh=3,
         utterances_thresh=0, speaker_thresh_indiv=0, target_thresh_indiv=0,
@@ -313,11 +314,13 @@ class Coordination:
                     self.corpus.utterances[k].liwc_categories.add(cat)
 
     def scores_over_utterances(self, speakers, utterances,
-        speaker_thresh, target_thresh, utterances_thresh,
-        speaker_thresh_indiv, target_thresh_indiv, utterances_thresh_indiv,
-        utterance_thresh_func=None,
-        fine_grained_speakers=False, fine_grained_targets=False):
+            speaker_thresh, target_thresh, utterances_thresh,
+            speaker_thresh_indiv, target_thresh_indiv, utterances_thresh_indiv,
+            utterance_thresh_func=None,
+            fine_grained_speakers=False, fine_grained_targets=False,
+            focus="speakers"):
         assert not isinstance(speakers, str)
+        assert focus == "speakers" or focus == "targets"
 
         m = self.corpus
         tally = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
@@ -333,7 +336,8 @@ class Coordination:
                 target = u1.user if fine_grained_targets else u1.user.name
                 if speaker != target:
                     if utterance_thresh_func is None or \
-                        utterance_thresh_func(u2, u1):
+                            utterance_thresh_func(u2, u1):
+                        if focus == "targets": speaker, target = target, speaker
                         targets[speaker].add(target)
                         n_utterances[speaker][target] += 1
                         for cat in u1.liwc_categories | u2.liwc_categories:
@@ -343,7 +347,13 @@ class Coordination:
                                 cond_total[speaker][cat][target] += 1
                                 if cat in u2.liwc_categories:
                                     cond_tally[speaker][cat][target] += 1
+
         out = CoordinationScore()
+        if focus == "targets":
+            speaker_thresh, target_thresh = target_thresh, speaker_thresh
+            speaker_thresh_indiv, target_thresh_indiv = \
+                target_thresh_indiv, speaker_thresh_indiv
+            speakers = targets.keys()
         for speaker in speakers:
             coord_w = {}  # coordination score wrt a category
             for cat in CoordinationWordCategories:
