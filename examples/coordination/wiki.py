@@ -11,14 +11,12 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import numpy as np
 
-# load corpus
-corpus = Corpus(filename=download("wiki-corpus"))
-
-# split users by whether they are an admin
+# load corpus; split users by whether they are an admin
 # this means that if a user has spoken in the corpus as both an admin and
 #   a non-admin, then we will split this user into two users, one for each of
 #   these roles
-corpus.subdivide_users_by_attribs(["is-admin"])
+corpus = Corpus(filename=download("wiki-corpus"),
+    subdivide_users_by=["is_admin"])
 
 # create coordination object
 coord = Coordination(corpus)
@@ -63,7 +61,10 @@ def make_chart(a_scores, b_scores, a_description, b_description, a_color="b", b_
                              str(len(b_scores_a1)) + ", " +
                              str(len(b_scores)) + ")")
     plt.legend(handles=[b_patch, g_patch])
-    plt.show()
+
+    filename = str(a_description) + " vs " + str(b_description) + ".png"
+    plt.savefig(filename, bbox_inches="tight")
+    print('Created chart "' + filename + '"')
 
 # get all groups of users that we want to compare
 everyone = corpus.users()

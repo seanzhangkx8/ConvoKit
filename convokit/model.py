@@ -106,29 +106,49 @@ class Utterance:
         return "Utterance(" + str(self.__dict__) + ")"
 
 class Corpus:
-    """Represents a dataset, which can be loaded from a JSON file or a list
-    of utterances.
+    """Represents a dataset, which can be loaded from a JSON file, CSV file or a
+    list of utterances.
 
-    :param filename: path of json file to load
+    If a CSV file, the first row should consist of key names. Unknown key names
+    will have their attributes added to the "user-info" entry.
+
+    :param filename: path of json or csv file to load
     :param utterances: list of utterances to load
     :param merge_lines: whether to merge adjacent
         lines from same author if the two utterances have the same root.
         Uses the older version of the other attribs.
+    :param subdivide_users_by: collection of strings corresponding to attribute
+        names defined in the "user-info" entry. Use this if you want to count
+        the same user as being different depending on attributes other than
+        username. For example, in the Supreme Court dataset, users are annotated
+        with the current case id. You could use this to count the same person
+        across different cases as being different users.
+    :param delim: if loading a csv, specifies the delimiter string.
 
     :ivar utterances: dictionary of utterances in the dataset, indexed by id.
     """
 
-    def __init__(self, filename=None, utterances=None, merge_lines=False):
+    def __init__(self, filename=None, utterances=None, merge_lines=False,
+        subdivide_users_by=[], delim=","):
         KeyId = "id"
         KeyUser = "user"
         KeyConvoRoot = "root"
         KeyReplyTo = "reply-to"
         KeyTimestamp = "timestamp"
         KeyText = "text"
+        DefinedKeys = set([KeyId, KeyUser, KeyConvoRoot, KeyReplyTo,
+            KeyTimestamp, KeyText])
         KeyUserInfo = "user-info"  # can store any extra data
 
         if filename is not None:
-            utterances = json.load(open(filename, "r"))
+            if filename.endswith(".json"):
+                utterances = json.load(open(filename, "r"))
+            elif filename.endswith(".csv"):
+                utterances = self._load_csv(open(filename, "r"), delim,
+                    DefinedKeys)
+            else:
+                raise ValueError("Couldn't load corpus: unknown file type")
+
             self.utterances = {}
             self.all_users = set()
             for u in utterances:
@@ -156,7 +176,24 @@ class Corpus:
                     new_utterances[u.id] = u
             self.utterances = new_utterances
 
-    def subdivide_users_by_attribs(self, attribs):
+        if subdivide_users_by:
+            self.subdivide_users_by(subdivide_users_by)
+
+    def _load_csv(self, f, delim, defined_keys):
+        keys = f.readline()[:-1].split(delim)
+        utterances = []
+        for line in f:
+            values = line[:-1].split(delim)
+            utterance = {"user-info": {}}
+            for k, v in zip(keys, values):
+                if k in defined_keys:
+                    utterance[k] = v
+                else:
+                    utterance["user-info"][k] = v
+            utterances.append(utterance)
+        return utterances
+
+    def subdivide_users_by(self, attribs):
         """Use this if you want to count the same user as being different
         depending on attributes other than username. For example, in the Supreme
         Court dataset, users are annotated with the current case id. You could

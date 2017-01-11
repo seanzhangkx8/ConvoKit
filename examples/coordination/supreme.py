@@ -13,13 +13,11 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import numpy as np
 
-# load corpus
-corpus = Corpus(filename=download("supreme-corpus"))
-
-# split users by case id and split the justices by whether they are favorable
-#   to the current presenting side
+# load corpus; split users by case id and split the justices by whether they are
+#     favorable to the current presenting side
 # this treats the same person across two different cases as two different users
-corpus.subdivide_users_by_attribs(["case", "justice-is-favorable"])
+corpus = Corpus(filename=download("supreme-corpus"), subdivide_users_by=["case",
+    "justice-is-favorable"])
 
 # create coordination object
 coord = Coordination(corpus)
@@ -64,7 +62,10 @@ def make_chart(a_scores, b_scores, a_description, b_description, a_color="b", b_
                              str(len(b_scores_a1)) + ", " +
                              str(len(b_scores)) + ")")
     plt.legend(handles=[b_patch, g_patch])
-    plt.show()
+
+    filename = str(a_description) + " vs " + str(b_description) + ".png"
+    plt.savefig(filename, bbox_inches="tight")
+    print('Created chart "' + filename + '"')
 
 # get all groups of users that we want to compare
 everyone = corpus.users()
