@@ -141,7 +141,7 @@ class Corpus:
         KeyUserInfo = "user-info"  # can store any extra data
 
         if filename is not None:
-            if filename.endswith(".json"):
+            if filename.endswith(".json") or "." not in filename:
                 utterances = json.load(open(filename, "r"))
             elif filename.endswith(".csv"):
                 utterances = self._load_csv(open(filename, "r"), delim,
@@ -161,6 +161,7 @@ class Corpus:
                         text=u[KeyText])
                 self.utterances[ut.id] = ut
         elif utterances is not None:
+            self.all_users = set([u.user for u in utterances])
             self.utterances = { u.id: u for u in utterances }
 
         if merge_lines:
@@ -259,7 +260,8 @@ class Corpus:
         """
         pairs = set()
         for u2 in self.utterances.values():
-            if u2.user is not None and u2.reply_to is not None:
+            if u2.user is not None and u2.reply_to is not None and \
+                u2.reply_to in self.utterances:
                 u1 = self.utterances[u2.reply_to]
                 if u1.user is not None:
                     if selector is None or selector(u1.user, u2.user):
