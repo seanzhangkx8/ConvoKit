@@ -264,7 +264,7 @@ class Corpus:
                 u2.reply_to in self.utterances:
                 u1 = self.utterances[u2.reply_to]
                 if u1.user is not None:
-                    if selector is None or selector(u1.user, u2.user):
+                    if selector is None or selector(u2.user, u1.user):
                         pairs.add((u2.user.name, u1.user.name) if 
                                 user_names_only else (u2.user, u1.user))
         return pairs
@@ -287,7 +287,7 @@ class Corpus:
             if u2.user is not None and u2.reply_to is not None:
                 u1 = self.utterances[u2.reply_to]
                 if u1.user is not None:
-                    if selector is None or selector(u1.user, u2.user):
+                    if selector is None or selector(u2.user, u1.user):
                         key = ((u2.user.name, u1.user.name) if 
                                 user_names_only else (u2.user, u1.user))
                         pairs[key].append(u2)
