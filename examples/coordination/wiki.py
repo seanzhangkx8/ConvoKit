@@ -73,8 +73,8 @@ nonadmins = everyone - admins
 
 # do users on the whole coordinate more to admins or nonadmins?
 make_chart(
-    coord.score(everyone, admins, speaker_thresh=7, target_thresh=7),
-    coord.score(everyone, nonadmins, speaker_thresh=7, target_thresh=7),
+    coord.score(everyone, admins, focus="targets", target_thresh=7),
+    coord.score(everyone, nonadmins, focus="targets", target_thresh=7),
     "Target: admins", "Target: nonadmins"
 )
 # do admins coordinate to other people more than nonadmins do?
