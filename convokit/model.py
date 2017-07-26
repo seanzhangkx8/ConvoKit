@@ -141,13 +141,14 @@ class Corpus:
         KeyUserInfo = "user-info"  # can store any extra data
 
         if filename is not None:
-            if filename.endswith(".json") or "." not in filename:
+            try:
                 utterances = json.load(open(filename, "r"))
-            elif filename.endswith(".csv"):
-                utterances = self._load_csv(open(filename, "r"), delim,
-                    DefinedKeys)
-            else:
-                raise ValueError("Couldn't load corpus: unknown file type")
+            except:
+                try:
+                    utterances = self._load_csv(open(filename, "r"), delim,
+                        DefinedKeys)
+                except:
+                    raise ValueError("Couldn't load corpus: unknown file type")
 
             self.utterances = {}
             self.all_users = set()
