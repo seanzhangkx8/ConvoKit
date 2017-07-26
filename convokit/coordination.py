@@ -295,23 +295,51 @@ class Coordination:
 
     # helper functions
     def compute_liwc_reverse_dict(self):
-        self.liwc_patterns = {}
         with open(pkg_resources.resource_filename("convokit",
             "data/coord-liwc-patterns.txt"), "r") as f:
+            all_words = []
             for line in f:
                 cat, pat = line.strip().split("\t")
-                self.liwc_patterns[cat] = re.compile(pat, re.IGNORECASE)
+                # use "#" to mark word boundary
+                words = pat.replace("\\b", "#").split("|")
+                all_words += [(w[1:], cat) for w in words]
+            self.liwc_trie = self.make_trie(all_words)
+    
+    def make_trie(self, words):
+        root = {}
+        for word, cat in words:
+            cur = root
+            for c in word:
+                cur = cur.setdefault(c, {})
+            if "$" not in cur:   # use "$" as end-of-word symbol
+                cur["$"] = {cat}
+            else:
+                cur["$"].add(cat)
+        return root
 
     def annot_liwc_cats(self):
         # add liwc_categories field to each utterance
-        for k in self.corpus.utterances:
-            self.corpus.utterances[k].liwc_categories = set()
-        for cat in CoordinationWordCategories:
-            pattern = self.liwc_patterns[cat]
-            for k, u in self.corpus.utterances.items():
-                s = re.search(pattern, u.text)
-                if s is not None:
-                    self.corpus.utterances[k].liwc_categories.add(cat)
+        word_chars = set("abcdefghijklmnopqrstuvwxyz0123456789_")
+        for k, u in self.corpus.utterances.items():
+            cats = set()
+            last = None
+            cur = None
+            text = u.text.lower() + " "
+            for i, c in enumerate(text):
+                if last not in word_chars and c in word_chars:
+                    cur = self.liwc_trie
+                if cur:
+                    if c in cur and c != "#" and c != "$":
+                        cur = cur[c]
+                    elif c not in word_chars and last in word_chars and \
+                        "#" in cur:
+                        cur = cur["#"]
+                    else:
+                        cur = None
+                if cur and "$" in cur:
+                    cats |= cur["$"]
+                last = c
+            self.corpus.utterances[k].liwc_categories = cats
 
     def scores_over_utterances(self, speakers, utterances,
             speaker_thresh, target_thresh, utterances_thresh,
