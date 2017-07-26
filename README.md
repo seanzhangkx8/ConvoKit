@@ -6,7 +6,7 @@ Currently implements features for:
   groups based on their use of function words (see the [Echoes of
   Power](https://www.cs.cornell.edu/~cristian/Echoes_of_power.html) paper)
   
-- Coming soon: Question typology, a method for  extracting surface motifs that recur in questions, and for grouping them according to their latent rhetorical role (see the [Asking too much](https://www.cs.cornell.edu/~cristian/Echoes_of_power.html) paper)
+- Coming soon: Question typology, a method for  extracting surface motifs that recur in questions, and for grouping them according to their latent rhetorical role (see the [Asking too much](http://www.cs.cornell.edu/~cristian/Asking_too_much.html) paper)
 
 ## Installing
 The toolkit requires Python 3. Run `python3 setup.py install` to install the package.
