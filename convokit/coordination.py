@@ -146,6 +146,20 @@ class Coordination:
         if not self.precomputed:
             self.compute_liwc_reverse_dict()
             self.annot_liwc_cats()
+            #self.compute_liwc_reverse_dict_old()
+            #self.annot_liwc_cats_old()
+            #for u in self.corpus.utterances.values():
+            #    if u.liwc_categories != u.liwc_categories_old:
+            #        print("TEXT:", u.text)
+            #        print("NEW:", u.liwc_categories)
+            #        print("OLD:", u.liwc_categories_old)
+            #        diff = (u.liwc_categories - u.liwc_categories_old) | \
+            #                (u.liwc_categories_old - u.liwc_categories)
+            #        print("DIFF:", diff)
+            #        for cat in diff:
+            #            print(self.liwc_patterns[cat])
+            #        #print(u.text, u.liwc_categories, u.liwc_categories_old)
+            #        input()
             self.precomputed = True
 
     def score(self, speakers, group, focus="speakers",
@@ -300,6 +314,7 @@ class Coordination:
             all_words = []
             for line in f:
                 cat, pat = line.strip().split("\t")
+                #if cat == "auxverb": print(cat, pat)
                 # use "#" to mark word boundary
                 words = pat.replace("\\b", "#").split("|")
                 all_words += [(w[1:], cat) for w in words]
@@ -325,11 +340,19 @@ class Coordination:
             last = None
             cur = None
             text = u.text.lower() + " "
+            #if "'" in text: print(text)
             for i, c in enumerate(text):
-                if last not in word_chars and c in word_chars:
+                # slightly different from regex: won't match word after an
+                #   apostrophe unless the apostrophe starts the word
+                #   -- avoids false positives
+                if last not in word_chars and c in word_chars and (last != "'"
+                    or not cur):
                     cur = self.liwc_trie
                 if cur:
                     if c in cur and c != "#" and c != "$":
+                        if c not in word_chars:
+                            if "#" in cur and "$" in cur["#"]:
+                                cats |= cur["#"]["$"]  # finished current word
                         cur = cur[c]
                     elif c not in word_chars and last in word_chars and \
                         "#" in cur:
@@ -340,6 +363,25 @@ class Coordination:
                     cats |= cur["$"]
                 last = c
             self.corpus.utterances[k].liwc_categories = cats
+
+    def compute_liwc_reverse_dict_old(self):
+        self.liwc_patterns = {}
+        with open(pkg_resources.resource_filename("convokit",
+            "data/coord-liwc-patterns.txt"), "r") as f:
+            for line in f:
+                cat, pat = line.strip().split("\t")
+                self.liwc_patterns[cat] = re.compile(pat, re.IGNORECASE)
+
+    def annot_liwc_cats_old(self):
+        # add liwc_categories field to each utterance
+        for k in self.corpus.utterances:
+            self.corpus.utterances[k].liwc_categories_old = set()
+        for cat in CoordinationWordCategories:
+            pattern = self.liwc_patterns[cat]
+            for k, u in self.corpus.utterances.items():
+                s = re.search(pattern, u.text)
+                if s is not None:
+                    self.corpus.utterances[k].liwc_categories_old.add(cat)
 
     def scores_over_utterances(self, speakers, utterances,
             speaker_thresh, target_thresh, utterances_thresh,
