@@ -141,21 +141,22 @@ class Corpus:
         KeyUserInfo = "user-info"  # can store any extra data
 
         if filename is not None:
-            try:
-                utterances = json.load(open(filename, "r"))
-            except:
+            with open(filename, "r") as f:
                 try:
-                    utterances = self._load_csv(open(filename, "r"), delim,
-                        DefinedKeys)
+                    utterances = json.load(f)
                 except:
-                    raise ValueError("Couldn't load corpus: unknown file type")
+                    try:
+                        utterances = self._load_csv(f, "r"), delim, DefinedKeys)
+                    except:
+                        raise ValueError("Couldn't load corpus:" +
+                            " unknown file type")
 
             self.utterances = {}
             self.all_users = set()
             users_cache = {}   # avoids creating duplicate user objects
-            print(len(utterances))
+            #print(len(utterances))
             for i, u in enumerate(utterances):
-                if i % 100000 == 0: print(i, end=" ", flush=True)
+                #if i % 100000 == 0: print(i, end=" ", flush=True)
                 u = defaultdict(lambda: None, u)
                 user_key = (u[KeyUser], str(sorted(u[KeyUserInfo].items())) if
                     u[KeyUserInfo] is not None else None)
