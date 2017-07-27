@@ -152,9 +152,17 @@ class Corpus:
 
             self.utterances = {}
             self.all_users = set()
-            for u in utterances:
+            users_cache = {}   # avoids creating duplicate user objects
+            print(len(utterances))
+            for i, u in enumerate(utterances):
+                if i % 100000 == 0: print(i, end=" ", flush=True)
                 u = defaultdict(lambda: None, u)
-                user = User(name=u[KeyUser], info=u[KeyUserInfo])
+                user_key = (u[KeyUser], str(sorted(u[KeyUserInfo].items())) if
+                    u[KeyUserInfo] is not None else None)
+                if user_key not in users_cache:
+                    users_cache[user_key] = User(name=u[KeyUser],
+                        info=u[KeyUserInfo])
+                user = users_cache[user_key]
                 self.all_users.add(user)
                 ut = Utterance(id=u[KeyId], user=user,
                         root=u[KeyConvoRoot],
