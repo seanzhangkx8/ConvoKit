@@ -146,7 +146,7 @@ class Corpus:
                     utterances = json.load(f)
                 except:
                     try:
-                        utterances = self._load_csv(f, "r"), delim, DefinedKeys)
+                        utterances = self._load_csv(f, delim, DefinedKeys)
                     except:
                         raise ValueError("Couldn't load corpus:" +
                             " unknown file type")
