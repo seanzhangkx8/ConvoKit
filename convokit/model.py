@@ -115,8 +115,7 @@ class Corpus:
     :param filename: path of json or csv file to load
     :param utterances: list of utterances to load
     :param merge_lines: whether to merge adjacent
-        lines from same author if the two utterances have the same root.
-        Uses the older version of the other attribs.
+        lines from the same user if the two utterances have the same root.
     :param subdivide_users_by: collection of strings corresponding to attribute
         names defined in the "user-info" entry. Use this if you want to count
         the same user as being different depending on attributes other than

@@ -173,6 +173,12 @@ class Coordination:
             to the speakers we want to compute scores for.
         :param group: A collection of usernames or user objects corresponding to
             the group of targets.
+        :param focus: Either "speakers" or "targets". If "speakers", treat the
+            set of targets for a particular speaker as a single person (i.e.
+            concatenate all of their utterances); the returned dictionary will
+            have speakers as keys. If "targets", treat the set of
+            speakers for a particular target as a single person; the returned
+            dictionary will have targets as keys.
         :param speaker_thresh: Thresholds based on
             minimum number of times the speaker uses each coordination
             marker.
