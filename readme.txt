@@ -3,7 +3,7 @@ UK Parliament Question Period Dataset
 
 This dataset contains a collection of questions and answers along with relevant metadata for questions asked during the daily Question Period of the British House of Commons, from May 1979 to December 2016. For each question-answer pair, the text of the question and answer is given, along with information such as the asker and answerer's name, their party affiliation, whether they are a minister or not and some other information that is explicated below. Note that follow ups are not included, merely the question and immediate answer. In total there are 216,894 question-answer pairs in our data, occurring over 4,776 days and 6 prime-ministerships. The questions cover 1,975 different askers, 1,066 different answerers, and a variety of government departments with respon- sibilities ranging from defense to transport.
 
-URL: www.url.com TODO: what is the correct URL?
+URL: http://www.cs.cornell.edu/~cristian/Asking_too_much.html
 Authors: Justine Zhang <jz727@cornell.edu>
      Arthur Spirling <arthur.spirling@nyu.edu>
      Cristian Danescu-Niculescu-Mizil <cristian@cs.cornell.edu>
@@ -11,9 +11,15 @@ Contact: Justine Zhang <jz727@cornell.edu>
 Last updated: September 8, 2017
 Version: 1.0
 
+Acknowledgement: Ishaan Jhaveri helped prepare the data release
+
 The dataset is further described in our paper:
   Asking too much? The rhetorical role of questions in political discourse
-  Justine Zhang, Arthur Spirling, Cristian Danescu-Niculescu-Mizil 
+  Justine Zhang, Arthur Spirling, Cristian Danescu-Niculescu-Mizil
+  Proceedings of EMNLP. 2017
+
+Code for processing the dataset available at: convokit.infosci.cornell.edu
+
 
 Files
 -----
@@ -21,7 +27,6 @@ Files
 * parliament-corpus.json - a JSON file containing the dataset
 * README.txt - this readme
 
-Code forthcoming. TODO: Should I include the code files here?
 
 Question Period description
 ----------------------------
@@ -33,7 +38,7 @@ Format
 
 The dataset is a JSON file:
 
-It is structured as a dictionary with two entries for each of TODO: (should I put 216,894, 217,318 or 199,861 here?) question-answer pairs.
+It is structured as a dictionary with two entries for each of 216,894 question-answer pairs.
 
 This is an example of one such question, and the corresponding answer entry, with fields explained:
 
@@ -53,11 +58,11 @@ This is an example of one such question, and the corresponding answer entry, wit
   'official_name': 'Northern Ireland', # TODO
   'pair_idx': '2007-07-25.0.0', # The ID of the spacy object in which this question-answer pair is stored
   'root': '2007-07-25b.821.8', # The root of this exchange, always equal to question_text_idx if this utterance is a question, equal to reply_to if this utterance is an answer
-  'spans_per_question': 3, # The number of sentences in this question. TODO: I think?
+  'spans_per_question': 3, # The number of sentences in this question. TODO:
   'text': 'I thank the Minister for his response . He will be aware that the Northern Ireland Policing Board and the Chief Constable are concerned about a possible reduction in the police budget in the forthcoming financial year , and that there are increasing pressures on the budget as a result of policing the past , the ongoing inquiries , and the cost of the legal advice that the police need to secure in order to participate in them . However , does he agree that it is right that the Government provide adequate funding for the ordinary policing in the community that tackles all the matters that concern the people of Northern Ireland ? Does he accept that there should not be a reduction in the police budget , given the increasing costs of the inquiries that I have mentioned ? Will the Government do something to reduce the cost of the inquiries , and ensure that adequate policing is provided for all the victims of crime in Northern Ireland ?', # The text of this utterance
   'user': 'person/10172', # The ID of the person uttering this utterance
   'user-info': { # Information about the utterer
-    'age': 10.238356164383562, # The number of years this person has served as an MP. TODO: I think?
+    'age': 10.238356164383562, # The number of years this person has served as an MP. TODO:
     'is_incumbent': False, # TODO
     'is_minister': True, # Whether this person is a minister
     'is_oppn': False, # Whether this person is in the opposition
@@ -98,4 +103,8 @@ This is an example of one such question, and the corresponding answer entry, wit
 References
 ----------
 
-TODO: What goes here?
+  Asking too much? The rhetorical role of questions in political discourse
+  Justine Zhang, Arthur Spirling, Cristian Danescu-Niculescu-Mizil
+  Proceedings of EMNLP. 2017
+  http://www.cs.cornell.edu/~cristian/Asking_too_much.html
+  
