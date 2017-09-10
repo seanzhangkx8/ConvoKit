@@ -1,5 +1,5 @@
 # Cornell Conversational Analysis Toolkit
-This toolkit contains tools to extract conversational features and analyze social phenomena in conversations.  Several large conversational datasets are included together with scripts exemplifying the use of the toolkit on these datasets.
+This toolkit contains tools to extract conversational features and analyze social phenomena in conversations.  Several large [conversational datasets](http://zissou.infosci.cornell.edu/socialkit/documentation/) are included together with scripts exemplifying the use of the toolkit on these datasets.
 
 Currently implements features for:
 
@@ -22,7 +22,7 @@ See `examples/` for guided examples and reproductions of charts from the origina
 papers.
 
 ## Documentation
-Documentation is hosted [here](http://wanganzhou.com/convokit/).
+Documentation is hosted [here](http://zissou.infosci.cornell.edu/socialkit/documentation/).
 
 The documentation is built with [Sphinx](http://www.sphinx-doc.org/en/1.5.1/) (`pip3 install sphinx`). To build it yourself, navigate to `doc/` and run `make html`. 
 
@@ -35,6 +35,11 @@ The documentation is built with [Sphinx](http://www.sphinx-doc.org/en/1.5.1/) (`
 4. Compute coordination: `scores = coord.score(group_A, group_B)`
 5. (Optional) get aggregate scores:
         `average_by_marker_agg1, average_by_marker, agg1, agg2, agg3 = coord.score_report(scores)`
+
+### Question Typology
+1. Load corpus: `corpus = convokit.Corpus(filename=...)`
+2. Create QuestionTypology object (discover typology): `questionTypology = QuestionTypology(`
+3. Explore resulting types `questionTypology.display_questions_for_type(i, num_egs=10)`
 
 
 ## Acknowledgements
