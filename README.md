@@ -1,5 +1,5 @@
 # Cornell Conversational Analysis Toolkit
-This toolkit contains tools to extract conversational features and analyze social phenomena in conversations.  Several large [conversational datasets](http://zissou.infosci.cornell.edu/socialkit/documentation/) are included together with scripts exemplifying the use of the toolkit on these datasets.
+This toolkit contains tools to extract conversational features and analyze social phenomena in conversations.  Several large [conversational datasets](http://zissou.infosci.cornell.edu/socialkit/datasets/) are included together with scripts exemplifying the use of the toolkit on these datasets.
 
 Currently implements features for:
 
