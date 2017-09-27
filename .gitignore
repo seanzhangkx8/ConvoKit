@@ -11,3 +11,7 @@ examples/*.txt
 build/*
 backups/*
 not_for_public/*
+isolated_env/*
+examples/questionTypology/aarc_df.tsv
+examples/questionTypology/motif_df.tsv
+examples/questionTypology/qdoc_df.tsv

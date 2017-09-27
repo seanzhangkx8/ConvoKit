@@ -47,23 +47,23 @@ This is an example of one such question, and the corresponding answer entry, wit
   'date': '2007-07-25', # The date this utterance was said
   'year': 2007.0, # The year this utterance was said
   'govt': 'brown', # The prime minister at the time this utterance was said
-  'has_latent_repr': True, # TODO: 
+  'has_latent_repr': True, # Whether the question has a latent representation under our typology induction method. this is True if a question contains an extracted motif.
   'id': '2007-07-25b.821.8', # A unique ID for this utterance
   'is_answer': False, # Whether this utterance is an answer
-  'is_pmq': False, # TODO:
+  'is_pmq': False, # Whether or not the question is asked during Prime Minister's Questions
   'is_question': True, # Whether this utterance is a question
-  'is_topical': False, # TODO
-  'major_name': 'Northern Ireland', # TODO
-  'minor_name': 'Policing',  # TODO
-  'official_name': 'Northern Ireland', # TODO
+  'is_topical': False, # Whether or not the question is a topical question TODO: (link was empty)
+  'major_name': 'Northern Ireland', # The department of the particular questions period. this is official_name, corrected for some HTML formatting problems in the original transcript website
+  'minor_name': 'Policing',  # The header of the particular question, occasionally provided by theyworkforyou
+  'official_name': 'Northern Ireland', # The department to which the particular questions period is directed, as listed on theyworkforyou
   'pair_idx': '2007-07-25.0.0', # The ID of the spacy object in which this question-answer pair is stored
   'root': '2007-07-25b.821.8', # The root of this exchange, always equal to question_text_idx if this utterance is a question, equal to reply_to if this utterance is an answer
-  'spans_per_question': 3, # The number of sentences in this question. TODO:
+  'spans_per_question': 3, # The number of questions -- i.e. sentences ending in question marks -- per question.
   'text': 'I thank the Minister for his response . He will be aware that the Northern Ireland Policing Board and the Chief Constable are concerned about a possible reduction in the police budget in the forthcoming financial year , and that there are increasing pressures on the budget as a result of policing the past , the ongoing inquiries , and the cost of the legal advice that the police need to secure in order to participate in them . However , does he agree that it is right that the Government provide adequate funding for the ordinary policing in the community that tackles all the matters that concern the people of Northern Ireland ? Does he accept that there should not be a reduction in the police budget , given the increasing costs of the inquiries that I have mentioned ? Will the Government do something to reduce the cost of the inquiries , and ensure that adequate policing is provided for all the victims of crime in Northern Ireland ?', # The text of this utterance
   'user': 'person/10172', # The ID of the person uttering this utterance
   'user-info': { # Information about the utterer
-    'age': 10.238356164383562, # The number of years this person has served as an MP. TODO:
-    'is_incumbent': False, # TODO
+    'age': 10.238356164383562, # The number of years this person has served as an MP, at the time of the question.
+    'is_incumbent': False, # Whether or not this person was a member of the government party at the time of the question
     'is_minister': True, # Whether this person is a minister
     'is_oppn': False, # Whether this person is in the opposition
     'name': 'Jeffrey M. Donaldson', # Name

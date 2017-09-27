@@ -4,30 +4,25 @@
 
 import os
 import pkg_resources
+import numpy as np
 
 from convokit import Corpus, QuestionTypology, download
 
-# =================== DEBUG VERSION WITH 1/10 OF DATA =======================
-# num_clusters = 8
-# DEBUG_DIR = '/Users/ishaanjhaveri/Google_Drive/git/Cornell-Conversational-Analysis-Toolkit/datasets/parliament-corpus/downloads/parliament'
-# data_dir = DEBUG_DIR
-
-# # #Initialize QuestionTypology class
-
-# corpus = Corpus(filename=os.path.join(data_dir, 'full.json'))
-# questionTypology = QuestionTypology(corpus, data_dir, num_dims=5, 
-#   num_clusters=num_clusters, verbose=False)
-
-
-# ========================== REGULAR VERSION ===============================
-num_clusters = 8
-
 #Initialize QuestionTypology class
 
+num_clusters = 8
+
+# Get precomputed motifs. data_dir contains the downloaded data. 
+# motifs_dir is the specific path within data_dir that contains the precomputed motifs
 data_dir = os.path.join(pkg_resources.resource_filename("convokit", ""), 'downloads', 'parliament')
+
+#Load the corpus
 corpus = Corpus(filename=os.path.join(data_dir, 'parliament-corpus'))
+
+#Extract clusters of the motifs and assign questions to these clusters
 questionTypology = QuestionTypology(corpus, data_dir, num_dims=25, 
-  num_clusters=num_clusters, verbose=False)
+  num_clusters=num_clusters, verbose=False, random_seed=164)
+
 
 #Output required data representations
 
@@ -37,4 +32,3 @@ for i in range(num_clusters):
     questionTypology.display_motifs_for_type(i, num_egs=10)
     questionTypology.display_answer_fragments_for_type(i, num_egs=10)
     questionTypology.display_questions_for_type(i, num_egs=10)
-
