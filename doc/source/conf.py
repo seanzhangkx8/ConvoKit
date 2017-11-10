@@ -54,8 +54,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'convokit'
-copyright = '2016, Cristian Danescu-Niculescu-Mizil, Andrew Wang'
-author = 'Cristian Danescu-Niculescu-Mizil, Andrew Wang'
+copyright = '2017 Cornell NLP'
+author = 'Cornell NLP'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

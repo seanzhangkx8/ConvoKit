@@ -84,8 +84,10 @@ make_chart(
 )
 # do lawyers coordinate more to unfavorable or favorable justices?
 make_chart(
-    coord.score(lawyers, unfav_justices, focus="targets", target_thresh=1),
-    coord.score(lawyers, fav_justices, focus="targets", target_thresh=1),
+    coord.score(lawyers, unfav_justices, focus="targets", target_thresh=6,
+        speaker_thresh=6),
+    coord.score(lawyers, fav_justices, focus="targets", target_thresh=6,
+        speaker_thresh=6),
     "Target: unfavorable justice", "Target: favorable justice"
 )
 # do unfavorable justices coordinate to lawyers more than favorable justices, or
