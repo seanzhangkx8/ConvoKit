@@ -132,6 +132,11 @@ class Coordination:
     :type corpus: Corpus
 
     :ivar corpus: the coordination object's corpus. 
+
+    Note: labeling method is slightly different from that used in the paper --
+    we no longer match words occurring in the middle of other words and that
+    immediately follow an apostrophe. Most notably, we no longer separately
+    count the "all" in "y'all."
     """
 
     def __init__(self, corpus):
