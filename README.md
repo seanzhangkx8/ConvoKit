@@ -7,6 +7,8 @@ The toolkit currently implements features for:
   
 - [Question typology](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/QuestionTypology_README.md), a method for extracting surface motifs that recur in questions, and for grouping them according to their latent rhetorical role (see the [Asking too much](http://www.cs.cornell.edu/~cristian/Asking_too_much.html) paper)
 
+- Coming soon: [Convesations gone awry](http://www.cs.cornell.edu/~cristian/Conversations_gone_awry.html)
+
 - Coming soon: Politeness, currently available here: [Politeness API](https://github.com/sudhof/politeness)
 
 - Coming soon: Basic message and turn features, currently available here [Constructive conversations](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/tree/constructive/cornellversation/constructive)
