@@ -3,9 +3,9 @@ This toolkit contains tools to extract conversational features and analyze socia
 
 The toolkit currently implements features for:
 
-- [Linguistic coordination](http://localhost:8000/Coordination_README.html), a measure of relative power between individuals or groups based on their use of function words (see the [Echoes of Power](https://www.cs.cornell.edu/~cristian/Echoes_of_power.html) paper)
+- [Linguistic coordination](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/QuestionTypology_README.md), a measure of relative power between individuals or groups based on their use of function words (see the [Echoes of Power](https://www.cs.cornell.edu/~cristian/Echoes_of_power.html) paper)
   
-- [Question typology](http://localhost:8000/QuestionTypology_README.html), a method for extracting surface motifs that recur in questions, and for grouping them according to their latent rhetorical role (see the [Asking too much](http://www.cs.cornell.edu/~cristian/Asking_too_much.html) paper)
+- [Question typology](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/QuestionTypology_README.md), a method for extracting surface motifs that recur in questions, and for grouping them according to their latent rhetorical role (see the [Asking too much](http://www.cs.cornell.edu/~cristian/Asking_too_much.html) paper)
 
 - Coming soon: Politeness, currently available here: [Politeness API](https://github.com/sudhof/politeness)
 
