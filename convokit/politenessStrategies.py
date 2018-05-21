@@ -29,7 +29,7 @@ class PolitenessStrategies:
         # get the comment text and corresponding IDs from the corpus
         if self.verbose: print("Retrieving comment text...")
         comment_ids = list(self.corpus.utterances.keys())
-        comments = [self.corpus.utterances[cid] for cid in comment_ids]
+        comments = [self.corpus.utterances[cid].text for cid in comment_ids]
         # the original politeness API used in the paper was written in Python 2,
         # which uses ASCII strings. Because of this, we had to truncate Unicode
         # characters in comment text to get it to work. Although the bundled
