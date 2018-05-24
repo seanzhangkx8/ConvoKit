@@ -21,6 +21,8 @@ from spacy.en import English
 from spacy.symbols import *
 from spacy.tokens.doc import Doc
 
+from .model import Corpus
+
 NP_LABELS = set([nsubj, nsubjpass, dobj, iobj, pobj, attr])
 pair_delim = '-q-a-'
 span_delim = 'span'
@@ -277,6 +279,11 @@ class QuestionTypology:
             n += 1
             print('\t\t%d.'%(n), answer_fragments[i])
 
+    def _corpus_to_dataframe(self, corpus):
+        comment_ids = list(corpus.utterances.keys())
+        content = [corpus.utterances[cid].text for cid in comment_ids]
+        return pd.DataFrame({"content": content}, index=comment_ids)
+
     def _load_motif_info(self, motif_dir):
 
         super_mappings = {}
@@ -428,6 +435,8 @@ class QuestionTypology:
         # convert utterance list to dataframe for easier indexing later
         if type(question_text) == pd.DataFrame:
             comment_df = question_text
+        elif type(question_text) == Corpus:
+            comment_df = self._corpus_to_dataframe(question_text)
         else:
             comment_df = pd.DataFrame({"content": question_text})
 
