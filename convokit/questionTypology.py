@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import spacy
+import pickle
 
 from ast import literal_eval as make_tuple
 from collections import defaultdict, Counter
@@ -17,7 +18,6 @@ from sklearn.externals import joblib
 from sklearn.cluster import KMeans
 from sklearn.metrics.pairwise import pairwise_distances
 from sklearn.preprocessing import Normalizer
-from spacy.en import English
 from spacy.symbols import *
 from spacy.tokens.doc import Doc
 
@@ -84,7 +84,8 @@ class QuestionTypology:
         follow_conj=True, norm='l2', num_svds=50, num_dims_to_inspect=5,
         max_iter_for_k_means=1000, remove_first=False, min_support=5, item_set_size=5,
         leaves_only_for_assign=True, idf=False, snip=True, leaves_only_for_extract=False,
-        random_seed=0, is_question=None, questions_only=True, enforce_formatting=True):
+        random_seed=0, is_question=None, questions_only=True, enforce_formatting=True,
+        spacy_dir=None):
 
         self.corpus = corpus
         self.data_dir = data_dir
@@ -126,7 +127,8 @@ class QuestionTypology:
 
         if not self.motifs_dir:
             self.motifs_dir = os.path.join(self.data_dir, dataset_name+'-motifs')
-            spacy_file = os.path.join(self.data_dir, 'spacy')
+            spacy_root = self.data_dir if spacy_dir is None else spacy_dir
+            spacy_file = os.path.join(spacy_root, 'spacy')
             MotifsExtractor.spacify(self.corpus.iterate_by('both', self.is_question), spacy_file, None, self.verbose)
             MotifsExtractor.extract_question_motifs(self.corpus.iterate_by('questions', self.is_question), spacy_file,
                 self.motifs_dir, self.question_filter, self.follow_conj,
@@ -491,18 +493,19 @@ class MotifsExtractor:
         """
         if verbose:
             print('loading spacy vocab')
-        return English().vocab
+        return spacy.load('en').vocab
 
     def iterate_spacy(path, vocab):
-        with open(path + '.bin', 'rb') as spacy_file:
-            with open(path + '.txt') as key_file:
-                for doc_bytes in Doc.read_bytes(spacy_file):
-                    try:
-                        key = next(key_file)
-                        doc = Doc(vocab).from_bytes(doc_bytes)
-                        yield key.strip(), doc
-                    except:
-                        continue
+        with open(path + '.pk', 'rb') as spacy_file:
+            objs = pickle.load(spacy_file)
+        with open(path + '.txt') as key_file:
+            for obj in objs:
+                try:
+                    key = next(key_file)
+                    yield key.strip(), obj
+                except Exception as e:
+                    print(e)
+
 
     def get_spacy_dict(path, vocab, verbose):
         """
@@ -530,6 +533,8 @@ class MotifsExtractor:
             if you don't want to keep loading spacy NLP objects (which takes a while) then can
                 pass an existing spacy_NLP.
         """
+        if verbose:
+            print("Using prefix", outfile_name, "for spacy")
         if not spacy_NLP:
             if verbose:
                 print('loading spacy NLP')
@@ -540,11 +545,12 @@ class MotifsExtractor:
             if verbose and (idx > 0) and (idx % verbose == 0):
                 print('\t%03d' % idx)
             spacy_keys.append(text_idx)
-            spacy_objs.append(spacy_NLP(text).to_bytes())
-        with open(outfile_name + '.bin','wb') as f:
-            [f.write(byte_val) for byte_val in spacy_objs]
+            spacy_objs.append(spacy_NLP(text))
+        with open(outfile_name + '.pk', 'wb') as f:
+            pickle.dump(spacy_objs, f)
         with open(outfile_name + '.txt','w') as f:
             f.write('\n'.join(spacy_keys))
+ 
 
     def deduplicate_motifs(question_fit_file, outfile, threshold, verbose):
         """

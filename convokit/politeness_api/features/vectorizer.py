@@ -3,9 +3,9 @@ import os
 import pickle
 import string
 import nltk
+import spacy
 from itertools import chain
 from collections import defaultdict
-from spacy.en import English
 from nltk.stem.wordnet import WordNetLemmatizer
 import json
 import re
@@ -82,7 +82,7 @@ class PolitenessFeatureVectorizer:
 
     @staticmethod
     def preprocess(documents): 
-        nlp = English()
+        nlp = spacy.load('en')
 
         for document in documents:
             document['sentences'] = nltk.sent_tokenize(document['text'])
