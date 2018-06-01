@@ -129,7 +129,8 @@ class QuestionTypology:
             self.motifs_dir = os.path.join(self.data_dir, dataset_name+'-motifs')
             spacy_root = self.data_dir if spacy_dir is None else spacy_dir
             spacy_file = os.path.join(spacy_root, 'spacy')
-            MotifsExtractor.spacify(self.corpus.iterate_by('both', self.is_question), spacy_file, None, self.verbose)
+            if not os.path.exists(spacy_file + ".pk"):
+                MotifsExtractor.spacify(self.corpus.iterate_by('both', self.is_question), spacy_file, None, self.verbose)
             MotifsExtractor.extract_question_motifs(self.corpus.iterate_by('questions', self.is_question), spacy_file,
                 self.motifs_dir, self.question_filter, self.follow_conj,
                 self.min_support, self.dedup_threshold, self.item_set_size, self.verbose)
