@@ -37,3 +37,5 @@ The documentation is built with [Sphinx](http://www.sphinx-doc.org/en/1.5.1/) (`
 Andrew Wang (azw7@cornell.edu)  wrote the Coordination code and the respective example script, wrote the heper functions and designed the structure of the toolkit.
 
 Ishaan Jhaveri (iaj8@cornell.edu) refactored the Question Typology code and wrote the respective example scripts.
+
+Jonathan Chang (jpc362@cornell.edu) wrote the example script for Conversations Gone Awry.
