@@ -9,17 +9,19 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import spacy
+import pickle
 
 from ast import literal_eval as make_tuple
-from collections import defaultdict
+from collections import defaultdict, Counter
 from scipy import sparse
 from sklearn.externals import joblib
 from sklearn.cluster import KMeans
 from sklearn.metrics.pairwise import pairwise_distances
 from sklearn.preprocessing import Normalizer
-from spacy.en import English
 from spacy.symbols import *
 from spacy.tokens.doc import Doc
+
+from .model import Corpus
 
 NP_LABELS = set([nsubj, nsubjpass, dobj, iobj, pobj, attr])
 pair_delim = '-q-a-'
@@ -54,6 +56,15 @@ class QuestionTypology:
     :param is_question: the function that will be used to determine whether an utterance is a question.
                         If nothing is specified, by default the code assumes all sentences that
                         end in '?' are questions
+    :param questions_only: whether motif extraction should look only at utterances that
+                           are questions (as defined by is_question). Disable this
+                           to make the algorithm derive prompt types instead of
+                           question types.
+    :param enforce_formatting: whether to enforce that utterances must be well-formed
+                               sentences in order to count as questions or answers.
+                               Well-formedness is defined as starting with an uppercase
+                               letter. Enable this for corpora that are known to contain
+                               properly formatted utterances (e.g. Parliament corpus)
 
     :ivar corpus: the QuestionTypology object's corpus.
     :ivar data_dir: the directory that the data is stored in, and written to
@@ -73,7 +84,8 @@ class QuestionTypology:
         follow_conj=True, norm='l2', num_svds=50, num_dims_to_inspect=5,
         max_iter_for_k_means=1000, remove_first=False, min_support=5, item_set_size=5,
         leaves_only_for_assign=True, idf=False, snip=True, leaves_only_for_extract=False,
-        random_seed=0, is_question=None):
+        random_seed=0, is_question=None, questions_only=True, enforce_formatting=True,
+        spacy_dir=None):
 
         self.corpus = corpus
         self.data_dir = data_dir
@@ -97,18 +109,33 @@ class QuestionTypology:
         self.snip = snip
         self.leaves_only_for_extract = leaves_only_for_extract
         self.random_seed = random_seed
-        self.is_question = is_question
-        if not self.is_question: self.is_question = MotifsExtractor.is_utterance_question
+        if not is_question: is_question = MotifsExtractor.is_utterance_question
+
+        if questions_only:
+            self.is_question = is_question
+            if enforce_formatting:
+                self.question_filter = lambda x: (self.is_question(x) and MotifsExtractor.is_uppercase(x))
+            else:
+                self.question_filter = self.is_question
+        else:
+            self.is_question = lambda x: True
+            self.question_filter = lambda x: True
+        if enforce_formatting:
+            self.answer_filter = MotifsExtractor.is_uppercase
+        else:
+            self.answer_filter = lambda x: True
 
         if not self.motifs_dir:
             self.motifs_dir = os.path.join(self.data_dir, dataset_name+'-motifs')
-            spacy_file = os.path.join(self.data_dir, 'spacy')
-            MotifsExtractor.spacify(self.corpus.iterate_by('both', self.is_question), spacy_file, None, self.verbose)
+            spacy_root = self.data_dir if spacy_dir is None else spacy_dir
+            spacy_file = os.path.join(spacy_root, 'spacy')
+            if not os.path.exists(spacy_file + ".pk"):
+                MotifsExtractor.spacify(self.corpus.iterate_by('both', self.is_question), spacy_file, None, self.verbose)
             MotifsExtractor.extract_question_motifs(self.corpus.iterate_by('questions', self.is_question), spacy_file,
-                self.motifs_dir, MotifsExtractor.is_uppercase_question, self.follow_conj,
+                self.motifs_dir, self.question_filter, self.follow_conj,
                 self.min_support, self.dedup_threshold, self.item_set_size, self.verbose)
             MotifsExtractor.extract_answer_arcs(self.corpus.iterate_by('answers', self.is_question), spacy_file,
-                self.motifs_dir, MotifsExtractor.is_uppercase, self.follow_conj, self.verbose)
+                self.motifs_dir, self.answer_filter, self.follow_conj, self.verbose)
 
         self.matrix_dir = os.path.join(self.data_dir, dataset_name+'-matrix')
         QuestionClusterer.build_matrix(self.motifs_dir, self.matrix_dir, self.question_threshold,
@@ -255,6 +282,210 @@ class QuestionTypology:
             n += 1
             print('\t\t%d.'%(n), answer_fragments[i])
 
+    def _corpus_to_dataframe(self, corpus):
+        comment_ids = list(corpus.utterances.keys())
+        content = [corpus.utterances[cid].text for cid in comment_ids]
+        return pd.DataFrame({"content": content}, index=comment_ids)
+
+    def _load_motif_info(self, motif_dir):
+
+        super_mappings = {}
+        with open(os.path.join(motif_dir, 'question_supersets_arcset_to_super.json')) as f:
+            for line in f.readlines():
+                entry = json.loads(line)
+                super_mappings[tuple(entry['arcset'])] = tuple(entry['super'])
+
+        downlinks = MotifsExtractor.read_downlinks(os.path.join(motif_dir, 'question_tree_downlinks.json'))    
+        node_counts = MotifsExtractor.read_nodecounts(os.path.join(motif_dir, 'question_tree_arc_set_counts.tsv'))
+        return super_mappings, downlinks, node_counts
+
+    def _extract_arcs(self, comment_df, selector=lambda x: True, outfile=None):
+        sent_df = []
+        spacy_nlp = spacy.load("en")
+        comment_df = comment_df.assign(spacy_obj=list(spacy_nlp.pipe(comment_df.content.fillna(""), n_threads=os.cpu_count())))
+        for tup in comment_df.itertuples():
+            for s_idx, sent in enumerate(tup.spacy_obj.sents):
+                sent_text = sent.text.strip()
+                if len(sent_text) == 0: continue
+                if selector(sent_text):
+                    sent_df.append({
+                            'idx': tup.Index, 'sent_idx': s_idx, 'span': sent, 
+                            'arc_sets': MotifsExtractor.get_arcs(sent.root, True),
+                            'content': sent_text, 'sent_key': tup.Index + '_' + str(s_idx)
+                        })
+        sent_df = pd.DataFrame(sent_df)
+        if outfile is not None:
+            sent_df.to_csv(outfile + '.sent_arcs.tsv', sep='\t')
+        return sent_df
+
+    def _fit_questions_and_answers(self, sent_df, q_vocab, a_vocab, 
+                                   super_mappings, downlink_info, node_count_info,
+                                   threshold, outfile=None, per_sent=False): 
+
+        question_to_fits = defaultdict(set)
+        question_to_leaf_fits = defaultdict(set)
+        question_to_a_fits = defaultdict(set)
+
+        for tup in sent_df.itertuples():
+            if per_sent:
+                key = tup.sent_key
+            else:
+                key = tup.idx
+            for arc in tup.arc_sets:
+                if arc in a_vocab: question_to_a_fits[key].add(arc)
+
+            motif_fits = MotifsExtractor.fit_question(tup.arc_sets, downlink_info, node_count_info)
+            for entry in motif_fits.values():
+                motif = entry['arcset']
+                if motif == ('*', ): continue
+                super_motif = super_mappings.get(motif, '')
+                if super_motif not in q_vocab: continue
+                if entry['arcset_count'] < threshold: continue
+                if entry['max_valid_child_count'] < threshold:
+                    question_to_leaf_fits[key].add(super_motif)
+                question_to_fits[key].add(super_motif)
+        if outfile is not None:
+            df = pd.DataFrame.from_dict({
+                    'question_fits': question_to_fits,
+                    'question_leaf_fits': question_to_leaf_fits,
+                    'question_a_fits': question_to_a_fits
+                })
+            df.to_csv(outfile + '.fits.tsv', sep='\t')
+        return question_to_fits, question_to_leaf_fits, question_to_a_fits 
+
+    def _make_new_qa_mtx_obj(self, question_to_fits, question_to_leaf_fits, question_to_a_fits, ref_mtx_obj,
+            outfile=None):
+
+        docs = [x for x,y in question_to_fits.items() if len(y) > 0]
+        doc_to_idx = {doc:idx for idx,doc in enumerate(docs)}
+        qterm_idxes = []
+        leaves = []
+        qdoc_idxes = []
+        aterm_idxes = []
+        adoc_idxes = []
+
+        for doc in docs:
+            qterms = question_to_fits[doc]
+            for term in qterms:
+                qterm_idxes.append(ref_mtx_obj['q_term_to_idx'][term])
+                leaves.append(term in question_to_leaf_fits[doc])
+                qdoc_idxes.append(doc_to_idx[doc])
+            aterms = question_to_a_fits[doc]
+            for term in aterms:
+                aterm_idxes.append(ref_mtx_obj['a_term_to_idx'][term])
+                adoc_idxes.append(doc_to_idx[doc])
+
+        qterm_idxes = np.array(qterm_idxes)
+        leaves = np.array(leaves)
+        qdoc_idxes = np.array(qdoc_idxes)
+        aterm_idxes = np.array(aterm_idxes)
+        adoc_idxes = np.array(adoc_idxes)
+        new_mtx_obj = {'q_terms': ref_mtx_obj['q_terms'], 'q_didxes': qdoc_idxes, 'docs': docs, 'q_leaves': leaves,
+                    'q_term_counts': ref_mtx_obj['q_term_counts'], 'q_term_to_idx': ref_mtx_obj['q_term_to_idx'],
+                    'doc_to_idx': doc_to_idx, 'q_tidxes': qterm_idxes, 'N_idf_docs': len(ref_mtx_obj['docs']),
+                    'a_terms': ref_mtx_obj['a_terms'],
+                    'a_term_counts': ref_mtx_obj['a_term_counts'], 'a_term_to_idx': ref_mtx_obj['a_term_to_idx'],
+                    'a_tidxes': aterm_idxes, 'a_didxes': adoc_idxes}
+        if outfile is not None:
+            np.save(outfile + '.q.tidx.npy', qterm_idxes)
+            np.save(outfile + '.q.leaves.npy', leaves)
+            np.save(outfile + '.a.tidx.npy', aterm_idxes)
+            np.save(outfile + '.q.didx.npy', qdoc_idxes)
+            np.save(outfile + '.a.didx.npy', adoc_idxes)
+            with open(outfile + '.docs.txt', 'w') as f:
+                f.write('\n'.join(docs))
+
+        return new_mtx_obj
+
+    def _project_qa_embeddings(self, mtx_obj, lq, au, outfile=None):
+
+        qmtx = QuestionClusterer.build_mtx(mtx_obj,'q',norm='l2', idf=False, leaves_only=True)
+        amtx = QuestionClusterer.build_mtx(mtx_obj, 'a', norm='l2', idf=True, leaves_only=False)
+
+        lq_norm = Normalizer().fit_transform(lq)
+        au_norm = Normalizer().fit_transform(au)
+
+        qdoc_vects = Normalizer().fit_transform(qmtx.T) * lq_norm
+        adoc_vects = ((amtx.T) * au)
+
+        if outfile is not None:
+            np.save(outfile + '.qdoc', qdoc_vects)
+            np.save(outfile + '.adoc', adoc_vects)
+
+        return qdoc_vects, adoc_vects
+
+    def _assign_qtypes(self, qdoc_vects, adoc_vects, mtx_obj, km, comment_df,
+            display=None, max_dist_quantile=None, random_state=None, outfile=None):
+
+        n_clusters = km.n_clusters
+        qdoc_norm = Normalizer().fit_transform(qdoc_vects)
+        adoc_norm = Normalizer().fit_transform(adoc_vects)
+
+        qdoc_dists = km.transform(qdoc_norm)
+        qdoc_df = pd.DataFrame(data=qdoc_dists, index=mtx_obj['docs'], columns=["km_%d_dist" % i for i in range(n_clusters)])
+        return qdoc_df.join(comment_df.content)
+
+    def get_qtype_dists(self, question_text):
+        """Computes the distance to each question type cluster for some previously unseen text.
+            :param question_text: a sequence of utterances to classify, or a single utterance
+            :return: DataFrame of cluster distances for each utterance
+        """
+        # function is designed to batch process lists of comments, but if the
+        # user wants to just do one comment we can hack around that
+        if type(question_text) == str:
+            question_text = [question_text]
+
+        # convert utterance list to dataframe for easier indexing later
+        if type(question_text) == pd.DataFrame:
+            comment_df = question_text
+        elif type(question_text) == Corpus:
+            comment_df = self._corpus_to_dataframe(question_text)
+        else:
+            comment_df = pd.DataFrame({"content": question_text})
+
+        qvocab = set(self.mtx_obj['q_terms'])
+        avocab = set(self.mtx_obj['a_terms'])
+        new_out = os.path.join(self.data_dir, 'test')
+
+        # fit motifs to new data
+        super_mappings, downlinks, node_counts = self._load_motif_info(self.motifs_dir)
+        sent_df = self._extract_arcs(comment_df, outfile=new_out)
+        question_to_fits, question_to_leaf_fits, question_to_a_fits = self._fit_questions_and_answers(sent_df, qvocab, 
+            avocab, super_mappings, downlinks, node_counts, self.question_threshold, new_out)
+
+        # project new data
+        new_mtx_obj = self._make_new_qa_mtx_obj(question_to_fits, question_to_leaf_fits, question_to_a_fits, self.mtx_obj, outfile=new_out)
+        qdoc_vects, adoc_vects = self._project_qa_embeddings(new_mtx_obj, self.lq, self.a_u, outfile=new_out)
+
+        return self._assign_qtypes(qdoc_vects, adoc_vects, new_mtx_obj, self.km, comment_df, 
+            random_state=self.random_seed, display=5, max_dist_quantile=.25, outfile=new_out)
+
+    def compute_type(self, question_text):
+        """Assigns a question type to previously unseen text.
+            :param question_text: a sequence of utterances to classify, or a single utterance
+                                  If sequence, type can either be any array-like type (numpy ndarray,
+                                  python list, etc) or a pandas DataFrame. If a DataFrame is provided,
+                                  the utterances should be in a column titled "content".
+            :return: If a single utterance was given, returns the integer index of its question type.
+                     If an array-like was given, returns an array of question types for each utterance.
+                     If a DataFrame was given, returns a Series of question types indexed by the
+                     original DataFrame's index.
+        """
+        dists = self.get_qtype_dists(question_text).drop(columns="content").rename(columns={"km_%d_dist" % i: i for i in range(self.km.n_clusters)})
+        cluster_assigns = dists.idxmin(axis=1)
+        if type(question_text) == str:
+            return cluster_assigns.iloc[0]
+        elif type(question_text) == pd.DataFrame:
+            return cluster_assigns
+        else:
+            return cluster_assigns.values
+
+    def __call__(self, question_text):
+        """Alias for compute_type that allows the QuestionTypology object to be
+            used as a Callable
+        """
+        return self.compute_type(question_text)
+
 
 class MotifsExtractor:
     def load_vocab(verbose):
@@ -263,18 +494,19 @@ class MotifsExtractor:
         """
         if verbose:
             print('loading spacy vocab')
-        return English().vocab
+        return spacy.load('en').vocab
 
     def iterate_spacy(path, vocab):
-        with open(path + '.bin', 'rb') as spacy_file:
-            with open(path + '.txt') as key_file:
-                for doc_bytes in Doc.read_bytes(spacy_file):
-                    try:
-                        key = next(key_file)
-                        doc = Doc(vocab).from_bytes(doc_bytes)
-                        yield key.strip(), doc
-                    except:
-                        continue
+        with open(path + '.pk', 'rb') as spacy_file:
+            objs = pickle.load(spacy_file)
+        with open(path + '.txt') as key_file:
+            for obj in objs:
+                try:
+                    key = next(key_file)
+                    yield key.strip(), obj
+                except Exception as e:
+                    print(e)
+
 
     def get_spacy_dict(path, vocab, verbose):
         """
@@ -302,6 +534,8 @@ class MotifsExtractor:
             if you don't want to keep loading spacy NLP objects (which takes a while) then can
                 pass an existing spacy_NLP.
         """
+        if verbose:
+            print("Using prefix", outfile_name, "for spacy")
         if not spacy_NLP:
             if verbose:
                 print('loading spacy NLP')
@@ -312,11 +546,12 @@ class MotifsExtractor:
             if verbose and (idx > 0) and (idx % verbose == 0):
                 print('\t%03d' % idx)
             spacy_keys.append(text_idx)
-            spacy_objs.append(spacy_NLP(text).to_bytes())
-        with open(outfile_name + '.bin','wb') as f:
-            [f.write(byte_val) for byte_val in spacy_objs]
+            spacy_objs.append(spacy_NLP(text))
+        with open(outfile_name + '.pk', 'wb') as f:
+            pickle.dump(spacy_objs, f)
         with open(outfile_name + '.txt','w') as f:
             f.write('\n'.join(spacy_keys))
+ 
 
     def deduplicate_motifs(question_fit_file, outfile, threshold, verbose):
         """

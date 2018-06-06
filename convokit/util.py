@@ -15,6 +15,8 @@ def download(name, verbose=True):
             http://www.cs.cornell.edu/~cristian/Echoes_of_power.html)
         - "parliament-corpus": UK Parliament Question-Answer Corpus (see
             http://www.cs.cornell.edu/~cristian/Asking_too_much.html)
+        - "conversations-gone-awry-corpus": Wiki Personal Attacks Corpus (see 
+            http://www.cs.cornell.edu/~cristian/Conversations_gone_awry.html)
 
     :return: The path to the downloaded item.
     """
@@ -27,6 +29,8 @@ def download(name, verbose=True):
             "datasets/tennis-corpus/full.json",
         "wiki-corpus": "http://zissou.infosci.cornell.edu/socialkit/" + \
             "datasets/wiki-corpus/full.json",
+        "conversations-gone-awry-corpus": "http://zissou.infosci.cornell.edu/socialkit/" + \
+            "datasets/conversations-gone-awry-corpus/paired_conversations.json",
         "parliament-motifs": [
             "http://zissou.infosci.cornell.edu/socialkit/" + \
             "datasets/parliament-corpus/parliament-motifs/answer_arcs.json",
