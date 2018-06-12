@@ -18,7 +18,7 @@ Contents of this README:
 
 A) Brief description:
 
-This corpus contains a collection of paired conversations from Wikipedia editor's talk Pages (http://en.wikipedia.org/wiki/Wikipedia:Talk_page_guidelines) with metadata and human annotation info:
+This corpus contains a collection of paired conversations from Wikipedia editors' talk Pages (http://en.wikipedia.org/wiki/Wikipedia:Talk_page_guidelines) with metadata and human annotation info:
 
 - 635 pairs (1,270 conversations) with a total of 6,963 comments
 - involving a total of 2,146 editors
