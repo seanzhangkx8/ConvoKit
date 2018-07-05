@@ -15,7 +15,7 @@ The toolkit currently implements features for:
 
 ## Datasets
 These datasets are included for ready use with the toolkit:
-- [Conversations Gone Awry Corpus](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/datasets/conversations-gone-awry-corpus/awry.README.v1.00.txt): a collection of paired conversations from Wikipedia editors' talk pages (1,270 conversations, 6,963 comments)
+- [Conversations Gone Awry Corpus](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/datasets/conversations-gone-awry-corpus/awry.README.v1.00.txt): a collection of conversations from Wikipedia talk pages that derail into personal attacks (1,270 conversations, 6,963 comments)
 - [Tennis Corpus](http://www.cs.cornell.edu/~liye/tennis_README.txt): transcripts for tennis singles post-match press conferences for major tournaments between 2007 to 2015 (6467 post-match press conferences)
 - [Wikipedia Talk Pages Corpus](http://www.cs.cornell.edu/~cristian/Echoes_of_power_files/wikipedia.talkpages.README.v1.01.txt): collection of conversations from Wikipedia editors' talk pages
 - [Supreme Court Corpus](http://www.cs.cornell.edu/~cristian/Echoes_of_power_files/supreme.README.v1.01.txt): collection of conversations from the U.S. Supreme Court Oral Arguments
