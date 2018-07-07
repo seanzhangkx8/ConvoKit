@@ -1,4 +1,4 @@
-# Cornell Conversational Analysis Toolkit (version 2.0)
+# Cornell Conversational Analysis Toolkit
 This toolkit contains tools to extract conversational features and analyze social phenomena in conversations.  Several large [conversational datasets](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit#datasets) are included together with scripts exemplifying the use of the toolkit on these datasets.
 
 The toolkit currently implements features for:
@@ -29,9 +29,11 @@ These datasets are included for ready use with the toolkit:
 ## Usage
 
 **Installation**
-1. Install or use `Python 3`.
+This toolkit requires Python 3.
+
+1. [Download](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit) the toolkit.
 2. Run `python3 setup.py install` to install the package.
-3. Run `python -m spacy download en`
+3. Run `python3 -m spacy download en`
 
 **Use**
 
