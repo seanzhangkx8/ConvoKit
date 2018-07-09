@@ -28,14 +28,14 @@ These datasets are included for ready use with the toolkit:
 
 ## Usage
 
-**Installation**
+### Installation
 This toolkit requires Python 3.
 
 1. [Download](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit) the toolkit.
 2. Run `python3 setup.py install` to install the package.
 3. Run `python3 -m spacy download en`
 
-**Use**
+### Use
 
 Use `import convokit` to import it into your project.
 
@@ -48,8 +48,8 @@ The documentation is built with [Sphinx](http://www.sphinx-doc.org/en/1.5.1/) (`
 
 ## Acknowledgements
 
-Andrew Wang (azw7@cornell.edu)  wrote the Coordination code and the respective example script, wrote the helper functions and designed the structure of the toolkit.
+Andrew Wang ([azw7@cornell.edu](mailto:azw7@cornell.edu))  wrote the Coordination code and the respective example script, wrote the helper functions and designed the structure of the toolkit.
 
-Ishaan Jhaveri (iaj8@cornell.edu) refactored the Question Typology code and wrote the respective example scripts.
+Ishaan Jhaveri ([iaj8@cornell.edu](mailto:iaj8@cornell.edu)) refactored the Question Typology code and wrote the respective example scripts.
 
-Jonathan Chang (jpc362@cornell.edu) wrote the example script for Conversations Gone Awry.
+Jonathan Chang ([jpc362@cornell.edu](mailto:jpc362@cornell.edu)) wrote the example script for Conversations Gone Awry.
