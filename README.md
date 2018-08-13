@@ -3,7 +3,7 @@ This toolkit contains tools to extract conversational features and analyze socia
 
 The toolkit currently implements features for:
 
-- [Linguistic coordination](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/Coordination_README.md), a measure of linguistic influence (and relative power) between individuals or groups based on their use of function words (see the [Echoes of Power](https://www.cs.cornell.edu/~cristian/Echoes_of_power.html) paper).  Example script [exploring the balance of power in the US Supreme Court](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/coordination/examples.ipynb).
+- [Linguistic coordination](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/Coordination_README.md), a measure of linguistic influence (and relative power) between individuals or groups based on their use of function words (see the [Echoes of Power](https://www.cs.cornell.edu/~cristian/Echoes_of_power.html) paper). Example script [exploring the balance of power in the US Supreme Court](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/coordination/examples.ipynb).
 
 - [Politeness strategies](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/Politeness_README.md), a set of lexical and parse-based features correlating with politeness and impoliteness (see the [A computational approach to politeness](https://www.cs.cornell.edu/~cristian/Politeness.html) paper).  Example script for [understanding the (mis)use of politeness strategies in conversations gone awry on Wikipedia](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/conversationsGoneAwry/Conversations%20Gone%20Awry%20Prediction.ipynb).
 
@@ -31,15 +31,16 @@ These datasets are included for ready use with the toolkit:
 ### Installation
 This toolkit requires Python 3.
 
-1. [Download](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit) the toolkit.
-2. Run `python3 setup.py install` to install the package.
-3. Run `python3 -m spacy download en`
+1. Download the toolkit: `pip3 install convokit`
+2. Download Spacy's English model: `python3 -m spacy download en`
+
+Alternatively, visit our [Github Page](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit) to install from source.
 
 ### Use
 
 Use `import convokit` to import it into your project.
 
-Detailed installation and usage examples are also provided on the specific pages dedicated to each function of this toolkit.
+Detailed installation and usage examples are provided on the specific pages dedicated to each function of this toolkit.
 
 ## Documentation
 Documentation is hosted [here](http://zissou.infosci.cornell.edu/socialkit/documentation/).
