@@ -16,3 +16,5 @@ isolated_env/*
 examples/questionTypology/aarc_df.tsv
 examples/questionTypology/motif_df.tsv
 examples/questionTypology/qdoc_df.tsv
+website/output/
+update-website-live.sh
