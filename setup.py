@@ -6,10 +6,18 @@ setup(
     author_email = "azw7@cornell.edu",
     url = "https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit",
     description = "Cornell Conversational Analysis Toolkit",
-    version = "0.0.1",
+    version = "0.0.2",
     packages = ["convokit"],
     package_data = {"convokit": ["data/*.txt"]},
     entry_points = {
         "console_scripts": ["convokit = convokit.command_line:command_line_main"]
+    },
+    install_requires = {
+        "matplotlib>=1.5.0",
+        "pandas>=0.20.3",
+        "spacy>=2.0.11",
+        "scipy>=0.16.0",
+        "scikit-learn>=0.16.1",
+        "ntlk>=3.3"
     }
 )
