@@ -12,12 +12,12 @@ setup(
     entry_points = {
         "console_scripts": ["convokit = convokit.command_line:command_line_main"]
     },
-    install_requires = {
+    install_requires = [
         "matplotlib>=1.5.0",
         "pandas>=0.20.3",
         "spacy>=2.0.11",
         "scipy>=0.16.0",
         "scikit-learn>=0.16.1",
         "ntlk>=3.3"
-    }
+    ]
 )
