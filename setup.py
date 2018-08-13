@@ -18,6 +18,6 @@ setup(
         "spacy>=2.0.11",
         "scipy>=0.16.0",
         "scikit-learn>=0.16.1",
-        "ntlk>=3.3"
+        "nltk>=3.3"
     ]
 )
