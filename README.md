@@ -1,4 +1,4 @@
-# Cornell Conversational Analysis Toolkit (ConvoKit)
+# Cornell Conversational Analysis Toolkit ([ConvoKit](http://convokit.cornell.edu/))
 This toolkit contains tools to extract conversational features and analyze social phenomena in conversations.  Several large [conversational datasets](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit#datasets) are included together with scripts exemplifying the use of the toolkit on these datasets.
 
 The toolkit currently implements features for:
@@ -30,7 +30,7 @@ These datasets can be downloaded using the `convokit.download()` [helper functio
 
 ## Data format
 
-To use the toolkit with your own dataset, it needs to be in a standard json [format](Format.md).
+To use the toolkit with your own dataset, it needs to be in a standard json [format](Data_format.md).
 
 ## Installation
 This toolkit requires Python 3.
