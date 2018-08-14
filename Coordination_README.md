@@ -1,4 +1,4 @@
-#### [ConvoKit](http://convokit.cornell.edu/)
+#### This is a module of [ConvoKit](http://convokit.cornell.edu/)
 
 # Linguistic coordination
 Linguistic coordination is a phenomenon in which people tend to (unconsciously) mimic the choices of function-word classes made by the people they are communicating with.  The degree of coordination has been shown to correlate with the relative status of the interlocutors (see the [Echoes of Power](https://www.cs.cornell.edu/~cristian/Echoes_of_power.html) paper).  
