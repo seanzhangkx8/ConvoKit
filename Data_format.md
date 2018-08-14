@@ -6,7 +6,7 @@ A sample dataset containing the comments from three conversations is available [
 
 The mandatory fields for each comment-json are: "id", "reply-to", "root", "text", "user".   Other fields can be added optionally depending on a particular data and intended use (e.g., "timestamp","user-info").
 
-Here is a description of the format of a json object for a comment in the sample above (optional fields are shown in squared brackets)
+Here is a description of the format of a json object for a comment in the sample above (optional fields are shown in squared brackets):
 
 
 
