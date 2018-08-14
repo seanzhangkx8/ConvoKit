@@ -8,6 +8,8 @@ The mandatory fields for each comment-json are: "id", "reply-to", "root", "text"
 
 Here is a description of the format of a json object for a comment in the sample above (optional fields are shown in squared brackets)
 
+
+
 {
 
     "id": "2",  ->  id of this comment
@@ -26,5 +28,6 @@ Here is a description of the format of a json object for a comment in the sample
 
       "user-edit-count": "8283" [-> edit count]
       }
- }    
+     
+}
       
