@@ -1,33 +1,29 @@
-# Coordination
-Linguistic Coordination is measure of relative power between individuals or groups based on their use of function words (see the [Echoes of Power](https://www.cs.cornell.edu/~cristian/Echoes_of_power.html) paper). This readme contains information about  the [Installation](#installation), [Basic Usage](#basic-usage), [Dataset Source](#dataset-source), [Dataset Details](#dataset-details), [Examples](#examples) and [Documentation](#documentation).
+#### [ConvoKit](http://convokit.cornell.edu/)
 
-## Installation
-1. The toolkit requires Python 3. If you don't have it install it by running `pip install python3` or using the Anaconda distribution. That can be found [here](https://www.anaconda.com/download/#macos).
-2. Install the required packages by running `pip install -r requirements.txt` (Note if your default version of `pip` is for Python 2.7 you might have to use `pip3 install -r requirements.txt` instead)
-3. Run `python3 setup.py install` to install the package.
-4.  Use `import convokit` to import it into your project.
+# Linguistic coordination
+Linguistic coordination is a phenomenon in which people tend to (unconsciously) mimic the choices of function-word classes made by the people they are communicating with.  The degree of coordination has been shown to correlate with the relative status of the interlocutors (see the [Echoes of Power](https://www.cs.cornell.edu/~cristian/Echoes_of_power.html) paper).  
+
+Linguistic coordination is related to [Linguistic Style Matching](http://journals.sagepub.com/doi/10.1177/026192702237953), [Lexical Entrainment](https://en.wikipedia.org/wiki/Lexical_entrainment) and the Communication Accommodation Theory (https://en.wikipedia.org/wiki/Communication_accommodation_theory).  See this [survey](https://www.annualreviews.org/doi/abs/10.1146/annurev-soc-081715-074206) for example applications of these concepts in computational social science.
+
+
+## Example script
+[Exploring the balance of power in the US Supreme Court and in the Wikipedia community of editors](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/coordination/examples.ipynb)
 
 ## Basic usage
+
+We recommend using the example script above to familiarize yourself with this module of the toolkit, but here are basic steps:
+
+0. Install the toolkit
 1. Load corpus: `corpus = convokit.Corpus(filename=...)`
 2. Create coordination object: `coord = convokit.Coordination(corpus)`
 3. Define groups using `corpus.users`:
-        `group_A = corpus.users(lambda user: user.info["is-justice"])  # [roberts, ginsburg, ...]`
+        `group_A = corpus.users(lambda user: user.info["is-justice"])`
 4. Compute coordination: `scores = coord.score(group_A, group_B)`
-5. (Optional) get aggregate scores:
+5. (Optional) Get aggregate scores:
         `average_by_marker_agg1, average_by_marker, agg1, agg2, agg3 = coord.score_report(scores)`
-
-
-## Dataset Source
-TODO
-They can all be found [here](zissou.infosci.cornell.edu/data/).
-
-## Dataset Details
-TODO: 
-
-## Examples
-See [`examples`](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/tree/master/examples/coordination) for guided examples and reproductions of charts from the original papers.
 
 ## Documentation
 Documentation is hosted [here](http://zissou.infosci.cornell.edu/socialkit/documentation/coordination.html).
 
-The documentation is built with [Sphinx](http://www.sphinx-doc.org/en/1.5.1/) (`pip3 install sphinx`). To build it yourself, navigate to `doc/` and run `make html`. 
+#### [ConvoKit](http://convokit.cornell.edu/)
+
