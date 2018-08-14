@@ -10,12 +10,14 @@ from convokit import Utterance, Corpus, Coordination, download
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import numpy as np
+import os
 
 # load corpus; split users by whether they are an admin
 # this means that if a user has spoken in the corpus as both an admin and
 #   a non-admin, then we will split this user into two users, one for each of
 #   these roles
-corpus = Corpus(filename=download("wiki-corpus"),
+path = download("wiki-corpus")
+corpus = Corpus(filename=os.path.join(path, "wiki-corpus"),
     subdivide_users_by=["is_admin"])
 
 # create coordination object

@@ -1,4 +1,4 @@
-
+import pkg_resources
 import os
 import re
 from itertools import chain
@@ -26,9 +26,12 @@ hedges = [
 ]
 
 # Positive and negative words from Liu
-local_dir = os.path.split(__file__)[0]
-pos_filename = os.path.join(local_dir, "liu-positive-words.txt")
-neg_filename = os.path.join(local_dir, "liu-negative-words.txt")
+pos_filename = pkg_resources.resource_filename("convokit",
+    "data/liu-positive-words.txt")
+neg_filename = pkg_resources.resource_filename("convokit",
+    "data/liu-negative-words.txt")
+#os.path.join(local_dir, "liu-negative-words.txt")
+#os.path.join(local_dir, "liu-positive-words.txt")
 
 positive_words = set(map(lambda x: x.strip(), open(pos_filename).read().splitlines()))
 negative_words = set(map(lambda x: x.strip(), open(neg_filename, encoding="ISO-8859-1").read().splitlines()))
