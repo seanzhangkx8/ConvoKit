@@ -1,4 +1,4 @@
-# Cornell Conversational Analysis Toolkit
+# Cornell Conversational Analysis Toolkit (ConvoKit)
 This toolkit contains tools to extract conversational features and analyze social phenomena in conversations.  Several large [conversational datasets](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit#datasets) are included together with scripts exemplifying the use of the toolkit on these datasets.
 
 The toolkit currently implements features for:
@@ -26,9 +26,8 @@ These datasets are included for ready use with the toolkit:
 
 - [Parliament Corpus](http://www.cs.cornell.edu/~cristian/Asking_too_much_files/paper-questions.pdf): parliamentary question periods from May 1979 to December 2016 (216,894 question-answer pairs)
 
-## Usage
 
-### Installation
+## Installation
 This toolkit requires Python 3.
 
 1. Download the toolkit: `pip3 install convokit`
@@ -36,11 +35,7 @@ This toolkit requires Python 3.
 
 Alternatively, visit our [Github Page](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit) to install from source.
 
-### Use
-
-Use `import convokit` to import it into your project.
-
-Detailed installation and usage examples are provided on the specific pages dedicated to each function of this toolkit.
+Use `import convokit` to import it into your project.  Have fun analyzing coversations.
 
 ## Documentation
 Documentation is hosted [here](http://zissou.infosci.cornell.edu/socialkit/documentation/).
@@ -54,3 +49,6 @@ Andrew Wang ([azw7@cornell.edu](mailto:azw7@cornell.edu))  wrote the Coordinatio
 Ishaan Jhaveri ([iaj8@cornell.edu](mailto:iaj8@cornell.edu)) refactored the Question Typology code and wrote the respective example scripts.
 
 Jonathan Chang ([jpc362@cornell.edu](mailto:jpc362@cornell.edu)) wrote the example script for Conversations Gone Awry.
+
+
+[ConvoKit](http://convokit.cornell.edu/)
