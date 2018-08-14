@@ -13,7 +13,7 @@ Linguistic coordination is related to [Linguistic Style Matching](http://journal
 
 We recommend using the example script above to familiarize yourself with this module of the toolkit, but here are basic steps:
 
-0. Install the toolkit
+0. Install [ConvoKit](http://convokit.cornell.edu/)
 1. Load corpus: `corpus = convokit.Corpus(filename=...)`
 2. Create coordination object: `coord = convokit.Coordination(corpus)`
 3. Define groups using `corpus.users`:
