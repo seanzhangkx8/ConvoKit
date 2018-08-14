@@ -1,7 +1,7 @@
 #### This is a module of [ConvoKit](http://convokit.cornell.edu/)
 
 # Question Typology and Conversational Prompts
-Question typology is a method for grouping questions (and other comments) according to their the rhetorical intentions  (see the [Asking too much](http://www.cs.cornell.edu/~cristian/Asking_too_much.html) and [Conversations gone awry](http://www.cs.cornell.edu/~cristian/Conversations_gone_awry.html) papers).  The types of rhetorical intentions are extracted automatically and in an unsupervised fashion from a given collection of conversations.
+This module implements a method for grouping questions and other comments according to their the rhetorical intentions  (see the [Asking too much](http://www.cs.cornell.edu/~cristian/Asking_too_much.html) and [Conversations gone awry](http://www.cs.cornell.edu/~cristian/Conversations_gone_awry.html) papers).  The types of rhetorical intentions are extracted automatically and in an unsupervised fashion from a given collection of conversations.
 
 ## Example scripts
 
