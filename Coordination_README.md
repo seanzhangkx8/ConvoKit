@@ -1,7 +1,7 @@
 #### This is a module of [ConvoKit](http://convokit.cornell.edu/)
 
 # Linguistic coordination
-Linguistic coordination is a phenomenon in which people tend to (unconsciously) mimic the choices of function-word classes made by the people they are communicating with.  The degree of coordination has been shown to correlate with the relative status of the interlocutors (see the [Echoes of Power](https://www.cs.cornell.edu/~cristian/Echoes_of_power.html) paper).  
+Linguistic coordination is a a measure of linguistic influence between individuals involved in a conversation that is based on their use of function words.  The degree of coordination has been shown to correlate with the relative status of the interlocutors (see the [Echoes of Power](https://www.cs.cornell.edu/~cristian/Echoes_of_power.html) paper).  
 
 Linguistic coordination is related to [Linguistic Style Matching](http://journals.sagepub.com/doi/10.1177/026192702237953), [Lexical Entrainment](https://en.wikipedia.org/wiki/Lexical_entrainment) and the Communication Accommodation Theory (https://en.wikipedia.org/wiki/Communication_accommodation_theory).  See this [survey](https://www.annualreviews.org/doi/abs/10.1146/annurev-soc-081715-074206) for example applications of these concepts in computational social science.
 
