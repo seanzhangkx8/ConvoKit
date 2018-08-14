@@ -35,7 +35,14 @@ This toolkit requires Python 3.
 
 Alternatively, visit our [Github Page](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit) to install from source.
 
-Use `import convokit` to import it into your project.  Have fun analyzing coversations.
+## Usage
+
+See the example ipython notebooks linked above to familiarize yourself with how to use the different modules of the toolkit.  The basic process is:
+
+1. `import convokit` into your python3 project.
+2. Load a corpus of conversations using `corpus = convokit.Corpus(filename=...)`; use your own corpus or one of the ones provided with the toolkit.
+3. Use convokit functionality to extract features from the conversations, for example `ps = convokit.PolitenessStrategies(corpus)` to extract the politeness strategies used in all the conversations. 
+4. Have fun analyzing coversations.
 
 ## Documentation
 Documentation is hosted [here](http://zissou.infosci.cornell.edu/socialkit/documentation/).
