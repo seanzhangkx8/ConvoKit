@@ -26,6 +26,11 @@ These datasets are included for ready use with the toolkit:
 
 - [Parliament Corpus](http://www.cs.cornell.edu/~cristian/Asking_too_much_files/paper-questions.pdf): parliamentary question periods from May 1979 to December 2016 (216,894 question-answer pairs)
 
+These datasets can be downloaded using the `convokit.download()` [helper function](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/convokit/util.py).  Alternatively you can access them directly [here](http://zissou.infosci.cornell.edu/socialkit/datasets/).
+
+## Data format
+
+To use the toolkit with your own dataset, it needs to be in a standard json [format](Format.md).
 
 ## Installation
 This toolkit requires Python 3.
