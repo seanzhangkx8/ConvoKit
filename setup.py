@@ -6,7 +6,7 @@ setup(
     author_email = "azw7@cornell.edu",
     url = "https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit",
     description = "Cornell Conversational Analysis Toolkit",
-    version = "0.0.5",
+    version = "0.0.6",
     packages = ["convokit"],
     package_data = {"convokit": ["data/*.txt"]},
     entry_points = {
@@ -18,6 +18,7 @@ setup(
         "spacy>=2.0.11",
         "scipy>=0.16.0",
         "scikit-learn>=0.16.1",
-        "nltk>=3.3"
+        "nltk>=3.3",
+        "pyqt5>=5.11.2"
     ]
 )

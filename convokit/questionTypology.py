@@ -8,7 +8,7 @@ import os
 import platform
 if platform.system() == "Darwin":
     import matplotlib
-    matplotlib.use("TkAgg")
+    matplotlib.use("PyQt5")
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
