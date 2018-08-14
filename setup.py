@@ -6,8 +6,8 @@ setup(
     author_email = "azw7@cornell.edu",
     url = "https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit",
     description = "Cornell Conversational Analysis Toolkit",
-    version = "0.0.9",
-    packages = ["convokit"],
+    version = "0.0.10",
+    packages = ["convokit", "convokit.politeness_api"],
     package_data = {"convokit": ["data/*.txt"]},
     entry_points = {
         "console_scripts": ["convokit = convokit.command_line:command_line_main"]
