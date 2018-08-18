@@ -20,7 +20,7 @@ with open("supreme.gender.txt", "r", encoding="utf-8") as f:
         name, gender = line.split(" +++$+++ ")
         genders[name.lower()] = gender
 
-convo_id = 0
+convo_id, root_id = 0, None
 last_utterance_id = None
 u = {}
 with open("supreme.conversations.dat", "r", encoding="utf-8") as f:
@@ -50,11 +50,12 @@ with open("supreme.conversations.dat", "r", encoding="utf-8") as f:
                 is_reply = fields[2].strip() == "TRUE"
                 if not is_reply:
                     convo_id += 1
-                
+                    root_id = fields[1]
+
                 d = {
                     KeyId: fields[1],
                     KeyUser: user,
-                    KeyConvoRoot: convo_id,
+                    KeyConvoRoot: root_id,#convo_id,
                     KeyText: fields[7],
                     KeyUserInfo: {
                         "case": case,
@@ -70,7 +71,7 @@ with open("supreme.conversations.dat", "r", encoding="utf-8") as f:
 
                 if is_reply:
                     d[KeyReplyTo] = last_utterance_id
-                    d[KeyConvoRoot] = user # \
+                    d[KeyConvoRoot] = root_id#convo_id#user # \
                         #+ "->" + (
                         #"[justices]" if \
                         #u[last_utterance_id][KeyUser].endswith("fav}") else \
