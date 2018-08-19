@@ -2,7 +2,7 @@
 
 ConvoKit expects a standard json-based format.  A corpus is a list of json objects, each representing a comment.
 
-A sample dataset containing the comments from three conversations is available [here](http://zissou.infosci.cornell.edu/socialkit/datasets/wiki-corpus/sample.json)
+A sample containing the comments from three conversations is available [here](http://zissou.infosci.cornell.edu/socialkit/datasets/wiki-corpus/sample.json)
 
 The mandatory fields for each comment-json are: "id", "reply-to", "root", "text", "user".   Other fields can be added optionally depending on a particular data and intended use (e.g., "timestamp","user-info").
 
