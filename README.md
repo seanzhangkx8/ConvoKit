@@ -30,7 +30,7 @@ These datasets can be downloaded using the `convokit.download()` [helper functio
 
 ## Data format
 
-To use the toolkit with your own dataset, it needs to be in a standard json [format](Data_format.md).
+To use the toolkit with your own dataset, it needs to be in a standard json [format](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/Data_format.md).
 
 ## Installation
 This toolkit requires Python 3.
