@@ -268,6 +268,11 @@ class Corpus:
 
         self.utterances = new_utterances
 
+    def earliest_n_utterances(self, n):
+        """Returns the first n utterances (ordered by time)."""
+        utts = list(sorted(self.utterances.values(), key=lambda u: u.timestamp))
+        return utts[:n]
+
     def users(self, selector=None):
         """Get users in the dataset.
 

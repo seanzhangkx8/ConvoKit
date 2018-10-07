@@ -1,4 +1,7 @@
-/datasets/
+*.json
+*.jsonlist
+*.dat
+*.txt
 *.pyc
 /dist/
 /*.egg-info
