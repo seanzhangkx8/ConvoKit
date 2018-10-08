@@ -1,25 +1,27 @@
 from collections import defaultdict
+import numpy as np
+import scipy.stats
 
 class HyperConvo:
     def __init__(self, corpus):
         self.corpus = corpus
 
-        self.G = self._make_hypergraph()
+    def make_hypergraph(self, uts=None):
+        if uts is None:
+            uts = self.corpus.utterances
 
-    def _make_hypergraph(self):
         G = Hypergraph()
         self.username_to_utt_ids = defaultdict(list)
         reply_edges = []
         speaker_to_reply_tos = defaultdict(list)
         speaker_target_pairs = set()        
         # nodes
-        for ut in self.corpus.utterances.values():
+        for ut in uts.values():
             self.username_to_utt_ids[ut.user].append(ut.id)
-            if ut.reply_to is not None:
+            if ut.reply_to is not None and ut.reply_to in uts:
                 reply_edges.append((ut.id, ut.reply_to))
                 speaker_to_reply_tos[ut.user].append(ut.reply_to)
-                speaker_target_pairs.add((ut.user,
-                    self.corpus.utterances[ut.reply_to].user))
+                speaker_target_pairs.add((ut.user, uts[ut.reply_to].user))
             G.add_node(ut.id, info=ut.__dict__)
         # hypernodes
         for u in self.corpus.users():
@@ -36,6 +38,44 @@ class HyperConvo:
         for u, v in speaker_target_pairs:
             G.add_edge(u, v)
         return G
+
+    def _node_type_name(self, b):
+        return "C" if b else "c"
+
+    def degree_feats(self, uts=None, G=None):
+        assert uts is None or G is None
+        if G is None:
+            G = self.make_hypergraph(uts)
+
+        stat_funcs = {
+            "max": max,
+            "argmax": np.argmax,
+            "norm.max": lambda l: max(l) / sum(l),
+            "2nd-largest": lambda l: np.partition(l, -2)[-2],
+            "2nd-argmax": lambda l: (-l).argsort()[1],
+            "norm.2nd-largest": lambda l: (np.partition(l, -2)[-2]) / sum(l),
+            "mean": np.mean,
+            "mean-nonzero": lambda l: np.mean(l[l != 0]),
+            "prop-nonzero": lambda l: np.mean(l != 0),
+            "prop-multiple": lambda l: np.mean(l[l != 0] > 1),
+            "entropy": scipy.stats.entropy,
+            "2nd-largest / max": lambda l: (np.partition(l, -2)[-2]) / max(l)
+        }
+
+        stats = {}
+        for from_hyper in [False, True]:
+            for to_hyper in [False, True]:
+                if not from_hyper and to_hyper: continue  # skip c -> C
+                outdegrees = np.array(G.outdegrees(from_hyper, to_hyper))
+                indegrees = np.array(G.indegrees(from_hyper, to_hyper))
+                for stat, stat_func in stat_funcs.items():
+                    stats["{}[outdegree over {}->{} responses]".format(stat,
+                        self._node_type_name(from_hyper),
+                        self._node_type_name(to_hyper))] = stat_func(outdegrees)
+                    stats["{}[indegree over {}->{} responses]".format(stat,
+                        self._node_type_name(from_hyper),
+                        self._node_type_name(to_hyper))] = stat_func(indegrees)
+        return stats
 
 class Hypergraph:
     def __init__(self):
