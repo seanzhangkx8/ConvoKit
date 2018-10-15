@@ -6,11 +6,15 @@ import os
 location = os.getcwd()
 subs_dict = {}
 for file in os.listdir(location+'/reddit-data'):
+    print(file)
     if file.endswith(".jsonlist"):
-        with open('reddit-data/'+file) as f:
+        with open('reddit-data/'+file, encoding="latin") as f:
             subs_dict[file[:-9]] = []
             for line in f:
-                line_json = json.loads(line)
+                try:
+                    line_json = json.loads(line)
+                except json.decoder.JSONDecodeError:
+                    continue
                 if line_json not in subs_dict[file[:-9]]:
                     subs_dict[file[:-9]].append(line_json) #remove duplicates
 
@@ -49,7 +53,7 @@ for subreddit in subs_dict:
             d['id'] = child['id']
             d['reply-to'] = child.pop('parent_id')
             d['text'] = child.pop('body')
-            d['timestamp'] = child.pop('created_utc')
+            d['timestamp'] = int(child.pop('created_utc'))
             d['user'] = child.pop('author')
             d['user-info'] = child
             reddit_convos.append(d) #append to convokit
@@ -57,7 +61,7 @@ for subreddit in subs_dict:
         addcomment['root'] = comment['id'] #cleanup comment
         addcomment['id'] = comment.pop('id')
         addcomment['text'] = comment.pop('selftext')
-        addcomment['timestamp'] = comment.pop('created_utc')
+        addcomment['timestamp'] = int(comment.pop('created_utc'))
         addcomment['user'] = comment.pop('author')
         comment.pop('children')
         comment.pop('created')

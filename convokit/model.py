@@ -268,10 +268,24 @@ class Corpus:
 
         self.utterances = new_utterances
 
-    def earliest_n_utterances(self, n):
-        """Returns the first n utterances (ordered by time)."""
-        utts = list(sorted(self.utterances.values(), key=lambda u: u.timestamp))
-        return utts[:n]
+#    def earliest_n_utterances(self, n, uts=None):
+#        """Returns the first n utterances (ordered by time)."""
+#        if uts is None:
+#            uts = self.utterances
+#        uts = list(sorted(uts.values(), key=lambda u: u.timestamp))
+#        return uts[:n]
+
+    def utterance_threads(self, prefix_len=None):
+        """
+        Returns dict of threads, where a thread is all utterances with the
+        same root.
+        """
+        threads = defaultdict(list)
+        for ut in self.utterances.values():
+            threads[ut.root].append(ut)
+        return {root: {ut.id: ut for ut in list(sorted(l,
+            key=lambda ut: ut.timestamp))[:prefix_len]}
+            for root, l in threads.items()}
 
     def users(self, selector=None):
         """Get users in the dataset.
@@ -351,7 +365,6 @@ class Corpus:
                                 user_names_only else (u2.user, u1.user))
                         pairs[key].append(u2)
         return pairs
-
 
     def iterate_by(self, iter_type, is_utterance_question):
         """Iterator for utterances.

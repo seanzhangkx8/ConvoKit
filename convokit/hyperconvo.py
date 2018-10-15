@@ -77,6 +77,38 @@ class HyperConvo:
                         self._node_type_name(to_hyper))] = stat_func(indegrees)
         return stats
 
+    def motif_feats(self, uts=None, G=None):
+        assert uts is None or G is None
+        if G is None:
+            G = self.make_hypergraph(uts)
+
+        stat_funcs = {
+            "is-present": lambda l: len(l) > 0,
+            "count": len
+        }
+
+        stats = {}
+        for motif, motif_func in [
+            ("reciprocity motif", G.reciprocity_motifs),
+            ("external reciprocity motif", G.external_reciprocity_motifs),
+            ("dyadic interaction motif", G.dyadic_interaction_motifs),
+            ("incoming triads", G.incoming_triad_motifs),
+            ("outgoing triads", G.outgoing_triad_motifs)]:
+            motifs = motif_func()
+            for stat, stat_func in stat_funcs.items():
+                stats["{}[{}]".format(stat, motif)] = stat_func(motifs)
+        return stats
+
+    def all_feats(self, uts=None, G=None):
+        assert uts is None or G is None
+        if G is None:
+            G = self.make_hypergraph(uts)
+
+        stats = {}
+        for k, v in self.degree_feats(G=G).items(): stats[k] = v
+        for k, v in self.motif_feats(G=G).items(): stats[k] = v
+        return stats
+
 class Hypergraph:
     def __init__(self):
         # tentatively public
