@@ -13,7 +13,8 @@ hc = convokit.HyperConvo(corpus)
 
 threads_feats = hc.retrieve_feats()
 
-pts, labels = hc.embed_communities(threads_feats, "subreddit", min_threads=50)
+pts, labels = hc.embed_communities(threads_feats, "subreddit", min_threads=50,
+    method="tsne")
 
 xs, ys = zip(*pts)
 plt.scatter(xs, ys)#, color=colors)

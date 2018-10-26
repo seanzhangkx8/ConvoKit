@@ -165,18 +165,26 @@ class HyperConvo:
             f = TSNE
         else:
             raise Exception("Invalid embed_feats embedding method")
-        X_mid = f(n_components=n_components).fit_transform(X)
+        emb = f(n_components=n_components)
+        X_mid = emb.fit_transform(X) / emb.singular_values_
         return X_mid, roots
 
     def embed_communities(self, threads_stats, 
         community_key, n_intermediate_components=50,
-        n_components=2, intermediate_method="svd", method="tsne",
+        n_components=2, intermediate_method="svd", method="svd",
         norm_method="standard",
         min_threads=10):
         X_mid, roots = self.embed_threads(threads_stats,
             n_components=n_intermediate_components, method=intermediate_method,
             norm_method=norm_method)
-        X_embedded = TSNE(n_components=n_components).fit_transform(X_mid)
+
+        if method.lower() == "svd":
+            f = TruncatedSVD
+        elif method.lower() == "tsne":
+            f = TSNE
+        else:
+            raise Exception("Invalid embed_communities embedding method")
+        X_embedded = f(n_components=n_components).fit_transform(X_mid)
 
         labels = [self.corpus.utterances[root].user.info[community_key]
             for root in roots]
@@ -184,10 +192,10 @@ class HyperConvo:
         subs = defaultdict(list)
         for x, label in zip(X_embedded, labels):
             if label_counts[label] >= min_threads:
-                subs[label].append(x)
+                subs[label].append(x / np.linalg.norm(x))
 
         labels, subs = zip(*subs.items())
-        pts = [np.mean(sub / np.linalg.norm(sub), axis=0) for sub in subs]
+        pts = [np.mean(sub, axis=0) for sub in subs]
 
         return pts, labels
 
