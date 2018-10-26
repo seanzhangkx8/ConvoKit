@@ -275,7 +275,7 @@ class Corpus:
 #        uts = list(sorted(uts.values(), key=lambda u: u.timestamp))
 #        return uts[:n]
 
-    def utterance_threads(self, prefix_len=None):
+    def utterance_threads(self, prefix_len=None, suffix_len=0):
         """
         Returns dict of threads, where a thread is all utterances with the
         same root.
@@ -284,7 +284,7 @@ class Corpus:
         for ut in self.utterances.values():
             threads[ut.root].append(ut)
         return {root: {ut.id: ut for ut in list(sorted(l,
-            key=lambda ut: ut.timestamp))[:prefix_len]}
+            key=lambda ut: ut.timestamp))[-suffix_len:prefix_len]}
             for root, l in threads.items()}
 
     def users(self, selector=None):

@@ -5,7 +5,7 @@ import os
 
 location = os.getcwd()
 subs_dict = {}
-for file in os.listdir(location+'/reddit-data'):
+for file in os.listdir(location+'/reddit-data-small'):
     print(file)
     if file.endswith(".jsonlist"):
         with open('reddit-data/'+file, encoding="latin") as f:
@@ -40,33 +40,56 @@ def del_dups(convos):
 ##create new json list
 reddit_convos = []
 for subreddit in subs_dict:
-    for comment in subs_dict[subreddit]:
-        #replies = children(comment, []) #generates list of children 
-        for child in children(comment): #do some formatting
-            if "body" not in child: continue
-            child.pop('name') 
-            #child.pop('children')
-            child.pop('subreddit')
-            child.pop('subreddit_id')
+    for self_post in subs_dict[subreddit]:
+        for thread_root in self_post["children"]:
+            for child in children(thread_root):
+                if "body" not in child: continue
+                child.pop("name")
+                child.pop("subreddit_id")
+                d = {}
+                d["root"] = thread_root["id"]
+                d["id"] = child["id"]
+                d["reply-to"] = child.pop("parent_id")
+                d["text"] = child.pop("body")
+                d["timestamp"] = int(child.pop("created_utc"))
+                d["user"] = child.pop("author")
+                d["user-info"] = child
+                reddit_convos.append(d)
             d = {}
-            d['root'] = comment['id']
-            d['id'] = child['id']
-            d['reply-to'] = child.pop('parent_id')
-            d['text'] = child.pop('body')
-            d['timestamp'] = int(child.pop('created_utc'))
-            d['user'] = child.pop('author')
-            d['user-info'] = child
-            reddit_convos.append(d) #append to convokit
-        addcomment = {}#dict(comment)
-        addcomment['root'] = comment['id'] #cleanup comment
-        addcomment['id'] = comment.pop('id')
-        addcomment['text'] = comment.pop('selftext')
-        addcomment['timestamp'] = int(comment.pop('created_utc'))
-        addcomment['user'] = comment.pop('author')
-        comment.pop('children')
-        comment.pop('created')
-        addcomment['user-info'] = comment
-        reddit_convos.append(addcomment) #add the original comment
+            d["root"] = thread_root["id"]
+            d["id"] = thread_root.pop("id")
+            d["text"] = thread_root.pop("body")
+            d["timestamp"] = int(thread_root.pop("created_utc"))
+            d["user"] = thread_root.pop("author")
+            thread_root.pop("children")
+            d["user-info"] = thread_root
+
+            reddit_convos.append(d)
+        #for child in children(comment): #do some formatting
+        #    if "body" not in child: continue
+        #    child.pop('name') 
+        #    #child.pop('children')
+        #    child.pop('subreddit')
+        #    child.pop('subreddit_id')
+        #    d = {}
+        #    d['root'] = comment['id']
+        #    d['id'] = child['id']
+        #    d['reply-to'] = child.pop('parent_id')
+        #    d['text'] = child.pop('body')
+        #    d['timestamp'] = int(child.pop('created_utc'))
+        #    d['user'] = child.pop('author')
+        #    d['user-info'] = child
+        #    reddit_convos.append(d) #append to convokit
+        #addcomment = {}#dict(comment)
+        #addcomment['root'] = comment['id'] #cleanup comment
+        #addcomment['id'] = comment.pop('id')
+        #addcomment['text'] = comment.pop('selftext')
+        #addcomment['timestamp'] = int(comment.pop('created_utc'))
+        #addcomment['user'] = comment.pop('author')
+        #comment.pop('children')
+        #comment.pop('created')
+        #addcomment['user-info'] = comment
+        #reddit_convos.append(addcomment) #add the original comment
 
 reddit_convos = del_dups(reddit_convos)
 reddit_convos = [d for d in reddit_convos if "text" in d]

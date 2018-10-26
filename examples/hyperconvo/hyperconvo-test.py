@@ -7,7 +7,7 @@ hc = convokit.HyperConvo(corpus)
 
 # we might not need to expose make_hypergraph publicly, but this gives us a 
 #   hypergraph to demonstrate Hypergraph methods with
-G = hc.make_hypergraph()
+G = hc._make_hypergraph()
 
 def summarize_dist(name, l):
     print("{}: min {}, mean {:.4f}, max {}".format(
@@ -37,15 +37,7 @@ print("example reciprocity motif:", G.reciprocity_motifs()[0])
 print()
 
 # HyperConvo interface: get high-level degree features
-feats = hc.all_feats(G=G)   # G=G is an optional speedup: avoid recomputing G
-for k, v in feats.items():
-    print("{}: {:.4f}".format(k, v))
-print()
-
-threads = corpus.utterance_threads(prefix_len=10)
-# use subgraph corresponding to this subset of utterances (one convo thread)
-example_root = "t3_84mqm"
-feats = hc.all_feats(uts=threads[example_root])
+feats = hc.retrieve_feats()
 for k, v in feats.items():
     print("{}: {:.4f}".format(k, v))
 print()
