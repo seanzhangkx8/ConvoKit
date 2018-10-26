@@ -5,7 +5,7 @@ import os
 
 location = os.getcwd()
 subs_dict = {}
-for file in os.listdir(location+'/reddit-data-small'):
+for file in os.listdir(location+'/reddit-data'):
     print(file)
     if file.endswith(".jsonlist"):
         with open('reddit-data/'+file, encoding="latin") as f:
