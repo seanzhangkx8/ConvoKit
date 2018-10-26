@@ -27,7 +27,7 @@ X = StandardScaler().fit_transform(X)
 c = Counter(labels)
 
 svd = TruncatedSVD(n_components=7)
-X_mid = svd.fit_transform(X).tolist()
+X_mid = (svd.fit_transform(X) / svd.singular_values_).tolist()
 subs = defaultdict(list)
 for x, label in zip(X_mid, labels):
     if c[label] >= 50:
@@ -35,6 +35,7 @@ for x, label in zip(X_mid, labels):
 
 labels, subs = zip(*subs.items())
 X_f = np.array([np.mean(sub / np.linalg.norm(sub), axis=0) for sub in subs])
+#X_f = np.array([np.mean(sub, axis=0) for sub in subs])
 
 print("TOP SUBREDDITS")
 for d in range(7):
