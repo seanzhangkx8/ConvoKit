@@ -122,7 +122,6 @@ class HyperConvo:
             #if i % 100 != 0: continue
             if i % 1000 == 0: print(i)
             #if i == 10000: break
-            #print(len(thread))
             if len(thread) < min_thread_len: continue
             stats = {}
             G = self._make_hypergraph(uts=thread)
@@ -140,7 +139,7 @@ class HyperConvo:
         return threads_stats
 
     def embed_threads(self, threads_feats, n_components=7, method="svd",
-        norm_method="standard"):
+        norm_method="standard", return_components=False):
         X = []#, labels = [], []
         roots = []
         for root, feats in threads_feats.items():
@@ -167,11 +166,15 @@ class HyperConvo:
             raise Exception("Invalid embed_feats embedding method")
         emb = f(n_components=n_components)
         X_mid = emb.fit_transform(X) / emb.singular_values_
-        return X_mid, roots
+
+        if not return_components:
+            return X_mid, roots
+        else:
+            return X_mid, roots, emb.components_
 
     def embed_communities(self, threads_stats, 
         community_key, n_intermediate_components=50,
-        n_components=2, intermediate_method="svd", method="svd",
+        n_components=2, intermediate_method="svd", method="none",
         norm_method="standard",
         min_threads=10):
         X_mid, roots = self.embed_threads(threads_stats,
@@ -182,9 +185,14 @@ class HyperConvo:
             f = TruncatedSVD
         elif method.lower() == "tsne":
             f = TSNE
+        elif method.lower() == "none":
+            f = None
         else:
             raise Exception("Invalid embed_communities embedding method")
-        X_embedded = f(n_components=n_components).fit_transform(X_mid)
+        if f is not None:
+            X_embedded = f(n_components=n_components).fit_transform(X_mid)
+        else:
+            X_embedded = X_mid
 
         labels = [self.corpus.utterances[root].user.info[community_key]
             for root in roots]
