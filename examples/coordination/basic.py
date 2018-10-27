@@ -2,12 +2,10 @@
 # - Which justices coordinate the most to others?
 # - Which justices are coordinated to the most?
 
-import os
 import convokit
 
 # set up corpus
-path = convokit.download("supreme-corpus")
-corpus = convokit.Corpus(filename=os.path.join(path, "supreme-corpus"))
+corpus = convokit.Corpus(filename=convokit.download("supreme-corpus"))
 coord = convokit.Coordination(corpus)
 
 # get set of all justices

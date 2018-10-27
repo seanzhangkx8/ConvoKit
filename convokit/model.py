@@ -279,6 +279,14 @@ class Corpus:
         """
         Returns dict of threads, where a thread is all utterances with the
         same root.
+
+        :param prefix_len: if an integer n, only get the first n utterances
+            of each thread (sorted by ascending timestamp value)
+        :param suffix_len: if an integer n, only get the last n utterances
+            of each thread (sorted by descending timestamp value)
+
+        :return: Dictionary from thread root ids to threads, where a thread is
+            itself a dictionary from utterance ids to utterances.
         """
         threads = defaultdict(list)
         for ut in self.utterances.values():

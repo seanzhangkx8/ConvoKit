@@ -2,7 +2,7 @@ import sys
 import convokit
 from collections import defaultdict
 
-corpus = convokit.Corpus("../../datasets/reddit-corpus/reddit-convos.json")
+corpus = convokit.Corpus(filename=convokit.download("reddit-corpus"))
 threads = corpus.utterance_threads(prefix_len=10)
 
 def disp(thread, root, indent=0):

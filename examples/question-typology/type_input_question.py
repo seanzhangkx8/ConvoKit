@@ -27,10 +27,11 @@ from spacy.tokens.doc import Doc
 
 num_clusters = 8
 
-data_dir = os.path.join(pkg_resources.resource_filename("convokit", ""), 'downloads', 'parliament')
+data_dir = os.path.join(pkg_resources.resource_filename("convokit", ""),
+    'downloads')
 motifs_dir = os.path.join(data_dir, 'parliament-motifs')
 
-corpus = Corpus(filename=os.path.join(data_dir, 'parliament-corpus'))
+corpus = Corpus(filename=download("parliament-corpus"))
 
 questionTypology = QuestionTypology(corpus, data_dir, dataset_name='parliament', motifs_dir=motifs_dir, num_dims=25,
   num_clusters=num_clusters, verbose=False, random_seed=164)

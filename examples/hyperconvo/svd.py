@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import StandardScaler
 
-corpus = convokit.Corpus("../../datasets/reddit-corpus/reddit-convos.json")
+corpus = convokit.Corpus(filename=convokit.download("reddit-corpus"))
 hc = convokit.HyperConvo(corpus)
 
 threads_feats = hc.retrieve_feats(prefix_len=10)

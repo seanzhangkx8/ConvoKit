@@ -18,6 +18,18 @@ for file in os.listdir(location+'/reddit-data'):
                 if line_json not in subs_dict[file[:-9]]:
                     subs_dict[file[:-9]].append(line_json) #remove duplicates
 
+deleted_idx = 0
+def proc_author(s):
+#    global deleted_idx
+#    if s == "[deleted]":
+#        s = "[deleted-{}]".format(deleted_idx)
+#        deleted_idx += 1
+    return s
+
+def make_user_info(d):
+    return {k.replace("_", "-"): v for k, v in d.items() if k not in
+        ["id", "link_id"]}
+
 def children(comment):
     l = [{k: v for k, v in d.items() if k != "children"}
         for d in comment["children"]]
@@ -52,17 +64,22 @@ for subreddit in subs_dict:
                 d["reply-to"] = child.pop("parent_id")
                 d["text"] = child.pop("body")
                 d["timestamp"] = int(child.pop("created_utc"))
-                d["user"] = child.pop("author")
-                d["user-info"] = child
+                d["user"] = proc_author(child.pop("author"))
+                d["user-info"] = make_user_info(child)
+                d["user-info"]["self-post-id"] = self_post["id"]
                 reddit_convos.append(d)
             d = {}
+            del thread_root["name"], thread_root["subreddit_id"]
+            del thread_root["parent_id"]
             d["root"] = thread_root["id"]
             d["id"] = thread_root.pop("id")
+            d["reply-to"] = None
             d["text"] = thread_root.pop("body")
             d["timestamp"] = int(thread_root.pop("created_utc"))
-            d["user"] = thread_root.pop("author")
+            d["user"] = proc_author(thread_root.pop("author"))
             thread_root.pop("children")
-            d["user-info"] = thread_root
+            d["user-info"] = make_user_info(thread_root)
+            d["user-info"]["self-post-id"] = self_post["id"]
 
             reddit_convos.append(d)
         #for child in children(comment): #do some formatting

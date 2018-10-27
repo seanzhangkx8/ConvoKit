@@ -1,6 +1,7 @@
-# This example extracts question types from the Wikipedia Moderators Dataset explained here (http://www.cs.cornell.edu/~cristian//Politeness.html)
+# This example extracts question types from the Wimbledon Winner Interviews Dataset explained TODO
 #   using the methods in the asking too much paper (http://www.cs.cornell.edu/~cristian/Asking_too_much.html) to extract question types.
 #   (since there is a seed provided, multiple executions of this script will always produce the same clusters)
+# This version uses precomputed motifs for speed.
 
 import os
 import pkg_resources
@@ -13,14 +14,16 @@ from convokit import Corpus, QuestionTypology, download
 num_clusters = 8
 
 # Get precomputed motifs. data_dir contains the downloaded data.
-data_dir = download('wiki-corpus')
+data_dir = os.path.join(pkg_resources.resource_filename("convokit", ""),
+    'downloads')
+motifs_dir = download('tennis-motifs')
 
 #Load the corpus
-corpus = Corpus(filename=os.path.join(data_dir, 'wiki-corpus'))
+corpus = Corpus(filename=download("tennis-corpus"))
 
 #Extract clusters of the motifs and assign questions to these clusters
-questionTypology = QuestionTypology(corpus, data_dir, dataset_name='wiki', num_dims=25,
-  num_clusters=num_clusters, verbose=False, random_seed=15)
+questionTypology = QuestionTypology(corpus, data_dir, dataset_name='tennis', motifs_dir=motifs_dir,
+num_dims=25, num_clusters=num_clusters, verbose=False, random_seed=125)
 
 # questionTypology.types_to_data contains the necessary data that is computed in the step above
 # its keys are the indices of the clusters (here 0-7). The values are dictionaries with the following keys:

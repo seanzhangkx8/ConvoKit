@@ -8,16 +8,15 @@ from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import StandardScaler
 from collections import Counter
 
-corpus = convokit.Corpus("../../datasets/reddit-corpus/reddit-convos.json")
+corpus = convokit.Corpus(filename=convokit.download("reddit-corpus"))
 hc = convokit.HyperConvo(corpus)
 
 threads_feats = hc.retrieve_feats()
 
-pts, labels = hc.embed_communities(threads_feats, "subreddit", min_threads=50,
-    method="tsne")
+pts, labels = hc.embed_communities(threads_feats, "subreddit", method="tsne")
 
 xs, ys = zip(*pts)
-plt.scatter(xs, ys)#, color=colors)
+plt.scatter(xs, ys)
 for i, txt in enumerate(labels):
     plt.annotate(txt, (xs[i], ys[i]))
 plt.savefig("tsne")

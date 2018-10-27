@@ -29,6 +29,8 @@ def download(name, verbose=True):
             "datasets/tennis-corpus/full.json",
         "wiki-corpus": "http://zissou.infosci.cornell.edu/socialkit/" + \
             "datasets/wiki-corpus/full.json",
+        "reddit-corpus": "http://zissou.infosci.cornell.edu/socialkit/" + \
+            "datasets/reddit-corpus/full.json",
         "conversations-gone-awry-corpus": "http://zissou.infosci.cornell.edu/socialkit/" + \
             "datasets/conversations-gone-awry-corpus/paired_conversations.json",
         "parliament-motifs": [
@@ -139,7 +141,7 @@ def download(name, verbose=True):
         downloaded = f.read().splitlines()
 
     if name not in downloaded:
-        if "motifs" in name:
+        if name.endswith("-motifs"):
             for url in DatasetURLs[name]:
                 full_name = name + url[url.rfind('/'):]
                 if full_name not in downloaded:
@@ -147,24 +149,24 @@ def download(name, verbose=True):
                     if not os.path.exists(os.path.dirname(motif_file_path)):
                         os.makedirs(os.path.dirname(motif_file_path))
                     download_helper(motif_file_path, url, verbose, full_name, downloadeds_path)
-            parent_dir = os.path.join(parent_dir, name)
         else:
             url = DatasetURLs[name]
             download_helper(dataset_path, url, verbose, name, downloadeds_path)
+    parent_dir = os.path.join(parent_dir, name)
     return parent_dir
 
 def download_helper(dataset_path, url, verbose, name, downloadeds_path):
     with urllib.request.urlopen(url) as response, \
-                open(dataset_path, "wb") as out_file:
-            if verbose:
-                l = float(response.info()["Content-Length"])
-                length = str(round(l / 1e6, 1)) + "MB" \
-                        if l > 1e6 else \
-                        str(round(l / 1e3, 1)) + "KB"
-                print("Downloading", name, "from", url,
-                        "(" + length + ")...", end=" ", flush=True)
-            shutil.copyfileobj(response, out_file)
-            if verbose:
-                print("Done")
-            with open(downloadeds_path, "a") as f:
-                f.write(name + "\n")
+            open(dataset_path, "wb") as out_file:
+        if verbose:
+            l = float(response.info()["Content-Length"])
+            length = str(round(l / 1e6, 1)) + "MB" \
+                    if l > 1e6 else \
+                    str(round(l / 1e3, 1)) + "KB"
+            print("Downloading", name, "from", url,
+                    "(" + length + ")...", end=" ", flush=True)
+        shutil.copyfileobj(response, out_file)
+        if verbose:
+            print("Done")
+        with open(downloadeds_path, "a") as f:
+            f.write(name + "\n")

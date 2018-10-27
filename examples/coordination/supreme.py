@@ -12,13 +12,11 @@ from convokit import Utterance, Corpus, Coordination, download
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import numpy as np
-import os
 
 # load corpus; split users by case id and split the justices by whether they are
 #     favorable to the current presenting side
 # this treats the same person across two different cases as two different users
-path = download("supreme-corpus")
-corpus = Corpus(filename=os.path.join(path, "supreme-corpus"),
+corpus = Corpus(filename=download("supreme-corpus"),
     subdivide_users_by=["case", "justice-is-favorable"])
 
 # create coordination object

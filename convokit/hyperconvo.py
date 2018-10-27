@@ -1,3 +1,6 @@
+"""Implements the hypergraph conversation model from
+http://www.cs.cornell.edu/~cristian/Patterns_of_participant_interactions.html."""
+
 from collections import defaultdict, OrderedDict, Counter
 import numpy as np
 import scipy.stats
@@ -7,6 +10,15 @@ from sklearn.decomposition import TruncatedSVD
 from sklearn.preprocessing import StandardScaler
 
 class HyperConvo:
+    """Encapsulates computation of hypergraph features for a particular
+    corpus.
+
+    :param corpus: the corpus to compute features for.
+    :type corpus: Corpus
+
+    :ivar corpus: the coordination object's corpus. 
+    """
+
     def __init__(self, corpus):
         self.corpus = corpus
 
@@ -116,19 +128,25 @@ class HyperConvo:
 
     def retrieve_feats(self, prefix_len=10, min_thread_len=10):
         threads_stats = {}
-        print(len(self.corpus.utterance_threads(prefix_len=prefix_len).items()))
+        """Retrieve all hypergraph features for a given corpus (viewed as a set
+        of conversation threads).
+        
+        :param prefix_len: Length (in number of utterances) of each thread to
+            consider when constructing its hypergraph
+        :param min_thread_len: Only consider threads of at least this length
+
+        :return: A dictionary from a thread root id to its stats dictionary,
+            which is a dictionary from feature names to feature values.
+        """
         for i, (root, thread) in enumerate(
             self.corpus.utterance_threads(prefix_len=prefix_len).items()):
             #if i % 100 != 0: continue
-            if i % 1000 == 0: print(i)
+            #if i % 1000 == 0: print(i)
             #if i == 10000: break
             if len(thread) < min_thread_len: continue
             stats = {}
             G = self._make_hypergraph(uts=thread)
             G_mid = self._make_hypergraph(uts=thread, exclude_id=root)
-#            if not G_mid.edges():
-#                print("BAD")
-#                continue
             for k, v in self._degree_feats(G=G).items(): stats[k] = v
             for k, v in self._motif_feats(G=G).items(): stats[k] = v
             for k, v in self._degree_feats(G=G_mid,
@@ -140,6 +158,23 @@ class HyperConvo:
 
     def embed_threads(self, threads_feats, n_components=7, method="svd",
         norm_method="standard", return_components=False):
+        """Convenience method to embed the output of retrieve_feats in a
+        low-dimensional space.
+
+        :param threads_feats: Output of retrieve_feats
+        :param n_components: Number of dimensions to embed into
+        :param method: embedding method; either "svd" or "tsne"
+        :param norm_method: data normalization method; either "standard" 
+            (normalize each feature to 0 mean and 1 variance) or "none"
+        :param return_components: if using SVD method, whether to output
+            SVD components array
+
+        :return: a tuple (X, roots) where X is an array with rows corresponding
+            to embedded threads, and roots is an array whose ith entry is the
+            thread root id of the ith row of X. If return_components is True,
+            then the tuple contains a third entry, the SVD components array
+        """
+
         X = []#, labels = [], []
         roots = []
         for root, feats in threads_feats.items():
@@ -175,8 +210,28 @@ class HyperConvo:
     def embed_communities(self, threads_stats, 
         community_key, n_intermediate_components=50,
         n_components=2, intermediate_method="svd", method="none",
-        norm_method="standard",
-        min_threads=10):
+        norm_method="standard"):
+        """Convenience method to embed the output of retrieve_feats in a
+        low-dimensional space, and group threads together into communities
+        in this space.
+
+        :param threads_stats: Output of retrieve_feats
+        :param community_key: Key in "user-info" dictionary of each utterance
+            whose corresponding value we'll use as the community label for that
+            utterance
+        :param n_intermediate_components: Number of dimensions to embed threads into
+        :param intermediate_method: Embedding method for threads
+            (see embed_threads)
+        :param n_components: Number of dimensions to embed communities into
+        :param method: Embedding method; "svd", "tsne" or "none"
+        :param norm_method: Data normalization method; either "standard" 
+            (normalize each feature to 0 mean and 1 variance) or "none"
+
+        :return: a tuple (X, labels) where X is an array with rows corresponding
+            to embedded communities, and labels is an array whose ith entry is
+            the community of the ith row of X.
+        """
+
         X_mid, roots = self.embed_threads(threads_stats,
             n_components=n_intermediate_components, method=intermediate_method,
             norm_method=norm_method)
@@ -199,8 +254,7 @@ class HyperConvo:
         label_counts = Counter(labels)
         subs = defaultdict(list)
         for x, label in zip(X_embedded, labels):
-            if label_counts[label] >= min_threads:
-                subs[label].append(x / np.linalg.norm(x))
+            subs[label].append(x / np.linalg.norm(x))
 
         labels, subs = zip(*subs.items())
         pts = [np.mean(sub, axis=0) for sub in subs]

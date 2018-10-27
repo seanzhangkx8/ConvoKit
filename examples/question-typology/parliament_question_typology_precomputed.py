@@ -17,11 +17,12 @@ num_clusters = 8
 
 # Get precomputed motifs. data_dir contains the downloaded data.
 # motifs_dir is the specific path within data_dir that contains the precomputed motifs
-data_dir = download('parliament-corpus')
+data_dir = os.path.join(pkg_resources.resource_filename("convokit", ""),
+    'downloads')
 motifs_dir = download('parliament-motifs')
 
 #Load the corpus
-corpus = Corpus(filename=os.path.join(data_dir, 'parliament-corpus'))
+corpus = Corpus(filename=download("parliament-corpus"))
 
 #Extract clusters of the motifs and assign questions to these clusters
 questionTypology = QuestionTypology(corpus, data_dir, dataset_name='parliament', motifs_dir=motifs_dir, num_dims=25,
