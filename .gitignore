@@ -22,3 +22,4 @@ examples/questionTypology/motif_df.tsv
 examples/questionTypology/qdoc_df.tsv
 website/output/
 update-website-live.sh
+examples/hyperconvo/.ipynb_checkpoints
