@@ -1,11 +1,6 @@
 import convokit
 import numpy as np
-from sklearn.manifold import TSNE
-from sklearn.decomposition import TruncatedSVD
-from collections import defaultdict, Counter
 import matplotlib.pyplot as plt
-from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import StandardScaler
 
 corpus = convokit.Corpus(filename=convokit.download("reddit-corpus"))
 hc = convokit.HyperConvo(corpus)

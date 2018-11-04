@@ -14,15 +14,18 @@ for file in os.listdir(location+'/reddit-data'):
                 try:
                     line_json = json.loads(line)
                 except json.decoder.JSONDecodeError:
+                    print("decode error")
                     continue
-                if line_json not in subs_dict[file[:-9]]:
-                    subs_dict[file[:-9]].append(line_json) #remove duplicates
+                # remove duplicates
+                #if line_json not in subs_dict[file[:-9]]:
+                subs_dict[file[:-9]].append(line_json) 
+                    #if len(subs_dict[file[:-9]]) == 50: break
 
-deleted_idx = 0
-def proc_author(s):
+#deleted_idx = 0
+def proc_author(s, root_id):
 #    global deleted_idx
-#    if s == "[deleted]":
-#        s = "[deleted-{}]".format(deleted_idx)
+    if s == "[deleted]":
+        s = "[deleted-{}]".format(root_id)
 #        deleted_idx += 1
     return s
 
@@ -49,13 +52,25 @@ def del_dups(convos):
             unique.append(x)
     return unique
 
+MIN_THREAD_LENGTH = 10
+N_THREADS_PER_SUBREDDIT = 1000
+
 ##create new json list
+print("creating dataset")
 reddit_convos = []
-for subreddit in subs_dict:
-    for self_post in subs_dict[subreddit]:
-        for thread_root in self_post["children"]:
-            for child in children(thread_root):
-                if "body" not in child: continue
+for subreddit in list(subs_dict.keys()):
+    print(subreddit)
+    n_good_threads = 0
+    for self_post in reversed(subs_dict[subreddit]):
+        for thread_root in sorted(self_post["children"],
+            key=lambda x: x["created_utc"], reverse=True):
+            if n_good_threads >= N_THREADS_PER_SUBREDDIT: break
+            cs = children(thread_root)
+            if len(cs) < MIN_THREAD_LENGTH - 1: continue
+            n_good_threads += 1
+            for child in cs:
+                #if "body" not in child: continue
+                if "body" not in child: child["body"] = "[deleted]"
                 child.pop("name")
                 child.pop("subreddit_id")
                 d = {}
@@ -64,9 +79,12 @@ for subreddit in subs_dict:
                 d["reply-to"] = child.pop("parent_id")
                 d["text"] = child.pop("body")
                 d["timestamp"] = int(child.pop("created_utc"))
-                d["user"] = proc_author(child.pop("author"))
+                user_deleted = child["author"] == "[deleted]"
+                d["user"] = proc_author(child.pop("author"), d["root"])
                 d["user-info"] = make_user_info(child)
                 d["user-info"]["self-post-id"] = self_post["id"]
+                d["user-info"]["post-deleted"] = d["text"] == "[deleted]"
+                d["user-info"]["user-deleted"] = user_deleted
                 reddit_convos.append(d)
             d = {}
             del thread_root["name"], thread_root["subreddit_id"]
@@ -76,10 +94,13 @@ for subreddit in subs_dict:
             d["reply-to"] = None
             d["text"] = thread_root.pop("body")
             d["timestamp"] = int(thread_root.pop("created_utc"))
-            d["user"] = proc_author(thread_root.pop("author"))
+            user_deleted = child["author"] == "[deleted]"
+            d["user"] = proc_author(thread_root.pop("author"), d["root"])
             thread_root.pop("children")
             d["user-info"] = make_user_info(thread_root)
             d["user-info"]["self-post-id"] = self_post["id"]
+            d["user-info"]["post-deleted"] = d["text"] == "[deleted]"
+            d["user-info"]["user-deleted"] = user_deleted
 
             reddit_convos.append(d)
         #for child in children(comment): #do some formatting
@@ -107,6 +128,7 @@ for subreddit in subs_dict:
         #comment.pop('created')
         #addcomment['user-info'] = comment
         #reddit_convos.append(addcomment) #add the original comment
+    del subs_dict[subreddit]
 
 reddit_convos = del_dups(reddit_convos)
 reddit_convos = [d for d in reddit_convos if "text" in d]

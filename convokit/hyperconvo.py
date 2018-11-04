@@ -147,6 +147,17 @@ class HyperConvo:
             stats = {}
             G = self._make_hypergraph(uts=thread)
             G_mid = self._make_hypergraph(uts=thread, exclude_id=root)
+#            print("EDGES")
+#            print(G.hypernodes)
+#            print("MID-THREAD EDGES")
+#            print(G_mid.hypernodes)
+#            print("DIFF")
+#            print(set(G.hypernodes.keys()) - set(G_mid.hypernodes.keys()))
+#            print(set(G.nodes.keys()) - set(G_mid.nodes.keys()))
+#            input()
+#            a, b = self._degree_feats(G=G), self._degree_feats(G=G_mid)
+#            print([a[k] - b[k] for k in a])
+#            input()
             for k, v in self._degree_feats(G=G).items(): stats[k] = v
             for k, v in self._motif_feats(G=G).items(): stats[k] = v
             for k, v in self._degree_feats(G=G_mid,
@@ -201,6 +212,8 @@ class HyperConvo:
             raise Exception("Invalid embed_feats embedding method")
         emb = f(n_components=n_components)
         X_mid = emb.fit_transform(X) / emb.singular_values_
+        #print("SINGULAR VALUES")
+        #print(emb.singular_values_)
 
         if not return_components:
             return X_mid, roots
@@ -208,7 +221,7 @@ class HyperConvo:
             return X_mid, roots, emb.components_
 
     def embed_communities(self, threads_stats, 
-        community_key, n_intermediate_components=50,
+        community_key, n_intermediate_components=7,
         n_components=2, intermediate_method="svd", method="none",
         norm_method="standard"):
         """Convenience method to embed the output of retrieve_feats in a
