@@ -94,7 +94,7 @@ for subreddit in list(subs_dict.keys()):
             d["reply-to"] = None
             d["text"] = thread_root.pop("body")
             d["timestamp"] = int(thread_root.pop("created_utc"))
-            user_deleted = child["author"] == "[deleted]"
+            user_deleted = thread_root["author"] == "[deleted]"
             d["user"] = proc_author(thread_root.pop("author"), d["root"])
             thread_root.pop("children")
             d["user-info"] = make_user_info(thread_root)
