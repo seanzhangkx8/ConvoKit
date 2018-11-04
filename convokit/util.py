@@ -31,6 +31,8 @@ def download(name, verbose=True):
             "datasets/wiki-corpus/full.json",
         "reddit-corpus": "http://zissou.infosci.cornell.edu/socialkit/" + \
             "datasets/reddit-corpus/full.json",
+        "reddit-corpus-small": "http://zissou.infosci.cornell.edu/socialkit/" + \
+            "datasets/reddit-corpus/small.json",
         "conversations-gone-awry-corpus": "http://zissou.infosci.cornell.edu/socialkit/" + \
             "datasets/conversations-gone-awry-corpus/paired_conversations.json",
         "parliament-motifs": [

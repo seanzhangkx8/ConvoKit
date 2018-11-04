@@ -2,12 +2,15 @@ import convokit
 import numpy as np
 import matplotlib.pyplot as plt
 
+print("Loading corpus")
 corpus = convokit.Corpus(filename=convokit.download("reddit-corpus"))
-hc = convokit.HyperConvo(corpus)
 
+print("Computing hypergraph features")
+hc = convokit.HyperConvo(corpus)
 threads_feats = hc.retrieve_feats(prefix_len=10)
 feat_names = list(sorted(threads_feats[list(threads_feats.keys())[0]].keys()))
 
+print("Computing low-dimensional embeddings")
 X_threads, roots, components = hc.embed_threads(threads_feats,
     return_components=True)
 X_communities, subreddits = hc.embed_communities(threads_feats, "subreddit")
@@ -15,11 +18,11 @@ X_communities, subreddits = hc.embed_communities(threads_feats, "subreddit")
 print("TOP THREADS")
 for d in range(7):
     print("dimension {}".format(d))
-    print("- worst threads")
+    print("- most-negative threads")
     ranked = list(sorted(zip(roots, X_threads), key=lambda x: x[1][d]))
     for label, x in ranked[:10]:
         print("\t{}  {:.4f}".format(label, x[d]))
-    print("- best threads")
+    print("- most-positive threads")
     for label, x in reversed(ranked[-10:]):
         print("\t{}  {:.4f}".format(label, x[d]))
     print()
@@ -28,11 +31,11 @@ for d in range(7):
 print("TOP SUBREDDITS")
 for d in range(7):
     print("dimension {}".format(d))
-    print("- worst subreddits")
+    print("- most-negative subreddits")
     ranked = list(sorted(zip(subreddits, X_communities), key=lambda x: x[1][d]))
     for label, x in ranked[:10]:
         print("\t{}  {:.4f}".format(label, x[d]))
-    print("- best subreddits")
+    print("- most-positive subreddits")
     for label, x in reversed(ranked[-10:]):
         print("\t{}  {:.4f}".format(label, x[d]))
     print()

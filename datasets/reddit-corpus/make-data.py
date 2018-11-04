@@ -19,7 +19,7 @@ for file in os.listdir(location+'/reddit-data'):
                 # remove duplicates
                 #if line_json not in subs_dict[file[:-9]]:
                 subs_dict[file[:-9]].append(line_json) 
-                    #if len(subs_dict[file[:-9]]) == 50: break
+                if len(subs_dict[file[:-9]]) == 100: break
 
 #deleted_idx = 0
 def proc_author(s, root_id):
@@ -53,7 +53,7 @@ def del_dups(convos):
     return unique
 
 MIN_THREAD_LENGTH = 10
-N_THREADS_PER_SUBREDDIT = 1000
+N_THREADS_PER_SUBREDDIT = 100
 
 ##create new json list
 print("creating dataset")
@@ -133,5 +133,5 @@ for subreddit in list(subs_dict.keys()):
 reddit_convos = del_dups(reddit_convos)
 reddit_convos = [d for d in reddit_convos if "text" in d]
 
-with open('reddit-convos.json', 'w') as fp:
+with open('reddit-convos-small.json', 'w') as fp:
     json.dump(reddit_convos, fp, indent=2)
