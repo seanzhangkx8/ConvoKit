@@ -13,6 +13,24 @@ class HyperConvo:
     """Encapsulates computation of hypergraph features for a particular
     corpus.
 
+    General workflow: first, retrieve features from the corpus conversational
+    threads using retrieve_feats. Then, either use the features directly, or
+    use the convenience methods embed_threads and embed_communities to embed
+    threads or communities respectively in a low-dimensional space for further
+    analysis or visualization.
+
+    As features, we compute the degree distribution statistics from Table 4 of
+    http://www.cs.cornell.edu/~cristian/Patterns_of_participant_interactions.html,
+    for both a whole conversation and its midthread, and for indegree and
+    outdegree distributions of C->C, C->c and c->c edges, as in the paper.
+    We also compute the presence and count of each motif type specified in Fig 2.
+    However, we do not include features making use of reaction edges, due to our
+    inability to release the Facebook data used in the paper (which reaction
+    edges are most naturally suited for). In particular, we do not include edge
+    distribution statistics from Table 4, as these rely on the presence of
+    reaction edges. We hope to implement a more general version of these
+    reaction features in an upcoming release.
+
     :param corpus: the corpus to compute features for.
     :type corpus: Corpus
 
@@ -275,8 +293,14 @@ class HyperConvo:
         return pts, labels
 
 class Hypergraph:
+    """Represents a hypergraph, consisting of nodes, directed edges,
+    hypernodes (each of which is a set of nodes) and hyperedges (directed edges
+    from hypernodes to hypernodes). Contains functionality to extract motifs
+    from hypergraphs (Fig 2 of
+    http://www.cs.cornell.edu/~cristian/Patterns_of_participant_interactions.html)
+    """
     def __init__(self):
-        # tentatively public
+        # public
         self.nodes = OrderedDict()
         self.hypernodes = OrderedDict()
 
