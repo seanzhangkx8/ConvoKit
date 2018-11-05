@@ -5,9 +5,9 @@ This module implements a method for grouping questions and other comments accord
 
 ## Example scripts
 
-Extracting common question types in the [UK parliament](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/questionTypology/parliament_question_typology.py), on [Wikipedia edit pages](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/questionTypology/wiki_question_typology.py), and in [sport interviews](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/questionTypology/tennis_question_typology.py).
+Extracting common question types in the [UK parliament](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/question-typology/parliament_question_typology.py), on [Wikipedia edit pages](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/question-typology/wiki_question_typology.py), and in [sport interviews](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/question-typology/tennis_question_typology.py).
 
-[Understanding the use of conversational prompts in conversations gone awry on Wikipedia](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/conversationsGoneAwry/Conversations%20Gone%20Awry%20Prediction.ipynb)
+[Understanding the use of conversational prompts in conversations gone awry on Wikipedia](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/conversations-gone-awry/Conversations%20Gone%20Awry%20Prediction.ipynb)
 
 
 ## Basic usage
