@@ -6,7 +6,7 @@ Politeness strategies are a set of lexical and syntactic features that correlate
 Check out [politness.cornell.edu](http://politeness.cornell.edu/) for more politeness-related resources.
 
 ## Example script
-[Understanding the (mis)use of politeness strategies in conversations gone awry on Wikipedia](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/conversationsGoneAwry/Conversations%20Gone%20Awry%20Prediction.ipynb)
+[Understanding the (mis)use of politeness strategies in conversations gone awry on Wikipedia](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/conversations-gone-awry/Conversations%20Gone%20Awry%20Prediction.ipynb)
 
 ## Basic usage
 
