@@ -1,6 +1,6 @@
 Cornell Reddit Conversations v1.0 (released November 2018)
 
-The file is 1.6G and in JSON format. It contains conversations from 100 highly active subreddits on Reddit (chosen heuristically by highest file size in raw Reddit API format). We selected 1,000 comment threads from each subreddit consisting of at least 10 comments each (except for the subreddit POLITIC which only contained 145 sufficiently-long threads), where a comment thread consists of a comment to a self post and all replies to that comment. The comment threads come those from the most recent self posts at the time the data was collected. In total, we collected 99,145 comment threads together consisting of 1,991,373 comments.
+The file is 1.6G and in JSON format. It contains a representative sample of conversations from Reddit from 100 highly active subreddits (chosen heuristically by highest file size in raw Reddit API format). We selected 1,000 comment threads from each subreddit consisting of at least 10 comments each (except for the subreddit POLITIC which only contained 145 sufficiently-long threads), where a comment thread consists of a comment to a self post and all replies to that comment. The comment threads come those from the most recent self posts at the time the data was collected. In total, we sampled 99,145 comment threads together consisting of 1,991,373 comments.
 
 The JSON contains a list of comments. Each comment is a dictionary with the following attributes:
 
