@@ -4,7 +4,7 @@
 Tools to build hypergraph models of conversations and extract features from them (see the [Patterns of Participant Interactions](http://www.cs.cornell.edu/~cristian/Patterns_of_participant_interactions.html) paper).
 
 ## Example script
-[Understanding the (mis)use of politeness strategies in conversations gone awry on Wikipedia](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/hyperconvo/example-visualization.ipynb)
+[Creating a hypergraph from a conversation, extracting features from it and visualizing and interpreting them](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/hyperconvo/demo.ipynb)
 
 ## Basic usage
 
