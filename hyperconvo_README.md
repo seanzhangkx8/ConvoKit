@@ -3,6 +3,8 @@
 # Hypergraph Conversation Model
 Tools to build hypergraph models of conversations and extract features from them (see the [Patterns of Participant Interactions](http://www.cs.cornell.edu/~cristian/Patterns_of_participant_interactions.html) paper).
 
+We also release a [Reddit conversations dataset](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/tree/master/datasets/reddit-corpus) for the model to be used with.
+
 ## Example script
 [Creating a hypergraph from a conversation, extracting features from it and visualizing and interpreting them](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/hyperconvo/demo.ipynb)
 
