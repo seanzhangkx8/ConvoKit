@@ -11,6 +11,8 @@ The toolkit currently implements features for:
 
 - [Conversational prompts](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/QuestionTypology_README.md), an unsupervised method for extracting types of conversational prompts (see the [Conversations gone awry](http://www.cs.cornell.edu/~cristian/Conversations_gone_awry.html) paper).  Example script for [understanding the use of conversational prompts in conversations gone awry on Wikipedia](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/conversations-gone-awry/Conversations%20Gone%20Awry%20Prediction.ipynb).
 
+- [Hypergraph conversation model](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/hyperconvo_README.md) (beta), a method for extracting structural features of conversations using a hypergraph model (see the [Patterns of Participant Interactions](http://www.cs.cornell.edu/~cristian/Patterns_of_participant_interactions.html) paper). Example script demonstrates [hypergraph creation and feature extraction, visualization and interpretation](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/hyperconvo/demo.ipynb).
+
 - Coming soon: Basic message and turn features, currently available here [Constructive conversations](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/tree/constructive/cornellversation/constructive)
 
 ## Datasets
@@ -25,6 +27,8 @@ These datasets are included for ready use with the toolkit:
 - [Supreme Court Corpus](http://www.cs.cornell.edu/~cristian/Echoes_of_power_files/supreme.README.v1.01.txt): collection of conversations from the U.S. Supreme Court Oral Arguments
 
 - [Parliament Corpus](http://www.cs.cornell.edu/~cristian/Asking_too_much_files/paper-questions.pdf): parliamentary question periods from May 1979 to December 2016 (216,894 question-answer pairs)
+
+- [Reddit Conversations Corpus](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/tree/master/datasets/reddit-corpus) (beta): 99,145 Reddit conversations sampled from 100 subreddits
 
 These datasets can be downloaded using the `convokit.download()` [helper function](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/convokit/util.py).  Alternatively you can access them directly [here](http://zissou.infosci.cornell.edu/socialkit/datasets/).
 
