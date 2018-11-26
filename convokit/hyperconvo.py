@@ -7,7 +7,8 @@ import scipy.stats
 import itertools
 from sklearn.manifold import TSNE
 from sklearn.decomposition import TruncatedSVD
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, Normalizer
+from sklearn.impute import SimpleImputer
 
 class HyperConvo:
     """Encapsulates computation of hypergraph features for a particular
@@ -210,10 +211,12 @@ class HyperConvo:
             roots.append(root)
             #labels.append(corpus.utterances[root].user.info["subreddit"])
             row = np.array([v[1] if not (np.isnan(v[1]) or np.isinf(v[1])) else
-                0 for v in sorted(feats.items())])
+                -1 for v in sorted(feats.items())])
             #row /= np.linalg.norm(row)
             X.append(row)
         X = np.array(X)
+
+        X = SimpleImputer(missing_values=-1).fit_transform(X)
 
         if norm_method.lower() == "standard":
             X = StandardScaler().fit_transform(X)
@@ -229,14 +232,17 @@ class HyperConvo:
         else:
             raise Exception("Invalid embed_feats embedding method")
         emb = f(n_components=n_components)
+
         X_mid = emb.fit_transform(X) / emb.singular_values_
+        X_mid = Normalizer().fit_transform(X_mid)
+
         #print("SINGULAR VALUES")
         #print(emb.singular_values_)
 
         if not return_components:
             return X_mid, roots
         else:
-            return X_mid, roots, emb.components_
+            return X_mid, roots, Normalizer().fit_transform(emb.components_)
 
     def embed_communities(self, threads_stats, 
         community_key, n_intermediate_components=7,
@@ -267,6 +273,18 @@ class HyperConvo:
             n_components=n_intermediate_components, method=intermediate_method,
             norm_method=norm_method)
 
+        labels = [self.corpus.utterances[root].user.info[community_key]
+            for root in roots]
+        label_counts = Counter(labels)
+        subs = defaultdict(list)
+        for x, label in zip(X_mid, labels):
+            #subs[label].append(x / np.linalg.norm(x))
+            subs[label].append(x)
+
+        labels, subs = zip(*subs.items())
+        X_mid = Normalizer().fit_transform([np.mean(sub, axis=0) for sub in 
+            subs])
+
         if method.lower() == "svd":
             f = TruncatedSVD
         elif method.lower() == "tsne":
@@ -279,18 +297,7 @@ class HyperConvo:
             X_embedded = f(n_components=n_components).fit_transform(X_mid)
         else:
             X_embedded = X_mid
-
-        labels = [self.corpus.utterances[root].user.info[community_key]
-            for root in roots]
-        label_counts = Counter(labels)
-        subs = defaultdict(list)
-        for x, label in zip(X_embedded, labels):
-            subs[label].append(x / np.linalg.norm(x))
-
-        labels, subs = zip(*subs.items())
-        pts = [np.mean(sub, axis=0) for sub in subs]
-
-        return pts, labels
+        return X_embedded, labels
 
 class Hypergraph:
     """Represents a hypergraph, consisting of nodes, directed edges,
