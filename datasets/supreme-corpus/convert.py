@@ -7,7 +7,7 @@ KeyId = "id"
 KeyUser = "user"
 KeyConvoRoot = "root"
 KeyReplyTo = "reply-to"
-KeyUserInfo = "user-info"  # can store any extra data
+KeyUserInfo = "meta"  # can store any extra data
 import time
 import datetime
 
@@ -19,6 +19,8 @@ with open("supreme.gender.txt", "r", encoding="utf-8") as f:
         line = line[:-1]
         name, gender = line.split(" +++$+++ ")
         genders[name.lower()] = gender
+
+users_meta = {}
 
 convo_id, root_id = 0, None
 last_utterance_id = None
@@ -52,6 +54,11 @@ with open("supreme.conversations.dat", "r", encoding="utf-8") as f:
                     convo_id += 1
                     root_id = fields[1]
 
+                users_meta[user] = {
+                    "is-justice": is_justice,
+                    "gender": genders[user]
+                }
+
                 d = {
                     KeyId: fields[1],
                     KeyUser: user,
@@ -59,8 +66,8 @@ with open("supreme.conversations.dat", "r", encoding="utf-8") as f:
                     KeyText: fields[7],
                     KeyUserInfo: {
                         "case": case,
-                        "gender": genders[user],
-                        "is-justice": is_justice,
+                        #"gender": genders[user],
+                        #"is-justice": is_justice,
                         "side": fields[6].lower(),
                     }
                 }
@@ -103,9 +110,11 @@ if MaxUtterances > 0:
     #import random
     #random.shuffle(utterances)
     utterances = utterances[-MaxUtterances:]
-json.dump(utterances, open("full.json", "w"), indent=2,
+json.dump(utterances, open("supreme.json", "w"), indent=2,
           sort_keys=True)
 
+with open("supreme-users.json", "w") as f:
+    json.dump(users_meta, f, indent=2)
 #print(len(usernames), len(usernames_cased))
 print("Done")
 

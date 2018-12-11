@@ -50,7 +50,7 @@ class User:
     def _set_info(self, value):
         self._info = value
         self._update_uid()
-    info = property(_get_info, _set_info)
+    meta = property(_get_info, _set_info)
 
     def _update_uid(self):
         rep = {}
@@ -93,7 +93,7 @@ class Utterance:
     """
 
     def __init__(self, id=None, user=None, root=None, reply_to=None,
-            timestamp=None, text=None, other=None):
+            timestamp=None, text=None, other=None, meta=None):
         self.id = id
         self.user = user
         self.root = root
@@ -101,6 +101,7 @@ class Utterance:
         self.timestamp = timestamp
         self.text = text
         self.other = other
+        self.meta = meta
 
     def get(self, key):
         if key == "id":
@@ -146,6 +147,8 @@ class Corpus:
 
     def __init__(self, filename=None, utterances=None, merge_lines=False,
         subdivide_users_by=[], delim=","):
+        self.meta = {}
+
         KeyId = "id"
         KeyUser = "user"
         KeyConvoRoot = "root"
@@ -154,9 +157,11 @@ class Corpus:
         KeyText = "text"
         DefinedKeys = set([KeyId, KeyUser, KeyConvoRoot, KeyReplyTo,
             KeyTimestamp, KeyText])
-        KeyUserInfo = "user-info"  # can store any extra data
+        #KeyUserInfo = "meta"  # can store any extra data
+        KeyMeta = "meta"
 
         if filename is not None:
+            users_meta = defaultdict(dict)
             with open(filename, "r") as f:
                 try:
                     utterances = json.load(f)
@@ -167,6 +172,10 @@ class Corpus:
                         raise ValueError("Couldn't load corpus:" +
                             " unknown file type")
 
+            with open(".".join(filename.split(".")[:-1]) + "-users.json", "r") as f:
+                for k, v in json.load(f).items():
+                    users_meta[k] = v
+
             self.utterances = {}
             self.all_users = set()
             users_cache = {}   # avoids creating duplicate user objects
@@ -175,11 +184,12 @@ class Corpus:
                 # print(u)
                 #if i % 100000 == 0: print(i, end=" ", flush=True)
                 u = defaultdict(lambda: None, u)
-                user_key = (u[KeyUser], str(sorted(u[KeyUserInfo].items())) if
-                    u[KeyUserInfo] is not None else None)
+                #user_key = (u[KeyUser], str(sorted(u[KeyUserInfo].items())) if
+                #    u[KeyUserInfo] is not None else None)
+                user_key = u[KeyUser]
                 if user_key not in users_cache:
                     users_cache[user_key] = User(name=u[KeyUser],
-                        info=u[KeyUserInfo])
+                        info=users_meta[u[KeyUser]])
                 user = users_cache[user_key]
                 self.all_users.add(user)
                 other_keys = list(u.keys())
@@ -190,7 +200,7 @@ class Corpus:
                 ut = Utterance(id=u[KeyId], user=user,
                         root=u[KeyConvoRoot],
                         reply_to=u[KeyReplyTo], timestamp=u[KeyTimestamp],
-                        text=u[KeyText], other=other)
+                        text=u[KeyText], other=other, meta=u[KeyMeta])
                 self.utterances[ut.id] = ut
         elif utterances is not None:
             self.all_users = set([u.user for u in utterances])
@@ -211,6 +221,16 @@ class Corpus:
 
         if subdivide_users_by:
             self.subdivide_users_by(subdivide_users_by)
+
+    def get_utterance_ids(self):
+        return self.utterances.keys()
+
+    def get_utterance(self, ut_id):
+        return self.utterances[ut_id]
+
+    def iter_utterances(self):
+        for v in self.utterances.values():
+            yield v
 
     def _load_csv(self, f, delim, defined_keys):
         keys = f.readline()[:-1].split(delim)
@@ -295,7 +315,13 @@ class Corpus:
             key=lambda ut: ut.timestamp))[-suffix_len:prefix_len]}
             for root, l in threads.items()}
 
-    def users(self, selector=None):
+    def get_meta(self):
+        return self.meta
+
+    def add_meta(self, key, value):
+        self.meta[key] = value
+
+    def iter_users(self, selector=None):
         """Get users in the dataset.
 
         :param selector: optional function that takes in a
@@ -311,7 +337,10 @@ class Corpus:
         else:
             return set([u for u in self.all_users if selector(u)])
 
-    def user_names(self, selector=None):
+    def get_user(self, name):
+        return [u for u in self.all_users if u.name == name][0]
+
+    def get_usernames(self, selector=None):
         """Get names of users in the dataset.
 
         :param selector: optional function that takes in a
@@ -322,7 +351,7 @@ class Corpus:
             function, or all user names in the dataset if no selector function
             was used.
         """
-        return set([u.name for u in self.users(selector)])
+        return set([u.name for u in self.iter_users(selector)])
 
     def speaking_pairs(self, selector=None, user_names_only=False):
         """Get all directed speaking pairs (a, b) of users such that a replies
