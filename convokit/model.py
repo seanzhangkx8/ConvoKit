@@ -3,6 +3,7 @@
 import json
 from functools import total_ordering, reduce
 from collections import defaultdict
+import os
 
 pair_delim = '-q-a-'
 
@@ -225,6 +226,16 @@ class Conversation:
         for username in self._usernames:
             yield self._owner.get_user(username)
 
+KeyId = "id"
+KeyUser = "user"
+KeyConvoRoot = "root"
+KeyReplyTo = "reply-to"
+KeyTimestamp = "timestamp"
+KeyText = "text"
+DefinedKeys = set([KeyId, KeyUser, KeyConvoRoot, KeyReplyTo,
+    KeyTimestamp, KeyText])
+KeyMeta = "meta"
+
 class Corpus:
     """Represents a dataset, which can be loaded from a JSON file, CSV file or a
     list of utterances.
@@ -250,17 +261,6 @@ class Corpus:
     def __init__(self, filename=None, utterances=None, merge_lines=False,
         subdivide_users_by=[], delim=","):
         self.meta = {}
-
-        KeyId = "id"
-        KeyUser = "user"
-        KeyConvoRoot = "root"
-        KeyReplyTo = "reply-to"
-        KeyTimestamp = "timestamp"
-        KeyText = "text"
-        DefinedKeys = set([KeyId, KeyUser, KeyConvoRoot, KeyReplyTo,
-            KeyTimestamp, KeyText])
-        #KeyUserInfo = "meta"  # can store any extra data
-        KeyMeta = "meta"
 
         if filename is not None:
             users_meta = defaultdict(dict)
@@ -323,6 +323,29 @@ class Corpus:
 
         if subdivide_users_by:
             self.subdivide_users_by(subdivide_users_by)
+
+    def dump(self, dir_name):
+        if not os.path.exists(dir_name):
+            os.mkdir(dir_name)
+
+        with open(os.path.join(dir_name, "corpus.json"), "w") as f:
+            json.dump(self.meta, f)
+        with open(os.path.join(dir_name, "users.json"), "w") as f:
+            users = {u: self.get_user(u).meta for u in self.get_usernames()}
+            json.dump(users, f)
+#        with open(os.path.join(dir_name, "conversations.json"), "w") as f:
+#            convos = {
+        with open(os.path.join(dir_name, "utterances.json"), "w") as f:
+            uts = []
+            for ut in self.iter_utterances():
+                uts.append({
+                    KeyId: ut.id,
+                    KeyConvoRoot: ut.root,
+                    KeyText: ut.text,
+                    KeyUser: ut.user.name,
+                    KeyMeta: ut.meta
+                })
+            json.dump(uts, f)
 
     def get_utterance_ids(self):
         return self.utterances.keys()

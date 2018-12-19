@@ -6,6 +6,8 @@ print("users:")
 print(corpus.get_usernames())
 print()
 
+corpus.dump("test-dump")
+
 print("female users:")
 for user in corpus.iter_users():
     if user.meta["gender"].lower().startswith("f"):
