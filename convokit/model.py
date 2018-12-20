@@ -263,20 +263,31 @@ class Corpus:
         self.meta = {}
 
         if filename is not None:
-            users_meta = defaultdict(dict)
-            with open(filename, "r") as f:
-                try:
+            if os.path.isdir(filename):
+                with open(os.path.join(filename, "utterances.json"), "r") as f:
                     utterances = json.load(f)
-                except:
+                with open(os.path.join(filename, "users.json"), "r") as f:
+                    users_meta = defaultdict(dict)
+                    for k, v in json.load(f).items():
+                        users_meta[k] = v
+                with open(os.path.join(filename, "corpus.json"), "r") as f:
+                    self.meta = json.load(f)
+                # TODO: load conversation-level metadata
+            else:
+                users_meta = defaultdict(dict)
+                with open(filename, "r") as f:
                     try:
-                        utterances = self._load_csv(f, delim, DefinedKeys)
+                        utterances = json.load(f)
                     except:
-                        raise ValueError("Couldn't load corpus:" +
-                            " unknown file type")
+                        try:
+                            utterances = self._load_csv(f, delim, DefinedKeys)
+                        except:
+                            raise ValueError("Couldn't load corpus:" +
+                                " unknown file type")
 
-            with open(".".join(filename.split(".")[:-1]) + "-users.json", "r") as f:
-                for k, v in json.load(f).items():
-                    users_meta[k] = v
+                #with open(".".join(filename.split(".")[:-1]) + "-users.json", "r") as f:
+                #    for k, v in json.load(f).items():
+                #        users_meta[k] = v
 
             self.utterances = {}
             self.all_users = set()
@@ -333,6 +344,7 @@ class Corpus:
         with open(os.path.join(dir_name, "users.json"), "w") as f:
             users = {u: self.get_user(u).meta for u in self.get_usernames()}
             json.dump(users, f)
+        # TODO: dump conversation-level metadata
 #        with open(os.path.join(dir_name, "conversations.json"), "w") as f:
 #            convos = {
         with open(os.path.join(dir_name, "utterances.json"), "w") as f:
