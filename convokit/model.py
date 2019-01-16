@@ -340,7 +340,7 @@ class Corpus:
 
         # organize utterances by conversation
         convo_to_utts = defaultdict(list) # temp container identifying utterances by conversation
-        for u in self.utterances:
+        for u in self.utterances.values():
             convo_key = u.root # each root is considered a separate conversation
             convo_to_utts[convo_key].append(u.id)
         self.conversations = {}
