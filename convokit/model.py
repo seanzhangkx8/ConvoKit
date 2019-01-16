@@ -270,9 +270,12 @@ class Corpus:
                     users_meta = defaultdict(dict)
                     for k, v in json.load(f).items():
                         users_meta[k] = v
+                with open(os.path.join(filename, "conversations.json"), "r") as f:
+                    convos_meta = defaultdict(dict)
+                    for k, v in json.load(f).items():
+                        convos_meta[k] = v
                 with open(os.path.join(filename, "corpus.json"), "r") as f:
                     self.meta = json.load(f)
-                # TODO: load conversation-level metadata
             else:
                 users_meta = defaultdict(dict)
                 with open(filename, "r") as f:
@@ -297,6 +300,8 @@ class Corpus:
                 # print(u)
                 #if i % 100000 == 0: print(i, end=" ", flush=True)
                 u = defaultdict(lambda: None, u)
+
+                # handle this utterance's user info
                 #user_key = (u[KeyUser], str(sorted(u[KeyUserInfo].items())) if
                 #    u[KeyUserInfo] is not None else None)
                 user_key = u[KeyUser]
@@ -305,6 +310,7 @@ class Corpus:
                         info=users_meta[u[KeyUser]])
                 user = users_cache[user_key]
                 self.all_users.add(user)
+
                 other_keys = list(u.keys())
                 other_keys.remove(KeyText)
                 other = {}
@@ -332,6 +338,20 @@ class Corpus:
                     new_utterances[u.id] = u
             self.utterances = new_utterances
 
+        # organize utterances by conversation
+        convo_to_utts = defaultdict(list) # temp container identifying utterances by conversation
+        for u in self.utterances:
+            convo_key = u.root # each root is considered a separate conversation
+            convo_to_utts[convo_key].append(u.id)
+        self.conversations = {}
+        for convo_id in convo_to_utts:
+            # look up the metadata associated with this conversation, if any
+            convo_meta = convos_meta.get(convo_id, None)
+            convo = Conversation(self, id=convo_id,
+                        utterances=convo_to_utts[convo_id],
+                        meta=convo_meta)
+            self.conversations[convo_id] = convo
+
         if subdivide_users_by:
             self.subdivide_users_by(subdivide_users_by)
 
@@ -344,9 +364,9 @@ class Corpus:
         with open(os.path.join(dir_name, "users.json"), "w") as f:
             users = {u: self.get_user(u).meta for u in self.get_usernames()}
             json.dump(users, f)
-        # TODO: dump conversation-level metadata
-#        with open(os.path.join(dir_name, "conversations.json"), "w") as f:
-#            convos = {
+        with open(os.path.join(dir_name, "conversations.json"), "w") as f:
+            convos = {c: self.get_conversation(c).meta for c in self.get_conversation_ids()}
+            json.dump(convos, f)
         with open(os.path.join(dir_name, "utterances.json"), "w") as f:
             uts = []
             for ut in self.iter_utterances():
@@ -369,6 +389,16 @@ class Corpus:
         for v in self.utterances.values():
             yield v
 
+    def get_conversation_ids(self):
+        return self.conversations.keys()
+
+    def get_conversation(self, cid):
+        return self.conversations[cid]
+
+    def iter_conversations(self):
+        for v in self.conversations.values():
+            yield v
+            
     def _load_csv(self, f, delim, defined_keys):
         keys = f.readline()[:-1].split(delim)
         utterances = []
