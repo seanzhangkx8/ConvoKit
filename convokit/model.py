@@ -94,7 +94,7 @@ class Utterance:
     """
 
     def __init__(self, id=None, user=None, root=None, reply_to=None,
-            timestamp=None, text=None, other=None, meta={}):
+            timestamp=None, text=None, other=None, meta=None):
         self.id = id
         self.user = user
         self.root = root
@@ -102,7 +102,7 @@ class Utterance:
         self.timestamp = timestamp
         self.text = text
         self.other = other
-        self.meta = meta
+        self.meta = meta if meta is not None else {}
 
     def get(self, key):
         if key == "id":
