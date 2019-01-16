@@ -278,6 +278,7 @@ class Corpus:
                     self.meta = json.load(f)
             else:
                 users_meta = defaultdict(dict)
+                convos_meta = defaultdict(dict)
                 with open(filename, "r") as f:
                     try:
                         utterances = json.load(f)
