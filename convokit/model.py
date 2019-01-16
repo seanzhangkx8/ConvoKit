@@ -143,13 +143,8 @@ class Conversation:
         self._owner = owner
         self._id = id
         self._utterance_ids = utterances
+        self._usernames = None
         self._meta = {} if meta is None else meta
-
-        # compute the list of users
-        self._usernames = set()
-        for ut in utterances:
-            if ut.user is not None:
-                self._usernames.add(ut.user.name)
 
     # Conversation.meta property
     def _get_meta(self):
@@ -205,6 +200,13 @@ class Conversation:
         
         :return: a list of usernames
         """
+        if self._usernames is None:
+            # first call to get_usernames or iter_users; precompute cached list
+            # of usernames
+            self._usernames = set()
+            for ut_id in self._utterance_ids:
+                ut = self._owner.get_utterance(ut_id)
+                self._usernames.add(ut.user.name)
         return list(self._usernames)
 
     def get_user(self, username):
@@ -223,6 +225,13 @@ class Conversation:
 
         :return: Generator that produces Users.
         """
+        if self._usernames is None:
+            # first call to get_usernames or iter_users; precompute cached list
+            # of usernames
+            self._usernames = set()
+            for ut_id in self._utterance_ids:
+                ut = self._owner.get_utterance(ut_id)
+                self._usernames.add(ut.user.name)
         for username in self._usernames:
             yield self._owner.get_user(username)
 
