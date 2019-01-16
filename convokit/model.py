@@ -94,7 +94,7 @@ class Utterance:
     """
 
     def __init__(self, id=None, user=None, root=None, reply_to=None,
-            timestamp=None, text=None, other=None, meta=None):
+            timestamp=None, text=None, other=None, meta={}):
         self.id = id
         self.user = user
         self.root = root
