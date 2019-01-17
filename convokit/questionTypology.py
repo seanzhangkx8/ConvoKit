@@ -151,9 +151,8 @@ class QuestionTypology(Transformer):
             self.idf, self.leaves_only_for_extract, self.remove_first, self.max_iter_for_k_means,
             self.random_seed)
 
-        self.qdoc_df_file = os.path.join(self.data_dir, 'qdoc_df.pkl')
         self.motif_df, self.aarc_df, self.qdoc_df, self.q_leaves, self.qdoc_vects = QuestionClusterer.assign_clusters(self.km,
-            self.lq, self.a_u, self.mtx_obj, self.num_dims, self.qdoc_df_file, self.norm,
+            self.lq, self.a_u, self.mtx_obj, self.num_dims, self.norm,
             self.idf, self.leaves_only_for_assign)
 
         for index, row in self.qdoc_df.iterrows():
@@ -162,15 +161,26 @@ class QuestionTypology(Transformer):
             q_idx = row["q_idx"]
             self.types_to_data[cluster]["questions"].append(q_idx)
             self.types_to_data[cluster]["question_dists"].append(cluster_dist)
-
-        self.types_data_file = os.path.join(self.data_dir, 'types_to_data.pkl')
-        joblib.dump(self.types_to_data, self.types_data_file)
-
-        self.motif_df.to_csv('motif_df.tsv', sep='\t')
-        self.aarc_df.to_csv('aarc_df.tsv', sep='\t')
-        self.qdoc_df.to_csv('qdoc_df.tsv', sep='\t')
+            # if this is being called from fit_transform, we will additionally save the cluster assignments
+            # to the corpus
+            if also_transform:
+                corpus.get_utterance[q_idx].meta["qtype"] = cluster
+                corpus.get_utterance[q_idx].meta["qtype_dists"] = cluster_dist
 
         self._calculate_totals()
+
+        # when calling from fit, the Transformer API dictates that we return the QuestionTypology object.
+        # when calling from fit_transform, we must return the modified corpus
+        if also_transform:
+            return corpus
+        else:
+            return self
+
+    def fit(self, corpus):
+        return self._do_fit_transform(corpus, False)
+
+    def fit_transform(self, corpus):
+        return self._do_fit_transform(corpus, True)
 
     def _iter_corpus(self, corpus, iter_type, is_utterance_question):
         """Iterator over utterances in the Corpus being transformed
@@ -1468,7 +1478,7 @@ class QuestionClusterer:
         """
         return lq[:,1:], a_u[:,1:], a_s[1:], a_v[1:]
 
-    def assign_clusters(km, lq, a_u, mtx_obj, n_dims, qdoc_df_file, norm, idf, leaves_only):
+    def assign_clusters(km, lq, a_u, mtx_obj, n_dims, norm, idf, leaves_only):
         """
             Assigns correct type to each of the questions in the training data
             Returns motif_df, aarc_df, qdoc_df, q_leaves and qdoc_vects
@@ -1510,7 +1520,6 @@ class QuestionClusterer:
             qdoc_df_entries.append(entry)
         qdoc_df = pd.DataFrame(qdoc_df_entries).set_index('idx')
 
-        joblib.dump(qdoc_df, qdoc_df_file)
         return motif_df, aarc_df, qdoc_df, q_leaves, qdoc_vects
 
     def build_matrix(motifs, question_threshold, answer_threshold, verbose):
