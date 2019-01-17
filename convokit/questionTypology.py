@@ -26,12 +26,14 @@ from spacy.symbols import *
 from spacy.tokens.doc import Doc
 
 from .model import Corpus
+from .transformer import Transformer
 
 NP_LABELS = set([nsubj, nsubjpass, dobj, iobj, pobj, attr])
+SPACY_META = "parsed"
 pair_delim = '-q-a-'
 span_delim = 'span'
 
-class QuestionTypology:
+class QuestionTypology(Transformer):
     """Encapsulates computation of question types from a question-answer corpus.
 
     :param corpus: the corpus to compute types for.
@@ -129,17 +131,17 @@ class QuestionTypology:
         else:
             self.answer_filter = lambda x: True
 
-        if not self.motifs_dir:
-            self.motifs_dir = os.path.join(self.data_dir, dataset_name+'-motifs')
-            spacy_root = self.data_dir if spacy_dir is None else spacy_dir
-            spacy_file = os.path.join(spacy_root, 'spacy')
-            if not os.path.exists(spacy_file + ".pk"):
-                MotifsExtractor.spacify(self.corpus.iterate_by('both', self.is_question), spacy_file, None, self.verbose)
-            MotifsExtractor.extract_question_motifs(self.corpus.iterate_by('questions', self.is_question), spacy_file,
-                self.motifs_dir, self.question_filter, self.follow_conj,
-                self.min_support, self.dedup_threshold, self.item_set_size, self.verbose)
-            MotifsExtractor.extract_answer_arcs(self.corpus.iterate_by('answers', self.is_question), spacy_file,
-                self.motifs_dir, self.answer_filter, self.follow_conj, self.verbose)
+    def _do_fit_transform(self, corpus, also_transform=False):
+        """This internal method does the actual work of fitting the QuestionTypology
+        and optionally also transforming the source Corpus. Both transform() and
+        fit_transform() are implemented simply as wrappers around this method, to
+        avoid repeated code."""
+
+        self.q_motifs = MotifsExtractor.extract_question_motifs(self._iter_corpus(corpus, 'questions', self.is_question), spacy_file,
+            self.motifs_dir, self.question_filter, self.follow_conj,
+            self.min_support, self.dedup_threshold, self.item_set_size, self.verbose)
+        self.a_arcs = MotifsExtractor.extract_answer_arcs(self._iter_corpus(corpus, 'answers', self.is_question), spacy_file,
+            self.motifs_dir, self.answer_filter, self.follow_conj, self.verbose)
 
         self.matrix_dir = os.path.join(self.data_dir, dataset_name+'-matrix')
         QuestionClusterer.build_matrix(self.motifs_dir, self.matrix_dir, self.question_threshold,
@@ -172,6 +174,28 @@ class QuestionTypology:
         self.qdoc_df.to_csv('qdoc_df.tsv', sep='\t')
 
         self._calculate_totals()
+
+    def _iter_corpus(self, corpus, iter_type, is_utterance_question):
+        """Iterator over utterances in the Corpus being transformed
+
+        Can give just questions, just answers or questions followed by their answers
+        """
+        i = -1
+        for utterance in corpus.iter_utterances():
+            if utterance.reply_to is not None:
+                root_text = corpus.get_utterance(utterance.reply_to).text
+                if is_utterance_question(root_text):
+                    i += 1
+                    if iter_type == 'answers':
+                        pair_idx = utterance.reply_to + pair_delim + utterance.id
+                        yield utterance.id, utterance.meta[SPACY_META], pair_idx
+                        continue
+                    question = corpus.get_utterance(utterance.reply_to)
+                    pair_idx = question.id + pair_delim + utterance.id
+                    yield question.id, question.meta[SPACY_META], pair_idx
+                    if iter_type == 'both':
+                        pair_idx = utterance.reply_to + pair_delim + utterance.id
+                        yield utterance.id, utterance.meta[SPACY_META], pair_idx
 
     def get_question_text_from_question_answer_idx(self, qa_idx):
         """
