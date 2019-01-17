@@ -137,9 +137,8 @@ class QuestionTypology(Transformer):
         fit_transform() are implemented simply as wrappers around this method, to
         avoid repeated code."""
 
-        self.q_motifs = MotifsExtractor.extract_question_motifs(self._iter_corpus(corpus, 'questions', self.is_question), spacy_file,
-            self.motifs_dir, self.question_filter, self.follow_conj,
-            self.min_support, self.dedup_threshold, self.item_set_size, self.verbose)
+        self.q_motifs = MotifsExtractor.extract_question_motifs(self._iter_corpus(corpus, 'questions', self.is_question),
+            self.question_filter, self.follow_conj, self.min_support, self.dedup_threshold, self.item_set_size, self.verbose)
         self.a_arcs = MotifsExtractor.extract_answer_arcs(self._iter_corpus(corpus, 'answers', self.is_question), spacy_file,
             self.motifs_dir, self.answer_filter, self.follow_conj, self.verbose)
 
@@ -581,10 +580,10 @@ class MotifsExtractor:
             f.write('\n'.join(spacy_keys))
  
 
-    def deduplicate_motifs(question_fit_file, outfile, threshold, verbose):
+    def deduplicate_motifs(question_fits, threshold, verbose):
         """
             Removes duplicate motifs and writes final motifs to the outfiles.
-            question_fit_file contains the motifs to deduplicate
+            question_fits contains the motifs to deduplicate
             outfile is the prefix for the two motif outfiles
             If two motifs co-occur in a higher proportion of cases than
             threshold, they are considered duplicates and one is removed
@@ -593,13 +592,9 @@ class MotifsExtractor:
             print('\treading raw fits')
         span_to_fits = defaultdict(set)
         arcset_counts = defaultdict(int)
-        with open(question_fit_file) as f:
-            for idx,line in enumerate(f.readlines()):
-                if verbose and (idx > 0) and (idx % verbose == 0):
-                    print('\t%03d' % idx)
-                entry = json.loads(line)
-                span_to_fits[entry['span_idx']].add(tuple(entry['arcset']))
-                arcset_counts[tuple(entry['arcset'])] += 1
+        for entry in question_fits:
+            span_to_fits[entry['span_idx']].add(tuple(entry['arcset']))
+            arcset_counts[tuple(entry['arcset'])] += 1
         if verbose:
             print('\tcounting cooccs')
         coocc_counts = defaultdict(lambda: defaultdict(int))
@@ -637,35 +632,27 @@ class MotifsExtractor:
             superset_ids[idx] = sorted(superset, key=lambda x: (arcset_counts[x],len(x)), reverse=True)[0]
         arcset_to_ids = {k: superset_ids[v] for k,v in arcset_to_superset.items()}
         supersets_by_id = [{'idx': k, 'id': superset_ids[k], 'items': list(v)} for k,v in supersets.items()]
+        arcset_to_super = [{'arcset': k, 'super': v} for k,v in arcset_to_ids.items()]
 
-        if verbose:
-            print('\twriting')
-        with open(outfile + '_arcset_to_super.json', 'w') as f:
-            f.write('\n'.join(json.dumps({'arcset': k, 'super': v}) for k,v in arcset_to_ids.items()))
-        with open(outfile + '_sets.json', 'w') as f:
-            f.write('\n'.join(json.dumps(entry) for entry in supersets_by_id))
+        return arcset_to_super, supersets_by_id
 
-    def postprocess_fits(question_fit_file, question_tree_file, question_superset_file, verbose):
+    def postprocess_fits(question_fits, tree_data, question_supersets, verbose):
         """
             Removes redundant motifs. If a pair of motifs co-occur greater than
             threshold fraction of the time (i.e. p(m1|m2), p(m2|m1) > threshold), one of them is removed.
             Writes the remaining non redundant motifs to the three files specified by the arguments.
 
         """
-        downlinks = MotifsExtractor.read_downlinks(question_tree_file + '_downlinks.json')
+        downlinks = MotifsExtractor.read_downlinks(tree_data["downlinks"])
         super_mappings = {}
-        with open(question_superset_file) as f:
-            for line in f.readlines():
-                entry = json.loads(line)
-                super_mappings[tuple(entry['arcset'])] = tuple(entry['super'])
+        for entry in question_supersets:
+            super_mappings[tuple(entry['arcset'])] = tuple(entry['super'])
         super_counts = defaultdict(int)
         span_to_fits = defaultdict(set)
-        with open(question_fit_file) as f:
-            for idx,line in enumerate(f.readlines()):
-                if verbose and (idx > 0) and (idx % verbose == 0):
-                    print('\t%03d' % idx)
-                entry = json.loads(line)
-                span_to_fits[entry['span_idx']].add(tuple(entry['arcset']))
+        for idx,entry in enumerate(question_fits):
+            if verbose and (idx > 0) and (idx % verbose == 0):
+                print('\t%03d' % idx)
+            span_to_fits[entry['span_idx']].add(tuple(entry['arcset']))
         for span_idx, fit_set in span_to_fits.items():
             super_fit_set = set([super_mappings[x] for x in fit_set if x != ('*',)])
             for x in super_fit_set:
@@ -691,8 +678,8 @@ class MotifsExtractor:
                 else:
                     entry['max_child_count'] = max(super_counts.get(child,0) for child in superchildren)
                 new_entries.append(entry)
-        with open(question_fit_file + '.super', 'w') as f:
-            f.write('\n'.join(json.dumps(entry) for entry in new_entries))
+
+        return new_entries
 
     def contains_candidate(container, candidate):
         """
@@ -725,7 +712,7 @@ class MotifsExtractor:
                 fit_nodes[next_node] = entry
         return fit_nodes
 
-    def fit_all(arc_file, tree_file, outfile, verbose):
+    def fit_all(arc_list, tree_data, verbose):
         """
             figures out which motifs occur in each piece of text.
             arc_file: listing of arcs per text, from extract_arcs
@@ -733,14 +720,11 @@ class MotifsExtractor:
                        this doesn't have to come from the same dataset
                        as arc_file, in which case you're basically fitting
                        a new dataset to motifs extracted elsewhere.
-            outfile: where to put things.
         """
-        if verbose:
-            print('\treading tree')
-        arc_sets = QuestionTypologyUtils.read_arcs(arc_file, verbose)
+        arc_sets = {entry["pair_idx"]: entry["arcs"] for entry in arc_list}
 
-        downlinks = MotifsExtractor.read_downlinks(tree_file + '_downlinks.json')
-        node_counts = MotifsExtractor.read_nodecounts(tree_file + '_arc_set_counts.tsv')
+        downlinks = MotifsExtractor.read_downlinks(tree_data["downlinks"])
+        node_counts = MotifsExtractor.read_nodecounts(tree_data["arcs"])
 
 
         if verbose:
@@ -756,10 +740,7 @@ class MotifsExtractor:
                 fit_info['text_idx'] = text_idx
                 # fit_info['pair_idx'] = pair_idx
                 span_fit_entries.append(fit_info)
-        if verbose:
-            print('\twriting fits')
-        with open(outfile, 'w') as f:
-            f.write('\n'.join(json.dumps(entry) for entry in span_fit_entries))
+        return span_fit_entries
 
     def get_sorted_combos(itemset, k):
         """
@@ -829,14 +810,12 @@ class MotifsExtractor:
             setsize+=1
         return itemset_counts, span_to_itemsets
 
-    def make_arc_tree(arc_file, outname, min_support, item_set_size, verbose):
+    def make_arc_tree(arc_list, min_support, item_set_size, verbose):
         """
             Makes the tree of motifs. (G in the paper)
         """
 
-        if verbose:
-            print('\treading arcs')
-        arc_sets = QuestionTypologyUtils.read_arcs(arc_file, verbose)
+        arc_sets = {entry["pair_idx"]: entry["arcs"] for entry in arc_list}
 
         if verbose:
             print('\tcounting itemsets')
@@ -851,9 +830,9 @@ class MotifsExtractor:
         if verbose:
             print('\twriting itemsets')
         sorted_counts = sorted(itemset_counts.items(),key=lambda x: (-x[1],len(x[0]),x[0][0]))
-        with open(outname + '_arc_set_counts.tsv', 'w') as f:
-            for k,v in sorted_counts:
-                f.write('%d\t%d\t%s\n' % (v, len(k), '\t'.join(k)))
+        arc_set_list = []
+        for k,v in sorted_counts:
+            arc_set_list.append((v, len(k), k))
 
         if verbose:
             print('\tbuilding tree')
@@ -885,21 +864,17 @@ class MotifsExtractor:
                 uplinks[itemset][parent] = {'pr_child': pr_child, 'parent_count': parent_count}
                 downlinks[parent][itemset] = {'pr_child': pr_child, 'child_count': count}
 
-        with open(outname + '_edges.json', 'w') as f:
-            f.write('\n'.join(json.dumps(edge) for edge in edges))
-        with open(outname + '_uplinks.json', 'w') as f:
-            uplink_list = []
-            for child, parent_dict in uplinks.items():
-                uplink_list.append({'child': child, 'parents': sorted(parent_dict.items(),key=lambda x: x[1]['pr_child'])})
-            uplink_list = sorted(uplink_list, key=lambda x: itemset_counts[x['child']], reverse=True)
-            f.write('\n'.join(json.dumps(up) for up in uplink_list))
-        with open(outname + '_downlinks.json', 'w') as f:
-            downlink_list = []
-            for parent, child_dict in downlinks.items():
-                downlink_list.append({'parent': parent, 'children': sorted(child_dict.items(),key=lambda x: x[1]['pr_child'])})
-            downlink_list = sorted(downlink_list, key=lambda x: itemset_counts[x['parent']], reverse=True)
-            f.write('\n'.join(json.dumps(down) for down in downlink_list))
+        uplink_list = []
+        for child, parent_dict in uplinks.items():
+            uplink_list.append({'child': child, 'parents': sorted(parent_dict.items(),key=lambda x: x[1]['pr_child'])})
+        uplink_list = sorted(uplink_list, key=lambda x: itemset_counts[x['child']], reverse=True)
 
+        downlink_list = []
+        for parent, child_dict in downlinks.items():
+            downlink_list.append({'parent': parent, 'children': sorted(child_dict.items(),key=lambda x: x[1]['pr_child'])})
+        downlink_list = sorted(downlink_list, key=lambda x: itemset_counts[x['parent']], reverse=True)
+
+        return {"arcs": arc_set_list, "edges": edges, "uplinks": uplink_list, "downlinks": downlink_list}
 
     def is_noun_ish(word):
         """
@@ -997,40 +972,28 @@ class MotifsExtractor:
         """
         return '?' in text
 
-    def extract_arcs(text_iter, spacy_filename, outfile, vocab, use_span,
-        follow_conj, verbose):
+    def extract_arcs(text_iter, vocab, use_span, follow_conj, verbose):
 
         """
             extracts all arcs going out of the root in a sentence. used to find question motifs.
 
             text_iter: iterates over text for which arcs are extracted
-            spacy_filename: location of spacy objects (from spacy_utils.py)
-            outfile: where to write the arcs.
             vocab: pre-loaded spacy vocabulary. if you pass None it will load vocab for you, but that's slow.
             use_span: filter to decide which sentences to use. the function takes in a spacy sentence object.
             follow_conj: whether to follow conjunctions and treat subtrees as sentences too.
 
         """
 
-        if verbose:
-            print('reading spacy')
-        spacy_dict = MotifsExtractor.get_spacy_dict(spacy_filename, vocab, verbose)
-
         arc_entries = []
-        for idx, (text_idx,text, pair_idx) in enumerate(text_iter):
+        for idx, (text_idx, spacy_obj, pair_idx) in enumerate(text_iter):
             if verbose and (idx > 0) and (idx % verbose == 0):
                 print('\t%03d' % idx)
-            spacy_obj = spacy_dict[text_idx]
             for span_idx, span in enumerate(spacy_obj.sents):
                 if use_span(span.text):
                     curr_arcset = MotifsExtractor.get_arcs(span.root, follow_conj)
                     arc_entries.append({'idx': '%s%s%d' % (text_idx, span_delim, span_idx), 'arcs': list(curr_arcset),
                         'pair_idx': '%s%s%d' % (pair_idx, span_delim, span_idx)})
-        if verbose:
-            print('\twriting arcs')
-        with open(outfile, 'w') as f:
-            f.write('\n'.join(json.dumps(arc_entry) for arc_entry in arc_entries))
-
+        return arc_entries
 
     def is_uppercase(x):
         """
@@ -1041,7 +1004,7 @@ class MotifsExtractor:
         return x.strip()[0].isupper()
 
 
-    def extract_question_motifs(question_text_iter, spacy_filename, motif_dir,
+    def extract_question_motifs(question_text_iter,
         question_filter_fn,
         follow_conj,
         min_question_itemset_support,
@@ -1051,8 +1014,6 @@ class MotifsExtractor:
         """
             convenience pipeline to get question motifs. (see pipelines/extract_*_motifs for examples)
             question_text_iter: iterates over all questions
-            spacy_filename: location of spacy objects
-            motif_dir: directory where all motifs written
             question_filter_fn: only uses sentences in a question which corresponds to a question. can redefine.
             follow_conj: follows conjunctions to compound questions ("why...and how")
             min_question_itemset_support: the minimum number of times an itemset has to show up for the frequent itemset counter to consider it.
@@ -1060,58 +1021,43 @@ class MotifsExtractor:
         """
         if verbose: print('running motif extraction pipeline')
 
-        try:
-            os.mkdir(motif_dir)
-        except:
-            if verbose: print('\tmotif dir %s exists!' % motif_dir)
-
         if verbose: print('loading spacy vocab')
         vocab = MotifsExtractor.load_vocab(verbose)
 
         if verbose: print('getting question arcs')
-        question_arc_outfile = os.path.join(motif_dir, 'question_arcs.json')
-        MotifsExtractor.extract_arcs(question_text_iter, spacy_filename, question_arc_outfile, vocab, question_filter_fn, follow_conj, verbose)
+        q_arcs = MotifsExtractor.extract_arcs(question_text_iter, vocab, question_filter_fn, follow_conj, verbose)
 
         if verbose: print('making motif tree')
-        question_tree_outfile = os.path.join(motif_dir, 'question_tree')
-        MotifsExtractor.make_arc_tree(question_arc_outfile, question_tree_outfile, min_question_itemset_support, item_set_size, verbose)
+        tree_data = MotifsExtractor.make_arc_tree(q_arcs, min_question_itemset_support, item_set_size, verbose)
 
         if verbose: print('fitting motifs to questions')
-        question_fit_outfile = os.path.join(motif_dir, 'question_fits.json')
-        MotifsExtractor.fit_all(question_arc_outfile, question_tree_outfile, question_fit_outfile, verbose)
+        question_fits = MotifsExtractor.fit_all(q_arcs, tree_data, verbose)
 
         if verbose: print('handling redundant motifs')
-        question_super_outfile = os.path.join(motif_dir, 'question_supersets')
-        MotifsExtractor.deduplicate_motifs(question_fit_outfile, question_super_outfile, deduplicate_threshold, verbose)
-        MotifsExtractor.postprocess_fits(question_fit_outfile, question_tree_outfile, question_super_outfile + '_arcset_to_super.json', verbose)
+        arcset_to_super, supersets_by_id = MotifsExtractor.deduplicate_motifs(question_fits, deduplicate_threshold, verbose)
+        question_fits_super = MotifsExtractor.postprocess_fits(question_fits, tree_data, arcset_to_super, verbose)
 
         if verbose: print('done motif extraction')
 
-    def read_downlinks(downlink_file):
+    def read_downlinks(downlink_data):
         """
             Returns a dicionary of parent to children nodes of the dependency parse of given input questions
-            downlink_file contains the parse
         """
         downlinks = {}
-        with open(downlink_file) as f:
-            for line in f.readlines():
-                entry = json.loads(line)
-                downlinks[tuple(entry['parent'])] = [(tuple(x),y) for x,y in entry['children']]
+        for entry in downlink_data:
+            downlinks[tuple(entry['parent'])] = [(tuple(x),y) for x,y in entry['children']]
         return downlinks
 
-    def read_nodecounts(nodecount_file):
+    def read_nodecounts(nodecount_list):
         """
             Returns the count for each set of arcs
-            nodecount_file contains the arcs and counts
         """
         node_counts = {}
-        with open(nodecount_file) as f:
-            for line in f:
-                split = line.split('\t')
-                count = int(split[0])
-                set_size = int(split[1])
-                itemset = tuple([x.strip() for x in split[2:]])
-                node_counts[itemset] = count
+        for split in nodecount_list:
+            count = int(split[0])
+            set_size = int(split[1])
+            itemset = tuple(split[2])
+            node_counts[itemset] = count
         return node_counts
 
     def extract_answer_arcs(answer_text_iter, spacy_filename, motif_dir, answer_filter_fn, follow_conj, verbose):
