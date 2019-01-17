@@ -145,10 +145,9 @@ class QuestionTypology(Transformer):
         self.mtx_obj = QuestionClusterer.build_matrix(self.motifs, self.question_threshold,
             self.answer_threshold, self.verbose)
 
-        self.km_name = os.path.join(self.data_dir, 'demo_km.pkl')
-        self.mtx_obj, self.km, self.types_to_data, self.lq, self.a_u, self.a_s, self.a_v = \
-        QuestionClusterer.extract_clusters(self.matrix_dir,
-            self.km_name, self.num_clusters,self.num_dims, self.snip, self.verbose, self.norm,
+        self.km, self.types_to_data, self.lq, self.a_u, self.a_s, self.a_v = \
+        QuestionClusterer.extract_clusters(self.mtx_obj,
+            self.num_clusters,self.num_dims, self.snip, self.verbose, self.norm,
             self.idf, self.leaves_only_for_extract, self.remove_first, self.max_iter_for_k_means,
             self.random_seed)
 
@@ -1324,16 +1323,15 @@ class QuestionClusterer:
 
         return mtx
 
-    def run_simple_pipe(rootname, verbose, norm, idf, leaves_only):
+    def run_simple_pipe(mtx_obj, verbose, norm, idf, leaves_only):
         """
-            Create and return mtx_obj, q_mtx and a_mtx.
+            Create and return q_mtx and a_mtx from precomputed mtx_obj.
             mtx_obj has the following keys
             q_mtx and a_mtx are the question and answer matrix from the paper
         """
-        mtx_obj = QuestionClusterer.load_joint_mtx(rootname, verbose)
         q_mtx = QuestionClusterer.build_mtx(mtx_obj, 'q', norm, idf, leaves_only)
         a_mtx = QuestionClusterer.build_mtx(mtx_obj, 'a', norm, True, leaves_only)
-        return q_mtx, a_mtx, mtx_obj
+        return q_mtx, a_mtx
 
     def do_sparse_svd(mtx, k):
         """
@@ -1530,7 +1528,7 @@ class QuestionClusterer:
         return QuestionClusterer.build_joint_matrix(question_fits, answer_arcs, supersets,
             question_threshold, answer_threshold, verbose)
 
-    def extract_clusters(matrix_dir,km_file,k, d, snip, verbose, norm, idf, leaves_only,
+    def extract_clusters(mtx_obj, k, d, snip, verbose, norm, idf, leaves_only,
         remove_first, max_iter, random_seed):
         """
             convenience pipeline to get latent q-a dimensions and clusters.
@@ -1540,14 +1538,12 @@ class QuestionClusterer:
             d: num latent dims
 
         """
-        matrix_file = os.path.join(matrix_dir, 'qa_mtx')
-        q_mtx, a_mtx, mtx_obj = QuestionClusterer.run_simple_pipe(matrix_file, verbose,
+        q_mtx, a_mtx = QuestionClusterer.run_simple_pipe(mtx_obj, verbose,
             norm, idf, leaves_only)
         lq, a_u, a_s, a_v = QuestionClusterer.run_lowdim_pipe(q_mtx, a_mtx,d, snip)
         km, types_to_data = QuestionClusterer.inspect_kmeans_run(lq, a_u, d, k, mtx_obj['q_terms'],
             mtx_obj['a_terms'], None, remove_first, max_iter, random_seed)
 
-        joblib.dump(km, km_file)
         return mtx_obj, km, types_to_data, lq, a_u, a_s, a_v
 
 class QuestionTypologyUtils:
