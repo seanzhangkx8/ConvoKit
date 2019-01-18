@@ -83,8 +83,7 @@ class QuestionTypology(Transformer):
     :ivar a_u: the low dimensional A matrix
     """
 
-    def __init__(self, corpus, data_dir, motifs_dir=None,
-        num_clusters=8, dataset_name="parliament",
+    def __init__(self, num_clusters=8,
         question_threshold=100, answer_threshold=100,
         num_dims=100, verbose=5000, dedup_threshold=.9,
         follow_conj=True, norm='l2', num_svds=50, num_dims_to_inspect=5,
@@ -93,9 +92,6 @@ class QuestionTypology(Transformer):
         random_seed=0, is_question=None, questions_only=True, enforce_formatting=True,
         spacy_dir=None):
 
-        self.corpus = corpus
-        self.data_dir = data_dir
-        self.motifs_dir = motifs_dir
         self.num_clusters = num_clusters
         self.question_threshold = question_threshold
         self.answer_threshold = answer_threshold
