@@ -344,24 +344,20 @@ class QuestionTypology(Transformer):
         content = [corpus.get_utterance(cid).meta["parsed"] for cid in comment_ids]
         return pd.DataFrame({"content": content}, index=comment_ids)
 
-    def _load_motif_info(self, motif_dir):
+    def _load_motif_info(self):
 
         super_mappings = {}
-        with open(os.path.join(motif_dir, 'question_supersets_arcset_to_super.json')) as f:
-            for line in f.readlines():
-                entry = json.loads(line)
-                super_mappings[tuple(entry['arcset'])] = tuple(entry['super'])
+        for entry in self.motifs:
+            super_mappings[tuple(entry['arcset'])] = tuple(entry['super'])
 
-        downlinks = MotifsExtractor.read_downlinks(os.path.join(motif_dir, 'question_tree_downlinks.json'))    
-        node_counts = MotifsExtractor.read_nodecounts(os.path.join(motif_dir, 'question_tree_arc_set_counts.tsv'))
+        downlinks = MotifsExtractor.read_downlinks(self.motifs['question_tree_downlinks'])
+        node_counts = MotifsExtractor.read_nodecounts(self.motifs['question_tree_arc_set_counts'])
         return super_mappings, downlinks, node_counts
 
     def _extract_arcs(self, comment_df, selector=lambda x: True, outfile=None):
         sent_df = []
-        spacy_nlp = spacy.load("en")
-        comment_df = comment_df.assign(spacy_obj=list(spacy_nlp.pipe(comment_df.content.fillna(""), n_threads=os.cpu_count())))
         for tup in comment_df.itertuples():
-            for s_idx, sent in enumerate(tup.spacy_obj.sents):
+            for s_idx, sent in enumerate(tup.content.sents):
                 sent_text = sent.text.strip()
                 if len(sent_text) == 0: continue
                 if selector(sent_text):
@@ -480,7 +476,7 @@ class QuestionTypology(Transformer):
 
         qdoc_dists = km.transform(qdoc_norm)
         qdoc_df = pd.DataFrame(data=qdoc_dists, index=mtx_obj['docs'], columns=["km_%d_dist" % i for i in range(n_clusters)])
-        return qdoc_df.join(comment_df.content)
+        return qdoc_df
 
     def transform(self, corpus):
         """Computes the distance to each question type cluster for some previously unseen text.
@@ -488,25 +484,32 @@ class QuestionTypology(Transformer):
             :return: DataFrame of cluster distances for each utterance
         """
 
-        # convert utterance list to dataframe for easier indexing later
+        # convert corpus utterances to dataframe for easier indexing later
         comment_df = self._corpus_to_dataframe(corpus)
 
         qvocab = set(self.mtx_obj['q_terms'])
         avocab = set(self.mtx_obj['a_terms'])
-        new_out = os.path.join(self.data_dir, 'test')
 
         # fit motifs to new data
-        super_mappings, downlinks, node_counts = self._load_motif_info(self.motifs_dir)
-        sent_df = self._extract_arcs(comment_df, outfile=new_out)
+        super_mappings, downlinks, node_counts = self._load_motif_info()
+        sent_df = self._extract_arcs(comment_df)
         question_to_fits, question_to_leaf_fits, question_to_a_fits = self._fit_questions_and_answers(sent_df, qvocab, 
-            avocab, super_mappings, downlinks, node_counts, self.question_threshold, new_out)
+            avocab, super_mappings, downlinks, node_counts, self.question_threshold)
 
         # project new data
-        new_mtx_obj = self._make_new_qa_mtx_obj(question_to_fits, question_to_leaf_fits, question_to_a_fits, self.mtx_obj, outfile=new_out)
-        qdoc_vects, adoc_vects = self._project_qa_embeddings(new_mtx_obj, self.lq, self.a_u, outfile=new_out)
+        new_mtx_obj = self._make_new_qa_mtx_obj(question_to_fits, question_to_leaf_fits, question_to_a_fits, self.mtx_obj)
+        qdoc_vects, adoc_vects = self._project_qa_embeddings(new_mtx_obj, self.lq, self.a_u)
 
-        return self._assign_qtypes(qdoc_vects, adoc_vects, new_mtx_obj, self.km, comment_df, 
+        new_qdoc_df = self._assign_qtypes(qdoc_vects, adoc_vects, new_mtx_obj, self.km, comment_df, 
             random_state=self.random_seed, display=5, max_dist_quantile=.25, outfile=new_out)
+
+        # add cluster assignments to the source Corpus
+        for utt_id in new_qdoc_df.index:
+            utterance = corpus.get_utterance(utt_id)
+            utterance.meta["qtype"] = np.argmin(new_qdoc_df.loc[utt_id].values)
+            utterance.meta["qtype_dists"] = new_qdoc_df.loc[utt_id].values
+
+        return corpus
 
 
 class MotifsExtractor:
