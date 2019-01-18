@@ -4,44 +4,38 @@
 #    will vary from the clusters published in the paper, but since there is a seed provided, multiple executions
 #    of this script will always produce the same clusters)
 
-import os
-import pkg_resources
-import numpy as np
+from convokit import Corpus, Parser, QuestionTypology, download
 
-from convokit import Corpus, QuestionTypology, download
-
-#Initialize QuestionTypology class
-
-num_clusters = 8
-
-# Get precomputed motifs. data_dir contains the downloaded data.
-data_dir = os.path.join(pkg_resources.resource_filename("convokit", ""),
-    'downloads')
-
-#Load the corpus
+print("Loading Parliament dataset...")
 corpus = Corpus(filename=download("parliament-corpus"))
 
-#Extract clusters of the motifs and assign questions to these clusters
-questionTypology = QuestionTypology(corpus, data_dir, dataset_name='parliament', num_dims=25,
-  num_clusters=num_clusters, verbose=False, random_seed=164)
+# Get parses for each utterance in the Corpus. This step is needed since the
+# QuestionTypology will use the parses in its computation.
+parser = Parser()
+corpus = parser.fit_transform(corpus)
 
-# questionTypology.types_to_data contains the necessary data that is computed in the step above
-# its keys are the indices of the clusters (here 0-7). The values are dictionaries with the following keys:
-# "motifs": the motifs, as a list of tuples of the motif terms
-# "motif_dists": the corresponding distances of each motif from the centroid of the cluster this motif is in
-# "fragments": the answer fragments, as a list of tuples of answer terms
-# "fragment_dists": the corresponding distances of each fragment from the centroid of the cluster this
-# fragment is in
-# "questions": the IDs of the questions in this cluster. You can get the corresponding question text by using the
-# get_question_text_from_pair_idx(pair_idx) method.
-# "question_dists": the corresponding distances of each question from the centroid of the cluster
-# this question is in
+# initialize the QuestionTypology Transformer. Note the following differences 
+# from the original parliament_question_typology.py:
+#  - We do not pass in a corpus, as the Transformer-based API will
+#    instead be having us apply the QuestionTypology to a corpus
+#    after initialization
+#  - We do not pass in a dataset name, for the same reason as above
+#  - We do not pass in a data_dir, as serialization is now manual
+questionTypology = QuestionTypology(num_dims=25, num_clusters=8, verbose=10000, random_seed=164)
 
-# #Output required data representations
+print("Fitting QuestionTypology...")
+corpus = questionTypology.fit_transform(corpus)
 
 questionTypology.display_totals()
-print('10 examples for types 1-8:')
-for i in range(num_clusters):
+print("10 examples for types 1-8:")
+for i in range(8):
     questionTypology.display_motifs_for_type(i, num_egs=10)
     questionTypology.display_answer_fragments_for_type(i, num_egs=10)
     questionTypology.display_question_answer_pairs_for_type(i, num_egs=10)
+
+print("Example cluster assignments and distances for utterances in the corpus:")
+for utt_id in corpus.get_utterance_ids()[:10]:
+    utterance = corpus.get_utterance(utt_id)
+    print("Utterance %s: %s" % (utt_id, utterance.text))
+    print("Cluster assignment:", utterance.meta["qtype"])
+    print("Cluster distances:", utterance.meta["qtype_dists"])
