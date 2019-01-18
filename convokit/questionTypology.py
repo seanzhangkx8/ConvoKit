@@ -158,6 +158,7 @@ class QuestionTypology(Transformer):
         for index, row in self.qdoc_df.iterrows():
             cluster = row["cluster"]
             cluster_dist = row["cluster_dist"]
+            all_cluster_dists = row["all_cluster_dists"]
             q_idx = row["q_idx"]
             self.types_to_data[cluster]["questions"].append(q_idx)
             self.types_to_data[cluster]["question_dists"].append(cluster_dist)
@@ -165,9 +166,15 @@ class QuestionTypology(Transformer):
             # to the corpus
             if also_transform:
                 corpus.get_utterance[q_idx].meta["qtype"] = cluster
-                corpus.get_utterance[q_idx].meta["qtype_dists"] = cluster_dist
+                corpus.get_utterance[q_idx].meta["qtype_dists"] = all_cluster_dists
 
         self._calculate_totals()
+
+        # if transforming the Corpus, we will also save information about the motifs
+        if also_transform:
+            motif_summary, answer_summary = self._summarize_motifs()
+            corpus.add_meta("motifs", motif_summary)
+            corpus.add_meta("answer_fragments", answer_summary)
 
         # when calling from fit, the Transformer API dictates that we return the QuestionTypology object.
         # when calling from fit_transform, we must return the modified corpus
@@ -317,9 +324,24 @@ class QuestionTypology(Transformer):
             n += 1
             print('\t\t%d.'%(n), answer_fragments[i])
 
+    def _summarize_motifs(self):
+        """Helper function to summarize question motifs and corresponding answer
+        fragments for inclusion in the transformed corpus"""
+        motif_summary = []
+        answer_summary = []
+        for cl in range(self.num_clusters):
+            target = self.types_to_data[cl]
+            motifs = target["motifs"]
+            motifs_idx = np.argsort(target["motif_dists"])
+            motif_summary.append([motifs[i] for i in motifs_idx])
+            answer_fragments = target["fragments"]
+            fragments_idx = np.argsort(target["fragment_dists"])
+            answer_summary.append([answer_fragments[i] for i in fragments_idx])
+        return motif_summary, answer_summary
+
     def _corpus_to_dataframe(self, corpus):
-        comment_ids = list(corpus.utterances.keys())
-        content = [corpus.utterances[cid].text for cid in comment_ids]
+        comment_ids = corpus.get_utterance_ids()
+        content = [corpus.get_utterance(cid).meta["parsed"] for cid in comment_ids]
         return pd.DataFrame({"content": content}, index=comment_ids)
 
     def _load_motif_info(self, motif_dir):
@@ -460,23 +482,14 @@ class QuestionTypology(Transformer):
         qdoc_df = pd.DataFrame(data=qdoc_dists, index=mtx_obj['docs'], columns=["km_%d_dist" % i for i in range(n_clusters)])
         return qdoc_df.join(comment_df.content)
 
-    def get_qtype_dists(self, question_text):
+    def transform(self, corpus):
         """Computes the distance to each question type cluster for some previously unseen text.
             :param question_text: a sequence of utterances to classify, or a single utterance
             :return: DataFrame of cluster distances for each utterance
         """
-        # function is designed to batch process lists of comments, but if the
-        # user wants to just do one comment we can hack around that
-        if type(question_text) == str:
-            question_text = [question_text]
 
         # convert utterance list to dataframe for easier indexing later
-        if type(question_text) == pd.DataFrame:
-            comment_df = question_text
-        elif type(question_text) == Corpus:
-            comment_df = self._corpus_to_dataframe(question_text)
-        else:
-            comment_df = pd.DataFrame({"content": question_text})
+        comment_df = self._corpus_to_dataframe(corpus)
 
         qvocab = set(self.mtx_obj['q_terms'])
         avocab = set(self.mtx_obj['a_terms'])
@@ -494,32 +507,6 @@ class QuestionTypology(Transformer):
 
         return self._assign_qtypes(qdoc_vects, adoc_vects, new_mtx_obj, self.km, comment_df, 
             random_state=self.random_seed, display=5, max_dist_quantile=.25, outfile=new_out)
-
-    def compute_type(self, question_text):
-        """Assigns a question type to previously unseen text.
-            :param question_text: a sequence of utterances to classify, or a single utterance
-                                  If sequence, type can either be any array-like type (numpy ndarray,
-                                  python list, etc) or a pandas DataFrame. If a DataFrame is provided,
-                                  the utterances should be in a column titled "content".
-            :return: If a single utterance was given, returns the integer index of its question type.
-                     If an array-like was given, returns an array of question types for each utterance.
-                     If a DataFrame was given, returns a Series of question types indexed by the
-                     original DataFrame's index.
-        """
-        dists = self.get_qtype_dists(question_text).drop(columns="content").rename(columns={"km_%d_dist" % i: i for i in range(self.km.n_clusters)})
-        cluster_assigns = dists.idxmin(axis=1)
-        if type(question_text) == str:
-            return cluster_assigns.iloc[0]
-        elif type(question_text) == pd.DataFrame:
-            return cluster_assigns
-        else:
-            return cluster_assigns.values
-
-    def __call__(self, question_text):
-        """Alias for compute_type that allows the QuestionTypology object to be
-            used as a Callable
-        """
-        return self.compute_type(question_text)
 
 
 class MotifsExtractor:
@@ -1053,7 +1040,9 @@ class MotifsExtractor:
         return {
             "question_arcs": q_arcs,
             "question_fits": question_fits,
-            "question_supersets_arcset_to_super": arcset_to_super
+            "question_supersets_arcset_to_super": arcset_to_super,
+            "question_tree_downlinks": tree_data["downlinks"],
+            "question_tree_arc_set_counts": tree_data["arcs"]
         }
 
     def read_downlinks(downlink_data):
@@ -1517,6 +1506,7 @@ class QuestionClusterer:
         for idx, qdoc in enumerate(mtx_obj['docs']):
             entry = {'idx': idx, 'q_idx': qdoc, 'cluster': km_qdoc_labels[idx]}
             entry['cluster_dist'] = km_qdoc_dists[idx,entry['cluster']]
+            entry['all_cluster_dists'] = km_qdoc_dists[idx,:]
             qdoc_df_entries.append(entry)
         qdoc_df = pd.DataFrame(qdoc_df_entries).set_index('idx')
 
