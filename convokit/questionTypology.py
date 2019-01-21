@@ -1542,7 +1542,7 @@ class QuestionClusterer:
         km, types_to_data = QuestionClusterer.inspect_kmeans_run(lq, a_u, d, k, mtx_obj['q_terms'],
             mtx_obj['a_terms'], None, remove_first, max_iter, random_seed)
 
-        return mtx_obj, km, types_to_data, lq, a_u, a_s, a_v
+        return km, types_to_data, lq, a_u, a_s, a_v
 
 class QuestionTypologyUtils:
     def read_arcs(arc_file, verbose):
