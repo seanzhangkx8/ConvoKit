@@ -34,8 +34,13 @@ for i in range(8):
     questionTypology.display_question_answer_pairs_for_type(i, num_egs=10)
 
 print("Example cluster assignments and distances for utterances in the corpus:")
-for utt_id in corpus.get_utterance_ids()[:10]:
+n_printed = 0
+for utt_id in corpus.get_utterance_ids():
+    if n_printed == 10:
+        break
     utterance = corpus.get_utterance(utt_id)
-    print("Utterance %s: %s" % (utt_id, utterance.text))
-    print("Cluster assignment:", utterance.meta["qtype"])
-    print("Cluster distances:", utterance.meta["qtype_dists"])
+    if "qtype" in utterance.meta:
+        print("Utterance %s: %s" % (utt_id, utterance.text))
+        print("Cluster assignment:", utterance.meta["qtype"])
+        print("Cluster distances:", utterance.meta["qtype_dists"])
+        n_printed += 1

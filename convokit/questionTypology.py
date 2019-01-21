@@ -161,8 +161,8 @@ class QuestionTypology(Transformer):
             # if this is being called from fit_transform, we will additionally save the cluster assignments
             # to the corpus
             if also_transform:
-                corpus.get_utterance[q_idx].meta["qtype"] = cluster
-                corpus.get_utterance[q_idx].meta["qtype_dists"] = all_cluster_dists
+                corpus.get_utterance(q_idx).meta["qtype"] = cluster
+                corpus.get_utterance(q_idx).meta["qtype_dists"] = all_cluster_dists
 
         self._calculate_totals()
 
