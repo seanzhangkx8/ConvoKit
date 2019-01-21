@@ -1205,7 +1205,7 @@ class QuestionClusterer:
         mtx_obj['a_term_to_idx'] = {}
         mtx_obj['a_term_counts'] = []
         for term in answer_term_list:
-            mtx_obj['a_term_counts'].append(int(count))
+            mtx_obj['a_term_counts'].append(arc_counts[term])
             mtx_obj['a_terms'].append(term)
             mtx_obj['a_term_to_idx'][term] = idx
         mtx_obj['a_terms'] = np.array(mtx_obj['a_terms'])
