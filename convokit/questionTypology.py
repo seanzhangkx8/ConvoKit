@@ -155,7 +155,7 @@ class QuestionTypology(Transformer):
             cluster = row["cluster"]
             cluster_dist = row["cluster_dist"]
             all_cluster_dists = row["all_cluster_dists"]
-            q_idx = row["q_idx"]
+            q_idx = QuestionTypologyUtils.get_q_idx_from_pair(row["q_idx"])
             self.types_to_data[cluster]["questions"].append(q_idx)
             self.types_to_data[cluster]["question_dists"].append(cluster_dist)
             # if this is being called from fit_transform, we will additionally save the cluster assignments
@@ -658,7 +658,7 @@ class MotifsExtractor:
         for idx, (span_idx, fit_set) in enumerate(span_to_fits.items()):
             if verbose and (idx > 0) and (idx % verbose == 0):
                 print('\t%03d' % idx)
-            text_idx = QuestionTypologyUtils.get_text_idx(span_idx)
+            text_idx = QuestionTypologyUtils.get_text_idx_from_span(span_idx)
             super_to_superchildren = defaultdict(set)
             for set_ in fit_set:
                 if set_ == ('*',): continue
@@ -727,7 +727,7 @@ class MotifsExtractor:
         for idx, (span_idx,arcs) in enumerate(arc_sets.items()):
             if verbose and (idx > 0) and (idx % verbose == 0):
                 print('\t%03d' % idx)
-            text_idx = QuestionTypologyUtils.get_text_idx(span_idx)
+            text_idx = QuestionTypologyUtils.get_text_idx_from_span(span_idx)
             fit_nodes = MotifsExtractor.fit_question(set(arcs), downlinks, node_counts)
             for fit_info in fit_nodes.values():
                 fit_info['span_idx'] = span_idx
@@ -1132,7 +1132,7 @@ class QuestionClusterer:
         arc_sets = {entry['pair_idx']: entry['arcs'] for entry in answer_arcs}
         arc_counts = defaultdict(int)
         for span_idx, arcs in arc_sets.items():
-            question_to_arcs[QuestionTypologyUtils.get_text_idx(span_idx)].update(arcs)
+            question_to_arcs[QuestionTypologyUtils.get_text_idx_from_span(span_idx)].update(arcs)
             for arc in arcs:
                 arc_counts[arc] += 1
         question_to_arcs = {k: [x for x in v if arc_counts[x] >= answer_threshold] for k,v in question_to_arcs.items()}
@@ -1559,8 +1559,14 @@ class QuestionTypologyUtils:
                 arc_sets[entry['pair_idx']] = entry['arcs']
         return arc_sets
 
-    def get_text_idx(span_idx):
+    def get_text_idx_from_span(span_idx):
         """
             Given the index of a span within a question, return the index of the entire question
         """
         return span_idx[:span_idx.rfind(span_delim)]
+
+    def get_q_idx_from_pair(pair_idx):
+        """
+            Given the index of a question-answer pair, return the index of the question
+        """
+        return pair_idx[:pair_idx.rfind(pair_delim)]
