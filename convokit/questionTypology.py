@@ -207,20 +207,6 @@ class QuestionTypology(Transformer):
                         pair_idx = utterance.reply_to + pair_delim + utterance.id
                         yield utterance.id, utterance.meta[SPACY_META], pair_idx
 
-    def get_question_text_from_question_answer_idx(self, qa_idx):
-        """
-        """
-
-        question_id = qa_idx[:qa_idx.find(pair_delim)]
-        return self.corpus.utterances[question_id].text
-
-    def get_answer_text_from_question_answer_idx(self, qa_idx):
-        """
-        """
-
-        answer_id = qa_idx[qa_idx.find(pair_delim)+len(pair_delim):]
-        return self.corpus.utterances[answer_id].text
-
     def _calculate_totals(self):
         """Calculates variables for display. Calculates total questions, total extracted motifs,
             total answer fragments, total number of motifs in each cluster, and the total nunber
@@ -255,13 +241,17 @@ class QuestionTypology(Transformer):
         print("Number of Motifs in each cluster: ", self.motifs_in_each_cluster)
         print("Number of Questions of each type: ", self.questions_in_each_cluster)
 
-    def display_questions_for_type(self, type_num, num_egs=10):
+    @staticmethod
+    def display_questions_for_type(corpus, type_num, num_egs=10):
         """Displays num_egs number of questions that were assigned type
             type_num by the typing algorithm.
         """
-        target = self.types_to_data[type_num]
-        questions = target["questions"]
-        question_dists = target["question_dists"]
+        questions = []
+        question_dists = []
+        for utterance in corpus.iter_utterances():
+            if "qtype" in utterance.meta and utterance.meta["qtype"] == type_num:
+                questions.append(utterance.text)
+                question_dists.append(utterance.meta["qtype_dists"][type_num])
         questions_len = len(questions)
         num_to_print = min(questions_len, num_egs)
         indices_to_print = np.argsort(question_dists)[:num_to_print]
@@ -269,15 +259,23 @@ class QuestionTypology(Transformer):
         n = 0
         for i in indices_to_print:
             n += 1
-            print('\t\t%d.'%(n), self.get_question_text_from_question_answer_idx(questions[i]))
+            print('\t\t%d.'%(n), questions[i])
 
-    def display_question_answer_pairs_for_type(self, type_num, num_egs=10):
+    @staticmethod
+    def display_question_answer_pairs_for_type(corpus, type_num, num_egs=10):
         """Displays num_egs number of question-answer pairs that were assigned type
             type_num by the typing algorithm.
         """
-        target = self.types_to_data[type_num]
-        questions = target["questions"]
-        question_dists = target["question_dists"]
+        questions = []
+        question_dists = []
+        answers = []
+        for utterance in corpus.iter_utterances():
+            if utterance.reply_to is not None:
+                question = corpus.get_utterance(utterance.reply_to)
+                if "qtype" in question.meta and question.meta["qtype"] == type_num:
+                    questions.append(question.text)
+                    question_dists.append(question.meta["qtype_dists"][type_num])
+                    answers.append(utterance.text)
         questions_len = len(questions)
         num_to_print = min(questions_len, num_egs)
         indices_to_print = np.argsort(question_dists)[:num_to_print]
@@ -285,8 +283,8 @@ class QuestionTypology(Transformer):
         n = 0
         for i in indices_to_print:
             n += 1
-            print('\t\tQuestion %d.'%(n), self.get_question_text_from_question_answer_idx(questions[i]))
-            print('\t\tAnswer %d.'%(n), self.get_answer_text_from_question_answer_idx(questions[i]))
+            print('\t\tQuestion %d.'%(n), questions[i])
+            print('\t\tAnswer %d.'%(n), answers[i])
 
     def display_motifs_for_type(self, cluster_num, num_egs=10):
         """Displays num_egs number of motifs that were assigned to cluster cluster_num
