@@ -89,8 +89,7 @@ class QuestionTypology(Transformer):
         follow_conj=True, norm='l2', num_svds=50, num_dims_to_inspect=5,
         max_iter_for_k_means=1000, remove_first=False, min_support=5, item_set_size=5,
         leaves_only_for_assign=True, idf=False, snip=True, leaves_only_for_extract=False,
-        random_seed=0, is_question=None, questions_only=True, enforce_formatting=True,
-        spacy_dir=None):
+        random_seed=0, is_question=None, questions_only=True, enforce_formatting=True):
 
         self.num_clusters = num_clusters
         self.question_threshold = question_threshold
