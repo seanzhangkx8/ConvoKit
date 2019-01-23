@@ -126,11 +126,9 @@ class QuestionTypology(Transformer):
         else:
             self.answer_filter = lambda x: True
 
-    def _do_fit_transform(self, corpus, also_transform=False):
-        """This internal method does the actual work of fitting the QuestionTypology
-        and optionally also transforming the source Corpus. Both transform() and
-        fit_transform() are implemented simply as wrappers around this method, to
-        avoid repeated code."""
+    def fit(self, corpus):
+        """Extract question-answer pairs from the given corpus and use them to
+        construct the internal matrix objects"""
 
         self.motifs = MotifsExtractor.extract_question_motifs(self._iter_corpus(corpus, 'questions', self.is_question),
             self.question_filter, self.follow_conj, self.min_support, self.dedup_threshold, self.item_set_size, self.verbose)
@@ -157,32 +155,10 @@ class QuestionTypology(Transformer):
             q_idx = QuestionTypologyUtils.get_q_idx_from_pair(row["q_idx"])
             self.types_to_data[cluster]["questions"].append(q_idx)
             self.types_to_data[cluster]["question_dists"].append(cluster_dist)
-            # if this is being called from fit_transform, we will additionally save the cluster assignments
-            # to the corpus
-            if also_transform:
-                corpus.get_utterance(q_idx).meta["qtype"] = cluster
-                corpus.get_utterance(q_idx).meta["qtype_dists"] = all_cluster_dists
 
         self._calculate_totals()
 
-        # if transforming the Corpus, we will also save information about the motifs
-        if also_transform:
-            motif_summary, answer_summary = self._summarize_motifs()
-            corpus.add_meta("motifs", motif_summary)
-            corpus.add_meta("answer_fragments", answer_summary)
-
-        # when calling from fit, the Transformer API dictates that we return the QuestionTypology object.
-        # when calling from fit_transform, we must return the modified corpus
-        if also_transform:
-            return corpus
-        else:
-            return self
-
-    def fit(self, corpus):
-        return self._do_fit_transform(corpus, False)
-
-    def fit_transform(self, corpus):
-        return self._do_fit_transform(corpus, True)
+        return self
 
     def _iter_corpus(self, corpus, iter_type, is_utterance_question):
         """Iterator over utterances in the Corpus being transformed
@@ -333,8 +309,12 @@ class QuestionTypology(Transformer):
         return motif_summary, answer_summary
 
     def _corpus_to_dataframe(self, corpus):
-        comment_ids = corpus.get_utterance_ids()
-        content = [corpus.get_utterance(cid).meta["parsed"] for cid in comment_ids]
+        comment_ids = []
+        content = []
+        for utt in corpus.iter_utterances():
+            if self.is_question(utt.text):
+                comment_ids.append(utt.id)
+                content.append(utt.meta["parsed"])
         return pd.DataFrame({"content": content}, index=comment_ids)
 
     def _load_motif_info(self):
@@ -472,10 +452,7 @@ class QuestionTypology(Transformer):
         return qdoc_df
 
     def transform(self, corpus):
-        """Computes the distance to each question type cluster for some previously unseen text.
-            :param question_text: a sequence of utterances to classify, or a single utterance
-            :return: DataFrame of cluster distances for each utterance
-        """
+        """Computes the distance to each question type cluster for some previously unseen text."""
 
         # convert corpus utterances to dataframe for easier indexing later
         comment_df = self._corpus_to_dataframe(corpus)
@@ -501,6 +478,11 @@ class QuestionTypology(Transformer):
             utterance = corpus.get_utterance(utt_id)
             utterance.meta["qtype"] = np.argmin(new_qdoc_df.loc[utt_id].values)
             utterance.meta["qtype_dists"] = new_qdoc_df.loc[utt_id].values
+
+        # add information for interpreting the question types to the corpus metadata
+        motif_summary, answer_summary = self._summarize_motifs()
+        corpus.add_meta("motifs", motif_summary)
+        corpus.add_meta("answer_fragments", answer_summary)
 
         return corpus
 
