@@ -5,9 +5,11 @@
 
 from convokit import PolitenessStrategies, Parser, Corpus, download
 
+print("Loading awry corpus...")
 corpus = Corpus(filename=download('conversations-gone-awry-corpus'))
 
 # the PolitenessStrategies module requires spacy parses
+print("Running spacy parser...")
 parser = Parser()
 corpus = parser.transform(corpus)
 

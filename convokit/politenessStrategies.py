@@ -60,7 +60,7 @@ class PolitenessStrategies(Transformer):
             utt_ids.append(utterance.id)
             doc = {"text": utterance.text, "sentences": [], "parses": []}
             # the politeness API goes sentence-by-sentence
-            for sent in utterance.meta["parsed"]:
+            for sent in utterance.meta["parsed"].sents:
                 doc["sentences"].append(sent.text)
                 sent_parses = []
                 pos = sent.start
