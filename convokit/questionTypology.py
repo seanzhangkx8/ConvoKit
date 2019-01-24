@@ -1173,7 +1173,7 @@ class QuestionClusterer:
         mtx_obj['q_terms'] = []
         mtx_obj['q_term_to_idx'] = {}
         mtx_obj['q_term_counts'] = []
-        for term in question_term_list:
+        for idx, term in enumerate(question_term_list):
             mtx_obj['q_term_counts'].append(motif_counts[term])
             mtx_obj['q_terms'].append(term)
             mtx_obj['q_term_to_idx'][term] = idx
@@ -1183,7 +1183,7 @@ class QuestionClusterer:
         mtx_obj['a_terms'] = []
         mtx_obj['a_term_to_idx'] = {}
         mtx_obj['a_term_counts'] = []
-        for term in answer_term_list:
+        for idx, term in enumerate(answer_term_list):
             mtx_obj['a_term_counts'].append(arc_counts[term])
             mtx_obj['a_terms'].append(term)
             mtx_obj['a_term_to_idx'][term] = idx
