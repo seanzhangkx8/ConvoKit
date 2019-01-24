@@ -318,6 +318,8 @@ class QuestionTypology(Transformer):
         return pd.DataFrame({"content": content}, index=comment_ids)
 
     def _load_motif_info(self):
+        if self.verbose:
+            print("fitting extracted motifs to new data...")
 
         super_mappings = {}
         for entry in self.motifs['question_supersets_arcset_to_super']:
@@ -328,8 +330,12 @@ class QuestionTypology(Transformer):
         return super_mappings, downlinks, node_counts
 
     def _extract_arcs(self, comment_df, selector=lambda x: True, outfile=None):
+        if self.verbose:
+            print("getting question arcs")
         sent_df = []
-        for tup in comment_df.itertuples():
+        for i, tup in enumerate(comment_df.itertuples()):
+            if self.verbose and i > 0 and (i % self.verbose) == 0:
+                print("\t%03d" % i)
             for s_idx, sent in enumerate(tup.content.sents):
                 sent_text = sent.text.strip()
                 if len(sent_text) == 0: continue
@@ -348,11 +354,16 @@ class QuestionTypology(Transformer):
                                    super_mappings, downlink_info, node_count_info,
                                    threshold, outfile=None, per_sent=False): 
 
+        if self.verbose:
+            print("fitting motifs to questions")
+
         question_to_fits = defaultdict(set)
         question_to_leaf_fits = defaultdict(set)
         question_to_a_fits = defaultdict(set)
 
-        for tup in sent_df.itertuples():
+        for i, tup in enumerate(sent_df.itertuples()):
+            if self.verbose and i > 0 and (i % self.verbose) == 0:
+                print("\t%03d" % i)
             if per_sent:
                 key = tup.sent_key
             else:
@@ -382,6 +393,9 @@ class QuestionTypology(Transformer):
     def _make_new_qa_mtx_obj(self, question_to_fits, question_to_leaf_fits, question_to_a_fits, ref_mtx_obj,
             outfile=None):
 
+        if self.verbose:
+            print("building new q-a matrices")
+
         docs = [x for x,y in question_to_fits.items() if len(y) > 0]
         doc_to_idx = {doc:idx for idx,doc in enumerate(docs)}
         qterm_idxes = []
@@ -390,7 +404,9 @@ class QuestionTypology(Transformer):
         aterm_idxes = []
         adoc_idxes = []
 
-        for doc in docs:
+        for i, doc in enumerate(docs):
+            if self.verbose and i > 0 and (i % self.verbose) == 0:
+                print("\t%03d" % i)
             qterms = question_to_fits[doc]
             for term in qterms:
                 qterm_idxes.append(ref_mtx_obj['q_term_to_idx'][term])
@@ -425,6 +441,9 @@ class QuestionTypology(Transformer):
 
     def _project_qa_embeddings(self, mtx_obj, lq, au, outfile=None):
 
+        if self.verbose:
+            print("\tbuilding matrices")
+
         qmtx = QuestionClusterer.build_mtx(mtx_obj,'q',norm='l2', idf=False, leaves_only=True)
         amtx = QuestionClusterer.build_mtx(mtx_obj, 'a', norm='l2', idf=True, leaves_only=False)
 
@@ -453,6 +472,9 @@ class QuestionTypology(Transformer):
 
     def transform(self, corpus):
         """Computes the distance to each question type cluster for some previously unseen text."""
+
+        if self.verbose:
+            print("transforming corpus!")
 
         # convert corpus utterances to dataframe for easier indexing later
         comment_df = self._corpus_to_dataframe(corpus)
@@ -483,6 +505,9 @@ class QuestionTypology(Transformer):
         motif_summary, answer_summary = self._summarize_motifs()
         corpus.add_meta("motifs", motif_summary)
         corpus.add_meta("answer_fragments", answer_summary)
+
+        if self.verbose:
+            print("done!")
 
         return corpus
 
