@@ -471,7 +471,7 @@ class QuestionTypology(Transformer):
         qdoc_vects, adoc_vects = self._project_qa_embeddings(new_mtx_obj, self.lq, self.a_u)
 
         new_qdoc_df = self._assign_qtypes(qdoc_vects, adoc_vects, new_mtx_obj, self.km, comment_df, 
-            random_state=self.random_seed, display=5, max_dist_quantile=.25, outfile=new_out)
+            random_state=self.random_seed, display=5, max_dist_quantile=.25)
 
         # add cluster assignments to the source Corpus
         for utt_id in new_qdoc_df.index:
