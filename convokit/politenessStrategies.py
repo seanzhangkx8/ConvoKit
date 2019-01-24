@@ -43,7 +43,7 @@ class PolitenessStrategies(Transformer):
 
         # add the extracted strategies to the utterance metadata
         for utt_id, strats in zip(comment_ids, feature_dicts):
-            corpus.get_utterance(utt_id).meta[self.ATTR_NAME] = feature_dicts
+            corpus.get_utterance(utt_id).meta[self.ATTR_NAME] = strats
 
         return corpus
 
