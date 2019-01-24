@@ -8,9 +8,11 @@ import pandas as pd
 from collections import defaultdict
 
 from .politeness_api.features.politeness_strategies import get_politeness_strategy_features
-from .politeness_api.features.vectorizer import PolitenessFeatureVectorizer
+from .politeness_api.features.vectorizer import get_unigrams_and_bigrams
 
-class PolitenessStrategies:
+from .transformer import Transformer
+
+class PolitenessStrategies(Transformer):
     """
     Encapsulates extraction of politeness strategies from utterances in a
     Corpus.
@@ -22,48 +24,52 @@ class PolitenessStrategies:
     :ivar corpus: the PolitenessStrategies object's corpus
     """
 
-    def __init__(self, corpus, verbose=False):
-        self.corpus = corpus
+    def __init__(self, verbose=False):
+        self.ATTR_NAME = "politeness_strategies"
         self.verbose = verbose
 
-        # get the comment text and corresponding IDs from the corpus
-        if self.verbose: print("Retrieving comment text...")
-        comment_ids = list(self.corpus.utterances.keys())
-        comments = [self.corpus.utterances[cid].text for cid in comment_ids]
-        # the original politeness API used in the paper was written in Python 2,
-        # which uses ASCII strings. Because of this, we had to truncate Unicode
-        # characters in comment text to get it to work. Although the bundled
-        # API has been upgraded to Python 3, to ensure consistent results with
-        # the paper we still keep the step of truncating Unicode.
-        comments = [''.join([x for x in str(s) if ord(x) < 128]) for s in comments]
+    def transform(self, corpus):
+        """Extract politeness strategies from each utterances in the corpus and annotate
+        the utterances with the extracted strategies"""
 
         # preprocess the utterances in the format expected by the API
         if self.verbose: print("Preprocessing comments...")
-        comments = [{"text": comment} for comment in comments]
-        processed_comments = PolitenessFeatureVectorizer.preprocess(comments)
+        comment_ids, processed_comments = self._preprocess_utterances(corpus)
 
         # use the bundled politeness API to extract politeness features for each
         # preprocessed comment
         if self.verbose: print("Extracting politeness strategies...")
         feature_dicts = [get_politeness_strategy_features(doc) for doc in processed_comments]
 
-        # pack the extracted features into a pandas dataframe
-        feature_df_raw = defaultdict(list)
-        keys = [set(fd.keys()) for fd in feature_dicts]
-        all_feats = set()
-        for keyset in keys:
-            all_feats |= keyset
-        for feature_dict in feature_dicts:
-            for feat in all_feats:
-                feature_df_raw[feat].append(feature_dict.get(feat, np.nan))
-        self.feature_df = pd.DataFrame(feature_df_raw, index=comment_ids)
+        # add the extracted strategies to the utterance metadata
+        for utt_id, strats in zip(comment_ids, feature_dicts):
+            corpus.get_utterance(utt_id).meta[self.ATTR_NAME] = feature_dicts
 
-    def __getitem__(self, key):
-        """
-        Overloaded element access operator allowing the PolitenessStrategies
-        object to be used as a dictionary, with access pattern
-        politenessObject[comment_id]
+        return corpus
 
-        :return: a dict of feature values keyed by feature name
-        """
-        return self.feature_df.loc[key].to_dict()
+    def _preprocess_utterances(self, corpus):
+        """Convert each Utterance in the given Corpus into the representation expected
+        by the politeness API. Assumes that the Corpus has already been parsed, so that
+        each Utterance contains the `parsed` metadata entry"""
+
+        utt_ids = [] # keep track of the order in which we process the utterances, so we can join with the corpus at the end
+        documents = []
+        for i, utterance in enumerate(corpus.iter_utterances()):
+            if self.verbose and i > 0 and (i % self.verbose) == 0:
+                print("\t%03d" % i)
+            utt_ids.append(utterance.id)
+            doc = {"text": utterance.text, "sentences": [], "parses": []}
+            # the politeness API goes sentence-by-sentence
+            for sent in utterance.meta["parsed"]:
+                doc["sentences"].append(sent.text)
+                sent_parses = []
+                pos = sent.start
+                for tok in sent:
+                    if tok.dep_ != "punct": # the politeness API does not know how to handle punctuation in parses
+                        ele = "%s(%s-%d, %s-%d)"%(tok.dep_, tok.head.text, tok.head.i + 1 - pos, tok.text, tok.i + 1 - pos)
+                        sent_parses.append(ele)
+                doc["parses"].append(sent_parses)
+            doc["unigrams"], doc["bigrams"] = get_unigrams_and_bigrams(doc)
+            documents.append(doc)
+        print("Done!")
+        return utt_ids, documents
