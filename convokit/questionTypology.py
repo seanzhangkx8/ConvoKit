@@ -320,7 +320,7 @@ class QuestionTypology(Transformer):
     def _load_motif_info(self):
 
         super_mappings = {}
-        for entry in self.motifs:
+        for entry in self.motifs['question_supersets_arcset_to_super']:
             super_mappings[tuple(entry['arcset'])] = tuple(entry['super'])
 
         downlinks = MotifsExtractor.read_downlinks(self.motifs['question_tree_downlinks'])
