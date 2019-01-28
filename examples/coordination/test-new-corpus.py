@@ -1,7 +1,7 @@
 import convokit
 
 # load set of files: supreme.json and supreme-users.json
-corpus = convokit.Corpus(filename="supreme.json")
+corpus = convokit.Corpus(filename=convokit.download("supreme-corpus-v2"))
 print("users:")
 print(corpus.get_usernames())
 print()
