@@ -1,6 +1,7 @@
 """The objects used to represent a dataset."""
 
 import json
+import pickle
 from functools import total_ordering, reduce
 from collections import defaultdict
 import os
@@ -245,6 +246,8 @@ DefinedKeys = set([KeyId, KeyUser, KeyConvoRoot, KeyReplyTo,
     KeyTimestamp, KeyText])
 KeyMeta = "meta"
 
+BIN_DELIM_L, BIN_DELIM_R = "<##bin{", "}&&@**>"
+
 class Corpus:
     """Represents a dataset, which can be loaded from a JSON file, CSV file or a
     list of utterances.
@@ -270,6 +273,7 @@ class Corpus:
     def __init__(self, filename=None, utterances=None, merge_lines=False,
         subdivide_users_by=[], delim=","):
         self.meta = {}
+        convos_meta = defaultdict(dict)
 
         if filename is not None:
             if os.path.isdir(filename):
@@ -280,11 +284,20 @@ class Corpus:
                     for k, v in json.load(f).items():
                         users_meta[k] = v
                 with open(os.path.join(filename, "conversations.json"), "r") as f:
-                    convos_meta = defaultdict(dict)
                     for k, v in json.load(f).items():
                         convos_meta[k] = v
                 with open(os.path.join(filename, "corpus.json"), "r") as f:
                     self.meta = json.load(f)
+
+                # unpack utterance meta
+                with open(os.path.join(filename, "utterances-bin.p"), "rb") as f:
+                    l_bin = pickle.load(f)
+                for i, ut in enumerate(utterances):
+                    for k, v in ut[KeyMeta].items():
+                        if type(v) == str and v.startswith(BIN_DELIM_L) and \
+                            v.endswith(BIN_DELIM_R):
+                                idx = int(v[len(BIN_DELIM_L):-len(BIN_DELIM_R)])
+                                utterances[i][KeyMeta][k] = l_bin[idx]
             else:
                 users_meta = defaultdict(dict)
                 convos_meta = defaultdict(dict)
@@ -365,6 +378,20 @@ class Corpus:
         if subdivide_users_by:
             self.subdivide_users_by(subdivide_users_by)
 
+    # params: d is dict to encode, l_bin is accumulated list of binary attribs
+    def dump_helper_bin(self, d, l_bin):
+        d_out = {}
+        for k, v in d.items():
+            try:
+                json.dumps(v)
+                d_out[k] = v
+            except (TypeError, OverflowError):
+                d_out[k] = "{}{}{}".format(BIN_DELIM_L, len(l_bin), BIN_DELIM_R)
+                l_bin.append(v)
+        #print(l_bin)
+        #pickle.dump(l_bin, f)
+        return d_out
+
     def dump(self, dir_name):
         if not os.path.exists(dir_name):
             os.mkdir(dir_name)
@@ -378,16 +405,19 @@ class Corpus:
             convos = {c: self.get_conversation(c).meta for c in self.get_conversation_ids()}
             json.dump(convos, f)
         with open(os.path.join(dir_name, "utterances.json"), "w") as f:
-            uts = []
-            for ut in self.iter_utterances():
-                uts.append({
-                    KeyId: ut.id,
-                    KeyConvoRoot: ut.root,
-                    KeyText: ut.text,
-                    KeyUser: ut.user.name,
-                    KeyMeta: ut.meta
-                })
-            json.dump(uts, f)
+            with open(os.path.join(dir_name, "utterances-bin.p"), "wb") as f_pk:
+                uts = []
+                l_bin = []
+                for ut in self.iter_utterances():
+                    uts.append({
+                        KeyId: ut.id,
+                        KeyConvoRoot: ut.root,
+                        KeyText: ut.text,
+                        KeyUser: ut.user.name,
+                        KeyMeta: self.dump_helper_bin(ut.meta, l_bin)
+                    })
+                json.dump(uts, f)
+                pickle.dump(l_bin, f_pk)
 
     def get_utterance_ids(self):
         return self.utterances.keys()
