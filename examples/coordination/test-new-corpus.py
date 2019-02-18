@@ -43,3 +43,7 @@ for ut in list(corpus_2.iter_utterances())[:5]:
     for token in ut.meta["parsed"]:
         print("[%s %s]" % (token.tag_, token.text), end=' ')
     print()
+
+print()
+print("Utterance meta index:")
+print(convokit.meta_index(corpus_2))

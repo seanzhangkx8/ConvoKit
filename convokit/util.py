@@ -185,3 +185,6 @@ def download_helper(dataset_path, url, verbose, name, downloadeds_path):
         print(dataset_path)
         with zipfile.ZipFile(dataset_path, "r") as zipf:
             zipf.extractall(os.path.dirname(downloadeds_path))
+
+def meta_index(corpus):
+    return corpus.meta["utterances-index"]
