@@ -279,6 +279,15 @@ class Corpus:
             if os.path.isdir(filename):
                 with open(os.path.join(filename, "utterances.json"), "r") as f:
                     utterances = json.load(f)
+                    if exclude_utterance_meta:
+                        utterances_2 = []
+                        for v in utterances:
+                            v2 = v
+                            for field in exclude_utterance_meta:
+                                del v2["meta"][field]
+                            utterances_2.append(v2)
+                        utterances = utterances_2
+
                 with open(os.path.join(filename, "users.json"), "r") as f:
                     users_meta = defaultdict(dict)
                     for k, v in json.load(f).items():
@@ -300,6 +309,9 @@ class Corpus:
                                     v.endswith(BIN_DELIM_R):
                                         idx = int(v[len(BIN_DELIM_L):-len(BIN_DELIM_R)])
                                         utterances[i][KeyMeta][k] = l_bin[idx]
+
+                for field in exclude_utterance_meta:
+                    del self.meta["utterances-index"][field]
             else:
                 users_meta = defaultdict(dict)
                 convos_meta = defaultdict(dict)

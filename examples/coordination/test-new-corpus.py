@@ -47,3 +47,7 @@ for ut in list(corpus_2.iter_utterances())[:5]:
 print()
 print("Utterance meta index:")
 print(convokit.meta_index(corpus_2))
+
+corpus_3 = convokit.Corpus(filename="test-dump-bin", exclude_utterance_meta=["parsed"])
+print("Testing exclude function. Meta when excluding 'parsed' field:")
+print(convokit.meta_index(corpus_3))
