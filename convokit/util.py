@@ -3,6 +3,7 @@ import shutil
 import os
 import pkg_resources
 import zipfile
+import json
 
 # returns a path to the dataset file
 def download(name, verbose=True):
@@ -186,5 +187,12 @@ def download_helper(dataset_path, url, verbose, name, downloadeds_path):
         with zipfile.ZipFile(dataset_path, "r") as zipf:
             zipf.extractall(os.path.dirname(downloadeds_path))
 
-def meta_index(corpus):
-    return corpus.meta["utterances-index"]
+def meta_index(corpus=None, filename=None):
+    keys = ["utterances-index", "conversations-index", "users-index",
+        "overall-index"]
+    if corpus is not None:
+        return {k: v for k, v in corpus.meta.items() if k in keys}
+    if filename is not None:
+        with open(os.path.join(filename, "corpus.json")) as f:
+            d = json.load(f)
+            return {k: v for k, v in d.items() if k in keys}

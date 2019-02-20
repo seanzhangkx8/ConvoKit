@@ -32,6 +32,8 @@ for ut in list(corpus.iter_utterances())[:5]:
         print("[%s %s]" % (token.tag_, token.text), end=' ')
     print()
 
+corpus.meta["test-bin-feature"] = list(corpus.iter_utterances())[0].meta["parsed"]
+
 print()
 print("Dumping this parsed corpus into a folder test-dump-bin")
 corpus.dump("test-dump-bin")
@@ -50,4 +52,5 @@ print(convokit.meta_index(corpus_2))
 
 corpus_3 = convokit.Corpus(filename="test-dump-bin", exclude_utterance_meta=["parsed"])
 print("Testing exclude function. Meta when excluding 'parsed' field:")
-print(convokit.meta_index(corpus_3))
+print(convokit.meta_index(corpus=corpus_3))
+print(convokit.meta_index(filename="test-dump-bin"))

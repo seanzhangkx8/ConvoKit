@@ -271,7 +271,9 @@ class Corpus:
     """
 
     def __init__(self, filename=None, utterances=None, merge_lines=False,
-        subdivide_users_by=[], delim=",", exclude_utterance_meta=[]):
+        subdivide_users_by=[], delim=",",
+        exclude_utterance_meta=[], exclude_conversation_meta=[],
+        exclude_user_meta=[], exclude_overall_meta=[]):
         self.meta = {}
         convos_meta = defaultdict(dict)
 
@@ -291,12 +293,16 @@ class Corpus:
                 with open(os.path.join(filename, "users.json"), "r") as f:
                     users_meta = defaultdict(dict)
                     for k, v in json.load(f).items():
+                        if k in exclude_user_meta: continue
                         users_meta[k] = v
                 with open(os.path.join(filename, "conversations.json"), "r") as f:
                     for k, v in json.load(f).items():
+                        if k in exclude_conversation_meta: continue
                         convos_meta[k] = v
                 with open(os.path.join(filename, "corpus.json"), "r") as f:
-                    self.meta = json.load(f)
+                    for k, v in json.load(f).items():
+                        if k in exclude_overall_meta: continue
+                        self.meta[k] = v
 
                 # unpack utterance meta
                 for field, field_type in self.meta["utterances-index"].items():
@@ -309,9 +315,48 @@ class Corpus:
                                     v.endswith(BIN_DELIM_R):
                                         idx = int(v[len(BIN_DELIM_L):-len(BIN_DELIM_R)])
                                         utterances[i][KeyMeta][k] = l_bin[idx]
-
                 for field in exclude_utterance_meta:
                     del self.meta["utterances-index"][field]
+
+                # unpack user meta
+                for field, field_type in self.meta["users-index"].items():
+                    if field_type == "bin" and field not in exclude_utterance_meta:
+                        with open(os.path.join(filename, field + "-user-bin.p"), "rb") as f:
+                            l_bin = pickle.load(f)
+                        for k, v in users_meta.items():
+                            if type(v) == str and v.startswith(BIN_DELIM_L) and \
+                                v.endswith(BIN_DELIM_R):
+                                    idx = int(v[len(BIN_DELIM_L):-len(BIN_DELIM_R)])
+                                    users_meta[k] = l_bin[idx]
+                for field in exclude_user_meta:
+                    del self.meta["users-index"][field]
+
+                # unpack convo meta
+                for field, field_type in self.meta["conversations-index"].items():
+                    if field_type == "bin" and field not in exclude_utterance_meta:
+                        with open(os.path.join(filename, field + "-convo-bin.p"), "rb") as f:
+                            l_bin = pickle.load(f)
+                        for k, v in convos_meta.items():
+                            if type(v) == str and v.startswith(BIN_DELIM_L) and \
+                                v.endswith(BIN_DELIM_R):
+                                    idx = int(v[len(BIN_DELIM_L):-len(BIN_DELIM_R)])
+                                    convos_meta[k] = l_bin[idx]
+                for field in exclude_conversation_meta:
+                    del self.meta["conversations-index"][field]
+
+                # unpack overall meta
+                for field, field_type in self.meta["overall-index"].items():
+                    if field_type == "bin" and field not in exclude_utterance_meta:
+                        with open(os.path.join(filename, field + "-overall-bin.p"), "rb") as f:
+                            l_bin = pickle.load(f)
+                        for k, v in self.meta.items():
+                            if type(v) == str and v.startswith(BIN_DELIM_L) and \
+                                v.endswith(BIN_DELIM_R):
+                                    idx = int(v[len(BIN_DELIM_L):-len(BIN_DELIM_R)])
+                                    self.meta[k] = l_bin[idx]
+                for field in exclude_overall_meta:
+                    del self.meta["overall-index"][field]
+
             else:
                 users_meta = defaultdict(dict)
                 convos_meta = defaultdict(dict)
@@ -414,14 +459,24 @@ class Corpus:
         if not os.path.exists(dir_name):
             os.mkdir(dir_name)
 
-        utterances_idx = {}
+        utterances_idx, users_idx, convos_idx, overall_idx = {}, {}, {}, {}
 
         with open(os.path.join(dir_name, "users.json"), "w") as f:
-            users = {u: self.get_user(u).meta for u in self.get_usernames()}
+            d_bin = defaultdict(list)
+            users = {u: self.dump_helper_bin(self.get_user(u).meta, d_bin,
+                users_idx) for u in self.get_usernames()}
             json.dump(users, f)
+            for name, l_bin in d_bin.items():
+                with open(os.path.join(dir_name, name + "-user-bin.p"), "wb") as f_pk:
+                    pickle.dump(l_bin, f_pk)
         with open(os.path.join(dir_name, "conversations.json"), "w") as f:
-            convos = {c: self.get_conversation(c).meta for c in self.get_conversation_ids()}
+            d_bin = defaultdict(list)
+            convos = {c: self.dump_helper_bin(self.get_conversation(c).meta,
+                d_bin, convos_idx) for c in self.get_conversation_ids()}
             json.dump(convos, f)
+            for name, l_bin in d_bin.items():
+                with open(os.path.join(dir_name, name + "-convo-bin.p"), "wb") as f_pk:
+                    pickle.dump(l_bin, f_pk)
         with open(os.path.join(dir_name, "utterances.json"), "w") as f:
             uts = []
             d_bin = defaultdict(list)
@@ -439,12 +494,23 @@ class Corpus:
                     pickle.dump(l_bin, f_pk)
 
         self.meta["utterances-index"] = utterances_idx
+        self.meta["users-index"] = users_idx
+        self.meta["conversations-index"] = convos_idx
 
         with open(os.path.join(dir_name, "corpus.json"), "w") as f:
-            json.dump(self.meta, f)
+            d_bin = defaultdict(list)
+            meta_up = self.dump_helper_bin(self.meta, d_bin, overall_idx)
+            keys = ["utterances-index", "conversations-index", "users-index",
+                "overall-index"]
+            meta_minus = {k: v for k, v in overall_idx.items() if k not in keys}
+            meta_up["overall-index"] = meta_minus
+            json.dump(meta_up, f)
+            for name, l_bin in d_bin.items():
+                with open(os.path.join(dir_name, name + "-overall-bin.p"), "wb") as f_pk:
+                    pickle.dump(l_bin, f_pk)
 
     def get_utterance_ids(self):
-        return self.utterances.keys()
+        return list(self.utterances.keys())
 
     def get_utterance(self, ut_id):
         return self.utterances[ut_id]
@@ -454,7 +520,7 @@ class Corpus:
             yield v
 
     def get_conversation_ids(self):
-        return self.conversations.keys()
+        return list(self.conversations.keys())
 
     def get_conversation(self, cid):
         return self.conversations[cid]
