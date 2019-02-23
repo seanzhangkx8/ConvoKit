@@ -191,8 +191,8 @@ def meta_index(corpus=None, filename=None):
     keys = ["utterances-index", "conversations-index", "users-index",
         "overall-index"]
     if corpus is not None:
-        return {k: v for k, v in corpus.meta.items() if k in keys}
+        return {k: v for k, v in corpus.meta_index.items() if k in keys}
     if filename is not None:
-        with open(os.path.join(filename, "corpus.json")) as f:
+        with open(os.path.join(filename, "index.json")) as f:
             d = json.load(f)
-            return {k: v for k, v in d.items() if k in keys}
+            return d
