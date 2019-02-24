@@ -2,6 +2,8 @@ import urllib.request
 import shutil
 import os
 import pkg_resources
+import zipfile
+import json
 
 # returns a path to the dataset file
 def download(name, verbose=True):
@@ -20,110 +22,113 @@ def download(name, verbose=True):
 
     :return: The path to the downloaded item.
     """
+    top = "http://zissou.infosci.cornell.edu/socialkit/"
     DatasetURLs = {
-        "parliament-corpus": "http://zissou.infosci.cornell.edu/socialkit/" + \
+        "supreme-corpus-v2": "http://zissou.infosci.cornell.edu/convokit/"
+            "datasets/supreme-corpus/full.corpus",
+        "parliament-corpus": top + \
             "datasets/parliament-corpus/full.json",
-        "supreme-corpus": "http://zissou.infosci.cornell.edu/socialkit/" + \
+        "supreme-corpus": top + \
             "datasets/supreme-corpus/full.json",
-        "tennis-corpus": "http://zissou.infosci.cornell.edu/socialkit/" + \
+        "tennis-corpus": top + \
             "datasets/tennis-corpus/full.json",
-        "wiki-corpus": "http://zissou.infosci.cornell.edu/socialkit/" + \
+        "wiki-corpus": top + \
             "datasets/wiki-corpus/full.json",
-        "reddit-corpus": "http://zissou.infosci.cornell.edu/socialkit/" + \
+        "reddit-corpus": top + \
             "datasets/reddit-corpus/full.json",
-        "reddit-corpus-small": "http://zissou.infosci.cornell.edu/socialkit/" + \
+        "reddit-corpus-small": top + \
             "datasets/reddit-corpus/small.json",
-        "conversations-gone-awry-corpus": "http://zissou.infosci.cornell.edu/socialkit/" + \
+        "conversations-gone-awry-corpus": top + \
             "datasets/conversations-gone-awry-corpus/paired_conversations.json",
         "parliament-motifs": [
-            "http://zissou.infosci.cornell.edu/socialkit/" + \
+            top + \
             "datasets/parliament-corpus/parliament-motifs/answer_arcs.json",
-            "http://zissou.infosci.cornell.edu/socialkit/" + \
+            top + \
             "datasets/parliament-corpus/parliament-motifs/question_arcs.json",
-            "http://zissou.infosci.cornell.edu/socialkit/" + \
+            top + \
             "datasets/parliament-corpus/parliament-motifs/question_fits.json",
-            "http://zissou.infosci.cornell.edu/socialkit/" + \
+            top + \
             "datasets/parliament-corpus/parliament-motifs/question_fits.json.super",
-            "http://zissou.infosci.cornell.edu/socialkit/" + \
+            top + \
             "datasets/parliament-corpus/parliament-motifs/question_supersets_arcset_to_super.json",
-            "http://zissou.infosci.cornell.edu/socialkit/" + \
+            top + \
             "datasets/parliament-corpus/parliament-motifs/question_supersets_sets.json",
-            "http://zissou.infosci.cornell.edu/socialkit/" + \
+            top + \
             "datasets/parliament-corpus/parliament-motifs/question_tree_arc_set_counts.tsv",
-            "http://zissou.infosci.cornell.edu/socialkit/" + \
+            top + \
             "datasets/parliament-corpus/parliament-motifs/question_tree_downlinks.json",
-            "http://zissou.infosci.cornell.edu/socialkit/" + \
+            top + \
             "datasets/parliament-corpus/parliament-motifs/question_tree_edges.json",
-            "http://zissou.infosci.cornell.edu/socialkit/" + \
+            top + \
             "datasets/parliament-corpus/parliament-motifs/question_tree_uplinks.json"
 
         ],
         "supreme-motifs": [
-            "http://zissou.infosci.cornell.edu/socialkit/" + \
+            top + \
             "datasets/supreme-corpus/supreme-motifs/answer_arcs.json",
-            "http://zissou.infosci.cornell.edu/socialkit/" + \
+            top + \
             "datasets/supreme-corpus/supreme-motifs/question_arcs.json",
-            "http://zissou.infosci.cornell.edu/socialkit/" + \
+            top + \
             "datasets/supreme-corpus/supreme-motifs/question_fits.json",
-            "http://zissou.infosci.cornell.edu/socialkit/" + \
+            top + \
             "datasets/supreme-corpus/supreme-motifs/question_fits.json.super",
-            "http://zissou.infosci.cornell.edu/socialkit/" + \
+            top + \
             "datasets/supreme-corpus/supreme-motifs/question_supersets_arcset_to_super.json",
-            "http://zissou.infosci.cornell.edu/socialkit/" + \
+            top + \
             "datasets/supreme-corpus/supreme-motifs/question_supersets_sets.json",
-            "http://zissou.infosci.cornell.edu/socialkit/" + \
+            top + \
             "datasets/supreme-corpus/supreme-motifs/question_tree_arc_set_counts.tsv",
-            "http://zissou.infosci.cornell.edu/socialkit/" + \
+            top + \
             "datasets/supreme-corpus/supreme-motifs/question_tree_downlinks.json",
-            "http://zissou.infosci.cornell.edu/socialkit/" + \
+            top + \
             "datasets/supreme-corpus/supreme-motifs/question_tree_edges.json",
-            "http://zissou.infosci.cornell.edu/socialkit/" + \
+            top + \
             "datasets/supreme-corpus/supreme-motifs/question_tree_uplinks.json"
 
         ],
         "tennis-motifs": [
-            "http://zissou.infosci.cornell.edu/socialkit/" + \
+            top + \
             "datasets/tennis-corpus/tennis-motifs/answer_arcs.json",
-            "http://zissou.infosci.cornell.edu/socialkit/" + \
+            top + \
             "datasets/tennis-corpus/tennis-motifs/question_arcs.json",
-            "http://zissou.infosci.cornell.edu/socialkit/" + \
+            top + \
             "datasets/tennis-corpus/tennis-motifs/question_fits.json",
-            "http://zissou.infosci.cornell.edu/socialkit/" + \
+            top + \
             "datasets/tennis-corpus/tennis-motifs/question_fits.json.super",
-            "http://zissou.infosci.cornell.edu/socialkit/" + \
+            top + \
             "datasets/tennis-corpus/tennis-motifs/question_supersets_arcset_to_super.json",
-            "http://zissou.infosci.cornell.edu/socialkit/" + \
+            top + \
             "datasets/tennis-corpus/tennis-motifs/question_supersets_sets.json",
-            "http://zissou.infosci.cornell.edu/socialkit/" + \
+            top + \
             "datasets/tennis-corpus/tennis-motifs/question_tree_arc_set_counts.tsv",
-            "http://zissou.infosci.cornell.edu/socialkit/" + \
+            top + \
             "datasets/tennis-corpus/tennis-motifs/question_tree_downlinks.json",
-            "http://zissou.infosci.cornell.edu/socialkit/" + \
+            top + \
             "datasets/tennis-corpus/tennis-motifs/question_tree_edges.json",
-            "http://zissou.infosci.cornell.edu/socialkit/" + \
+            top + \
             "datasets/tennis-corpus/tennis-motifs/question_tree_uplinks.json"
 
         ],
         "wiki-motifs": [
-            "http://zissou.infosci.cornell.edu/socialkit/" + \
+            top + \
             "datasets/wiki-corpus/wiki-motifs/answer_arcs.json",
-            "http://zissou.infosci.cornell.edu/socialkit/" + \
+            top + \
             "datasets/wiki-corpus/wiki-motifs/question_arcs.json",
-            "http://zissou.infosci.cornell.edu/socialkit/" + \
+            top + \
             "datasets/wiki-corpus/wiki-motifs/question_fits.json",
-            "http://zissou.infosci.cornell.edu/socialkit/" + \
+            top + \
             "datasets/wiki-corpus/wiki-motifs/question_fits.json.super",
-            "http://zissou.infosci.cornell.edu/socialkit/" + \
+            top + \
             "datasets/wiki-corpus/wiki-motifs/question_supersets_arcset_to_super.json",
-            "http://zissou.infosci.cornell.edu/socialkit/" + \
+            top + \
             "datasets/wiki-corpus/wiki-motifs/question_supersets_sets.json",
-            "http://zissou.infosci.cornell.edu/socialkit/" + \
+            top + \
             "datasets/wiki-corpus/wiki-motifs/question_tree_arc_set_counts.tsv",
-            "http://zissou.infosci.cornell.edu/socialkit/" + \
+            top + \
             "datasets/wiki-corpus/wiki-motifs/question_tree_downlinks.json",
-            "http://zissou.infosci.cornell.edu/socialkit/" + \
+            top + \
             "datasets/wiki-corpus/wiki-motifs/question_tree_edges.json",
-            "http://zissou.infosci.cornell.edu/socialkit/" + \
+            top + \
             "datasets/wiki-corpus/wiki-motifs/question_tree_uplinks.json"
 
         ]
@@ -158,6 +163,9 @@ def download(name, verbose=True):
     return parent_dir
 
 def download_helper(dataset_path, url, verbose, name, downloadeds_path):
+    if url.lower().endswith(".corpus"):
+        dataset_path += ".zip"
+
     with urllib.request.urlopen(url) as response, \
             open(dataset_path, "wb") as out_file:
         if verbose:
@@ -172,3 +180,19 @@ def download_helper(dataset_path, url, verbose, name, downloadeds_path):
             print("Done")
         with open(downloadeds_path, "a") as f:
             f.write(name + "\n")
+
+    # post-process (extract) corpora
+    if url.lower().endswith(".corpus"):
+        print(dataset_path)
+        with zipfile.ZipFile(dataset_path, "r") as zipf:
+            zipf.extractall(os.path.dirname(downloadeds_path))
+
+def meta_index(corpus=None, filename=None):
+    keys = ["utterances-index", "conversations-index", "users-index",
+        "overall-index"]
+    if corpus is not None:
+        return {k: v for k, v in corpus.meta_index.items() if k in keys}
+    if filename is not None:
+        with open(os.path.join(filename, "index.json")) as f:
+            d = json.load(f)
+            return d

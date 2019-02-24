@@ -6,9 +6,9 @@ import itertools
 import json
 import os
 import platform
-if platform.system() == "Darwin":
-    import matplotlib
-    matplotlib.use("Qt5Agg")
+#if platform.system() == "Darwin":
+#    import matplotlib
+#    matplotlib.use("Qt5Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd

@@ -1,6 +1,7 @@
 """The objects used to represent a dataset."""
 
 import json
+import pickle
 from functools import total_ordering, reduce
 from collections import defaultdict
 import os
@@ -245,6 +246,8 @@ DefinedKeys = set([KeyId, KeyUser, KeyConvoRoot, KeyReplyTo,
     KeyTimestamp, KeyText])
 KeyMeta = "meta"
 
+BIN_DELIM_L, BIN_DELIM_R = "<##bin{", "}&&@**>"
+
 class Corpus:
     """Represents a dataset, which can be loaded from a JSON file, CSV file or a
     list of utterances.
@@ -268,23 +271,95 @@ class Corpus:
     """
 
     def __init__(self, filename=None, utterances=None, merge_lines=False,
-        subdivide_users_by=[], delim=","):
+        subdivide_users_by=[], delim=",",
+        exclude_utterance_meta=[], exclude_conversation_meta=[],
+        exclude_user_meta=[], exclude_overall_meta=[]):
         self.meta = {}
+        self.meta_index = {}
+        convos_meta = defaultdict(dict)
 
         if filename is not None:
             if os.path.isdir(filename):
                 with open(os.path.join(filename, "utterances.json"), "r") as f:
                     utterances = json.load(f)
+                    if exclude_utterance_meta:
+                        utterances_2 = []
+                        for v in utterances:
+                            v2 = v
+                            for field in exclude_utterance_meta:
+                                del v2["meta"][field]
+                            utterances_2.append(v2)
+                        utterances = utterances_2
+
                 with open(os.path.join(filename, "users.json"), "r") as f:
                     users_meta = defaultdict(dict)
                     for k, v in json.load(f).items():
+                        if k in exclude_user_meta: continue
                         users_meta[k] = v
                 with open(os.path.join(filename, "conversations.json"), "r") as f:
-                    convos_meta = defaultdict(dict)
                     for k, v in json.load(f).items():
+                        if k in exclude_conversation_meta: continue
                         convos_meta[k] = v
                 with open(os.path.join(filename, "corpus.json"), "r") as f:
-                    self.meta = json.load(f)
+                    for k, v in json.load(f).items():
+                        if k in exclude_overall_meta: continue
+                        self.meta[k] = v
+                with open(os.path.join(filename, "index.json"), "r") as f:
+                    self.meta_index = json.load(f)
+
+                # unpack utterance meta
+                for field, field_type in self.meta_index["utterances-index"].items():
+                    if field_type == "bin" and field not in exclude_utterance_meta:
+                        with open(os.path.join(filename, field + "-bin.p"), "rb") as f:
+                            l_bin = pickle.load(f)
+                        for i, ut in enumerate(utterances):
+                            for k, v in ut[KeyMeta].items():
+                                if type(v) == str and v.startswith(BIN_DELIM_L) and \
+                                    v.endswith(BIN_DELIM_R):
+                                        idx = int(v[len(BIN_DELIM_L):-len(BIN_DELIM_R)])
+                                        utterances[i][KeyMeta][k] = l_bin[idx]
+                for field in exclude_utterance_meta:
+                    del self.meta_index["utterances-index"][field]
+
+                # unpack user meta
+                for field, field_type in self.meta_index["users-index"].items():
+                    if field_type == "bin" and field not in exclude_utterance_meta:
+                        with open(os.path.join(filename, field + "-user-bin.p"), "rb") as f:
+                            l_bin = pickle.load(f)
+                        for k, v in users_meta.items():
+                            if type(v) == str and v.startswith(BIN_DELIM_L) and \
+                                v.endswith(BIN_DELIM_R):
+                                    idx = int(v[len(BIN_DELIM_L):-len(BIN_DELIM_R)])
+                                    users_meta[k] = l_bin[idx]
+                for field in exclude_user_meta:
+                    del self.meta_index["users-index"][field]
+
+                # unpack convo meta
+                for field, field_type in self.meta_index["conversations-index"].items():
+                    if field_type == "bin" and field not in exclude_utterance_meta:
+                        with open(os.path.join(filename, field + "-convo-bin.p"), "rb") as f:
+                            l_bin = pickle.load(f)
+                        for k, v in convos_meta.items():
+                            if type(v) == str and v.startswith(BIN_DELIM_L) and \
+                                v.endswith(BIN_DELIM_R):
+                                    idx = int(v[len(BIN_DELIM_L):-len(BIN_DELIM_R)])
+                                    convos_meta[k] = l_bin[idx]
+                for field in exclude_conversation_meta:
+                    del self.meta_index["conversations-index"][field]
+
+                # unpack overall meta
+                for field, field_type in self.meta_index["overall-index"].items():
+                    if field_type == "bin" and field not in exclude_utterance_meta:
+                        with open(os.path.join(filename, field + "-overall-bin.p"), "rb") as f:
+                            l_bin = pickle.load(f)
+                        for k, v in self.meta.items():
+                            if type(v) == str and v.startswith(BIN_DELIM_L) and \
+                                v.endswith(BIN_DELIM_R):
+                                    idx = int(v[len(BIN_DELIM_L):-len(BIN_DELIM_R)])
+                                    self.meta[k] = l_bin[idx]
+                for field in exclude_overall_meta:
+                    del self.meta_index["overall-index"][field]
+
             else:
                 users_meta = defaultdict(dict)
                 convos_meta = defaultdict(dict)
@@ -365,32 +440,84 @@ class Corpus:
         if subdivide_users_by:
             self.subdivide_users_by(subdivide_users_by)
 
+    # params: d is dict to encode, d_bin is dict of accumulated lists of binary attribs
+    def dump_helper_bin(self, d, d_bin, utterances_idx):
+        d_out = {}
+        for k, v in d.items():
+            try:
+                json.dumps(v)
+                d_out[k] = v
+                if k not in utterances_idx:
+                    utterances_idx[k] = str(type(v))
+            except (TypeError, OverflowError):
+                d_out[k] = "{}{}{}".format(BIN_DELIM_L, len(d_bin[k]), BIN_DELIM_R)
+                d_bin[k].append(v)
+                if k not in utterances_idx:
+                    utterances_idx[k] = "bin"
+        #print(l_bin)
+        #pickle.dump(l_bin, f)
+        return d_out
+
     def dump(self, dir_name):
         if not os.path.exists(dir_name):
             os.mkdir(dir_name)
 
-        with open(os.path.join(dir_name, "corpus.json"), "w") as f:
-            json.dump(self.meta, f)
+        utterances_idx, users_idx, convos_idx, overall_idx = {}, {}, {}, {}
+
         with open(os.path.join(dir_name, "users.json"), "w") as f:
-            users = {u: self.get_user(u).meta for u in self.get_usernames()}
+            d_bin = defaultdict(list)
+            users = {u: self.dump_helper_bin(self.get_user(u).meta, d_bin,
+                users_idx) for u in self.get_usernames()}
             json.dump(users, f)
+            for name, l_bin in d_bin.items():
+                with open(os.path.join(dir_name, name + "-user-bin.p"), "wb") as f_pk:
+                    pickle.dump(l_bin, f_pk)
         with open(os.path.join(dir_name, "conversations.json"), "w") as f:
-            convos = {c: self.get_conversation(c).meta for c in self.get_conversation_ids()}
+            d_bin = defaultdict(list)
+            convos = {c: self.dump_helper_bin(self.get_conversation(c).meta,
+                d_bin, convos_idx) for c in self.get_conversation_ids()}
             json.dump(convos, f)
+            for name, l_bin in d_bin.items():
+                with open(os.path.join(dir_name, name + "-convo-bin.p"), "wb") as f_pk:
+                    pickle.dump(l_bin, f_pk)
         with open(os.path.join(dir_name, "utterances.json"), "w") as f:
             uts = []
+            d_bin = defaultdict(list)
             for ut in self.iter_utterances():
                 uts.append({
                     KeyId: ut.id,
                     KeyConvoRoot: ut.root,
                     KeyText: ut.text,
                     KeyUser: ut.user.name,
-                    KeyMeta: ut.meta
+                    KeyMeta: self.dump_helper_bin(ut.meta, d_bin, utterances_idx)
                 })
             json.dump(uts, f)
+            for name, l_bin in d_bin.items():
+                with open(os.path.join(dir_name, name + "-bin.p"), "wb") as f_pk:
+                    pickle.dump(l_bin, f_pk)
+
+        with open(os.path.join(dir_name, "corpus.json"), "w") as f:
+            d_bin = defaultdict(list)
+            meta_up = self.dump_helper_bin(self.meta, d_bin, overall_idx)
+#            keys = ["utterances-index", "conversations-index", "users-index",
+#                "overall-index"]
+#            meta_minus = {k: v for k, v in overall_idx.items() if k not in keys}
+#            meta_up["overall-index"] = meta_minus
+            json.dump(meta_up, f)
+            for name, l_bin in d_bin.items():
+                with open(os.path.join(dir_name, name + "-overall-bin.p"), "wb") as f_pk:
+                    pickle.dump(l_bin, f_pk)
+
+        self.meta_index["utterances-index"] = utterances_idx
+        self.meta_index["users-index"] = users_idx
+        self.meta_index["conversations-index"] = convos_idx
+        self.meta_index["overall-index"] = overall_idx
+
+        with open(os.path.join(dir_name, "index.json"), "w") as f:
+            json.dump(self.meta_index, f)
 
     def get_utterance_ids(self):
-        return self.utterances.keys()
+        return list(self.utterances.keys())
 
     def get_utterance(self, ut_id):
         return self.utterances[ut_id]
@@ -400,7 +527,7 @@ class Corpus:
             yield v
 
     def get_conversation_ids(self):
-        return self.conversations.keys()
+        return list(self.conversations.keys())
 
     def get_conversation(self, cid):
         return self.conversations[cid]
