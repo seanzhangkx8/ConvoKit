@@ -2,7 +2,7 @@
 http://www.cs.cornell.edu/~cristian/Patterns_of_participant_interactions.html."""
 
 import itertools
-from collections import defaultdict, OrderedDict, Counter
+from collections import defaultdict, OrderedDict
 from enum import Enum, auto
 from typing import Tuple, Dict
 
@@ -47,6 +47,9 @@ class HyperConvo(Transformer):
         self.corpus = corpus
         self.threads_feats = None
 
+    def transform(self, corpus, prefix_len=10, min_thread_len=10):
+        return self.fit_transform(corpus, prefix_len=prefix_len, min_thread_len=min_thread_len)
+
     def fit_transform(self, corpus, prefix_len=10, min_thread_len=10):
         return self.retrieve_feats(prefix_len=prefix_len, min_thread_len = min_thread_len)
 
@@ -60,7 +63,7 @@ class HyperConvo(Transformer):
         speaker_to_reply_tos = defaultdict(list)
         speaker_target_pairs = set()
         # nodes
-        for _, ut in sorted(uts.items(), key=lambda u: u[1].timestamp):
+        for _, ut in sorted(uts.items(), key=lambda h: h[1].timestamp):
             if ut.id != exclude_id:
                 if ut.user not in username_to_utt_ids:
                     username_to_utt_ids[ut.user] = set()
@@ -73,7 +76,7 @@ class HyperConvo(Transformer):
                 G.add_node(ut.id, info=ut.__dict__)
         # hypernodes
         for u, ids in username_to_utt_ids.items():
-            G.add_hypernode(u, ids, info=u.info)
+            G.add_hypernode(u, ids, info=u.meta)
         # reply edges
         for u, v in reply_edges:
             # print("ADDING TIMESTAMP")
