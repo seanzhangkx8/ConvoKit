@@ -56,8 +56,10 @@ with open("supreme.conversations.dat", "r", encoding="utf-8") as f:
 
                 users_meta[user] = {
                     "is-justice": is_justice,
-                    "gender": genders[user]
+                    "gender": genders[user],
                 }
+                if is_justice:
+                    users_meta[user]["is-favorable"] = fields[5] == fields[6]
 
                 d = {
                     KeyId: fields[1],
@@ -105,7 +107,7 @@ with open("supreme.conversations.dat", "r", encoding="utf-8") as f:
 #        utterances[i] = ut
 #    else:
 #        del utterances[i][KeyConvoRoot]
-        
+
 if MaxUtterances > 0:
     #import random
     #random.shuffle(utterances)
@@ -117,4 +119,5 @@ with open("supreme-users.json", "w") as f:
     json.dump(users_meta, f, indent=2)
 #print(len(usernames), len(usernames_cased))
 print("Done")
+
 

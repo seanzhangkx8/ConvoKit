@@ -16,11 +16,12 @@ import numpy as np
 # load corpus; split users by case id and split the justices by whether they are
 #     favorable to the current presenting side
 # this treats the same person across two different cases as two different users
-corpus = Corpus(filename=download("supreme-corpus"),
-    subdivide_users_by=["case", "justice-is-favorable"])
+corpus = Corpus(filename=download("supreme-corpus"))
+split = ["case", "justice-is-favorable"]
 
 # create coordination object
-coord = Coordination(corpus)
+coord = Coordination()
+coord.fit(corpus)
 
 # helper function to plot two coordination scores against each other as a chart,
 #   on aggregate and by coordination marker
@@ -28,8 +29,8 @@ coord = Coordination(corpus)
 # b is a tuple (speakers, targets)
 def make_chart(a_scores, b_scores, a_description, b_description, a_color="b", b_color="g"):
     # get scores by marker and on aggregate
-    _, a_score_by_marker, a_agg1, a_agg2, a_agg3 = coord.score_report(a_scores)
-    _, b_score_by_marker, b_agg1, b_agg2, b_agg3 = coord.score_report(b_scores)
+    _, a_score_by_marker, a_agg1, a_agg2, a_agg3 = coord.score_report(corpus, a_scores)
+    _, b_score_by_marker, b_agg1, b_agg2, b_agg3 = coord.score_report(corpus, b_scores)
 
     # the rest plots this data as a double bar graph
     a_data_points = sorted(a_score_by_marker.items())
@@ -68,32 +69,36 @@ def make_chart(a_scores, b_scores, a_description, b_description, a_color="b", b_
     print('Created chart "' + filename + '"')
 
 # get all groups of users that we want to compare
-everyone = corpus.users()
-justices = corpus.users(lambda u: u.info["is-justice"])
-lawyers = corpus.users(lambda u: not u.info["is-justice"])
-fav_justices = corpus.users(lambda u: u.info["is-justice"] and
-        u.info["justice-is-favorable"])
-unfav_justices = corpus.users(lambda u: u.info["is-justice"] and
-        not u.info["justice-is-favorable"])
+everyone = corpus.iter_users()
+justices = corpus.iter_users(lambda u: u.meta["is-justice"])
+lawyers = corpus.iter_users(lambda u: not u.meta["is-justice"])
+fav_justices = corpus.iter_users(lambda u: u.meta["is-justice"] and
+        u.meta["is-favorable"])
+unfav_justices = corpus.iter_users(lambda u: u.meta["is-justice"] and
+        not u.meta["is-favorable"])
 
 # do lawyers coordinate more to justices than the other way around?
 make_chart(
-    coord.score(justices, lawyers, target_thresh=6),
-    coord.score(lawyers, justices, target_thresh=6),
+    coord.score(corpus, justices, lawyers, target_thresh=6,
+        split_by_attribs=split),
+    coord.score(corpus, lawyers, justices, target_thresh=6,
+        split_by_attribs=split),
     "Justices to lawyers", "Lawyers to justices", "g", "b"
 )
 # do lawyers coordinate more to unfavorable or favorable justices?
 make_chart(
-    coord.score(lawyers, unfav_justices, focus="targets", target_thresh=6,
-        speaker_thresh=6),
-    coord.score(lawyers, fav_justices, focus="targets", target_thresh=6,
-        speaker_thresh=6),
+    coord.score(corpus, lawyers, unfav_justices, focus="targets", target_thresh=6,
+        speaker_thresh=6, split_by_attribs=split),
+    coord.score(corpus, lawyers, fav_justices, focus="targets", target_thresh=6,
+        speaker_thresh=6, split_by_attribs=split),
     "Target: unfavorable justice", "Target: favorable justice"
 )
 # do unfavorable justices coordinate to lawyers more than favorable justices, or
 #   vice versa?
 make_chart(
-    coord.score(unfav_justices, lawyers, target_thresh=6),
-    coord.score(fav_justices, lawyers, target_thresh=6),
+    coord.score(corpus, unfav_justices, lawyers, target_thresh=6,
+        split_by_attribs=split),
+    coord.score(corpus, fav_justices, lawyers, target_thresh=6,
+        split_by_attribs=split),
     "Speaker: unfavorable justice", "Speaker: favorable justice"
 )

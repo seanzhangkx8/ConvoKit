@@ -15,11 +15,12 @@ import numpy as np
 # this means that if a user has spoken in the corpus as both an admin and
 #   a non-admin, then we will split this user into two users, one for each of
 #   these roles
-corpus = Corpus(filename=download("wiki-corpus"),
-    subdivide_users_by=["is_admin"])
+corpus = Corpus(filename=download("wiki-corpus"))
+split = ["is_admin"]
 
 # create coordination object
-coord = Coordination(corpus)
+coord = Coordination()
+coord.fit(corpus)
 
 # helper function to plot two coordination scores against each other as a chart,
 #   on aggregate and by coordination marker
@@ -27,8 +28,8 @@ coord = Coordination(corpus)
 # b is a tuple (speakers, targets)
 def make_chart(a_scores, b_scores, a_description, b_description, a_color="b", b_color="g"):
     # get scores by marker and on aggregate
-    _, a_score_by_marker, a_agg1, a_agg2, a_agg3 = coord.score_report(a_scores)
-    _, b_score_by_marker, b_agg1, b_agg2, b_agg3 = coord.score_report(b_scores)
+    _, a_score_by_marker, a_agg1, a_agg2, a_agg3 = coord.score_report(corpus, a_scores)
+    _, b_score_by_marker, b_agg1, b_agg2, b_agg3 = coord.score_report(corpus, b_scores)
 
     # the rest plots this data as a double bar graph
     a_data_points = sorted(a_score_by_marker.items())
@@ -67,19 +68,23 @@ def make_chart(a_scores, b_scores, a_description, b_description, a_color="b", b_
     print('Created chart "' + filename + '"')
 
 # get all groups of users that we want to compare
-everyone = corpus.users()
-admins = corpus.users(lambda u: u.info["is-admin"])
+everyone = corpus.iter_users()
+admins = corpus.iter_users(lambda u: u.meta["is-admin"])
 nonadmins = everyone - admins
 
 # do users on the whole coordinate more to admins or nonadmins?
 make_chart(
-    coord.score(everyone, admins, focus="targets", target_thresh=7),
-    coord.score(everyone, nonadmins, focus="targets", target_thresh=7),
+    coord.score(corpus, everyone, admins, focus="targets", target_thresh=7,
+        split_by_attribs=split),
+    coord.score(corpus, everyone, nonadmins, focus="targets", target_thresh=7,
+        split_by_attribs=split),
     "Target: admins", "Target: nonadmins"
 )
 # do admins coordinate to other people more than nonadmins do?
 make_chart(
-    coord.score(admins, everyone, speaker_thresh=7, target_thresh=7),
-    coord.score(nonadmins, everyone, speaker_thresh=7, target_thresh=7),
+    coord.score(corpus, admins, everyone, speaker_thresh=7, target_thresh=7,
+        split_by_attribs=split),
+    coord.score(corpus, nonadmins, everyone, speaker_thresh=7, target_thresh=7,
+        split_by_attribs=split),
     "Speaker: admins", "Speaker: nonadmins"
 )

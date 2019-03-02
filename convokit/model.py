@@ -22,9 +22,9 @@ class User:
     :ivar info: dictionary of attributes associated with the user.
     """
 
-    def __init__(self, name=None, info={}):
+    def __init__(self, name=None, meta={}):
         self._name = name
-        self._info = info
+        self._info = meta
         self._split_attribs = set()
         self._update_uid()
 
@@ -233,8 +233,10 @@ class Conversation:
             for ut_id in self._utterance_ids:
                 ut = self._owner.get_utterance(ut_id)
                 self._usernames.add(ut.user.name)
-        for username in self._usernames:
-            yield self._owner.get_user(username)
+        #for username in self._usernames:
+        #    yield self._owner.get_user(username)
+        for user in self.all_users:
+            yield user
 
 KeyId = "id"
 KeyUser = "user"
@@ -392,7 +394,7 @@ class Corpus:
                 user_key = u[KeyUser]
                 if user_key not in users_cache:
                     users_cache[user_key] = User(name=u[KeyUser],
-                        info=users_meta[u[KeyUser]])
+                        meta=users_meta[u[KeyUser]])
                 user = users_cache[user_key]
                 self.all_users.add(user)
 

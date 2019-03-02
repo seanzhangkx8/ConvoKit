@@ -5,6 +5,8 @@ import pkg_resources
 import re
 from collections import defaultdict
 
+from .transformer import Transformer
+
 CoordinationWordCategories = ["article", "auxverb", "conj", "adverb",
     "ppron", "ipron", "preps", "quant"]
 
@@ -124,7 +126,7 @@ class CoordinationScore(dict):
         self.agg2 = agg2
         self.agg3 = agg3
 
-class Coordination:
+class Coordination(Transformer):
     """Encapsulates computation of coordination-based features for a particular
     corpus.
 
@@ -139,9 +141,29 @@ class Coordination:
     count the "all" in "y'all."
     """
 
-    def __init__(self, corpus):
-        self.corpus = corpus
+    def __init__(self, **thresh):
+        #self.corpus = corpus
+        self.thresh = thresh
+        self.corpus = None
         self.precomputed = False
+
+    def fit(self, corpus):
+        self.corpus = corpus
+        self.precompute()
+
+    def transform(self, corpus):
+        if corpus != self.corpus:
+            raise Exception("Coordination: must fit and transform on same corpus")
+        if not self.precomputed:
+            raise Exception("Must fit before calling transform")
+
+        pair_scores = self.pairwise_scores(corpus, self.corpus.speaking_pairs(),
+            **self.thresh)
+        for (s, t), score in pair_scores.items():
+            if "coord-score" not in self.corpus.get_user(s.name).meta:
+                self.corpus.get_user(s.name).meta["coord-score"] = {}
+            else:
+                self.corpus.get_user(s.name).meta["coord-score"][t] = score
 
     def precompute(self):
         """Call this to run the time-consuming annotation process explicitly.
@@ -167,13 +189,15 @@ class Coordination:
             #        input()
             self.precomputed = True
 
-    def score(self, speakers, group, focus="speakers",
+    def score(self, corpus, speakers, group, focus="speakers",
         speaker_thresh=0, target_thresh=3,
         utterances_thresh=0, speaker_thresh_indiv=0, target_thresh_indiv=0,
-        utterances_thresh_indiv=0, utterance_thresh_func=None):
+        utterances_thresh_indiv=0, utterance_thresh_func=None,
+        split_by_attribs=[]):
         """Computes the coordination scores for each speaker, given a set of
         speakers and a group of targets.
 
+        :param corpus: Corpus to compute scores on
         :param speakers: A collection of usernames or user objects corresponding
             to the speakers we want to compute scores for.
         :param group: A collection of usernames or user objects corresponding to
@@ -220,7 +244,12 @@ class Coordination:
         :return: A :class:`CoordinationScore` object corresponding to the
             coordination scores for each speaker.
         """
-        self.precompute()
+        if corpus != self.corpus:
+            raise Exception("Coordination: must fit and score on same corpus")
+        if not self.precomputed:
+            raise Exception("Must fit before calling score")
+
+        #self.precompute()
         speakers = set(speakers)
         group = set(group)
 
@@ -246,14 +275,16 @@ class Coordination:
             speaker_thresh, target_thresh, utterances_thresh,
             speaker_thresh_indiv, target_thresh_indiv,
             utterances_thresh_indiv, utterance_thresh_func,
-            fine_grained_speakers, fine_grained_targets, focus)
+            fine_grained_speakers, fine_grained_targets, focus,
+            split_by_attribs)
 
-    def pairwise_scores(self, pairs, speaker_thresh=0, target_thresh=3,
+    def pairwise_scores(self, corpus, pairs, speaker_thresh=0, target_thresh=3,
         utterances_thresh=0, speaker_thresh_indiv=0, target_thresh_indiv=0,
         utterances_thresh_indiv=0, utterance_thresh_func=None):
         """Computes all pairwise coordination scores given a collection of
         (speaker, target) pairs.
         
+        :param corpus: Corpus to compute scores on
         :param pairs: collection of (speaker, target) pairs where
             each speaker and target can be either a username or a user
             object.
@@ -264,7 +295,11 @@ class Coordination:
         :return: A :class:`CoordinationScore` object corresponding to the
             coordination scores for each (speaker, target) pair.
         """
-        self.precompute()
+        if corpus != self.corpus:
+            raise Exception("Coordination: must fit and score on same corpus")
+        if not self.precomputed:
+            raise Exception("Must fit before calling score")
+
         pairs = set(pairs)
         any_speaker = next(iter(pairs))[0]
         if isinstance(any_speaker, str):
@@ -284,7 +319,7 @@ class Coordination:
                 all_scores[speaker, target] = m
         return all_scores
 
-    def score_report(self, scores):
+    def score_report(self, corpus, scores):
         """Create a "score report" of aggregate scores given a score output
         produced by `score` or `pairwise_scores`.
 
@@ -298,6 +333,7 @@ class Coordination:
             user. (assumes a user coordinates the same way across different
             coordination markers.)
 
+        :param corpus: Corpus to compute scores on
         :param scores: Scores to produce a report for.
         :type scores: dict
 
@@ -311,6 +347,11 @@ class Coordination:
             - agg1, agg2 and agg3 are Aggregate 1, 2 and 3 scores respectively.
 
         """
+        if corpus != self.corpus:
+            raise Exception("Coordination: must fit and score on same corpus")
+        if not self.precomputed:
+            raise Exception("Must fit before calling score")
+
         marker_a1 = scores.averages_by_marker(strict_thresh=True)  
         marker = scores.averages_by_marker()
         agg1 = scores.aggregate(method=1)
@@ -373,7 +414,7 @@ class Coordination:
                 if cur and "$" in cur:
                     cats |= cur["$"]
                 last = c
-            self.corpus.utterances[k].liwc_categories = cats
+            self.corpus.utterances[k].meta["liwc-categories"] = cats
 
     def compute_liwc_reverse_dict_old(self):
         self.liwc_patterns = {}
@@ -399,9 +440,14 @@ class Coordination:
             speaker_thresh_indiv, target_thresh_indiv, utterances_thresh_indiv,
             utterance_thresh_func=None,
             fine_grained_speakers=False, fine_grained_targets=False,
-            focus="speakers"):
+            focus="speakers",
+            split_by_attribs=[]):
         assert not isinstance(speakers, str)
         assert focus == "speakers" or focus == "targets"
+
+        def annot_user(user, ut):
+            return (user, tuple([ut.meta[attrib] if attrib in ut.meta else None 
+                for attrib in split_by_attribs]))
 
         m = self.corpus
         tally = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
@@ -410,23 +456,27 @@ class Coordination:
 
         n_utterances = defaultdict(lambda: defaultdict(int))
         targets = defaultdict(set)
+
+        real_speakers = set()
         for u2 in utterances:
             if u2.reply_to in m.utterances:
                 speaker = u2.user if fine_grained_speakers else u2.user.name
                 u1 = m.utterances[u2.reply_to]
                 target = u1.user if fine_grained_targets else u1.user.name
+                speaker, target = annot_user(speaker, u2), annot_user(target, u1)
+                real_speakers.add(speaker)
                 if speaker != target:
                     if utterance_thresh_func is None or \
                             utterance_thresh_func(u2, u1):
                         if focus == "targets": speaker, target = target, speaker
                         targets[speaker].add(target)
                         n_utterances[speaker][target] += 1
-                        for cat in u1.liwc_categories | u2.liwc_categories:
-                            if cat in u2.liwc_categories:
+                        for cat in u1.meta["liwc-categories"] | u2.meta["liwc-categories"]:
+                            if cat in u2.meta["liwc-categories"]:
                                 tally[speaker][cat][target] += 1
-                            if cat in u1.liwc_categories:
+                            if cat in u1.meta["liwc-categories"]:
                                 cond_total[speaker][cat][target] += 1
-                                if cat in u2.liwc_categories:
+                                if cat in u2.meta["liwc-categories"]:
                                     cond_tally[speaker][cat][target] += 1
 
         out = CoordinationScore()
@@ -434,8 +484,9 @@ class Coordination:
             speaker_thresh, target_thresh = target_thresh, speaker_thresh
             speaker_thresh_indiv, target_thresh_indiv = \
                 target_thresh_indiv, speaker_thresh_indiv
-            speakers = targets.keys()
-        for speaker in speakers:
+            real_speakers = targets.keys()
+        for speaker in real_speakers:
+            if speaker[0] not in speakers and not focus == "targets": continue
             coord_w = {}  # coordination score wrt a category
             for cat in CoordinationWordCategories:
                 threshed_cond_total = 0

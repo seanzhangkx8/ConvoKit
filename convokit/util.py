@@ -24,16 +24,18 @@ def download(name, verbose=True):
     """
     top = "http://zissou.infosci.cornell.edu/socialkit/"
     DatasetURLs = {
-        "supreme-corpus-v2": "http://zissou.infosci.cornell.edu/convokit/"
+        "supreme-corpus": "http://zissou.infosci.cornell.edu/convokit/"
             "datasets/supreme-corpus/full.corpus",
+        "wiki-corpus": "http://zissou.infosci.cornell.edu/convokit/"
+            "datasets/wiki-corpus/full.corpus",
         "parliament-corpus": top + \
             "datasets/parliament-corpus/full.json",
-        "supreme-corpus": top + \
-            "datasets/supreme-corpus/full.json",
+#        "supreme-corpus": top + \
+#            "datasets/supreme-corpus/full.json",
         "tennis-corpus": top + \
             "datasets/tennis-corpus/full.json",
-        "wiki-corpus": top + \
-            "datasets/wiki-corpus/full.json",
+#        "wiki-corpus": top + \
+#            "datasets/wiki-corpus/full.json",
         "reddit-corpus": top + \
             "datasets/reddit-corpus/full.json",
         "reddit-corpus-small": top + \
@@ -183,7 +185,7 @@ def download_helper(dataset_path, url, verbose, name, downloadeds_path):
 
     # post-process (extract) corpora
     if url.lower().endswith(".corpus"):
-        print(dataset_path)
+        #print(dataset_path)
         with zipfile.ZipFile(dataset_path, "r") as zipf:
             zipf.extractall(os.path.dirname(downloadeds_path))
 
