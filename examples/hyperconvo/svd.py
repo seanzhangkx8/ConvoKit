@@ -7,7 +7,7 @@ corpus = convokit.Corpus(filename=convokit.download("reddit-corpus"))
 
 print("Computing hypergraph features")
 hc = convokit.HyperConvo(corpus)
-threads_feats = hc.retrieve_feats(prefix_len=10)
+threads_feats = hc.fit_transform(corpus, prefix_len=10)
 feat_names = list(sorted(threads_feats[list(threads_feats.keys())[0]].keys()))
 
 print("Computing low-dimensional embeddings")

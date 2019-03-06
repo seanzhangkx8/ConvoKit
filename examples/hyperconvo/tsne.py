@@ -7,7 +7,7 @@ corpus = convokit.Corpus(filename=convokit.download("reddit-corpus-small"))
 
 print("Computing hypergraph features")
 hc = convokit.HyperConvo(corpus)
-threads_feats = hc.retrieve_feats()
+threads_feats = hc.fit_transform()
 
 print("Computing low-dimensional embeddings")
 pts, labels = hc.embed_communities(threads_feats, "subreddit",

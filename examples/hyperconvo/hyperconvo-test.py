@@ -37,7 +37,7 @@ print("example reciprocity motif:", G.reciprocity_motifs()[0])
 print()
 
 # HyperConvo interface: get high-level degree features
-feats = hc.retrieve_feats()
+feats = hc.fit_transform(corpus)
 for k, v in feats.items():
     print("{}: {:.4f}".format(k, v))
 print()
