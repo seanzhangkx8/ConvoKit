@@ -72,10 +72,6 @@ def make_chart(a_scores, b_scores, a_description, b_description, a_color="b", b_
 everyone = corpus.iter_users()
 justices = corpus.iter_users(lambda u: u.meta["is-justice"])
 lawyers = corpus.iter_users(lambda u: not u.meta["is-justice"])
-fav_justices = corpus.iter_users(lambda u: u.meta["is-justice"] and
-        u.meta["is-favorable"])
-unfav_justices = corpus.iter_users(lambda u: u.meta["is-justice"] and
-        not u.meta["is-favorable"])
 
 # do lawyers coordinate more to justices than the other way around?
 make_chart(
@@ -87,18 +83,22 @@ make_chart(
 )
 # do lawyers coordinate more to unfavorable or favorable justices?
 make_chart(
-    coord.score(corpus, lawyers, unfav_justices, focus="targets", target_thresh=6,
-        speaker_thresh=6, split_by_attribs=split),
-    coord.score(corpus, lawyers, fav_justices, focus="targets", target_thresh=6,
-        speaker_thresh=6, split_by_attribs=split),
+    coord.score(corpus, lawyers, justices, focus="targets", target_thresh=6,
+        speaker_thresh=6, split_by_attribs=split,
+        target_attribs={"justice-is-favorable": False}),
+    coord.score(corpus, lawyers, justices, focus="targets", target_thresh=6,
+        speaker_thresh=6, split_by_attribs=split,
+        target_attribs={"justice-is-favorable": True}),
     "Target: unfavorable justice", "Target: favorable justice"
 )
 # do unfavorable justices coordinate to lawyers more than favorable justices, or
 #   vice versa?
 make_chart(
-    coord.score(corpus, unfav_justices, lawyers, target_thresh=6,
-        split_by_attribs=split),
-    coord.score(corpus, fav_justices, lawyers, target_thresh=6,
-        split_by_attribs=split),
+    coord.score(corpus, justices, lawyers, target_thresh=6,
+        split_by_attribs=split,
+        speaker_attribs={"justice-is-favorable": False}),
+    coord.score(corpus, justices, lawyers, target_thresh=6,
+        split_by_attribs=split,
+        speaker_attribs={"justice-is-favorable": True}),
     "Speaker: unfavorable justice", "Speaker: favorable justice"
 )

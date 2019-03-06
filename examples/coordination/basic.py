@@ -5,7 +5,7 @@
 import convokit
 
 # set up corpus
-corpus = convokit.Corpus(filename=convokit.download("supreme-corpus-v2"))
+corpus = convokit.Corpus(filename=convokit.download("supreme-corpus"))
 
 # compute coordination scores on this corpus
 coord = convokit.Coordination()
