@@ -491,7 +491,9 @@ class Corpus:
                     KeyConvoRoot: ut.root,
                     KeyText: ut.text,
                     KeyUser: ut.user.name,
-                    KeyMeta: self.dump_helper_bin(ut.meta, d_bin, utterances_idx)
+                    KeyMeta: self.dump_helper_bin(ut.meta, d_bin, utterances_idx),
+                    KeyReplyTo: ut.reply_to,
+                    KeyTimestamp: ut.timestamp
                 })
             json.dump(uts, f)
             for name, l_bin in d_bin.items():

@@ -193,7 +193,7 @@ class Coordination(Transformer):
         speaker_thresh=0, target_thresh=3,
         utterances_thresh=0, speaker_thresh_indiv=0, target_thresh_indiv=0,
         utterances_thresh_indiv=0, utterance_thresh_func=None,
-        split_by_attribs=[]):
+        split_by_attribs=[], speaker_attribs={}, target_attribs={}):
         """Computes the coordination scores for each speaker, given a set of
         speakers and a group of targets.
 
@@ -276,7 +276,7 @@ class Coordination(Transformer):
             speaker_thresh_indiv, target_thresh_indiv,
             utterances_thresh_indiv, utterance_thresh_func,
             fine_grained_speakers, fine_grained_targets, focus,
-            split_by_attribs)
+            split_by_attribs, speaker_attribs, target_attribs)
 
     def pairwise_scores(self, corpus, pairs, speaker_thresh=0, target_thresh=3,
         utterances_thresh=0, speaker_thresh_indiv=0, target_thresh_indiv=0,
@@ -441,7 +441,7 @@ class Coordination(Transformer):
             utterance_thresh_func=None,
             fine_grained_speakers=False, fine_grained_targets=False,
             focus="speakers",
-            split_by_attribs=[]):
+            split_by_attribs=[], speaker_attribs={}, target_attribs={}):
         assert not isinstance(speakers, str)
         assert focus == "speakers" or focus == "targets"
 
@@ -464,6 +464,15 @@ class Coordination(Transformer):
                 u1 = m.utterances[u2.reply_to]
                 target = u1.user if fine_grained_targets else u1.user.name
                 speaker, target = annot_user(speaker, u2), annot_user(target, u1)
+                exclude = False
+                for attrib in speaker_attribs:
+                    if not u2.meta[attrib] == speaker_attribs[attrib]:
+                        exclude = True
+                for attrib in target_attribs:
+                    if not u1.meta[attrib] == target_attribs[attrib]:
+                        exclude = True
+                if exclude: continue
+
                 real_speakers.add(speaker)
                 if speaker != target:
                     if utterance_thresh_func is None or \
@@ -509,5 +518,5 @@ class Coordination(Transformer):
                     coord_w[cat] = threshed_cond_tally / threshed_cond_total - \
                             threshed_tally / threshed_n_utterances
             if len(coord_w) > 0:
-                out[speaker] = coord_w
+                out[speaker if split_by_attribs else speaker[0]] = coord_w
         return out
