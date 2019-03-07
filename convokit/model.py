@@ -398,15 +398,10 @@ class Corpus:
                 user = users_cache[user_key]
                 self.all_users.add(user)
 
-                other_keys = list(u.keys())
-                other_keys.remove(KeyText)
-                other = {}
-                for key in other_keys:
-                    other[key] = u[key]
                 ut = Utterance(id=u[KeyId], user=user,
                         root=u[KeyConvoRoot],
                         reply_to=u[KeyReplyTo], timestamp=u[KeyTimestamp],
-                        text=u[KeyText], other=other, meta=u[KeyMeta])
+                        text=u[KeyText], meta=u[KeyMeta])
                 self.utterances[ut.id] = ut
         elif utterances is not None:
             self.all_users = set([u.user for u in utterances])
@@ -587,7 +582,7 @@ class Corpus:
         other_keys = list(other_kv_pairs.keys())
         for uid, utterance in self.utterances.items():
             user_info = utterance.user._get_info()
-            other_dict = utterance.other
+            other_dict = utterance.meta
             regular = all(utterance.get(key) == regular_kv_pairs[key] for key in regular_keys)
             user = all(user_info[key] == user_info_kv_pairs[key] for key in user_info_keys)
             other = all(other_dict[key] == other_kv_pairs[key] for key in other_keys)
