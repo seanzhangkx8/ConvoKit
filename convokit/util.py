@@ -40,8 +40,8 @@ def download(name, verbose=True):
             "datasets/reddit-corpus/full.json",
         "reddit-corpus-small": top + \
             "datasets/reddit-corpus/small.json",
-        "conversations-gone-awry-corpus": top + \
-            "datasets/conversations-gone-awry-corpus/paired_conversations.json",
+        "conversations-gone-awry-corpus": "http:/zissou.infosci.cornell.edu/convokit/"
+            "datasets/conversations-gone-awry-corpus/full.corpus",
         "parliament-motifs": [
             top + \
             "datasets/parliament-corpus/parliament-motifs/answer_arcs.json",
