@@ -117,7 +117,7 @@ class Utterance:
         elif key == "timestamp":
             return self.timestamp
         elif key == "text":
-            return text
+            return self.text
 
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
