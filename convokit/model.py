@@ -22,9 +22,9 @@ class User:
     :ivar info: dictionary of attributes associated with the user.
     """
 
-    def __init__(self, name=None, meta={}):
+    def __init__(self, name=None, meta=None):
         self._name = name
-        self._info = meta
+        self._info = meta if meta is not None else {}
         self._split_attribs = set()
         self._update_uid()
 
