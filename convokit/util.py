@@ -32,8 +32,8 @@ def download(name, verbose=True):
             "datasets/parliament-corpus/full.json",
 #        "supreme-corpus": top + \
 #            "datasets/supreme-corpus/full.json",
-        "tennis-corpus": top + \
-            "datasets/tennis-corpus/full.json",
+        "tennis-corpus": "http://zissou.infosci.cornell.edu/convokit/"
+            "datasets/tennis-corpus/full.corpus",
 #        "wiki-corpus": top + \
 #            "datasets/wiki-corpus/full.json",
         "reddit-corpus": top + \
