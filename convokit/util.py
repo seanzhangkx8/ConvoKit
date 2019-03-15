@@ -6,7 +6,7 @@ import zipfile
 import json
 
 # returns a path to the dataset file
-def download(name, verbose=True):
+def download(name, verbose=True, data_dir=None, use_newest_version=True):
     """Use this to download (or use saved) convokit data by name.
 
     :param name: Which item to download. Currently supported:
@@ -19,10 +19,21 @@ def download(name, verbose=True):
             http://www.cs.cornell.edu/~cristian/Asking_too_much.html)
         - "conversations-gone-awry-corpus": Wiki Personal Attacks Corpus (see 
             http://www.cs.cornell.edu/~cristian/Conversations_gone_awry.html)
+    :param data_dir: Output path of downloaded file (default: ~/.convokit)
+    :param use_newest_version: Redownload if new version is found
 
     :return: The path to the downloaded item.
     """
     top = "http://zissou.infosci.cornell.edu/socialkit/"
+    cur_version = {
+        "supreme-corpus": 2,
+        "wiki-corpus": 2,
+        "parliament-corpus": 2,
+        "tennis-corpus": 2,
+        "reddit-corpus": 2,
+        "reddit-corpus-small": 2,
+        "conversations-gone-awry-corpus": 2
+    }
     DatasetURLs = {
         "supreme-corpus": "http://zissou.infosci.cornell.edu/convokit/"
             "datasets/supreme-corpus/full.corpus",
@@ -137,7 +148,12 @@ def download(name, verbose=True):
 
     }
     name = name.lower()
-    data_dir = pkg_resources.resource_filename("convokit", "")
+    if data_dir is None:
+        data_dir = os.path.expanduser("~/.convokit/")
+        #pkg_resources.resource_filename("convokit", "")
+    if not os.path.exists(data_dir):
+        os.mkdir(data_dir)
+
     parent_dir = os.path.join(data_dir, "downloads")
     dataset_path = os.path.join(data_dir, "downloads", name)
     if not os.path.exists(os.path.dirname(dataset_path)):
@@ -147,9 +163,17 @@ def download(name, verbose=True):
     if not os.path.isfile(downloadeds_path):
         open(downloadeds_path, "w").close()
     with open(downloadeds_path, "r") as f:
-        downloaded = f.read().splitlines()
+        downloaded_lines = f.read().splitlines()
+        downloaded = {}
+        for l in downloaded_lines:
+            name, version = l.split(" ")
+            version = int(version)
+            if name not in downloaded or downloaded[name] < version:
+                downloaded[name] = version
 
-    if name not in downloaded:
+    if name not in downloaded or \
+        (use_newest_version and name in cur_version and
+            downloaded[name] < cur_version[name]):
         if name.endswith("-motifs"):
             for url in DatasetURLs[name]:
                 full_name = name + url[url.rfind('/'):]
@@ -178,16 +202,24 @@ def download_helper(dataset_path, url, verbose, name, downloadeds_path):
             print("Downloading", name, "from", url,
                     "(" + length + ")...", end=" ", flush=True)
         shutil.copyfileobj(response, out_file)
-        if verbose:
-            print("Done")
-        with open(downloadeds_path, "a") as f:
-            f.write(name + "\n")
 
     # post-process (extract) corpora
     if url.lower().endswith(".corpus"):
         #print(dataset_path)
         with zipfile.ZipFile(dataset_path, "r") as zipf:
             zipf.extractall(os.path.dirname(downloadeds_path))
+
+    if verbose:
+        print("Done")
+    with open(downloadeds_path, "a") as f:
+        fn = os.path.join(os.path.dirname(downloadeds_path), name)
+        f.write("{} {}\n".format(name, corpus_version(fn)))
+        #f.write(name + "\n")
+
+def corpus_version(filename):
+    with open(os.path.join(filename, "index.json")) as f:
+        d = json.load(f)
+        return int(d["version"])
 
 def meta_index(corpus=None, filename=None):
     keys = ["utterances-index", "conversations-index", "users-index",

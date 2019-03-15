@@ -268,6 +268,7 @@ class Corpus:
         with the current case id. You could use this to count the same person
         across different cases as being different users.
     :param delim: if loading a csv, specifies the delimiter string.
+    :param version: version number of corpus
 
     :ivar utterances: dictionary of utterances in the dataset, indexed by id.
     """
@@ -275,10 +276,12 @@ class Corpus:
     def __init__(self, filename=None, utterances=None, merge_lines=False,
         subdivide_users_by=[], delim=",",
         exclude_utterance_meta=[], exclude_conversation_meta=[],
-        exclude_user_meta=[], exclude_overall_meta=[]):
+        exclude_user_meta=[], exclude_overall_meta=[], version=None):
         self.meta = {}
         self.meta_index = {}
         convos_meta = defaultdict(dict)
+
+        self.version = version if version is not None else 0
 
         if filename is not None:
             if os.path.isdir(filename):
@@ -308,6 +311,12 @@ class Corpus:
                         self.meta[k] = v
                 with open(os.path.join(filename, "index.json"), "r") as f:
                     self.meta_index = json.load(f)
+
+                if version is not None:
+                    if "version" in self.meta_index:
+                        if self.meta_index["version"] != version:
+                            raise Warning("Requested version does not match file version")
+                        self.version = self.meta_index["version"]
 
                 # unpack utterance meta
                 for field, field_type in self.meta_index["utterances-index"].items():
@@ -455,7 +464,16 @@ class Corpus:
         #pickle.dump(l_bin, f)
         return d_out
 
-    def dump(self, dir_name):
+    def dump(self, name, base_path=None):
+        dir_name = name
+        if base_path is None:
+            base_path = os.path.expanduser("~/.convokit/")
+            if not os.path.exists(base_path):
+                os.mkdir(base_path)
+            base_path = os.path.join(base_path, "saved-corpora/")
+            if not os.path.exists(base_path):
+                os.mkdir(base_path)
+        dir_name = os.path.join(base_path, dir_name)
         if not os.path.exists(dir_name):
             os.mkdir(dir_name)
 
@@ -511,6 +529,7 @@ class Corpus:
         self.meta_index["users-index"] = users_idx
         self.meta_index["conversations-index"] = convos_idx
         self.meta_index["overall-index"] = overall_idx
+        self.meta_index["version"] = self.version
 
         with open(os.path.join(dir_name, "index.json"), "w") as f:
             json.dump(self.meta_index, f)
