@@ -47,7 +47,7 @@ class HyperConvo(Transformer):
     def transform(self, prefix_len=10, min_thread_len=10):
         return self.fit_transform(prefix_len=prefix_len, min_thread_len=min_thread_len)
 
-    def fit_transform(self, corpus, prefix_len=10, min_thread_len=10):
+    def fit_transform(self, prefix_len=10, min_thread_len=10):
         return self.retrieve_feats(prefix_len=prefix_len, min_thread_len = min_thread_len)
 
     def _make_hypergraph(self, uts=None, exclude_id=None):
@@ -279,7 +279,7 @@ class HyperConvo(Transformer):
         else:
             X_embedded = X_mid
 
-        labels = [self.corpus.utterances[root].user.info[community_key]
+        labels = [self.corpus.get_utterance(root).get("other")["user-info"][community_key]
                   for root in roots]
         # label_counts = Counter(labels)
         subs = defaultdict(list)
