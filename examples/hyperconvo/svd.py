@@ -6,14 +6,13 @@ print("Loading corpus")
 corpus = convokit.Corpus(filename=convokit.download("reddit-corpus"))
 
 print("Computing hypergraph features")
-hc = convokit.HyperConvo(corpus)
-threads_feats = hc.fit_transform(prefix_len=10)
+hc = convokit.HyperConvo()
+threads_feats = hc.fit_transform(corpus, prefix_len=10)
 feat_names = list(sorted(threads_feats[list(threads_feats.keys())[0]].keys()))
 
 print("Computing low-dimensional embeddings")
-X_threads, roots, components = hc.embed_threads(threads_feats,
-    return_components=True)
-X_communities, subreddits = hc.embed_communities(threads_feats, "subreddit")
+X_threads, roots, components = hc.embed_threads(return_components=True)
+X_communities, subreddits = hc.embed_communities("subreddit")
 
 print("TOP THREADS")
 for d in range(7):

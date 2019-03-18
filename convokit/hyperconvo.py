@@ -34,21 +34,31 @@ class HyperConvo(Transformer):
     reaction edges. We hope to implement a more general version of these
     reaction features in an upcoming release.
 
-    :param corpus: the corpus to compute features for.
-    :type corpus: Corpus
-
     :ivar corpus: the coordination object's corpus.
     """
 
-    def __init__(self, corpus):
+    def __init__(self):
+        self.corpus = None
+        self.thread_stats = None
+
+    def fit(self, corpus):
         self.corpus = corpus
-        self.threads_feats = None
 
-    def transform(self, prefix_len=10, min_thread_len=10):
-        return self.fit_transform(prefix_len=prefix_len, min_thread_len=min_thread_len)
+    def transform(self, corpus=None, prefix_len=10, min_thread_len=10):
+        if corpus is None and self.corpus is None:
+            raise RuntimeError("HyperConvo has not been fitted. Pass corpus as an argument to transform().")
+        else:
+            self.corpus = corpus
 
-    def fit_transform(self, prefix_len=10, min_thread_len=10):
-        return self.retrieve_feats(prefix_len=prefix_len, min_thread_len = min_thread_len)
+        return self.fit_transform(corpus=self.corpus, prefix_len=prefix_len, min_thread_len=min_thread_len)
+
+    def fit_transform(self, corpus=None, prefix_len=10, min_thread_len=10):
+        if corpus is None and self.corpus is None:
+            raise RuntimeError("HyperConvo has not been fitted. Pass corpus as an argument to fit_transform().")
+        else:
+            self.corpus = corpus
+        self.thread_stats = self.retrieve_feats(prefix_len=prefix_len, min_thread_len = min_thread_len)
+        return self.thread_stats
 
     def _make_hypergraph(self, uts=None, exclude_id=None):
         if uts is None:
@@ -136,7 +146,7 @@ class HyperConvo(Transformer):
     def _motif_feats(self, uts=None, G=None, name_ext="", exclude_id=None):
         assert uts is None or G is None
         if G is None:
-            G = self._make_hypergraph(uts, exclude_id=exclude_id)
+            G = self._make_hypergraph(uts=uts, exclude_id=exclude_id)
 
         stat_funcs = {
             "is-present": lambda l: len(l) > 0,
@@ -183,13 +193,12 @@ class HyperConvo(Transformer):
             threads_stats[root] = stats#.append(stats)
         return threads_stats
 
-    @staticmethod
-    def embed_threads(threads_feats, n_components=7, method="svd",
+    def embed_threads(self, n_components=7, method="svd",
                       norm_method="standard", return_components=False):
         """Convenience method to embed the output of retrieve_feats in a
         low-dimensional space.
 
-        :param threads_feats: Output of retrieve_feats
+        :param thread_stats: Output of retrieve_feats
         :param n_components: Number of dimensions to embed into
         :param method: embedding method; either "svd" or "tsne"
         :param norm_method: data normalization method; either "standard"
@@ -202,10 +211,12 @@ class HyperConvo(Transformer):
             thread root id of the ith row of X. If return_components is True,
             then the tuple contains a third entry, the SVD components array
         """
+        if self.thread_stats is None:
+            raise RuntimeError("HyperConvo has not been fitted. Run fit_transform() on a corpus first.")
 
         X = []#, labels = [], []
         roots = []
-        for root, feats in threads_feats.items():
+        for root, feats in self.thread_stats.items():
             roots.append(root)
             #labels.append(corpus.utterances[root].user.info["subreddit"])
             row = np.array([v[1] if not (np.isnan(v[1]) or np.isinf(v[1])) else
@@ -237,15 +248,14 @@ class HyperConvo(Transformer):
         else:
             return X_mid, roots, emb.components_
 
-    def embed_communities(self, threads_stats,
-                          community_key, n_intermediate_components=7,
+    def embed_communities(self, community_key, n_intermediate_components=7,
                           n_components=2, intermediate_method="svd", method="none",
                           norm_method="standard"):
         """Convenience method to embed the output of retrieve_feats in a
         low-dimensional space, and group threads together into communities
         in this space.
 
-        :param threads_stats: Output of retrieve_feats
+        :param thread_stats: Output of retrieve_feats
         :param community_key: Key in "user-info" dictionary of each utterance
             whose corresponding value we'll use as the community label for that
             utterance
@@ -261,8 +271,10 @@ class HyperConvo(Transformer):
             to embedded communities, and labels is an array whose ith entry is
             the community of the ith row of X.
         """
+        if self.thread_stats is None:
+            raise RuntimeError("HyperConvo has not been fitted. Run fit_transform() on a corpus first.")
 
-        X_mid, roots = HyperConvo.embed_threads(threads_stats,
+        X_mid, roots = HyperConvo.embed_threads(self.thread_stats,
                                                 n_components=n_intermediate_components, method=intermediate_method,
                                                 norm_method=norm_method)
 
@@ -279,7 +291,7 @@ class HyperConvo(Transformer):
         else:
             X_embedded = X_mid
 
-        labels = [self.corpus.get_utterance(root).get("other")["user-info"][community_key]
+        labels = [self.corpus.get_utterance(root).get("meta")["user-info"][community_key]
                   for root in roots]
         # label_counts = Counter(labels)
         subs = defaultdict(list)

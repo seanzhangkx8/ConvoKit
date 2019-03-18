@@ -6,12 +6,12 @@ print("Loading corpus")
 corpus = convokit.Corpus(filename=convokit.download("reddit-corpus-small"))
 
 print("Computing hypergraph features")
-hc = convokit.HyperConvo(corpus)
-threads_feats = hc.fit_transform()
+hc = convokit.HyperConvo()
+hc.fit_transform(corpus)
 
 print("Computing low-dimensional embeddings")
-pts, labels = hc.embed_communities(threads_feats, "subreddit",
-    n_intermediate_components=7, method="tsne")
+pts, labels = hc.embed_communities("subreddit",
+              n_intermediate_components=7, method="tsne")
 
 xs, ys = zip(*pts)
 plt.scatter(xs, ys)

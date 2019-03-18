@@ -629,7 +629,7 @@ class Corpus:
         threads = defaultdict(list)
         for ut in self.utterances.values():
             threads[ut.root].append(ut)
-        return {root: {ut.id: ut for ut in list(sorted(l,
+        return {root: {utt.id: utt for utt in list(sorted(l,
             key=lambda ut: ut.timestamp))[-suffix_len:prefix_len]}
             for root, l in threads.items()}
 

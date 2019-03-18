@@ -7,11 +7,11 @@ print("Loading corpus")
 corpus = convokit.Corpus(filename=convokit.download("reddit-corpus"))
 
 print("Computing hypergraph features")
-hc = convokit.HyperConvo(corpus)
-threads_feats = hc.fit_transform(corpus, prefix_len=10)
+hc = convokit.HyperConvo()
+hc.fit_transform(corpus, prefix_len=10)
 
 print("Computing low-dimensional embeddings")
-X_communities, subreddits = hc.embed_communities(threads_feats, "subreddit")
+X_communities, subreddits = hc.embed_communities("subreddit")
 
 knn = NearestNeighbors(n_neighbors=10)
 knn.fit(X_communities)

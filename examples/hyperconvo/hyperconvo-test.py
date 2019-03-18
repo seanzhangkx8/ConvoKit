@@ -3,7 +3,8 @@ import numpy as np
 
 # create corpus object
 corpus = convokit.Corpus("../../datasets/reddit-corpus/reddit-convos.json")
-hc = convokit.HyperConvo(corpus)
+hc = convokit.HyperConvo()
+hc.fit(corpus)
 
 # we might not need to expose make_hypergraph publicly, but this gives us a 
 #   hypergraph to demonstrate Hypergraph methods with
