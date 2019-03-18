@@ -44,8 +44,8 @@ class HyperConvo(Transformer):
         self.corpus = corpus
         self.threads_feats = None
 
-    def transform(self, corpus, prefix_len=10, min_thread_len=10):
-        return self.fit_transform(corpus, prefix_len=prefix_len, min_thread_len=min_thread_len)
+    def transform(self, prefix_len=10, min_thread_len=10):
+        return self.fit_transform(prefix_len=prefix_len, min_thread_len=min_thread_len)
 
     def fit_transform(self, corpus, prefix_len=10, min_thread_len=10):
         return self.retrieve_feats(prefix_len=prefix_len, min_thread_len = min_thread_len)

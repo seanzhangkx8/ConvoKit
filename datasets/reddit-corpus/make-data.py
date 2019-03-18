@@ -5,10 +5,10 @@ import os
 
 location = os.getcwd()
 subs_dict = {}
-for file in os.listdir(location+'/reddit-data'):
+for file in os.listdir(os.path.join(location, 'reddit-data')):
     print(file)
     if file.endswith(".jsonlist"):
-        with open('reddit-data/'+file, encoding="latin") as f:
+        with open(os.path.join(location, 'reddit-data', file), encoding="latin") as f:
             subs_dict[file[:-9]] = []
             for line in f:
                 try:

@@ -27,9 +27,9 @@ hedges = [
 
 # Positive and negative words from Liu
 pos_filename = pkg_resources.resource_filename("convokit",
-    "data/liu-positive-words.txt")
+    os.path.join("data", "liu-positive-words.txt"))
 neg_filename = pkg_resources.resource_filename("convokit",
-    "data/liu-negative-words.txt")
+    os.path.join("data", "liu-negative-words.txt"))
 #os.path.join(local_dir, "liu-negative-words.txt")
 #os.path.join(local_dir, "liu-positive-words.txt")
 
