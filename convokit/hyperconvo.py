@@ -309,18 +309,18 @@ class Hypergraph:
         self.adj_out = OrderedDict()  # out edges for each (hyper)node
         self.adj_in = OrderedDict()   # in edges for each (hyper)node
 
-    def add_node(self, u, info=dict()):
-        self.nodes[u] = info
+    def add_node(self, u, info=None):
+        self.nodes[u] = info if info is not None else dict()
         self.adj_out[u] = OrderedDict()
         self.adj_in[u] = OrderedDict()
 
-    def add_hypernode(self, name, nodes, info=dict()):
+    def add_hypernode(self, name, nodes, info=None):
         self.hypernodes[name] = set(nodes)
         self.adj_out[name] = OrderedDict()
         self.adj_in[name] = OrderedDict()
 
     # edge or hyperedge
-    def add_edge(self, u, v, info=dict()):
+    def add_edge(self, u, v, info=None):
         assert u in self.nodes or u in self.hypernodes
         assert v in self.nodes or v in self.hypernodes
         if u in self.hypernodes and v in self.hypernodes:
@@ -329,6 +329,7 @@ class Hypergraph:
             self.adj_out[u][v] = []
         if u not in self.adj_in[v]:
             self.adj_in[v][u] = []
+        if info is None: info = dict()
         self.adj_out[u][v].append(info)
         self.adj_in[v][u].append(info)
 
