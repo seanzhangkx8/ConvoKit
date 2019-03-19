@@ -390,10 +390,10 @@ class Corpus:
             users_cache = {}   # avoids creating duplicate user objects
             #print(len(utterances))
             for i, u in enumerate(utterances):
-                # print(u)
+
                 #if i % 100000 == 0: print(i, end=" ", flush=True)
                 u = defaultdict(lambda: None, u)
-
+                print(u)
                 # handle this utterance's user info
                 #user_key = (u[KeyUser], str(sorted(u[KeyUserInfo].items())) if
                 #    u[KeyUserInfo] is not None else None)
@@ -597,10 +597,10 @@ class Corpus:
         other_keys = list(other_kv_pairs.keys())
         for uid, utterance in self.utterances.items():
             user_info = utterance.user._get_info()
-            other_dict = utterance.other
+            meta_dict = utterance.meta
             regular = all(utterance.get(key) == regular_kv_pairs[key] for key in regular_keys)
             user = all(user_info[key] == user_info_kv_pairs[key] for key in user_info_keys)
-            other = all(other_dict[key] == other_kv_pairs[key] for key in other_keys)
+            other = all(meta_dict[key] == other_kv_pairs[key] for key in other_keys)
             if regular and user and other:
                 new_utterances[uid] = utterance
 

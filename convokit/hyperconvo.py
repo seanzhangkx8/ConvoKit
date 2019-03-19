@@ -198,7 +198,6 @@ class HyperConvo(Transformer):
         """Convenience method to embed the output of retrieve_feats in a
         low-dimensional space.
 
-        :param thread_stats: Output of retrieve_feats
         :param n_components: Number of dimensions to embed into
         :param method: embedding method; either "svd" or "tsne"
         :param norm_method: data normalization method; either "standard"
@@ -274,8 +273,7 @@ class HyperConvo(Transformer):
         if self.thread_stats is None:
             raise RuntimeError("HyperConvo has not been fitted. Run fit_transform() on a corpus first.")
 
-        X_mid, roots = HyperConvo.embed_threads(self.thread_stats,
-                                                n_components=n_intermediate_components, method=intermediate_method,
+        X_mid, roots = self.embed_threads(n_components=n_intermediate_components, method=intermediate_method,
                                                 norm_method=norm_method)
 
         if method.lower() == "svd":
@@ -291,6 +289,7 @@ class HyperConvo(Transformer):
         else:
             X_embedded = X_mid
 
+        print(self.corpus.get_utterance(roots[0]).get("meta"))
         labels = [self.corpus.get_utterance(root).get("meta")["user-info"][community_key]
                   for root in roots]
         # label_counts = Counter(labels)
