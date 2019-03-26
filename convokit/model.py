@@ -393,7 +393,7 @@ class Corpus:
 
                 #if i % 100000 == 0: print(i, end=" ", flush=True)
                 u = defaultdict(lambda: None, u)
-                print(u)
+                # print(u)
                 # handle this utterance's user info
                 #user_key = (u[KeyUser], str(sorted(u[KeyUserInfo].items())) if
                 #    u[KeyUserInfo] is not None else None)
