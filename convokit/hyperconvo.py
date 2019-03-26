@@ -184,6 +184,119 @@ class HyperConvo(Transformer):
             threads_stats[root] = stats#.append(stats)
         return threads_stats
 
+<<<<<<< HEAD
+=======
+    def embed_threads(self, n_components=7, method="svd",
+                      norm_method="standard", return_components=False):
+        """Convenience method to embed the output of retrieve_feats in a
+        low-dimensional space.
+
+        :param n_components: Number of dimensions to embed into
+        :param method: embedding method; either "svd" or "tsne"
+        :param norm_method: data normalization method; either "standard"
+            (normalize each feature to 0 mean and 1 variance) or "none"
+        :param return_components: if using SVD method, whether to output
+            SVD components array
+
+        :return: a tuple (X, roots) where X is an array with rows corresponding
+            to embedded threads, and roots is an array whose ith entry is the
+            thread root id of the ith row of X. If return_components is True,
+            then the tuple contains a third entry, the SVD components array
+        """
+        if self.thread_stats is None:
+            raise RuntimeError("HyperConvo has not been fitted. Run fit_transform() on a corpus first.")
+
+        X = []#, labels = [], []
+        roots = []
+        for root, feats in self.thread_stats.items():
+            roots.append(root)
+            #labels.append(corpus.utterances[root].user.info["subreddit"])
+            row = np.array([v[1] if not (np.isnan(v[1]) or np.isinf(v[1])) else
+                            0 for v in sorted(feats.items())])
+            #row /= np.linalg.norm(row)
+            X.append(row)
+        X = np.array(X)
+
+        if norm_method.lower() == "standard":
+            X = StandardScaler().fit_transform(X)
+        elif norm_method.lower() == "none":
+            pass
+        else:
+            raise Exception("Invalid embed_feats normalization method")
+
+        if method.lower() == "svd":
+            f = TruncatedSVD
+        elif method.lower() == "tsne":
+            f = TSNE
+        else:
+            raise Exception("Invalid embed_feats embedding method")
+        emb = f(n_components=n_components)
+        X_mid = emb.fit_transform(X) / emb.singular_values_
+        #print("SINGULAR VALUES")
+        #print(emb.singular_values_)
+
+        if not return_components:
+            return X_mid, roots
+        else:
+            return X_mid, roots, emb.components_
+
+    def embed_communities(self, community_key, n_intermediate_components=7,
+                          n_components=2, intermediate_method="svd", method="none",
+                          norm_method="standard"):
+        """Convenience method to embed the output of retrieve_feats in a
+        low-dimensional space, and group threads together into communities
+        in this space.
+
+        :param thread_stats: Output of retrieve_feats
+        :param community_key: Key in "user-info" dictionary of each utterance
+            whose corresponding value we'll use as the community label for that
+            utterance
+        :param n_intermediate_components: Number of dimensions to embed threads into
+        :param intermediate_method: Embedding method for threads
+            (see embed_threads)
+        :param n_components: Number of dimensions to embed communities into
+        :param method: Embedding method; "svd", "tsne" or "none"
+        :param norm_method: Data normalization method; either "standard"
+            (normalize each feature to 0 mean and 1 variance) or "none"
+
+        :return: a tuple (X, labels) where X is an array with rows corresponding
+            to embedded communities, and labels is an array whose ith entry is
+            the community of the ith row of X.
+        """
+        if self.thread_stats is None:
+            raise RuntimeError("HyperConvo has not been fitted. Run fit_transform() on a corpus first.")
+
+        X_mid, roots = self.embed_threads(n_components=n_intermediate_components, method=intermediate_method,
+                                                norm_method=norm_method)
+
+        if method.lower() == "svd":
+            f = TruncatedSVD
+        elif method.lower() == "tsne":
+            f = TSNE
+        elif method.lower() == "none":
+            f = None
+        else:
+            raise Exception("Invalid embed_communities embedding method")
+        if f is not None:
+            X_embedded = f(n_components=n_components).fit_transform(X_mid)
+        else:
+            X_embedded = X_mid
+
+        print(self.corpus.get_utterance(roots[0]).get("meta"))
+        labels = [self.corpus.get_utterance(root).get("meta")["user-info"][community_key]
+                  for root in roots]
+        # label_counts = Counter(labels)
+        subs = defaultdict(list)
+        for x, label in zip(X_embedded, labels):
+            subs[label].append(x / np.linalg.norm(x))
+
+        labels, subs = zip(*subs.items())
+        pts = [np.mean(sub, axis=0) for sub in subs]
+
+        return pts, labels
+
+
+>>>>>>> 213c0bd101cb8bc297a131d748e3cb9ee5c80393
 
 class Hypergraph:
     """Represents a hypergraph, consisting of nodes, directed edges,
