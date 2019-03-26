@@ -51,7 +51,7 @@ def download(name, verbose=True, data_dir=None, use_newest_version=True):
             "datasets/reddit-corpus/full.json",
         "reddit-corpus-small": top + \
             "datasets/reddit-corpus/small.json",
-        "conversations-gone-awry-corpus": "http:/zissou.infosci.cornell.edu/convokit/"
+        "conversations-gone-awry-corpus": "http://zissou.infosci.cornell.edu/convokit/"
             "datasets/conversations-gone-awry-corpus/full.corpus",
         "parliament-motifs": [
             top + \
