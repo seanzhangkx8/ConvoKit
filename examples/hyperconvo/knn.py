@@ -11,7 +11,11 @@ hc = convokit.HyperConvo()
 hc.fit_transform(corpus, prefix_len=10)
 
 print("Computing low-dimensional embeddings")
-X_communities, subreddits = hc.embed_communities("subreddit")
+ce = convokit.CommunityEmbedder()
+ce.fit_transform(corpus, community_key="subreddit")
+
+X_communities = corpus.get_meta()["communityEmbedder"]["pts"]
+subreddits = corpus.get_meta()["communityEmbedder"]["labels"]
 
 knn = NearestNeighbors(n_neighbors=10)
 knn.fit(X_communities)

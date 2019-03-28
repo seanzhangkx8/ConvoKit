@@ -3,12 +3,10 @@ import numpy as np
 
 # create corpus object
 corpus = convokit.Corpus("../../datasets/reddit-corpus/reddit-convos.json")
-hc = convokit.HyperConvo()
-hc.fit(corpus)
 
 # we might not need to expose make_hypergraph publicly, but this gives us a 
 #   hypergraph to demonstrate Hypergraph methods with
-G = hc._make_hypergraph()
+G = convokit.HyperConvo()._make_hypergraph(corpus)
 
 def summarize_dist(name, l):
     print("{}: min {}, mean {:.4f}, max {}".format(
@@ -37,8 +35,10 @@ print()
 print("example reciprocity motif:", G.reciprocity_motifs()[0])
 print()
 
+hc = convokit.HyperConvo()
 # HyperConvo interface: get high-level degree features
-feats = hc.fit_transform(corpus)
+hc.fit_transform(corpus)
+feats = corpus.get_meta()["hyperconvo"]
 for k, v in feats.items():
     print("{}: {:.4f}".format(k, v))
 print()

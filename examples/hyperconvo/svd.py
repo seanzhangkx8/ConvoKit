@@ -7,12 +7,21 @@ corpus = convokit.Corpus(filename=convokit.download("reddit-corpus"))
 
 print("Computing hypergraph features")
 hc = convokit.HyperConvo()
-threads_feats = hc.fit_transform(corpus, prefix_len=10)
+hc.fit_transform(corpus, prefix_len=10)
+threads_feats = corpus.get_meta()["hyperconvo"]
 feat_names = list(sorted(threads_feats[list(threads_feats.keys())[0]].keys()))
 
 print("Computing low-dimensional embeddings")
-X_threads, roots, components = hc.embed_threads(return_components=True)
-X_communities, subreddits = hc.embed_communities("subreddit")
+te = convokit.ThreadEmbedder()
+te.fit_transform(corpus, return_components=True)
+X_threads = corpus.get_meta()["threadEmbedder"]["X"]
+roots = corpus.get_meta()["threadEmbedder"]["roots"]
+components = corpus.get_meta()["threadEmbedder"]["components"]
+
+ce = convokit.CommunityEmbedder()
+ce.fit_transform(corpus, community_key="subreddit")
+X_communities = corpus.get_meta()["communityEmbedder"]["pts"]
+subreddits = corpus.get_meta()["communityEmbedder"]["labels"]
 
 print("TOP THREADS")
 for d in range(7):
