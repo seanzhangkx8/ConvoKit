@@ -254,8 +254,7 @@ class Corpus:
     """Represents a dataset, which can be loaded from a JSON file, CSV file or a
     list of utterances.
 
-    If a CSV file, the first row should consist of key names. Unknown key names
-    will have their attributes added to the "user-info" entry.
+    If a CSV file, the first row should consist of key names.
 
     :param filename: path of json or csv file to load
     :param utterances: list of utterances to load
@@ -545,7 +544,7 @@ class Corpus:
         for v in self.conversations.values():
             yield v
 
-    @staticmethod
+    @staticmethod # TODO: deprecated?
     def _load_csv(f, delim, defined_keys):
         keys = f.readline()[:-1].split(delim)
         utterances = []
@@ -560,7 +559,7 @@ class Corpus:
             utterances.append(utterance)
         return utterances
 
-    def subdivide_users_by(self, attribs):
+    def subdivide_users_by(self, attribs): # TODO deprecated
         """Use this if you want to count the same user as being different
         depending on attributes other than username. For example, in the Supreme
         Court dataset, users are annotated with the current case id. You could
@@ -580,7 +579,7 @@ class Corpus:
                 new_all_users.add(u.user)
         self.all_users = new_all_users
 
-    def filter_utterances_by(self, regular_kv_pairs=None,
+    def filter_utterances_by(self, regular_kv_pairs=None, # TODO deprecated
         user_info_kv_pairs=None, other_kv_pairs=None):
         """
         Creates a subset of the utterances filtered by certain attributes. Irreversible.
@@ -628,7 +627,7 @@ class Corpus:
         """
         threads = defaultdict(list)
         for ut in self.utterances.values():
-            threads[ut.root].append(ut)
+            threads[ut.get("meta")["top_level_comment"]].append(ut)
         return {root: {utt.id: utt for utt in list(sorted(l,
             key=lambda ut: ut.timestamp))[-suffix_len:prefix_len]}
             for root, l in threads.items()}
@@ -688,7 +687,7 @@ class Corpus:
         """
         pairs = set()
         for u2 in self.utterances.values():
-            if u2.user is not None and u2.reply_to is not None and \
+            if u2.user is not None and u2.reply_to is not None and \ 
                 u2.reply_to in self.utterances:
                 u1 = self.utterances[u2.reply_to]
                 if u1.user is not None:
