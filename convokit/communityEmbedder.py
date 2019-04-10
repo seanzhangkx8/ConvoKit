@@ -8,9 +8,11 @@ from transformer import Transformer
 
 class CommunityEmbedder(Transformer):
     """
+    Must be run after threadEmbedder.fit_transform()
+
     Convenience method to embed the output of retrieve_feats in a
     low-dimensional space, and group threads together into communities
-    in this space.
+    in this space for visualization or other such purposes.
 
     :return: a Corpus with new meta key: "communityEmbedder",
         value: Dict, containing "pts": an array with rows corresponding
@@ -32,7 +34,7 @@ class CommunityEmbedder(Transformer):
                       n_components=2, method="none"):
         """
         :param corpus: Corpus object
-        :param community_key: Key in "user-info" dictionary of each utterance
+        :param community_key: Key in "meta" dictionary of each utterance
         whose corresponding value we'll use as the community label for that
         utterance (see threadEmbedder)
         :param n_components: Number of dimensions to embed communities into
@@ -66,7 +68,7 @@ class CommunityEmbedder(Transformer):
         else:
             X_embedded = X_mid
 
-        labels = [corpus.get_utterance(root).get("meta")["user-info"][community_key]
+        labels = [corpus.get_utterance(root).get("meta")[community_key]
                   for root in roots]
         # label_counts = Counter(labels)
         subs = defaultdict(list)
