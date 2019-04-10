@@ -8,6 +8,7 @@ import os
 
 pair_delim = '-q-a-'
 
+
 @total_ordering
 class User:
     """Represents a single user in a dataset.
@@ -22,7 +23,7 @@ class User:
     :ivar meta: dictionary of attributes associated with the user.
     """
 
-    def __init__(self, name=None, meta=None)  :
+    def __init__(self, name=None, meta=None):
         self._name = name
         self._info = meta if not None else {}
         self._split_attribs = set()
@@ -43,12 +44,14 @@ class User:
         self._update_uid()
 
     def _get_name(self): return self._name
+
     def _set_name(self, value):
         self._name = value
         self._update_uid()
     name = property(_get_name, _set_name)
 
     def _get_info(self): return self._info
+
     def _set_info(self, value):
         self._info = value
         self._update_uid()
@@ -251,28 +254,18 @@ KeyMeta = "meta"
 BIN_DELIM_L, BIN_DELIM_R = "<##bin{", "}&&@**>"
 
 class Corpus:
-    """Represents a dataset, which can be loaded from a JSON file, CSV file or a
+    """Represents a dataset, which can be loaded from a JSON file or a
     list of utterances.
 
-    If a CSV file, the first row should consist of key names.
-
-    :param filename: path of json or csv file to load
+    :param filename: path of json file to load
     :param utterances: list of utterances to load
     :param merge_lines: whether to merge adjacent
         lines from the same user if the two utterances have the same root.
-    :param subdivide_users_by: collection of strings corresponding to attribute
-        names defined in the "user-info" entry. Use this if you want to count
-        the same user as being different depending on attributes other than
-        username. For example, in the Supreme Court dataset, users are annotated
-        with the current case id. You could use this to count the same person
-        across different cases as being different users.
-    :param delim: if loading a csv, specifies the delimiter string.
 
     :ivar utterances: dictionary of utterances in the dataset, indexed by id.
     """
 
     def __init__(self, filename=None, utterances=None, merge_lines=False,
-                subdivide_users_by=None, delim=",",
                 exclude_utterance_meta=None, exclude_conversation_meta=None,
                 exclude_user_meta=None, exclude_overall_meta=None):
 
@@ -373,29 +366,17 @@ class Corpus:
                 with open(filename, "r") as f:
                     try:
                         utterances = json.load(f)
-                    except:
-                        try:
-                            utterances = Corpus._load_csv(f, delim, DefinedKeys)
-                        except:
-                            raise ValueError("Couldn't load corpus:" +
-                                " unknown file type")
+                    except Exception as e:
+                        raise Exception("Could not load corpus. Expected json file, encountered error: \n" + str(e))
 
-                #with open(".".join(filename.split(".")[:-1]) + "-users.json", "r") as f:
-                #    for k, v in json.load(f).items():
-                #        users_meta[k] = v
 
             self.utterances = {}
             self.all_users = set()
             users_cache = {}   # avoids creating duplicate user objects
-            #print(len(utterances))
+
             for i, u in enumerate(utterances):
 
-                #if i % 100000 == 0: print(i, end=" ", flush=True)
                 u = defaultdict(lambda: None, u)
-                # print(u)
-                # handle this utterance's user info
-                #user_key = (u[KeyUser], str(sorted(u[KeyUserInfo].items())) if
-                #    u[KeyUserInfo] is not None else None)
                 user_key = u[KeyUser]
                 if user_key not in users_cache:
                     users_cache[user_key] = User(name=u[KeyUser],
@@ -444,8 +425,6 @@ class Corpus:
                         meta=convo_meta)
             self.conversations[convo_id] = convo
 
-        if subdivide_users_by:
-            self.subdivide_users_by(subdivide_users_by)
 
     # params: d is dict to encode, d_bin is dict of accumulated lists of binary attribs
     @staticmethod
@@ -543,41 +522,6 @@ class Corpus:
     def iter_conversations(self):
         for v in self.conversations.values():
             yield v
-
-    @staticmethod # TODO: deprecated?
-    def _load_csv(f, delim, defined_keys):
-        keys = f.readline()[:-1].split(delim)
-        utterances = []
-        for line in f:
-            values = line[:-1].split(delim)
-            utterance = {"user-info": {}}
-            for k, v in zip(keys, values):
-                if k in defined_keys:
-                    utterance[k] = v
-                else:
-                    utterance["user-info"][k] = v
-            utterances.append(utterance)
-        return utterances
-
-    def subdivide_users_by(self, attribs): # TODO deprecated
-        """Use this if you want to count the same user as being different
-        depending on attributes other than username. For example, in the Supreme
-        Court dataset, users are annotated with the current case id. You could
-        use this to count the same person across different cases as being
-        different users.
-
-        Repeated calls to this method will override previous subdivisions.
-
-        :param attribs: Collection of attribute names to subdivide users on.
-        :type attribs: Collection
-        """
-
-        new_all_users = set()
-        for u in self.utterances.values():
-            if u.user is not None:
-                u.user.identify_by_attribs(attribs)
-                new_all_users.add(u.user)
-        self.all_users = new_all_users
 
     def filter_utterances_by(self, regular_kv_pairs=None, # TODO deprecated
         user_info_kv_pairs=None, other_kv_pairs=None):

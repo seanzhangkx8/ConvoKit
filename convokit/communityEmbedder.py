@@ -3,7 +3,7 @@ from sklearn.decomposition import TruncatedSVD
 from sklearn.manifold import TSNE
 from collections import defaultdict
 
-from .transformer import Transformer
+from transformer import Transformer
 
 
 class CommunityEmbedder(Transformer):
@@ -23,6 +23,9 @@ class CommunityEmbedder(Transformer):
 
 
     def transform(self, corpus, community_key=None, n_components=2, method="none"):
+        """
+        Same as fit_transform()
+        """
         return self.fit_transform(corpus, community_key=community_key, n_components=n_components, method=method)
 
     def fit_transform(self, corpus, community_key=None,

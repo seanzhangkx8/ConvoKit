@@ -3,15 +3,15 @@ from sklearn.decomposition import TruncatedSVD
 from sklearn.manifold import TSNE
 from sklearn.preprocessing import StandardScaler
 
-from .transformer import Transformer
+from transformer import Transformer
 
 
 class ThreadEmbedder(Transformer):
     """
     Transformer for embedding the thread statistics of a corpus in a
-    low-dimensional space. HyperConvo.fit_transform() must be
-    run on the Corpus first
+    low-dimensional space for visualization or other such purposes.
 
+    HyperConvo.fit_transform() must be run on the Corpus first
 
     :return: a corpus with new meta key: "threadEmbedder",
              value: Dict, containing "X": an array with rows corresponding
@@ -25,6 +25,9 @@ class ThreadEmbedder(Transformer):
 
     def transform(self, corpus, n_components=7, method="svd",
                   norm_method="standard", return_components=False):
+        """
+        Same as fit_transform()
+        """
         return self.fit_transform(corpus, n_components=n_components, method=method,
                                   norm_method=norm_method, return_components=return_components)
 
