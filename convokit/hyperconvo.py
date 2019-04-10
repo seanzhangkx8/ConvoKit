@@ -5,7 +5,6 @@ import itertools
 from collections import defaultdict, OrderedDict
 import numpy as np
 import scipy.stats
-import scipy.stats
 from transformer import Transformer
 
 

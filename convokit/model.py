@@ -384,11 +384,6 @@ class Corpus:
                 user = users_cache[user_key]
                 self.all_users.add(user)
 
-                other_keys = list(u.keys())
-                other_keys.remove(KeyText)
-                other = {}
-                for key in other_keys:
-                    other[key] = u[key]
                 ut = Utterance(id=u[KeyId], user=user,
                         root=u[KeyConvoRoot],
                         reply_to=u[KeyReplyTo], timestamp=u[KeyTimestamp],
@@ -396,7 +391,7 @@ class Corpus:
                 self.utterances[ut.id] = ut
         elif utterances is not None:
             self.all_users = set([u.user for u in utterances])
-            self.utterances = { u.id: u for u in utterances }
+            self.utterances = {u.id: u for u in utterances}
 
         if merge_lines:
             new_utterances = {}
@@ -523,8 +518,8 @@ class Corpus:
         for v in self.conversations.values():
             yield v
 
-    def filter_utterances_by(self, regular_kv_pairs=None, # TODO deprecated
-        user_info_kv_pairs=None, other_kv_pairs=None):
+    def filter_utterances_by(self, regular_kv_pairs=None,
+                             user_info_kv_pairs=None, meta_kv_pairs=None):
         """
         Creates a subset of the utterances filtered by certain attributes. Irreversible.
         If the method is run again, it will filter the already filtered subset.
@@ -532,19 +527,19 @@ class Corpus:
         """
         if regular_kv_pairs is None: regular_kv_pairs = dict()
         if user_info_kv_pairs is None: user_info_kv_pairs = dict()
-        if other_kv_pairs is None: other_kv_pairs = dict()
+        if meta_kv_pairs is None: meta_kv_pairs = dict()
         new_utterances = dict()
 
         regular_keys = list(regular_kv_pairs.keys())
         user_info_keys = list(user_info_kv_pairs.keys())
-        other_keys = list(other_kv_pairs.keys())
+        meta_keys = list(meta_kv_pairs.keys())
         for uid, utterance in self.utterances.items():
             user_info = utterance.user._get_info()
             meta_dict = utterance.meta
             regular = all(utterance.get(key) == regular_kv_pairs[key] for key in regular_keys)
             user = all(user_info[key] == user_info_kv_pairs[key] for key in user_info_keys)
-            other = all(meta_dict[key] == other_kv_pairs[key] for key in other_keys)
-            if regular and user and other:
+            meta = all(meta_dict[key] == meta_kv_pairs[key] for key in meta_keys)
+            if regular and user and meta:
                 new_utterances[uid] = utterance
 
         self.utterances = new_utterances
