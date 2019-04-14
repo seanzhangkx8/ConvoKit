@@ -4,7 +4,7 @@ Quick-start tutorial
 
 Setup
 =====
-Read the :ref:`introduction to Convokit <README>` and the description of its :ref:`Architecture`.
+Read the :ref:`introduction to Convokit <README>` and the description of its :ref:`architecture`.
 
 This toolkit requires Python 3.5.
 
@@ -22,7 +22,7 @@ Let us start an interactive session (e.g. with ``python`` or ``ipython``) and im
 
 Now we load an existing corpus, specifically: `reddit-corpus-small`.
 
-By design, it includes 100 comment threads (each consisting of at least 10 utterances) from 100 popular subreddits from October 2018.
+By design, it includes 100 comment threads (each consisting of at least 10 Utterances) from 100 popular subreddits from October 2018.
 
 >>> corpus = convokit.Corpus(filename=convokit.download("reddit-corpus-small"))
 
@@ -40,7 +40,7 @@ Alternatively, if you have a custom corpus, i.e. a corpus directory (say, "corpu
 
 We can construct a corpus from that directory.
 
->>> filepath = "corpus-dir"
+>>> filepath = "corpus-dir" # update the filepath accordingly
 >>> corpus = convokit.Corpus(filename=filepath)
 
 Exploring the corpus
@@ -83,10 +83,10 @@ Let's take the first Utterance id and examine the Utterance it corresponds to:
 >>> corpus.get_utterance(utter_ids[0])
 Utterance({'id': '9c0kpy', 'user': User([('name', 'LamPard31')]), 'root': '9c0kpy', 'reply_to': None, 'timestamp': 1535778431, 'text': '', 'meta': {'score': 780, 'top_level_comment': None, 'retrieved_on': 1540058138, 'gilded': 0, 'gildings': {'gid_1': 0, 'gid_2': 0, 'gid_3': 0}, 'subreddit': 'singapore', 'stickied': False, 'permalink': '/r/singapore/comments/9c0kpy/first_world_chinese/', 'author_flair_text': ''}})
 
-Let's explore the Utterance object further. An Utterance contains its own metadata.
+Let's explore the Utterance object further.
 
 >>> utt = corpus.get_utterance(utter_ids[0])
->>> utt.meta
+>>> utt.meta # Utterance-level metadata
 {'author_flair_text': '',
  'gilded': 0,
  'gildings': {'gid_1': 0, 'gid_2': 0, 'gid_3': 0},
@@ -105,7 +105,14 @@ User([('name', 'ThatCalisthenicsDude')])
 Applying a transformer
 ----------------------
 
+We initialize a HyperConvo transformer, which extracts structural features of conversations through a hypergraph representation.
 
+>>> # Limit hypergraph representation to threads of length at least 10, using the first 10 utterances
+>>> hc = convokit.HyperConvo(prefix_len=10, min_thread_len=10)
+>>> hc.fit_transform(corpus)
+>>> corpus.meta
+
+The output of the HyperConvo transformer is stored in the Corpus metadata.
 
 
 
