@@ -629,8 +629,7 @@ class Corpus:
         """
         pairs = set()
         for u2 in self.utterances.values():
-            if u2.user is not None and u2.reply_to is not None and \ 
-                u2.reply_to in self.utterances:
+            if u2.user is not None and u2.reply_to is not None and u2.reply_to in self.utterances:
                 u1 = self.utterances[u2.reply_to]
                 if u1.user is not None:
                     if selector is None or selector(u2.user, u1.user):

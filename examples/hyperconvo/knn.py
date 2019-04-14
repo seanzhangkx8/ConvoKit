@@ -1,6 +1,5 @@
 import convokit
 from sklearn.neighbors import NearestNeighbors
-from convokit.communityEmbedder import CommunityEmbedder
 
 print("Loading corpus")
 corpus = convokit.Corpus(filename=convokit.download("reddit-corpus"))
@@ -10,7 +9,7 @@ hc = convokit.HyperConvo(prefix_len=10)
 hc.fit_transform(corpus)
 
 print("Computing low-dimensional embeddings")
-ce = CommunityEmbedder(community_key="subreddit")
+ce = convokit.CommunityEmbedder(community_key="subreddit")
 ce.fit_transform(corpus)
 
 X_communities = corpus.get_meta()["communityEmbedder"]["pts"]
