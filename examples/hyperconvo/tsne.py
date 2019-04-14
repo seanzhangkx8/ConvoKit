@@ -1,6 +1,8 @@
 import convokit
 import numpy as np
 import matplotlib.pyplot as plt
+from threadEmbedder import ThreadEmbedder
+from communityEmbedder import CommunityEmbedder
 
 print("Loading corpus")
 corpus = convokit.Corpus(filename=convokit.download("reddit-corpus-small"))
@@ -10,11 +12,11 @@ hc = convokit.HyperConvo()
 hc.fit_transform(corpus)
 
 print("Computing low-dimensional embeddings")
-te = convokit.ThreadEmbedder()
-te.fit_transform(corpus, n_components=7)
+te = ThreadEmbedder(n_components=7)
+te.fit_transform(corpus)
 
-ce = convokit.CommunityEmbedder()
-ce.fit_transform(corpus, community_key="subreddit", method="tsne")
+ce = CommunityEmbedder(community_key="subreddit", method="tsne")
+ce.fit_transform(corpus)
 
 pts = corpus.get_meta()["communityEmbedder"]["pts"]
 labels = corpus.get_meta()["communityEmbedder"]["labels"]

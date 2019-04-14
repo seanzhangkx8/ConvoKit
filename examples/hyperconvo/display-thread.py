@@ -1,9 +1,8 @@
 import sys
 import convokit
-from collections import defaultdict
 
 corpus = convokit.Corpus(filename=convokit.download("reddit-corpus"))
-threads = corpus.utterance_threads(prefix_len=10)
+threads = corpus.utterance_threads(prefix_len=10, include_root=False)
 
 def disp(thread, root, indent=0):
     print(" "*indent + thread[root].user.name + ": " +

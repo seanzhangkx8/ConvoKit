@@ -4,8 +4,9 @@ import numpy as np
 # create corpus object
 corpus = convokit.Corpus("../../datasets/reddit-corpus/reddit-convos.json")
 
-# we might not need to expose make_hypergraph publicly, but this gives us a 
-#   hypergraph to demonstrate Hypergraph methods with
+# we typically would not need to expose make_hypergraph publicly, but we do this here
+# to demonstrate Hypergraph methods
+
 G = convokit.HyperConvo()._make_hypergraph(corpus)
 
 def summarize_dist(name, l):

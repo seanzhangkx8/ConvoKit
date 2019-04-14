@@ -213,12 +213,12 @@ class HyperConvo(Transformer):
         return stats
 
     @staticmethod
-    def retrieve_feats(corpus, prefix_len=10, min_thread_len=10):
+    def retrieve_feats(corpus, prefix_len=10, min_thread_len=10, include_root=True):
         """
         Retrieve all hypergraph features for a given corpus (viewed as a set
         of conversation threads).
 
-        See fit_transform() for further documentation.
+        See init() for further documentation.
 
         :return: A dictionary from a thread root id to its stats dictionary,
             which is a dictionary from feature names to feature values.
@@ -227,7 +227,7 @@ class HyperConvo(Transformer):
         threads_stats = {}
 
         for i, (root, thread) in enumerate(
-                corpus.utterance_threads(prefix_len=prefix_len).items()):
+                corpus.utterance_threads(prefix_len=prefix_len, include_root=include_root).items()):
             if len(thread) < min_thread_len: continue
             stats = {}
             G = HyperConvo._make_hypergraph(uts=thread)

@@ -1,18 +1,17 @@
 import convokit
-import numpy as np
-import matplotlib.pyplot as plt
 from sklearn.neighbors import NearestNeighbors
+from convokit.communityEmbedder import CommunityEmbedder
 
 print("Loading corpus")
 corpus = convokit.Corpus(filename=convokit.download("reddit-corpus"))
 
 print("Computing hypergraph features")
-hc = convokit.HyperConvo()
-hc.fit_transform(corpus, prefix_len=10)
+hc = convokit.HyperConvo(prefix_len=10)
+hc.fit_transform(corpus)
 
 print("Computing low-dimensional embeddings")
-ce = convokit.CommunityEmbedder()
-ce.fit_transform(corpus, community_key="subreddit")
+ce = CommunityEmbedder(community_key="subreddit")
+ce.fit_transform(corpus)
 
 X_communities = corpus.get_meta()["communityEmbedder"]["pts"]
 subreddits = corpus.get_meta()["communityEmbedder"]["labels"]
