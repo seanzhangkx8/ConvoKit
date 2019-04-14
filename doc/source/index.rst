@@ -3,15 +3,13 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Convokit
-========
+.. mdinclude:: ../../README.md
 
-Contents:
+Contents
+========
 
 .. toctree::
    Coordination <coordination.rst>
    Model <model.rst>
    QuestionTypology <questionTypology.rst>
    Utility functions <util.rst>
-
-

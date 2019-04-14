@@ -56,7 +56,7 @@ See the example ipython notebooks linked above to familiarize yourself with how 
 ## Documentation
 Documentation is hosted [here](http://zissou.infosci.cornell.edu/socialkit/documentation/).
 
-The documentation is built with [Sphinx](http://www.sphinx-doc.org/en/1.5.1/) (`pip3 install sphinx`). To build it yourself, navigate to `doc/` and run `make html`. 
+The documentation is built with [Sphinx](http://www.sphinx-doc.org/en/1.5.1/) (`pip3 install sphinx`; also requires m2r for Markdown support, `pip3 install m2r`). To build it yourself, navigate to `doc/` and run `make html`. 
 
 ## Acknowledgements
 

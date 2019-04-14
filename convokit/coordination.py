@@ -148,10 +148,12 @@ class Coordination(Transformer):
         self.precomputed = False
 
     def fit(self, corpus):
+        """Learn coordination information for the given corpus."""
         self.corpus = corpus
         self.precompute()
 
     def transform(self, corpus):
+        """Generate coordination scores for the corpus you called fit on."""
         if corpus != self.corpus:
             raise Exception("Coordination: must fit and transform on same corpus")
         if not self.precomputed:
@@ -240,6 +242,18 @@ class Coordination(Transformer):
             corresponding to whether or not to include the utterance in
             scoring.
         :type utterance_thresh_func: function
+
+        :type split_by_attribs: list
+        :param split_by_attribs: Utterance meta attributes to split users by
+            when tallying coordination (e.g. in supreme court transcripts,
+            you may want to treat the same lawyer as a different person across
+            different cases --- see coordination examples)
+
+        :type speaker_attribs: dict
+        :param speaker_attribs: attribute names and values the speaker must have
+
+        :type target_attribs: dict
+        :param target_attribs: attribute names and values the target must have
 
         :return: A :class:`CoordinationScore` object corresponding to the
             coordination scores for each speaker.
