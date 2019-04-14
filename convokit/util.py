@@ -166,10 +166,10 @@ def download(name, verbose=True, data_dir=None, use_newest_version=True):
         downloaded_lines = f.read().splitlines()
         downloaded = {}
         for l in downloaded_lines:
-            name, version = l.split(" ")
+            dname, version = l.split(" ")
             version = int(version)
-            if name not in downloaded or downloaded[name] < version:
-                downloaded[name] = version
+            if dname not in downloaded or downloaded[dname] < version:
+                downloaded[dname] = version
 
     if name not in downloaded or \
         (use_newest_version and name in cur_version and
