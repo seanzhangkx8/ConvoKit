@@ -9,6 +9,7 @@ Contents
 ========
 
 .. toctree::
+   Core Concepts <architecture.rst>
    Coordination <coordination.rst>
    Model <model.rst>
    QuestionTypology <questionTypology.rst>
