@@ -20,28 +20,26 @@ class CommunityEmbedder(Transformer):
         the community of the ith row of X.
     """
 
-    def __init__(self):
-        pass
-
-
-    def transform(self, corpus, community_key=None, n_components=2, method="none"):
+    def __init__(self, community_key=None, n_components=2, method="none"):
         """
-        Same as fit_transform()
-        """
-        return self.fit_transform(corpus, community_key=community_key, n_components=n_components, method=method)
-
-    def fit_transform(self, corpus, community_key=None,
-                      n_components=2, method="none"):
-        """
-        :param corpus: Corpus object
         :param community_key: Key in "meta" dictionary of each utterance
         whose corresponding value we'll use as the community label for that
         utterance (see threadEmbedder)
         :param n_components: Number of dimensions to embed communities into
         :param method: Embedding method; "svd", "tsne" or "none"
         """
+        self.community_key = community_key
+        self.n_components = n_components
+        self.method = method
 
-        if community_key is None:
+    def transform(self, corpus):
+        """
+        Same as fit_transform()
+        """
+        return self.fit_transform(corpus)
+
+    def fit_transform(self, corpus):
+        if self.community_key is None:
             raise RuntimeError("Must specify community_key to retrieve label information from utterance")
 
         corpus_meta = corpus.get_meta()
@@ -54,21 +52,21 @@ class CommunityEmbedder(Transformer):
         X_mid = thread_embed_data["X"]
         roots = thread_embed_data["roots"]
 
-        if method.lower() == "svd":
+        if self.method.lower() == "svd":
             f = TruncatedSVD
-        elif method.lower() == "tsne":
+        elif self.method.lower() == "tsne":
             f = TSNE
-        elif method.lower() == "none":
+        elif self.method.lower() == "none":
             f = None
         else:
             raise Exception("Invalid embed_communities embedding method")
 
         if f is not None:
-            X_embedded = f(n_components=n_components).fit_transform(X_mid)
+            X_embedded = f(n_components=self.n_components).fit_transform(X_mid)
         else:
             X_embedded = X_mid
 
-        labels = [corpus.get_utterance(root).get("meta")[community_key]
+        labels = [corpus.get_utterance(root).get("meta")[self.community_key]
                   for root in roots]
         # label_counts = Counter(labels)
         subs = defaultdict(list)

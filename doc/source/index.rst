@@ -9,6 +9,7 @@ Convokit
 Contents:
 
 .. toctree::
+   High-level tutorial <tutorial.rst>
    Coordination <coordination.rst>
    Model <model.rst>
    QuestionTypology <questionTypology.rst>

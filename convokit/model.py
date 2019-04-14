@@ -551,7 +551,7 @@ class Corpus:
 #        uts = list(sorted(uts.values(), key=lambda u: u.timestamp))
 #        return uts[:n]
 
-    def utterance_threads(self, prefix_len=None, suffix_len=0):
+    def utterance_threads(self, prefix_len=None, suffix_len=0, include_root=True):
         """
         Returns dict of threads, where a thread is all utterances with the
         same root.
@@ -560,13 +560,16 @@ class Corpus:
             of each thread (sorted by ascending timestamp value)
         :param suffix_len: if an integer n, only get the last n utterances
             of each thread (sorted by descending timestamp value)
+        :param include_root: True if root utterance should be included in the utterance thread,
+            False otherwise, i.e. thread begins from top level comment.
 
         :return: Dictionary from thread root ids to threads, where a thread is
             itself a dictionary from utterance ids to utterances.
         """
+        first_utt_type = "root" if include_root else "top_level_comment"
         threads = defaultdict(list)
         for ut in self.utterances.values():
-            threads[ut.get("meta")["top_level_comment"]].append(ut)
+            threads[ut.get("meta")[first_utt_type]].append(ut)
         return {root: {utt.id: utt for utt in list(sorted(l,
             key=lambda ut: ut.timestamp))[-suffix_len:prefix_len]}
             for root, l in threads.items()}

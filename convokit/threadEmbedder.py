@@ -20,28 +20,21 @@ class ThreadEmbedder(Transformer):
              then the Dict contains a third key "components": the SVD components array
     """
 
-    def __init__(self):
-        pass
+    def __init__(self, n_components=7, method="svd",
+                 norm_method="standard", return_components=False):
+        self.n_components = n_components
+        self.method = method
+        self.norm_method = norm_method
+        self.return_components = return_components
 
-    def transform(self, corpus, n_components=7, method="svd",
-                  norm_method="standard", return_components=False):
+    def transform(self, corpus,):
         """
         Same as fit_transform()
         """
-        return self.fit_transform(corpus, n_components=n_components, method=method,
-                                  norm_method=norm_method, return_components=return_components)
+        return self.fit_transform(corpus)
 
-    def fit_transform(self, corpus, n_components=7, method="svd",
-                      norm_method="standard", return_components=False):
-        """
-        :param corpus: Corpus object
-        :param n_components: Number of dimensions to embed into
-        :param method: embedding method; either "svd" or "tsne"
-        :param norm_method: data normalization method; either "standard"
-            (normalize each feature to 0 mean and 1 variance) or "none"
-        :param return_components: if using SVD method, whether to output
-            SVD components array
-        """
+    def fit_transform(self, corpus):
+
         corpus_meta = corpus.get_meta()
         if "hyperconvo" not in corpus_meta:
             raise RuntimeError("Missing thread statistics: HyperConvo.fit_transform() must be run on the Corpus first")
@@ -56,24 +49,24 @@ class ThreadEmbedder(Transformer):
             X.append(row)
         X = np.array(X)
 
-        if norm_method.lower() == "standard":
+        if self.norm_method.lower() == "standard":
             X = StandardScaler().fit_transform(X)
-        elif norm_method.lower() == "none":
+        elif self.norm_method.lower() == "none":
             pass
         else:
             raise Exception("Invalid embed_feats normalization method")
 
-        if method.lower() == "svd":
+        if self.method.lower() == "svd":
             f = TruncatedSVD
-        elif method.lower() == "tsne":
+        elif self.method.lower() == "tsne":
             f = TSNE
         else:
             raise Exception("Invalid embed_feats embedding method")
 
-        emb = f(n_components=n_components)
+        emb = f(n_components=self.n_components)
         X_mid = emb.fit_transform(X) / emb.singular_values_
 
         retval = {"X": X_mid, "roots": roots}
-        if return_components: retval["components"] = emb.components_
+        if self.return_components: retval["components"] = emb.components_
 
         return corpus.add_meta("threadEmbedder", retval)
