@@ -560,8 +560,8 @@ class Corpus:
             of each thread (sorted by ascending timestamp value)
         :param suffix_len: if an integer n, only get the last n utterances
             of each thread (sorted by descending timestamp value)
-        :param include_root: True if root utterance should be included in the utterance thread,
-            False otherwise, i.e. thread begins from top level comment.
+        :param include_root: True if root utterance should be included in the utterance thread.
+            If False, thread begins from top level comment.
 
         :return: Dictionary from thread root ids to threads, where a thread is
             itself a dictionary from utterance ids to utterances.
