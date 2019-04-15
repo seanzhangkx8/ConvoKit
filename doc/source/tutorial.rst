@@ -6,7 +6,7 @@ Setup
 =====
 Read the :ref:`introduction to Convokit <README>` and the description of its :ref:`architecture`.
 
-This toolkit requires Python 3.5.
+This toolkit requires Python 3.
 
 If you haven't already,
 
