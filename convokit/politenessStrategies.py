@@ -17,8 +17,6 @@ class PolitenessStrategies(Transformer):
     Encapsulates extraction of politeness strategies from utterances in a
     Corpus.
 
-    :param corpus: the corpus to compute features for.
-    :type corpus: Corpus
     :param verbose: whether or not to print status messages while computing features
 
     :ivar corpus: the PolitenessStrategies object's corpus
@@ -30,7 +28,16 @@ class PolitenessStrategies(Transformer):
 
     def transform(self, corpus):
         """Extract politeness strategies from each utterances in the corpus and annotate
-        the utterances with the extracted strategies"""
+        the utterances with the extracted strategies. Requires that the corpus has previously
+        been transformed by a Parser, such that each utterance has dependency parse info in
+        its metadata table.
+        
+        :param corpus: the corpus to compute features for.
+        :type corpus: Corpus
+        """
+        
+        if "parsed" not in corpus.meta_index["utterances-index"]:
+            raise RuntimeError("Cannot extract politeness strategies from a Corpus that has not been parsed. Run Parser.transform(corpus) before calling this function.")
 
         # preprocess the utterances in the format expected by the API
         if self.verbose: print("Preprocessing comments...")
@@ -50,7 +57,11 @@ class PolitenessStrategies(Transformer):
     def _preprocess_utterances(self, corpus):
         """Convert each Utterance in the given Corpus into the representation expected
         by the politeness API. Assumes that the Corpus has already been parsed, so that
-        each Utterance contains the `parsed` metadata entry"""
+        each Utterance contains the `parsed` metadata entry
+        
+        :param corpus: the corpus to compute features for.
+        :type corpus: Corpus
+        """
 
         utt_ids = [] # keep track of the order in which we process the utterances, so we can join with the corpus at the end
         documents = []
@@ -71,5 +82,6 @@ class PolitenessStrategies(Transformer):
                 doc["parses"].append(sent_parses)
             doc["unigrams"], doc["bigrams"] = get_unigrams_and_bigrams(doc)
             documents.append(doc)
-        print("Done!")
+        if self.verbose:
+            print("Done!")
         return utt_ids, documents
