@@ -2,10 +2,10 @@ import convokit
 from sklearn.neighbors import NearestNeighbors
 
 print("Loading corpus")
-corpus = convokit.Corpus(filename=convokit.download("reddit-corpus"))
+corpus = convokit.Corpus(filename=convokit.download("reddit-corpus-small"))
 
 print("Computing hypergraph features")
-hc = convokit.HyperConvo(prefix_len=10)
+hc = convokit.HyperConvo(prefix_len=10, include_root=False)
 hc.fit_transform(corpus)
 
 print("Computing low-dimensional embeddings")

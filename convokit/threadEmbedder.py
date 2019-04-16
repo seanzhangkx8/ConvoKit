@@ -3,7 +3,7 @@ from sklearn.decomposition import TruncatedSVD
 from sklearn.manifold import TSNE
 from sklearn.preprocessing import StandardScaler
 
-from transformer import Transformer
+from .transformer import Transformer
 
 
 class ThreadEmbedder(Transformer):

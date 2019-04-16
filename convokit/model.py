@@ -245,7 +245,7 @@ class Conversation:
 KeyId = "id"
 KeyUser = "user"
 KeyConvoRoot = "root"
-KeyReplyTo = "reply-to"
+KeyReplyTo = "reply_to"
 KeyTimestamp = "timestamp"
 KeyText = "text"
 DefinedKeys = {KeyId, KeyUser, KeyConvoRoot, KeyReplyTo, KeyTimestamp, KeyText}
@@ -566,10 +566,14 @@ class Corpus:
         :return: Dictionary from thread root ids to threads, where a thread is
             itself a dictionary from utterance ids to utterances.
         """
-        first_utt_type = "root" if include_root else "top_level_comment"
         threads = defaultdict(list)
         for ut in self.utterances.values():
-            threads[ut.get("meta")[first_utt_type]].append(ut)
+            if include_root:
+                threads[ut.root].append(ut)
+            else:
+                top_level_comment = ut.get("meta")["top_level_comment"]
+                if top_level_comment is None: continue # i.e. this is a post (root) utterance
+                threads[top_level_comment].append(ut)
         return {root: {utt.id: utt for utt in list(sorted(l,
             key=lambda ut: ut.timestamp))[-suffix_len:prefix_len]}
             for root, l in threads.items()}

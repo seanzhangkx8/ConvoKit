@@ -37,7 +37,7 @@ def download(name, verbose=True):
         "reddit-corpus": top + \
             "datasets/reddit-corpus/full.json",
         "reddit-corpus-small": top + \
-            "datasets/reddit-corpus/small.json",
+            "datasets/subreddit-corpus/reddit-corpus-small.corpus",
         "conversations-gone-awry-corpus": top + \
             "datasets/conversations-gone-awry-corpus/paired_conversations.json",
         "parliament-motifs": [

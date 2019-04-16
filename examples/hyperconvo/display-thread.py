@@ -1,7 +1,7 @@
 import sys
 import convokit
 
-corpus = convokit.Corpus(filename=convokit.download("reddit-corpus"))
+corpus = convokit.Corpus(filename=convokit.download("reddit-corpus-small"))
 threads = corpus.utterance_threads(prefix_len=10, include_root=False)
 
 def disp(thread, root, indent=0):
