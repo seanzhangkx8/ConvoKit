@@ -23,8 +23,3 @@ examples/questionTypology/qdoc_df.tsv
 website/output/
 update-website-live.sh
 examples/hyperconvo/.ipynb_checkpoints
-.idea/.name
-.idea/inspectionProfiles/Project_Default.xml
-*.xml
-*.iml
-venv/
