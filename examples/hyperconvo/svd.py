@@ -3,10 +3,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 print("Loading corpus")
-corpus = convokit.Corpus(filename=convokit.download("reddit-corpus"))
+corpus = convokit.Corpus(filename=convokit.download("reddit-corpus-small"))
 
 print("Computing hypergraph features")
-hc = convokit.HyperConvo(prefix_len=10)
+hc = convokit.HyperConvo(prefix_len=10, include_root=False)
 hc.fit_transform(corpus)
 threads_feats = corpus.get_meta()["hyperconvo"]
 feat_names = list(sorted(threads_feats[list(threads_feats.keys())[0]].keys()))

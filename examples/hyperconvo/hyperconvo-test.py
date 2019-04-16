@@ -2,7 +2,7 @@ import convokit
 import numpy as np
 
 # create corpus object
-corpus = convokit.Corpus("../../datasets/reddit-corpus/reddit-convos.json")
+corpus = convokit.Corpus(filename=convokit.download("reddit-corpus-small"))
 
 # we typically would not need to expose make_hypergraph publicly, but we do this here
 # to demonstrate Hypergraph methods
@@ -40,6 +40,9 @@ hc = convokit.HyperConvo()
 # HyperConvo interface: get high-level degree features
 hc.fit_transform(corpus)
 feats = corpus.get_meta()["hyperconvo"]
-for k, v in feats.items():
+
+random_thread = next(iter(feats))
+
+for k, v in feats[random_thread].items():
     print("{}: {:.4f}".format(k, v))
 print()

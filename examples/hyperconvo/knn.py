@@ -2,13 +2,16 @@ import convokit
 from sklearn.neighbors import NearestNeighbors
 
 print("Loading corpus")
-corpus = convokit.Corpus(filename=convokit.download("reddit-corpus-small"))
+corpus = convokit.Corpus(filename=convokit.download("subreddit-Cornell"))
 
 print("Computing hypergraph features")
 hc = convokit.HyperConvo(prefix_len=10, include_root=False)
 hc.fit_transform(corpus)
 
 print("Computing low-dimensional embeddings")
+te = convokit.ThreadEmbedder(n_components=7)
+te.fit_transform(corpus)
+
 ce = convokit.CommunityEmbedder(community_key="subreddit")
 ce.fit_transform(corpus)
 

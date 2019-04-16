@@ -77,7 +77,7 @@ class HyperConvo(Transformer):
             if corpus is None:
                 raise RuntimeError("fit_transform() helper method _make_hypergraph()"
                                    "has no valid corpus / utterances input")
-            uts = corpus.iter_utterances()
+            uts = {utt.id: utt for utt in corpus.iter_utterances()}
 
         G = Hypergraph()
         username_to_utt_ids = OrderedDict()

@@ -384,9 +384,15 @@ class Corpus:
                 user = users_cache[user_key]
                 self.all_users.add(user)
 
+                # temp fix
+                if "reply-to" in u:
+                    reply_to_data = u["reply-to"]
+                else:
+                    reply_to_data = u[KeyReplyTo]
+
                 ut = Utterance(id=u[KeyId], user=user,
                         root=u[KeyConvoRoot],
-                        reply_to=u[KeyReplyTo], timestamp=u[KeyTimestamp],
+                        reply_to=reply_to_data, timestamp=u[KeyTimestamp],
                         text=u[KeyText], meta=u[KeyMeta])
                 self.utterances[ut.id] = ut
         elif utterances is not None:
