@@ -25,6 +25,10 @@ def download(name, verbose=True, data_dir=None, use_newest_version=True):
     :return: The path to the downloaded item.
     """
     top = "http://zissou.infosci.cornell.edu/socialkit/"
+
+    reddit_base_dir = "https://zissou.infosci.cornell.edu/convokit/datasets/subreddit-corpus/"
+    subreddit_base_dir = "https://zissou.infosci.cornell.edu/convokit/datasets/subreddit-corpus/corpus_zipped/"
+    
     cur_version = {
         "supreme-corpus": 2,
         "wiki-corpus": 2,
@@ -34,25 +38,32 @@ def download(name, verbose=True, data_dir=None, use_newest_version=True):
         "reddit-corpus-small": 2,
         "conversations-gone-awry-corpus": 2
     }
+
     DatasetURLs = {
         "supreme-corpus": "http://zissou.infosci.cornell.edu/convokit/"
             "datasets/supreme-corpus/full.corpus",
+       
         "wiki-corpus": "http://zissou.infosci.cornell.edu/convokit/"
             "datasets/wiki-corpus/full.corpus",
+       
         "parliament-corpus": top + \
-            "datasets/parliament-corpus/full.json",
-#        "supreme-corpus": top + \
-#            "datasets/supreme-corpus/full.json",
+            "datasets/parliament-corpus/full.corpus",
+
         "tennis-corpus": "http://zissou.infosci.cornell.edu/convokit/"
             "datasets/tennis-corpus/full.corpus",
-#        "wiki-corpus": top + \
-#            "datasets/wiki-corpus/full.json",
-        "reddit-corpus": top + \
-            "datasets/reddit-corpus/full.json",
-        "reddit-corpus-small": top + \
-            "datasets/reddit-corpus/small.json",
+
+        # "reddit-corpus": top + \
+        #     "datasets/reddit-corpus/full.json",
+
+        # "reddit-corpus-small": top + \
+        #     "datasets/reddit-corpus/small.json",
+
         "conversations-gone-awry-corpus": "http://zissou.infosci.cornell.edu/convokit/"
             "datasets/conversations-gone-awry-corpus/full.corpus",
+        
+        "reddit-corpus-small": reddit_base_dir + "reddit-corpus-small.corpus", 
+
+
         "parliament-motifs": [
             top + \
             "datasets/parliament-corpus/parliament-motifs/answer_arcs.json",
@@ -147,7 +158,10 @@ def download(name, verbose=True, data_dir=None, use_newest_version=True):
         ]
 
     }
-    name = name.lower()
+
+    if not name.startswith("subreddit"): 
+        name = name.lower()
+    
     if data_dir is None:
         data_dir = os.path.expanduser("~/.convokit/")
         #pkg_resources.resource_filename("convokit", "")
@@ -204,7 +218,14 @@ def download_helper(dataset_path, url, verbose, name, downloadeds_path):
         shutil.copyfileobj(response, out_file)
 
     # post-process (extract) corpora
-    if url.lower().endswith(".corpus"):
+    if name.startswith("subreddit"):
+         with zipfile.ZipFile(dataset_path, "r") as zipf:
+            corpus_dir = os.path.join(os.path.dirname(downloadeds_path), name)
+            if not os.path.exists(corpus_dir):
+                os.mkdir(corpus_dir)
+            zipf.extractall(corpus_dir)
+
+    elif url.lower().endswith(".corpus"):
         #print(dataset_path)
         with zipfile.ZipFile(dataset_path, "r") as zipf:
             zipf.extractall(os.path.dirname(downloadeds_path))
