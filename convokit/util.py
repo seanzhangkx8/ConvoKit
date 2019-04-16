@@ -26,8 +26,7 @@ def download(name, verbose=True, data_dir=None, use_newest_version=True):
     """
     top = "http://zissou.infosci.cornell.edu/socialkit/"
 
-    reddit_base_dir = "https://zissou.infosci.cornell.edu/convokit/datasets/subreddit-corpus/"
-    subreddit_base_dir = "https://zissou.infosci.cornell.edu/convokit/datasets/subreddit-corpus/corpus_zipped/"
+    reddit_base_dir = "http://zissou.infosci.cornell.edu/convokit/datasets/subreddit-corpus/"
     
     cur_version = {
         "supreme-corpus": 2,
@@ -36,7 +35,8 @@ def download(name, verbose=True, data_dir=None, use_newest_version=True):
         "tennis-corpus": 2,
         "reddit-corpus": 2,
         "reddit-corpus-small": 2,
-        "conversations-gone-awry-corpus": 2
+        "conversations-gone-awry-corpus": 2,
+        "subreddit": 0,
     }
 
     DatasetURLs = {
@@ -46,11 +46,14 @@ def download(name, verbose=True, data_dir=None, use_newest_version=True):
         "wiki-corpus": "http://zissou.infosci.cornell.edu/convokit/"
             "datasets/wiki-corpus/full.corpus",
        
-        "parliament-corpus": top + \
+        "parliament-corpus": "http://zissou.infosci.cornell.edu/convokit/"
             "datasets/parliament-corpus/full.corpus",
 
         "tennis-corpus": "http://zissou.infosci.cornell.edu/convokit/"
             "datasets/tennis-corpus/full.corpus",
+
+        "movie-corpus": "http://zissou.infosci.cornell.edu/convokit/"
+            "datasets/movie-corpus/full.corpus",
 
         # "reddit-corpus": top + \
         #     "datasets/reddit-corpus/full.json",
@@ -158,10 +161,16 @@ def download(name, verbose=True, data_dir=None, use_newest_version=True):
         ]
 
     }
-
+    
     if not name.startswith("subreddit"): 
         name = name.lower()
-    
+    else:
+        subreddit_name = name.split("-")[1]
+        print(subreddit_name)
+        cur_version[name] = cur_version['subreddit']
+        DatasetURLs[name] = get_subreddit_info(subreddit_name)
+        print(DatasetURLs[name])
+
     if data_dir is None:
         data_dir = os.path.expanduser("~/.convokit/")
         #pkg_resources.resource_filename("convokit", "")
@@ -172,6 +181,7 @@ def download(name, verbose=True, data_dir=None, use_newest_version=True):
     dataset_path = os.path.join(data_dir, "downloads", name)
     if not os.path.exists(os.path.dirname(dataset_path)):
         os.makedirs(os.path.dirname(dataset_path))
+
 
     downloadeds_path = os.path.join(data_dir, "downloads", "downloaded.txt")
     if not os.path.isfile(downloadeds_path):
@@ -188,6 +198,7 @@ def download(name, verbose=True, data_dir=None, use_newest_version=True):
     if name not in downloaded or \
         (use_newest_version and name in cur_version and
             downloaded[name] < cur_version[name]):
+
         if name.endswith("-motifs"):
             for url in DatasetURLs[name]:
                 full_name = name + url[url.rfind('/'):]
@@ -203,7 +214,8 @@ def download(name, verbose=True, data_dir=None, use_newest_version=True):
     return parent_dir
 
 def download_helper(dataset_path, url, verbose, name, downloadeds_path):
-    if url.lower().endswith(".corpus"):
+    
+    if url.lower().endswith(".corpus") or url.lower().endswith(".corpus.zip"):
         dataset_path += ".zip"
 
     with urllib.request.urlopen(url) as response, \
@@ -224,7 +236,7 @@ def download_helper(dataset_path, url, verbose, name, downloadeds_path):
             if not os.path.exists(corpus_dir):
                 os.mkdir(corpus_dir)
             zipf.extractall(corpus_dir)
-
+    
     elif url.lower().endswith(".corpus"):
         #print(dataset_path)
         with zipfile.ZipFile(dataset_path, "r") as zipf:
@@ -241,6 +253,38 @@ def corpus_version(filename):
     with open(os.path.join(filename, "index.json")) as f:
         d = json.load(f)
         return int(d["version"])
+
+# retrieve grouping and completes the download link for subreddit
+def get_subreddit_info(subreddit_name):
+
+    # base directory of subreddit corpuses
+    subreddit_base = "http://zissou.infosci.cornell.edu/convokit/datasets/subreddit-corpus/"
+    data_dir = os.path.join(subreddit_base, "corpus-zipped")
+    
+    groupings_url = subreddit_base + "subreddit-groupings.txt"
+    groups_fetched = urllib.request.urlopen(groupings_url) 
+    
+    groups = [line.decode("utf-8").strip("\n") for line in groups_fetched]
+
+    for group in groups:
+        if subreddit_in_grouping(subreddit_name, group):
+            return os.path.join(data_dir, group, subreddit_name + ".corpus.zip")
+
+    print("The subreddit requested is not available.")
+
+    return ""
+
+def subreddit_in_grouping(subreddit: str, grouping_key: str):
+    """
+    :param subreddit: subreddit name
+    :param grouping_key: example: "askreddit~-~blackburn"
+    :return: if string is within the grouping range
+    """
+    bounds = grouping_key.split("~-~")
+    if len(bounds) == 1:
+        print(subreddit, grouping_key)
+    return bounds[0] <= subreddit <= bounds[1]
+
 
 def meta_index(corpus=None, filename=None):
     keys = ["utterances-index", "conversations-index", "users-index",
