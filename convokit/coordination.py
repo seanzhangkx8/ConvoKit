@@ -455,9 +455,13 @@ class Coordination(Transformer):
             utterance_thresh_func=None,
             fine_grained_speakers=False, fine_grained_targets=False,
             focus="speakers",
-            split_by_attribs=[], speaker_attribs={}, target_attribs={}):
+            split_by_attribs=None, speaker_attribs=None, target_attribs=None):
         assert not isinstance(speakers, str)
         assert focus == "speakers" or focus == "targets"
+
+        if split_by_attribs is None: split_by_attribs = []
+        if speaker_attribs is None: speaker_attribs = {}
+        if target_attribs is None: target_attribs = {}
 
         def annot_user(user, ut):
             return (user, tuple([ut.meta[attrib] if attrib in ut.meta else None 

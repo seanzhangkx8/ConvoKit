@@ -1,4 +1,4 @@
-"""QuestionTypology features
+"""Implementes unsupervised identification of rhetorical roles in questions
 (http://www.cs.cornell.edu/~cristian/Asking_too_much.html).
 """
 
@@ -35,14 +35,11 @@ span_delim = 'span'
 
 class QuestionTypology(Transformer):
     """Encapsulates computation of question types from a question-answer corpus.
+    Can be trained and evaluated on separate corpora.
 
-    :param corpus: the corpus to compute types for.
-    :type corpus: Corpus
-    :param data_dir: the directory that the data is stored in, and written to
-    :param motifs_dir: the directory that the motifs are stored in, if they have been precomputed
-    :param num_clusters: the number of question types to find in the clustering algorithm
-    :param dataset_name: parliament or tennis
+    :param num_clusters: the number of question types to be extracted
     :param question_threshold: the minimum number of questions a motif must occur in for it to be considered
+    :param answer_threshold: the minimum number of answers a motif must occur in for it to be considered
     :param num_dims: the number of latent dimensions in the sparse matrix
     :param verbose: False or 0 if nothing should be printed, otherwise equal to the interval at which the number of completed steps of any part of the algorithm are printed
     :param dedup_threshold: If two motifs co-occur in a higher proportion of cases than this threshold, they are considered duplicates and one is removed
@@ -72,10 +69,7 @@ class QuestionTypology(Transformer):
                                letter. Enable this for corpora that are known to contain
                                properly formatted utterances (e.g. Parliament corpus)
 
-    :ivar corpus: the QuestionTypology object's corpus.
-    :ivar data_dir: the directory that the data is stored in, and written to
-    :ivar motifs_dir: the directory that the motifs are stored in, if they have been precomputed
-    :ivar num_clusters: the number of question types to find in the clustering algorithm
+    :ivar num_clusters: the number of question types to be extracted
     :ivar mtx_obj: an object that contains information about the QA matrix from the paper
     :ivar km: the Kmeans object that has the labels
     :ivar types_to_data: an object that contains information about motifs, fragments and questions in each type
@@ -128,7 +122,12 @@ class QuestionTypology(Transformer):
 
     def fit(self, corpus):
         """Extract question-answer pairs from the given corpus and use them to
-        construct the internal matrix objects"""
+        construct the internal matrix objects (in other words, "train" the
+        QuestionTypology object on the given corpus)
+        
+        :param corpus: the Corpus to use for fitting the model
+        :type corpus: Corpus
+        """
 
         self.motifs = MotifsExtractor.extract_question_motifs(self._iter_corpus(corpus, 'questions', self.is_question),
             self.question_filter, self.follow_conj, self.min_support, self.dedup_threshold, self.item_set_size, self.verbose)
@@ -218,7 +217,7 @@ class QuestionTypology(Transformer):
 
     @staticmethod
     def display_questions_for_type(corpus, type_num, num_egs=10):
-        """Displays num_egs number of questions that were assigned type
+        """Displays num_egs number of questions in the given corpus that were assigned type
             type_num by the typing algorithm.
         """
         questions = []
@@ -238,7 +237,7 @@ class QuestionTypology(Transformer):
 
     @staticmethod
     def display_question_answer_pairs_for_type(corpus, type_num, num_egs=10):
-        """Displays num_egs number of question-answer pairs that were assigned type
+        """Displays num_egs number of question-answer pairs in the given corpus that were assigned type
             type_num by the typing algorithm.
         """
         questions = []
@@ -471,7 +470,11 @@ class QuestionTypology(Transformer):
         return qdoc_df
 
     def transform(self, corpus):
-        """Computes the distance to each question type cluster for some previously unseen text."""
+        """Computes the distance to each question type cluster for some (possibly previously unseen) text.
+        
+        :param corpus: the Corpus to apply the fitted model to
+        :type corpus: Corpus
+        """
 
         if self.verbose:
             print("transforming corpus!")
