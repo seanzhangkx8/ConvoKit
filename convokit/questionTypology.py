@@ -1369,6 +1369,7 @@ class QuestionClusterer:
         a_mtx = QuestionClusterer.build_mtx(mtx_obj, 'a', norm, True, leaves_only)
         return q_mtx, a_mtx
 
+    @staticmethod
     def do_sparse_svd(mtx, k):
         """
             Computes the largest k singular values/vectors for a mtx with shape M X N.
@@ -1395,7 +1396,8 @@ class QuestionClusterer:
             return lq, a_u, a_s, a_v
 
     @staticmethod
-    def inspect_latent_space(mtx, names, dim_iter=None, num_dims=5, num_egs=10, which_end=None, skip_first=True, dim_names={},s=None):
+    def inspect_latent_space(mtx, names, dim_iter=None, num_dims=5, num_egs=10, which_end=None, skip_first=True, dim_names=None,s=None):
+        if dim_names is None: dim_names = {}
         mtx = Normalizer().fit_transform(mtx).T
         if dim_iter is None:
             dim_iter = range(int(skip_first), num_dims + int(skip_first))
