@@ -11,7 +11,12 @@ Contents
 .. toctree::
    Core Concepts <architecture.rst>
    High-level tutorial <tutorial.rst>
-   Coordination <coordination.rst>
    Model <model.rst>
+   Coordination <coordination.rst>
    QuestionTypology <questionTypology.rst>
+   PolitenessStrategies <politenessStrategies.rst>
+   Hyperconvo <hyperconvo.rst>
+   Parser <parser.rst>
+   Transformer <transformer.rst>
    Utility functions <util.rst>
+   Datasets <datasets.rst>
