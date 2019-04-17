@@ -60,7 +60,7 @@ For some quick stats:
 163948
 >>> len(corpus.get_usernames())
 359
->>> len(corpus.get_conversations())
+>>> len(corpus.get_conversation_ids())
 81974
 
 Additional note

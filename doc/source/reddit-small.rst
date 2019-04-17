@@ -9,19 +9,19 @@ Dataset details
 User-level information
 ^^^^^^^^^^^^^^^^^^^^^^
 
-Users in this corpus are reddit users, identified by their account name. We include their activity statistics within the corpus:
+Users in this corpus are Reddit users, identified by their account names. The corpus includes the following activity statistics:
 
-* num_posts: number of post this user has authored
-* num_comments: number of comment activities from the user
+* num_posts: number of posts from the user
+* num_comments: number of comments from the user
 
 
 Utterance-level information
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Each individual post and comment is viewed as an utterance. For each utterance, we include:
+Each individual post or comment is viewed as an utterance. For each utterance, the corpus include:
 
 * score: score (i.e., the number of upvotes minus the number of downvotes) of the content 
-* top_level_comment: the id of the top level comment
+* top_level_comment: the id of the top level comment (None if the utterance is a post)
 * retrieved_on: unix timestamp of the time of when the data is retrieved 
 * gilded: gilded status of the content
 * gildings: gilding information of the content
@@ -67,8 +67,10 @@ For some quick stats:
 282418
 >>> len(corpus.get_usernames())
 115431
->>> len(corpus.get_conversations())
+>>> len(corpus.get_conversation_ids())
 8285
 
 Additional note
 ---------------
+
+Refer to :doc:`tutorial` for a quick tutorial with Convokit with this corpus. 

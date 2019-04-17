@@ -1,4 +1,4 @@
-Wikipedia Talk Pages Corpus
+Wikipedia talk pages corpus
 ===========================
 
 A collection of conversations from `Wikipedia editor's talk pages <http://en.wikipedia.org/wiki/Wikipedia:Talk_page_guidelines>`_. with metadata. 
@@ -41,15 +41,12 @@ For some quick stats:
 391294
 >>> len(corpus.get_usernames())
 38462
->>> len(corpus.get_conversations())
+>>> len(corpus.get_conversation_ids())
 125292
 
 
 Additional note
 ---------------
-
-This data was collected from late 2017 to early 2018 and was annotated in April 2018.
-
 
 Contact
 ^^^^^^^
