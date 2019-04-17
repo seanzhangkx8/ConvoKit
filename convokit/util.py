@@ -170,10 +170,10 @@ def download(name, verbose=True, data_dir=None, use_newest_version=True):
         name = name.lower()
     else:
         subreddit_name = name.split("-")[1]
-        print(subreddit_name)
+        # print(subreddit_name)
         cur_version[name] = cur_version['subreddit']
         DatasetURLs[name] = get_subreddit_info(subreddit_name)
-        print(DatasetURLs[name])
+        # print(DatasetURLs[name])
 
     custom_data_dir = data_dir
 
@@ -213,7 +213,7 @@ def download(name, verbose=True, data_dir=None, use_newest_version=True):
                 if custom_data_dir is None and name == dname:
                     dataset_path = os.path.join(path, name)
 
-        print(list(downloaded.keys()))
+        # print(list(downloaded.keys()))
         if (name, os.path.dirname(dataset_path)) in downloaded:
             if use_newest_version and name in cur_version and \
                 downloaded[name, os.path.dirname(dataset_path)] < cur_version[name]:
@@ -222,10 +222,11 @@ def download(name, verbose=True, data_dir=None, use_newest_version=True):
             needs_download = True
 
     if needs_download:
+
+        print("Downloading {} to {}".format(name, dataset_path))
     #name not in downloaded or \
     #    (use_newest_version and name in cur_version and
     #        downloaded[name] < cur_version[name]):
-
         if name.endswith("-motifs"):
             for url in DatasetURLs[name]:
                 full_name = name + url[url.rfind('/'):]
@@ -236,8 +237,11 @@ def download(name, verbose=True, data_dir=None, use_newest_version=True):
                     download_helper(motif_file_path, url, verbose, full_name, downloadeds_path)
         else:
             url = DatasetURLs[name]
+            print("Downloading to {}".format(dataset_path))
             download_helper(dataset_path, url, verbose, name, downloadeds_path)
     else:
+
+        print("Dataset already exists at {}".format(dataset_path))
         dataset_path = os.path.join(downloaded_paths[name], name)
 
     return dataset_path
@@ -261,7 +265,7 @@ def download_helper(dataset_path, url, verbose, name, downloadeds_path):
     # post-process (extract) corpora
     if name.startswith("subreddit"):
         with zipfile.ZipFile(dataset_path, "r") as zipf:
-            corpus_dir = os.path.join(os.path.dirname(downloadeds_path), name)
+            corpus_dir = os.path.join(os.path.dirname(dataset_path), name)
             if not os.path.exists(corpus_dir):
                 os.mkdir(corpus_dir)
             zipf.extractall(corpus_dir)
