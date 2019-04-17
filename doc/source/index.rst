@@ -9,6 +9,8 @@ Contents
 ========
 
 .. toctree::
+   :maxdepth: 2
+
    Core Concepts <architecture.rst>
    High-level tutorial <tutorial.rst>
    Model <model.rst>
