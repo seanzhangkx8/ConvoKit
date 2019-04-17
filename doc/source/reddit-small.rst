@@ -64,11 +64,11 @@ To download directly with ConvoKit:
 For some quick stats:
 
 >>> len(corpus.get_utterance_ids()) 
-282418
+297132
 >>> len(corpus.get_usernames())
-115431
+119889
 >>> len(corpus.get_conversation_ids())
-8285
+8286
 
 Additional note
 ---------------

@@ -36,6 +36,7 @@ def download(name, verbose=True, data_dir=None, use_newest_version=True):
         "reddit-corpus": 2,
         "reddit-corpus-small": 2,
         "conversations-gone-awry-corpus": 2,
+        "movie-corpus": 1,
         "subreddit": 0,
     }
 
