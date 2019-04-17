@@ -270,7 +270,7 @@ class Corpus:
 
     def __init__(self, filename=None, utterances=None, merge_lines=False,
                 exclude_utterance_meta=None, exclude_conversation_meta=None,
-                exclude_user_meta=None, exclude_overall_meta=None):
+                exclude_user_meta=None, exclude_overall_meta=None, version=None):
 
         self.meta = {}
         self.meta_index = {}
