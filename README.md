@@ -1,5 +1,5 @@
 # Cornell Conversational Analysis Toolkit ([ConvoKit](http://convokit.cornell.edu/))
-This toolkit contains tools to extract conversational features and analyze social phenomena in conversations.  Several large [conversational datasets](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit#datasets) are included together with scripts exemplifying the use of the toolkit on these datasets.
+This toolkit contains tools to extract conversational features and analyze social phenomena in conversations, using a [single unified interface](https://zissou.infosci.cornell.edu/socialkit/documentation/architecture.html) inspired by (and compatible with) scikit-learn.  Several large [conversational datasets](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit#datasets) are included together with scripts exemplifying the use of the toolkit on these datasets.
 
 The toolkit currently implements features for:
 
@@ -25,45 +25,51 @@ Example: [hypergraph creation and feature extraction, visualization and interpre
 ## Datasets
 These datasets are included for ready use with the toolkit:
 
-- [Conversations Gone Awry Corpus](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/datasets/conversations-gone-awry-corpus/awry.README.v1.00.txt): a collection of conversations from Wikipedia talk pages that derail into personal attacks (1,270 conversations, 6,963 comments). `convokit.download("conversations-gone-awry-corpus")`
+### [Conversations Gone Awry Corpus](https://zissou.infosci.cornell.edu/socialkit/documentation/awry.html)
 
-- [Tennis Corpus](http://www.cs.cornell.edu/~liye/tennis_README.txt): transcripts for tennis singles post-match press conferences for major tournaments between 2007 to 2015 (6,467 post-match press conferences). `convokit.download("tennis-corpus")`
+A collection of conversations from Wikipedia talk pages that derail into personal attacks (1,270 conversations, 6,963 comments)  
+Name for download: `conversations-gone-awry-corpus`
 
-- [Wikipedia Talk Pages Corpus](http://www.cs.cornell.edu/~cristian/Echoes_of_power_files/wikipedia.talkpages.README.v1.01.txt): collection of conversations from Wikipedia editors' talk pages. `convokit.download("wiki-corpus")`
+### [Tennis Corpus](https://zissou.infosci.cornell.edu/socialkit/documentation/tennis.html)
 
-- [Supreme Court Corpus](http://www.cs.cornell.edu/~cristian/Echoes_of_power_files/supreme.README.v1.01.txt): collection of conversations from the U.S. Supreme Court Oral Arguments. `convokit.download("supreme-corpus")`
+Transcripts for tennis singles post-match press conferences for major tournaments between 2007 to 2015 (6,467 post-match press conferences).  
+Name for download: `tennis-corpus`
 
-- [Parliament Corpus](http://www.cs.cornell.edu/~cristian/Asking_too_much_files/paper-questions.pdf): parliamentary question periods from May 1979 to December 2016 (216,894 question-answer pairs). `convokit.download("parliament-corpus")`
+### [Wikipedia Talk Pages Corpus](https://zissou.infosci.cornell.edu/socialkit/documentation/wiki.html)
 
-- [Reddit Conversations Corpus](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/tree/master/datasets/reddit-corpus) (beta): 99,145 Reddit conversations sampled from 100 subreddits. `convokit.download("reddit-corpus")`
+A medium-size collection of conversations from Wikipedia editors' talk pages.  
+Name for download: `wiki-corpus`
 
-These datasets can be downloaded using the `convokit.download()` [helper function](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/convokit/util.py).  Alternatively you can access them directly [here](http://zissou.infosci.cornell.edu/socialkit/datasets/).
+### [Supreme Court Corpus](https://zissou.infosci.cornell.edu/socialkit/documentation/supreme.html)
 
-## Data format
+A collection of conversations from the U.S. Supreme Court Oral Arguments.  
+Name for download: `supreme-corpus`
 
-To use the toolkit with your own dataset, it needs to be in a standard json [format](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/Data_format.md).
+### [Parliament Corpus](https://zissou.infosci.cornell.edu/socialkit/documentation/parliament.html)
+
+Parliamentary question periods from May 1979 to December 2016 (216,894 question-answer pairs).  
+Name for download: `parliament-corpus`
+
+### [Reddit Conversations Corpus](https://zissou.infosci.cornell.edu/socialkit/documentation/reddit-small.html) (beta)
+
+99,145 Reddit conversations sampled from 100 subreddits.  
+Name for download: `reddit-corpus`
+
+These datasets can be downloaded using the `convokit.download()` [helper function](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/convokit/util.py).  Alternatively you can access them directly [here](http://zissou.infosci.cornell.edu/convokit/datasets/).
+
+
+In addition to the provided datasets, you may also use ConvoKit with your own custom datasets by loading them into a `convokit.Corpus` object. [This example script](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/converting_movie_corpus.ipynb) shows how to construct a Corpus from custom data.
 
 ## Installation
-This toolkit requires Python 3.
+This toolkit requires Python >= 3.6.
 
 1. Download the toolkit: `pip3 install convokit`
 2. Download Spacy's English model: `python3 -m spacy download en`
 
 Alternatively, visit our [Github Page](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit) to install from source.
 
-## Usage
-
-See the example ipython notebooks linked above to familiarize yourself with how to use the different modules of the toolkit.  The basic process is:
-
-1. `import convokit` into your python3 project.
-2. Load a corpus of conversations using `corpus = convokit.Corpus(filename=...)`; use your own corpus or one of the ones provided with the toolkit.
-3. Use convokit functionality to extract features from the conversations, for example `ps = convokit.PolitenessStrategies(corpus)` extracts the politeness strategies used in all the conversations. 
-4. Have fun analyzing coversations.
-
 ## Documentation
-Documentation is hosted [here](http://zissou.infosci.cornell.edu/socialkit/documentation/).
-
-The documentation is built with [Sphinx](http://www.sphinx-doc.org/en/1.5.1/) (`pip3 install sphinx`; also requires m2r for Markdown support, `pip3 install m2r`). To build it yourself, navigate to `doc/` and run `make html`. 
+Documentation is hosted [here](http://zissou.infosci.cornell.edu/socialkit/documentation/). If you are new to ConvoKit, great places to get started are the [Core Concepts tutorial](https://zissou.infosci.cornell.edu/socialkit/documentation/architecture.html) for an overview of the ConvoKit "philosophy" and object model, and the [High-level tutorial](https://zissou.infosci.cornell.edu/socialkit/documentation/tutorial.html) for an walkthrough of how to import ConvoKit into your project, load a Corpus, and use ConvoKit functions.
 
 ## Acknowledgements
 
