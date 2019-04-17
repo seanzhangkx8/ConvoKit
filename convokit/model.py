@@ -238,10 +238,8 @@ class Conversation:
             for ut_id in self._utterance_ids:
                 ut = self._owner.get_utterance(ut_id)
                 self._usernames.add(ut.user.name)
-        #for username in self._usernames:
-        #    yield self._owner.get_user(username)
-        for user in self.all_users:
-            yield user
+        for username in self._usernames:
+           yield self._owner.get_user(username)
 
 
 KeyId = "id"

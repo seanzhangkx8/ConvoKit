@@ -19,3 +19,4 @@ Contents
    Parser <parser.rst>
    Transformer <transformer.rst>
    Utility functions <util.rst>
+   Datasets <datasets.rst>

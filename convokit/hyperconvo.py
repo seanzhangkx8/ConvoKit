@@ -41,8 +41,8 @@ class HyperConvo(Transformer):
         :param include_root: True if root utterance should be included in the utterance thread,
             False otherwise, i.e. thread begins from top level comment. (Affects prefix_len and min_thread_len counts.)
         """
-        self.prefix_len = 10
-        self.min_thread_len = 10
+        self.prefix_len = prefix_len
+        self.min_thread_len = min_thread_len
         self.include_root = include_root
 
     def transform(self, corpus):
