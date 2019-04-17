@@ -48,6 +48,24 @@ Additional information for the movies these conversations occur are included as 
 * genre: a list of genres this movie belongs to 
 
 
+Usage
+-----
+
+To download directly with ConvoKit: 
+
+>>> corpus = Corpus(filename=download("movie-corpus"))
+
+
+For some quick stats:
+
+>>> len(corpus.get_utterance_ids()) 
+304713
+>>> len(corpus.get_usernames())
+9035
+>>> len(corpus.get_conversations())
+83097
+
+
 Additional note
 ---------------
 

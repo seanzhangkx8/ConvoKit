@@ -46,6 +46,23 @@ Each round of question-answer pair is considered as a conversation. Metadata ass
 * player_ranking: ranking of the player at the time of the match
 
 
+Usage
+-----
+
+To download directly with ConvoKit: 
+
+>>> corpus = Corpus(filename=download("tennis-corpus"))
+
+
+For some quick stats:
+
+>>> len(corpus.get_utterance_ids()) 
+163948
+>>> len(corpus.get_usernames())
+359
+>>> len(corpus.get_conversations())
+81974
+
 Additional note
 ---------------
 
