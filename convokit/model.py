@@ -2,11 +2,12 @@
 
 import json
 import pickle
-from functools import total_ordering, reduce
+from functools import total_ordering
 from collections import defaultdict
 import os
 
 pair_delim = '-q-a-'
+
 
 @total_ordering
 class User:
@@ -14,12 +15,12 @@ class User:
 
     :param name: name of the user.
     :type name: str
-    :param info: arbitrary dictionary of attributes associated
+    :param meta: arbitrary dictionary of attributes associated
         with the user.
-    :type info: dict
+    :type meta: dict
 
     :ivar name: name of the user.
-    :ivar info: dictionary of attributes associated with the user.
+    :ivar meta: dictionary of attributes associated with the user.
     """
 
     def __init__(self, name=None, meta=None):
@@ -43,19 +44,21 @@ class User:
         self._update_uid()
 
     def _get_name(self): return self._name
+
     def _set_name(self, value):
         self._name = value
         self._update_uid()
     name = property(_get_name, _set_name)
 
     def _get_info(self): return self._info
+
     def _set_info(self, value):
         self._info = value
         self._update_uid()
     meta = property(_get_info, _set_info)
 
     def _update_uid(self):
-        rep = {}
+        rep = dict()
         rep["name"] = self._name
         if self._split_attribs:
             rep["attribs"] = {k: self._info[k] for k in self._split_attribs
@@ -95,14 +98,13 @@ class Utterance:
     """
 
     def __init__(self, id=None, user=None, root=None, reply_to=None,
-            timestamp=None, text=None, other=None, meta=None):
+            timestamp=None, text=None, meta=None):
         self.id = id
         self.user = user
         self.root = root
         self.reply_to = reply_to
         self.timestamp = timestamp
         self.text = text
-        self.other = other
         self.meta = meta if meta is not None else {}
 
     def get(self, key):
@@ -117,7 +119,9 @@ class Utterance:
         elif key == "timestamp":
             return self.timestamp
         elif key == "text":
-            return text
+            return self.text
+        elif key == "meta":
+            return self.meta
 
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
@@ -155,6 +159,7 @@ class Conversation:
         return self._meta
     def _set_meta(self, new_meta):
         self._meta = new_meta
+
     meta = property(_get_meta, _set_meta)
 
     # Conversation.id property
@@ -238,48 +243,42 @@ class Conversation:
         for user in self.all_users:
             yield user
 
+
 KeyId = "id"
 KeyUser = "user"
 KeyConvoRoot = "root"
 KeyReplyTo = "reply-to"
 KeyTimestamp = "timestamp"
 KeyText = "text"
-DefinedKeys = set([KeyId, KeyUser, KeyConvoRoot, KeyReplyTo,
-    KeyTimestamp, KeyText])
+DefinedKeys = {KeyId, KeyUser, KeyConvoRoot, KeyReplyTo, KeyTimestamp, KeyText}
 KeyMeta = "meta"
 
 BIN_DELIM_L, BIN_DELIM_R = "<##bin{", "}&&@**>"
 
 class Corpus:
-    """Represents a dataset, which can be loaded from a JSON file, CSV file or a
+    """Represents a dataset, which can be loaded from a JSON file or a
     list of utterances.
 
-    If a CSV file, the first row should consist of key names. Unknown key names
-    will have their attributes added to the "user-info" entry.
-
-    :param filename: path of json or csv file to load
+    :param filename: path of json file to load
     :param utterances: list of utterances to load
     :param merge_lines: whether to merge adjacent
         lines from the same user if the two utterances have the same root.
-    :param subdivide_users_by: collection of strings corresponding to attribute
-        names defined in the "user-info" entry. Use this if you want to count
-        the same user as being different depending on attributes other than
-        username. For example, in the Supreme Court dataset, users are annotated
-        with the current case id. You could use this to count the same person
-        across different cases as being different users.
-    :param delim: if loading a csv, specifies the delimiter string.
-    :param version: version number of corpus
+    :param version: version number of the corpus
 
     :ivar utterances: dictionary of utterances in the dataset, indexed by id.
     """
 
     def __init__(self, filename=None, utterances=None, merge_lines=False,
-        subdivide_users_by=[], delim=",",
-        exclude_utterance_meta=[], exclude_conversation_meta=[],
-        exclude_user_meta=[], exclude_overall_meta=[], version=None):
+                exclude_utterance_meta=None, exclude_conversation_meta=None,
+                exclude_user_meta=None, exclude_overall_meta=None):
+
         self.meta = {}
         self.meta_index = {}
         convos_meta = defaultdict(dict)
+        if exclude_utterance_meta is None: exclude_utterance_meta = []
+        if exclude_conversation_meta is None: exclude_conversation_meta = []
+        if exclude_user_meta is None: exclude_user_meta = []
+        if exclude_overall_meta is None: exclude_overall_meta = []
 
         self.version = version if version is not None else 0
 
@@ -326,7 +325,7 @@ class Corpus:
                         for i, ut in enumerate(utterances):
                             for k, v in ut[KeyMeta].items():
                                 if type(v) == str and v.startswith(BIN_DELIM_L) and \
-                                    v.endswith(BIN_DELIM_R):
+                                        v.endswith(BIN_DELIM_R):
                                         idx = int(v[len(BIN_DELIM_L):-len(BIN_DELIM_R)])
                                         utterances[i][KeyMeta][k] = l_bin[idx]
                 for field in exclude_utterance_meta:
@@ -355,6 +354,7 @@ class Corpus:
                                 v.endswith(BIN_DELIM_R):
                                     idx = int(v[len(BIN_DELIM_L):-len(BIN_DELIM_R)])
                                     convos_meta[k] = l_bin[idx]
+
                 for field in exclude_conversation_meta:
                     del self.meta_index["conversations-index"][field]
 
@@ -377,29 +377,17 @@ class Corpus:
                 with open(filename, "r") as f:
                     try:
                         utterances = json.load(f)
-                    except:
-                        try:
-                            utterances = self._load_csv(f, delim, DefinedKeys)
-                        except:
-                            raise ValueError("Couldn't load corpus:" +
-                                " unknown file type")
+                    except Exception as e:
+                        raise Exception("Could not load corpus. Expected json file, encountered error: \n" + str(e))
 
-                #with open(".".join(filename.split(".")[:-1]) + "-users.json", "r") as f:
-                #    for k, v in json.load(f).items():
-                #        users_meta[k] = v
 
             self.utterances = {}
             self.all_users = set()
             users_cache = {}   # avoids creating duplicate user objects
-            #print(len(utterances))
-            for i, u in enumerate(utterances):
-                # print(u)
-                #if i % 100000 == 0: print(i, end=" ", flush=True)
-                u = defaultdict(lambda: None, u)
 
-                # handle this utterance's user info
-                #user_key = (u[KeyUser], str(sorted(u[KeyUserInfo].items())) if
-                #    u[KeyUserInfo] is not None else None)
+            for i, u in enumerate(utterances):
+
+                u = defaultdict(lambda: None, u)
                 user_key = u[KeyUser]
                 if user_key not in users_cache:
                     users_cache[user_key] = User(name=u[KeyUser],
@@ -407,14 +395,20 @@ class Corpus:
                 user = users_cache[user_key]
                 self.all_users.add(user)
 
+                # temp fix
+                if "reply_to" in u:
+                    reply_to_data = u["reply_to"]
+                else:
+                    reply_to_data = u[KeyReplyTo]
+
                 ut = Utterance(id=u[KeyId], user=user,
                         root=u[KeyConvoRoot],
-                        reply_to=u[KeyReplyTo], timestamp=u[KeyTimestamp],
+                        reply_to=reply_to_data, timestamp=u[KeyTimestamp],
                         text=u[KeyText], meta=u[KeyMeta])
                 self.utterances[ut.id] = ut
         elif utterances is not None:
             self.all_users = set([u.user for u in utterances])
-            self.utterances = { u.id: u for u in utterances }
+            self.utterances = {u.id: u for u in utterances}
 
         if merge_lines:
             new_utterances = {}
@@ -443,11 +437,10 @@ class Corpus:
                         meta=convo_meta)
             self.conversations[convo_id] = convo
 
-        if subdivide_users_by:
-            self.subdivide_users_by(subdivide_users_by)
 
     # params: d is dict to encode, d_bin is dict of accumulated lists of binary attribs
-    def dump_helper_bin(self, d, d_bin, utterances_idx):
+    @staticmethod
+    def dump_helper_bin(d, d_bin, utterances_idx):
         d_out = {}
         for k, v in d.items():
             try:
@@ -481,7 +474,7 @@ class Corpus:
 
         with open(os.path.join(dir_name, "users.json"), "w") as f:
             d_bin = defaultdict(list)
-            users = {u: self.dump_helper_bin(self.get_user(u).meta, d_bin,
+            users = {u: Corpus.dump_helper_bin(self.get_user(u).meta, d_bin,
                 users_idx) for u in self.get_usernames()}
             json.dump(users, f)
             for name, l_bin in d_bin.items():
@@ -489,7 +482,7 @@ class Corpus:
                     pickle.dump(l_bin, f_pk)
         with open(os.path.join(dir_name, "conversations.json"), "w") as f:
             d_bin = defaultdict(list)
-            convos = {c: self.dump_helper_bin(self.get_conversation(c).meta,
+            convos = {c: Corpus.dump_helper_bin(self.get_conversation(c).meta,
                 d_bin, convos_idx) for c in self.get_conversation_ids()}
             json.dump(convos, f)
             for name, l_bin in d_bin.items():
@@ -515,7 +508,7 @@ class Corpus:
 
         with open(os.path.join(dir_name, "corpus.json"), "w") as f:
             d_bin = defaultdict(list)
-            meta_up = self.dump_helper_bin(self.meta, d_bin, overall_idx)
+            meta_up = Corpus.dump_helper_bin(self.meta, d_bin, overall_idx)
 #            keys = ["utterances-index", "conversations-index", "users-index",
 #                "overall-index"]
 #            meta_minus = {k: v for k, v in overall_idx.items() if k not in keys}
@@ -553,59 +546,29 @@ class Corpus:
     def iter_conversations(self):
         for v in self.conversations.values():
             yield v
-            
-    def _load_csv(self, f, delim, defined_keys):
-        keys = f.readline()[:-1].split(delim)
-        utterances = []
-        for line in f:
-            values = line[:-1].split(delim)
-            utterance = {"user-info": {}}
-            for k, v in zip(keys, values):
-                if k in defined_keys:
-                    utterance[k] = v
-                else:
-                    utterance["user-info"][k] = v
-            utterances.append(utterance)
-        return utterances
 
-    def subdivide_users_by(self, attribs):
-        """Use this if you want to count the same user as being different
-        depending on attributes other than username. For example, in the Supreme
-        Court dataset, users are annotated with the current case id. You could
-        use this to count the same person across different cases as being
-        different users.
-
-        Repeated calls to this method will override previous subdivisions.
-
-        :param attribs: Collection of attribute names to subdivide users on.
-        :type attribs: Collection
-        """
-
-        new_all_users = set()
-        for u in self.utterances.values():
-            if u.user is not None:
-                u.user.identify_by_attribs(attribs)
-                new_all_users.add(u.user)
-        self.all_users = new_all_users
-
-    def filter_utterances_by(self, regular_kv_pairs={},
-        user_info_kv_pairs={}, other_kv_pairs={}):
+    def filter_utterances_by(self, regular_kv_pairs=None,
+                             user_info_kv_pairs=None, meta_kv_pairs=None):
         """
         Creates a subset of the utterances filtered by certain attributes. Irreversible.
         If the method is run again, it will filter the already filtered subset.
         Always takes the intersection of the specified key-pairs
         """
-        new_utterances = {}
+        if regular_kv_pairs is None: regular_kv_pairs = dict()
+        if user_info_kv_pairs is None: user_info_kv_pairs = dict()
+        if meta_kv_pairs is None: meta_kv_pairs = dict()
+        new_utterances = dict()
+
         regular_keys = list(regular_kv_pairs.keys())
         user_info_keys = list(user_info_kv_pairs.keys())
-        other_keys = list(other_kv_pairs.keys())
+        meta_keys = list(meta_kv_pairs.keys())
         for uid, utterance in self.utterances.items():
             user_info = utterance.user._get_info()
-            other_dict = utterance.meta
+            meta_dict = utterance.meta
             regular = all(utterance.get(key) == regular_kv_pairs[key] for key in regular_keys)
             user = all(user_info[key] == user_info_kv_pairs[key] for key in user_info_keys)
-            other = all(other_dict[key] == other_kv_pairs[key] for key in other_keys)
-            if regular and user and other:
+            meta = all(meta_dict[key] == meta_kv_pairs[key] for key in meta_keys)
+            if regular and user and meta:
                 new_utterances[uid] = utterance
 
         self.utterances = new_utterances
@@ -617,7 +580,7 @@ class Corpus:
 #        uts = list(sorted(uts.values(), key=lambda u: u.timestamp))
 #        return uts[:n]
 
-    def utterance_threads(self, prefix_len=None, suffix_len=0):
+    def utterance_threads(self, prefix_len=None, suffix_len=0, include_root=True):
         """
         Returns dict of threads, where a thread is all utterances with the
         same root.
@@ -626,14 +589,21 @@ class Corpus:
             of each thread (sorted by ascending timestamp value)
         :param suffix_len: if an integer n, only get the last n utterances
             of each thread (sorted by descending timestamp value)
+        :param include_root: True if root utterance should be included in the utterance thread.
+            If False, thread begins from top level comment.
 
         :return: Dictionary from thread root ids to threads, where a thread is
             itself a dictionary from utterance ids to utterances.
         """
         threads = defaultdict(list)
         for ut in self.utterances.values():
-            threads[ut.root].append(ut)
-        return {root: {ut.id: ut for ut in list(sorted(l,
+            if include_root:
+                threads[ut.root].append(ut)
+            else:
+                top_level_comment = ut.get("meta")["top_level_comment"]
+                if top_level_comment is None: continue # i.e. this is a post (root) utterance
+                threads[top_level_comment].append(ut)
+        return {root: {utt.id: utt for utt in list(sorted(l,
             key=lambda ut: ut.timestamp))[-suffix_len:prefix_len]}
             for root, l in threads.items()}
 
@@ -692,8 +662,7 @@ class Corpus:
         """
         pairs = set()
         for u2 in self.utterances.values():
-            if u2.user is not None and u2.reply_to is not None and \
-                u2.reply_to in self.utterances:
+            if u2.user is not None and u2.reply_to is not None and u2.reply_to in self.utterances:
                 u1 = self.utterances[u2.reply_to]
                 if u1.user is not None:
                     if selector is None or selector(u2.user, u1.user):

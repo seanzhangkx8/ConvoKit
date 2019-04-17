@@ -17,7 +17,7 @@ def download(name, verbose=True, data_dir=None, use_newest_version=True):
             http://www.cs.cornell.edu/~cristian/Echoes_of_power.html)
         - "parliament-corpus": UK Parliament Question-Answer Corpus (see
             http://www.cs.cornell.edu/~cristian/Asking_too_much.html)
-        - "conversations-gone-awry-corpus": Wiki Personal Attacks Corpus (see 
+        - "conversations-gone-awry-corpus": Wiki Personal Attacks Corpus (see
             http://www.cs.cornell.edu/~cristian/Conversations_gone_awry.html)
     :param data_dir: Output path of downloaded file (default: ~/.convokit)
     :param use_newest_version: Redownload if new version is found
@@ -27,7 +27,6 @@ def download(name, verbose=True, data_dir=None, use_newest_version=True):
     top = "http://zissou.infosci.cornell.edu/socialkit/"
 
     reddit_base_dir = "http://zissou.infosci.cornell.edu/convokit/datasets/subreddit-corpus/"
-    
     cur_version = {
         "supreme-corpus": 2,
         "wiki-corpus": 2,
@@ -224,15 +223,15 @@ def download_helper(dataset_path, url, verbose, name, downloadeds_path):
         if verbose:
             l = float(response.info()["Content-Length"])
             length = str(round(l / 1e6, 1)) + "MB" \
-                    if l > 1e6 else \
-                    str(round(l / 1e3, 1)) + "KB"
+                if l > 1e6 else \
+                str(round(l / 1e3, 1)) + "KB"
             print("Downloading", name, "from", url,
-                    "(" + length + ")...", end=" ", flush=True)
+                  "(" + length + ")...", end=" ", flush=True)
         shutil.copyfileobj(response, out_file)
 
     # post-process (extract) corpora
     if name.startswith("subreddit"):
-         with zipfile.ZipFile(dataset_path, "r") as zipf:
+        with zipfile.ZipFile(dataset_path, "r") as zipf:
             corpus_dir = os.path.join(os.path.dirname(downloadeds_path), name)
             if not os.path.exists(corpus_dir):
                 os.mkdir(corpus_dir)
@@ -289,7 +288,7 @@ def subreddit_in_grouping(subreddit: str, grouping_key: str):
 
 def meta_index(corpus=None, filename=None):
     keys = ["utterances-index", "conversations-index", "users-index",
-        "overall-index"]
+            "overall-index"]
     if corpus is not None:
         return {k: v for k, v in corpus.meta_index.items() if k in keys}
     if filename is not None:

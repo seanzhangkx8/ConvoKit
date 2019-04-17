@@ -10,6 +10,7 @@ Contents
 
 .. toctree::
    Core Concepts <architecture.rst>
+   High-level tutorial <tutorial.rst>
    Coordination <coordination.rst>
    Model <model.rst>
    QuestionTypology <questionTypology.rst>
