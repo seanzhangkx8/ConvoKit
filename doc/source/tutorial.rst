@@ -6,7 +6,7 @@ Setup
 =====
 Read the :ref:`introduction to Convokit <README>` and the description of its :ref:`architecture`.
 
-This toolkit requires Python 3.
+This toolkit requires Python 3.6.
 
 If you haven't already,
 
@@ -131,6 +131,8 @@ dict_keys(['subreddit', 'num_posts', 'num_comments', 'num_user', 'hyperconvo'])
 ......
 
 The output of the HyperConvo transformer is stored in the Corpus metadata.
+
+Other transformers can be applied in the same way, and even chained in sequence, as described in :ref:`architecture`.
 
 
 

@@ -75,7 +75,7 @@ class CoordinationScore(dict):
               that user. (assumes a user coordinates the same way across
               different coordination markers.)
         """
-        assert 1 <= method and method <= 3
+        assert 1 <= method <= 3
         self.precompute_aggregates()
         if method == 1:
             return self.agg1
@@ -195,7 +195,7 @@ class Coordination(Transformer):
         speaker_thresh=0, target_thresh=3,
         utterances_thresh=0, speaker_thresh_indiv=0, target_thresh_indiv=0,
         utterances_thresh_indiv=0, utterance_thresh_func=None,
-        split_by_attribs=[], speaker_attribs={}, target_attribs={}):
+        split_by_attribs=None, speaker_attribs=None, target_attribs=None):
         """Computes the coordination scores for each speaker, given a set of
         speakers and a group of targets.
 
@@ -262,6 +262,10 @@ class Coordination(Transformer):
             raise Exception("Coordination: must fit and score on same corpus")
         if not self.precomputed:
             raise Exception("Must fit before calling score")
+
+        if split_by_attribs is None: split_by_attribs = []
+        if speaker_attribs is None: speaker_attribs = {}
+        if target_attribs is None: target_attribs = {}
 
         #self.precompute()
         speakers = set(speakers)
@@ -349,7 +353,7 @@ class Coordination(Transformer):
 
         :param corpus: Corpus to compute scores on
         :param scores: Scores to produce a report for.
-        :type scores: dict
+        :type scores: CoordinationScore
 
         :return: A tuple (marker_a1, marker, agg1, agg2, agg3):
 
