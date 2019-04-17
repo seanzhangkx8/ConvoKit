@@ -270,6 +270,7 @@ class Corpus:
                 exclude_utterance_meta=None, exclude_conversation_meta=None,
                 exclude_user_meta=None, exclude_overall_meta=None, version=None):
 
+        self.original_corpus_path = os.path.dirname(filename)
         self.meta = {}
         self.meta_index = {}
         convos_meta = defaultdict(dict)
@@ -455,16 +456,27 @@ class Corpus:
         #pickle.dump(l_bin, f)
         return d_out
 
-    def dump(self, name, base_path=None):
+    """Dumps the corpus and its metadata to disk.
+
+    :param name: name of corpus
+    :param base_path: base directory to save corpus in (None to save to a default directory)
+    :param save_to_existing_path: if True, save to the path you loaded the corpus from (supercedes base_path)
+    """
+    def dump(self, name, base_path=None, save_to_existing_path=False):
         dir_name = name
-        if base_path is None:
-            base_path = os.path.expanduser("~/.convokit/")
-            if not os.path.exists(base_path):
-                os.mkdir(base_path)
-            base_path = os.path.join(base_path, "saved-corpora/")
-            if not os.path.exists(base_path):
-                os.mkdir(base_path)
-        dir_name = os.path.join(base_path, dir_name)
+        assert not (base_path is not None and save_to_existing_path)
+        if not save_to_existing_path:
+            if base_path is None:
+                base_path = os.path.expanduser("~/.convokit/")
+                if not os.path.exists(base_path):
+                    os.mkdir(base_path)
+                base_path = os.path.join(base_path, "saved-corpora/")
+                if not os.path.exists(base_path):
+                    os.mkdir(base_path)
+            dir_name = os.path.join(base_path, dir_name)
+        else:
+            dir_name = os.path.join(self.original_corpus_path, name)
+
         if not os.path.exists(dir_name):
             os.mkdir(dir_name)
 

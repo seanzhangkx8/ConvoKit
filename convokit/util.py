@@ -31,6 +31,7 @@ def download(name, verbose=True, data_dir=None, use_newest_version=True):
         "supreme-corpus": 2,
         "wiki-corpus": 2,
         "parliament-corpus": 2,
+        "wikiconv-corpus": 1,
         "tennis-corpus": 2,
         "reddit-corpus": 2,
         "reddit-corpus-small": 2,
@@ -40,6 +41,9 @@ def download(name, verbose=True, data_dir=None, use_newest_version=True):
     }
 
     DatasetURLs = {
+        "wikiconv-corpus": "http://zissou.infosci.cornell.edu/convokit/"
+            "datasets/wikiconv-corpus/full.corpus",
+
         "supreme-corpus": "http://zissou.infosci.cornell.edu/convokit/"
             "datasets/supreme-corpus/full.corpus",
        
@@ -171,33 +175,56 @@ def download(name, verbose=True, data_dir=None, use_newest_version=True):
         DatasetURLs[name] = get_subreddit_info(subreddit_name)
         print(DatasetURLs[name])
 
-    if data_dir is None:
-        data_dir = os.path.expanduser("~/.convokit/")
+    custom_data_dir = data_dir
+
+    data_dir = os.path.expanduser("~/.convokit/")
+
         #pkg_resources.resource_filename("convokit", "")
     if not os.path.exists(data_dir):
         os.mkdir(data_dir)
+    if not os.path.exists(os.path.join(data_dir, "downloads")):
+        os.mkdir(os.path.join(data_dir, "downloads"))
 
     parent_dir = os.path.join(data_dir, "downloads")
     dataset_path = os.path.join(data_dir, "downloads", name)
+
+    if custom_data_dir is not None:
+        dataset_path = os.path.join(custom_data_dir, name)
+
     if not os.path.exists(os.path.dirname(dataset_path)):
         os.makedirs(os.path.dirname(dataset_path))
 
+    dataset_path = os.path.realpath(dataset_path)
 
+    needs_download = False
     downloadeds_path = os.path.join(data_dir, "downloads", "downloaded.txt")
     if not os.path.isfile(downloadeds_path):
         open(downloadeds_path, "w").close()
     with open(downloadeds_path, "r") as f:
         downloaded_lines = f.read().splitlines()
         downloaded = {}
+        downloaded_paths = {}
         for l in downloaded_lines:
-            dname, version = l.split(" ")
+            dname, path, version = l.split("$#$")
             version = int(version)
             if dname not in downloaded or downloaded[dname] < version:
-                downloaded[dname] = version
+                downloaded[dname, path] = version
+                downloaded_paths[dname] = path
+                if custom_data_dir is None and name == dname:
+                    dataset_path = os.path.join(path, name)
 
-    if name not in downloaded or \
-        (use_newest_version and name in cur_version and
-            downloaded[name] < cur_version[name]):
+        print(list(downloaded.keys()))
+        if (name, os.path.dirname(dataset_path)) in downloaded:
+            if use_newest_version and name in cur_version and \
+                downloaded[name, os.path.dirname(dataset_path)] < cur_version[name]:
+                    needs_download = True
+        else:
+            needs_download = True
+
+    if needs_download:
+    #name not in downloaded or \
+    #    (use_newest_version and name in cur_version and
+    #        downloaded[name] < cur_version[name]):
 
         if name.endswith("-motifs"):
             for url in DatasetURLs[name]:
@@ -210,8 +237,10 @@ def download(name, verbose=True, data_dir=None, use_newest_version=True):
         else:
             url = DatasetURLs[name]
             download_helper(dataset_path, url, verbose, name, downloadeds_path)
-    parent_dir = os.path.join(parent_dir, name)
-    return parent_dir
+    else:
+        dataset_path = os.path.join(downloaded_paths[name], name)
+
+    return dataset_path
 
 def download_helper(dataset_path, url, verbose, name, downloadeds_path):
     
@@ -240,13 +269,13 @@ def download_helper(dataset_path, url, verbose, name, downloadeds_path):
     elif url.lower().endswith(".corpus"):
         #print(dataset_path)
         with zipfile.ZipFile(dataset_path, "r") as zipf:
-            zipf.extractall(os.path.dirname(downloadeds_path))
+            zipf.extractall(os.path.dirname(dataset_path))
 
     if verbose:
         print("Done")
     with open(downloadeds_path, "a") as f:
-        fn = os.path.join(os.path.dirname(downloadeds_path), name)
-        f.write("{} {}\n".format(name, corpus_version(fn)))
+        fn = os.path.join(os.path.dirname(dataset_path), name)#os.path.join(os.path.dirname(data), name)
+        f.write("{}$#${}$#${}\n".format(name, os.path.realpath(os.path.dirname(dataset_path) + "/"), corpus_version(fn)))
         #f.write(name + "\n")
 
 def corpus_version(filename):
