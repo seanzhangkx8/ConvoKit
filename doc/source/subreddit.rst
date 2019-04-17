@@ -1,9 +1,9 @@
-Subreddit Corpus
+Subreddit corpus
 ================
 
 A collection of Corpuses of Reddit data built from `Pushshift.io Reddit Corpus <https://pushshift.io/>`_. Each Corpus contains posts and comments from an individual subreddit from its inception until 2018-10. 
 
-A total 948,169 of subreddits are included, the list of subreddits included in the dataset can be explored `here <https://zissou.infosci.cornell.edu/convokit/datasets/subreddit-corpus/corpus-zipped/>`_.
+A total of 948,169 subreddits are included, the list of subreddits included in the dataset can be explored `here <https://zissou.infosci.cornell.edu/convokit/datasets/subreddit-corpus/corpus-zipped/>`_.
 
 
 Dataset details
@@ -40,7 +40,7 @@ Each post with its corresponding comments are considered a conversation. For eac
 
 * title: title of the post
 * num_comments: number of comments following this post
-* domain: [?]
+* domain: domain of the post
 * subreddit: subreddit this post is retrieved from
 * gilded: gilded status of the post
 * gildings: gilding information of the post
@@ -79,9 +79,7 @@ Additional note
 
 1. Some subreddit corpus is big. If the subreddit of interest is highly active, it is advised to check the size of the compressed subreddit corpus file `here <https://zissou.infosci.cornell.edu/convokit/datasets/subreddit-corpus/corpus-zipped/>`_. before downloading. 
 
-2. This is a beta version release. Not all subreddits that exist are included, and the completeness of the subreddit history is also not guaranteed. In some cases, the user activity information (i.e., number of posts/comments) may be inflated by duplicated entries in intermediate processing steps. 
-
-We anticipate further updates to fix existing issues and to provide a more complete version of the dataset. 
+2. This is a beta version release. Not all subreddits that exist are included, and the completeness of subreddit history is not guaranteed. In some cases, the user activity information (i.e., number of posts/comments) may be inflated by duplicated entries in intermediate processing steps. We anticipate further updates to fix existing issues and to provide a more complete version of the dataset. 
 
 
 

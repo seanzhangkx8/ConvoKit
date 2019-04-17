@@ -1,7 +1,7 @@
 Reddit corpus (small)
 =====================
  
-A representative sample of conversations from Reddit from 100 highly active subreddits (each subreddit has at least 100 comments threads that has at least 10 comments each). The complete list of subreddits included can be found `here <https://zissou.infosci.cornell.edu/convokit/datasets/subreddit-corpus/subreddits.txt>`_. 
+A representative sample of conversations from Reddit from 100 highly active subreddits (each subreddit has at least 100 comments threads that has at least 10 comments each during September, 2018). The complete list of subreddits included can be found `here <https://zissou.infosci.cornell.edu/convokit/datasets/subreddit-corpus/subreddits.txt>`_. 
 
 Dataset details
 ---------------
@@ -37,7 +37,7 @@ Each post with its corresponding comments are considered a conversation. For eac
 
 * title: title of the post
 * num_comments: number of comments following this post
-* domain: [?]
+* domain: domain of the post
 * subreddit: subreddit this post is retrieved from
 * gilded: gilded status of the post
 * gildings: gilding information of the post
@@ -73,4 +73,4 @@ For some quick stats:
 Additional note
 ---------------
 
-Refer to :doc:`tutorial` for a quick tutorial with Convokit with this corpus. 
+Refer to :doc:`tutorial` for a quick tutorial with ConvoKit with this corpus. 
