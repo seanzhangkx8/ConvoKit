@@ -1,7 +1,7 @@
-Conversations gone awry corpus
-==============================
+Wikipedia Talk Pages Corpus
+===========================
 
-A collection of conversations from `Wikipedia editor's talk Pages <http://en.wikipedia.org/wiki/Wikipedia:Talk_page_guidelines>`_. with metadata. 
+A collection of conversations from `Wikipedia editor's talk pages <http://en.wikipedia.org/wiki/Wikipedia:Talk_page_guidelines>`_. with metadata. 
 
 Distributed together with: `Echoes of power: Language effects and power differences in social interaction <https://www.cs.cornell.edu/~cristian/Echoes_of_power.html>`_. Cristian Danescu-Niculescu-Mizil, Lillian Lee, Bo Pang, and Jon Kleinberg. WWW 2012.
 
