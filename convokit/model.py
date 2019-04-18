@@ -323,7 +323,7 @@ class Corpus:
                             l_bin = pickle.load(f)
                         for i, ut in enumerate(utterances):
                             for k, v in ut[KeyMeta].items():
-                                if type(v) == str and v.startswith(BIN_DELIM_L) and \
+                                if k == field and type(v) == str and v.startswith(BIN_DELIM_L) and \
                                         v.endswith(BIN_DELIM_R):
                                         idx = int(v[len(BIN_DELIM_L):-len(BIN_DELIM_R)])
                                         utterances[i][KeyMeta][k] = l_bin[idx]
@@ -336,7 +336,7 @@ class Corpus:
                         with open(os.path.join(filename, field + "-user-bin.p"), "rb") as f:
                             l_bin = pickle.load(f)
                         for k, v in users_meta.items():
-                            if type(v) == str and v.startswith(BIN_DELIM_L) and \
+                            if k == field and type(v) == str and v.startswith(BIN_DELIM_L) and \
                                 v.endswith(BIN_DELIM_R):
                                     idx = int(v[len(BIN_DELIM_L):-len(BIN_DELIM_R)])
                                     users_meta[k] = l_bin[idx]
@@ -349,7 +349,7 @@ class Corpus:
                         with open(os.path.join(filename, field + "-convo-bin.p"), "rb") as f:
                             l_bin = pickle.load(f)
                         for k, v in convos_meta.items():
-                            if type(v) == str and v.startswith(BIN_DELIM_L) and \
+                            if k == field and type(v) == str and v.startswith(BIN_DELIM_L) and \
                                 v.endswith(BIN_DELIM_R):
                                     idx = int(v[len(BIN_DELIM_L):-len(BIN_DELIM_R)])
                                     convos_meta[k] = l_bin[idx]
@@ -363,7 +363,7 @@ class Corpus:
                         with open(os.path.join(filename, field + "-overall-bin.p"), "rb") as f:
                             l_bin = pickle.load(f)
                         for k, v in self.meta.items():
-                            if type(v) == str and v.startswith(BIN_DELIM_L) and \
+                            if k == field and type(v) == str and v.startswith(BIN_DELIM_L) and \
                                 v.endswith(BIN_DELIM_R):
                                     idx = int(v[len(BIN_DELIM_L):-len(BIN_DELIM_R)])
                                     self.meta[k] = l_bin[idx]
@@ -442,16 +442,15 @@ class Corpus:
     def dump_helper_bin(d, d_bin, utterances_idx):
         d_out = {}
         for k, v in d.items():
-            try:
+            try:   # try saving the field
                 json.dumps(v)
                 d_out[k] = v
                 if k not in utterances_idx:
                     utterances_idx[k] = str(type(v))
-            except (TypeError, OverflowError):
+            except (TypeError, OverflowError):   # unserializable
                 d_out[k] = "{}{}{}".format(BIN_DELIM_L, len(d_bin[k]), BIN_DELIM_R)
                 d_bin[k].append(v)
-                if k not in utterances_idx:
-                    utterances_idx[k] = "bin"
+                utterances_idx[k] = "bin"   # overwrite non-bin type annotation if necessary
         #print(l_bin)
         #pickle.dump(l_bin, f)
         return d_out

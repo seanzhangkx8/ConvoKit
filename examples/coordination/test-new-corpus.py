@@ -32,11 +32,26 @@ for ut in list(corpus.iter_utterances())[:5]:
         print("[%s %s]" % (token.tag_, token.text), end=' ')
     print()
 
-corpus.meta["test-bin-feature"] = list(corpus.iter_utterances())[0].meta["parsed"]
+corpus.meta["test-bin-feature"] = [
+    list(corpus.iter_utterances())[0].meta["parsed"],
+    list(corpus.iter_utterances())[1].meta["parsed"]
+]
+
+for i, ut in enumerate(list(corpus.iter_utterances())):
+    if i % 2 == 0:
+        ut.meta["test-ut-meta"] = []
+    else:
+        ut.meta["test-ut-meta"] = [
+            list(corpus.iter_utterances())[0].meta["parsed"],
+            list(corpus.iter_utterances())[1].meta["parsed"]
+        ]
+
+for i, ut in enumerate(list(corpus.iter_utterances())):
+    print(ut.meta)
 
 print()
 print("Dumping this parsed corpus into a folder test-dump-bin")
-corpus.dump("test-dump-bin")
+corpus.dump("test-dump-bin", base_path=".")
 
 corpus_2 = convokit.Corpus(filename="test-dump-bin")
 print()
@@ -49,6 +64,11 @@ for ut in list(corpus_2.iter_utterances())[:5]:
 print()
 print("Utterance meta index:")
 print(convokit.meta_index(corpus_2))
+
+# make sure binary meta loaded correctly
+for ut in list(corpus_2.iter_utterances()):
+    assert(str(sorted(corpus.get_utterance(ut.id).meta.items())) ==
+        str(sorted(ut.meta.items())))
 
 corpus_3 = convokit.Corpus(filename="test-dump-bin", exclude_utterance_meta=["parsed"])
 print("Testing exclude function. Meta when excluding 'parsed' field:")
