@@ -23,7 +23,8 @@ A method for extracting structural features of conversations through a hypergrap
 Example: [hypergraph creation and feature extraction, visualization and interpretation on a subsample of Reddit](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/hyperconvo/demo.ipynb).
 
 ## Datasets
-These datasets are included for ready use with the toolkit:
+ConvoKit ships with several datasets ready for use "out-of-the-box".
+These datasets can be downloaded using the `convokit.download()` [helper function](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/convokit/util.py).  Alternatively you can access them directly [here](http://zissou.infosci.cornell.edu/convokit/datasets/).
 
 ### [Conversations Gone Awry Corpus](https://zissou.infosci.cornell.edu/socialkit/documentation/awry.html)
 
@@ -50,13 +51,12 @@ Name for download: `supreme-corpus`
 Parliamentary question periods from May 1979 to December 2016 (216,894 question-answer pairs).  
 Name for download: `parliament-corpus`
 
-### [Reddit Conversations Corpus](https://zissou.infosci.cornell.edu/socialkit/documentation/reddit-small.html) (beta)
+### [Reddit Conversations Corpus](https://zissou.infosci.cornell.edu/socialkit/documentation/reddit-small.html)
 
 99,145 Reddit conversations sampled from 100 subreddits.  
 Name for download: `reddit-corpus`
 
-These datasets can be downloaded using the `convokit.download()` [helper function](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/convokit/util.py).  Alternatively you can access them directly [here](http://zissou.infosci.cornell.edu/convokit/datasets/).
-
+### ...And your own corpus!
 
 In addition to the provided datasets, you may also use ConvoKit with your own custom datasets by loading them into a `convokit.Corpus` object. [This example script](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/converting_movie_corpus.ipynb) shows how to construct a Corpus from custom data.
 
