@@ -56,3 +56,5 @@ For some quick stats:
 
 Additional note
 ---------------
+
+See this `example notebook <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/question-typology/parliament_questions_example.ipynb>`_. for an example of how to group questions in this dataset according to their rhetorical roles.  

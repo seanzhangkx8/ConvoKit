@@ -2,11 +2,11 @@ Datasets
 ========
 
 .. toctree::
-   Conversations Gone Awry <awry.rst>
-   Movies <movie.rst>
-   Parliament <parliament.rst>
-   Supreme Court <supreme.rst>
-   Wikipedia Talk Pages <wiki.rst>
-   Tennis <tennis.rst>
-   Reddit (Small sample) <reddit-small.rst>
-   Reddit (All, by subreddit) <subreddit.rst>
+   Conversations Gone Awry Corpus <awry.rst>
+   Movie-Dialogs Corpus <movie.rst>
+   Parliament Corpus <parliament.rst>
+   Supreme Court Corpus <supreme.rst>
+   Wikipedia Talk Pages Corpus <wiki.rst>
+   Tennis Corpus <tennis.rst>
+   Reddit Corpus (small) <reddit-small.rst>
+   Subreddit Corpus (All, by subreddit) <subreddit.rst>

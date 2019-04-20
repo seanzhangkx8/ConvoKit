@@ -19,6 +19,13 @@ def download(name, verbose=True, data_dir=None, use_newest_version=True):
             http://www.cs.cornell.edu/~cristian/Asking_too_much.html)
         - "conversations-gone-awry-corpus": Wiki Personal Attacks Corpus (see
             http://www.cs.cornell.edu/~cristian/Conversations_gone_awry.html)
+        -  "movie-corpus": Cornell Movie-Dialogs Corpus (see 
+            https://www.cs.cornell.edu/~cristian/Chameleons_in_imagined_conversations.html)
+        -  "tennis-corpus": Tennis post-match press conferences transcripts (see 
+            http://www.cs.cornell.edu/~liye/tennis.html) 
+        -  "reddit-corpus-small": A sample from 100 highly-active subreddits
+        -  "subreddit-<subreddit-name>": A corpus made from the given subreddit
+
     :param data_dir: Output path of downloaded file (default: ~/.convokit)
     :param use_newest_version: Redownload if new version is found
 
@@ -33,7 +40,7 @@ def download(name, verbose=True, data_dir=None, use_newest_version=True):
         "parliament-corpus": 2,
         "wikiconv-corpus": 1,
         "tennis-corpus": 2,
-        "reddit-corpus": 2,
+        # "reddit-corpus": 2,
         "reddit-corpus-small": 2,
         "conversations-gone-awry-corpus": 2,
         "movie-corpus": 1,
