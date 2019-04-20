@@ -1,5 +1,5 @@
-Conversations gone awry corpus
-==============================
+Conversations Gone Awry Dataset
+===============================
 
 A collection of conversations from Wikipedia talk pages that derail into personal attacks (1,270 conversations, 6,963 comments). 
 
@@ -27,7 +27,7 @@ Metadata for each utterance include:
 Conversational-level information
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-[How are conversations arranged?] Metadata for each conversation include:
+Metadata for each conversation include:
 
 * page_title: the title of the talk page the comment came from
 * page_id: the unique numerical ID of the talk page the comment came from
@@ -63,7 +63,10 @@ This data was collected from late 2017 to early 2018 and was annotated in April 
 
 Related links
 ^^^^^^^^^^^^^
-`Wikipedia editors' talk Pages <http://en.wikipedia.org/wiki/Wikipedia:Talk_page_guidelines>`_.
+
+* Fun: Guess whether a `conversation will go awry <https://awry.infosci.cornell.edu/>`_. 
+
+* `Wikipedia editors' talk Pages <http://en.wikipedia.org/wiki/Wikipedia:Talk_page_guidelines>`_.
 
 
 Contact

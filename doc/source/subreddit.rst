@@ -1,10 +1,11 @@
-Subreddit corpus
-================
+Reddit Corpus (by subreddit)
+============================
 
 A collection of Corpuses of Reddit data built from `Pushshift.io Reddit Corpus <https://pushshift.io/>`_. Each Corpus contains posts and comments from an individual subreddit from its inception until 2018-10. 
 
-A total of 948,169 subreddits are included, the list of subreddits included in the dataset can be explored `here <https://zissou.infosci.cornell.edu/convokit/datasets/subreddit-corpus/corpus-zipped/>`_.
+A total of 948,169 subreddits are included, the list of subreddits included in the dataset can be explored `here <https://zissou.infosci.cornell.edu/convokit/datasets/subreddit-corpus/corpus-zipped/>`_. Note that the directories are ordered lexicographically, with capital letters sorted first, so the subreddit KDC is found in JustinYCult~-~Kanye/ rather than Kanye2024~-~Kemetic/.
 
+We also provide a small sample of the collection (see :doc:`reddit-small`): Reddit corpus (small). 
 
 Dataset details
 ---------------
@@ -77,9 +78,7 @@ For some quick stats on this subreddit:
 Additional note
 ---------------
 
-1. Some subreddit corpus is big. If the subreddit of interest is highly active, it is advised to check the size of the compressed subreddit corpus file `here <https://zissou.infosci.cornell.edu/convokit/datasets/subreddit-corpus/corpus-zipped/>`_. before downloading. 
+1. Some subreddit corpus is big. If the subreddit of interest is highly active, it is advised to check the size of the compressed subreddit corpus file `here <https://zissou.infosci.cornell.edu/convokit/datasets/subreddit-corpus/corpus-zipped/>`_. before downloading.
 
 2. This is a beta version release. Not all subreddits that exist are included, and the completeness of subreddit history is not guaranteed. In some cases, the user activity information (i.e., number of posts/comments) may be inflated by duplicated entries in intermediate processing steps. We anticipate further updates to fix existing issues and to provide a more complete version of the dataset. 
-
-
 

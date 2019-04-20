@@ -1,5 +1,5 @@
-Parliament corpus
-================
+Parliament Question Time Corpus
+===============================
 
 A collections of questions and answers from parliamentary question periods in the British House of Commons from May 1979 to December 2016 (433,787 utterances). 
 
@@ -56,3 +56,5 @@ For some quick stats:
 
 Additional note
 ---------------
+
+See this `example notebook <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/question-typology/parliament_questions_example.ipynb>`_. for an example of how to group questions in this dataset according to their rhetorical roles.  

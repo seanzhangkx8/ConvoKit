@@ -1,4 +1,4 @@
-Wikipedia talk pages corpus
+Wikipedia Talk Pages Corpus
 ===========================
 
 A collection of conversations from `Wikipedia editor's talk pages <http://en.wikipedia.org/wiki/Wikipedia:Talk_page_guidelines>`_. with metadata. 
