@@ -1,5 +1,5 @@
-Conversations gone awry corpus
-==============================
+Conversations Gone Awry Dataset
+===============================
 
 A collection of conversations from Wikipedia talk pages that derail into personal attacks (1,270 conversations, 6,963 comments). 
 

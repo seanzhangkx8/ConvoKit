@@ -1,4 +1,4 @@
-Reddit corpus (small)
+Reddit Corpus (small)
 =====================
  
 A sample of conversations from Reddit from 100 highly active subreddits. From each of these subreddits, we include 100 comments threads that has at least 10 comments each during September, 2018. The complete list of subreddits included can be found `here <https://zissou.infosci.cornell.edu/convokit/datasets/subreddit-corpus/subreddits_small_sample.txt>`_. 

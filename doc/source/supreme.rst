@@ -1,4 +1,4 @@
-Supreme Court corpus
+Supreme Court Corpus
 ====================
 
 A collection of conversations from the U.S. Supreme Court Oral Arguments (51,498 utterances, from 204 cases). 

@@ -1,5 +1,5 @@
-Subreddit corpus
-================
+Reddit Corpus (by subreddit)
+============================
 
 A collection of Corpuses of Reddit data built from `Pushshift.io Reddit Corpus <https://pushshift.io/>`_. Each Corpus contains posts and comments from an individual subreddit from its inception until 2018-10. 
 
