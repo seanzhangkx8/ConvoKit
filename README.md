@@ -59,7 +59,7 @@ Name for download: `tennis-corpus`
 
 ### [Reddit Corpus](https://zissou.infosci.cornell.edu/socialkit/documentation/subreddit.html)
 
-Reddit conversations from over 900k subreddits, arranged by subreddit. A [small subset](https://zissou.infosci.cornell.edu/socialkit/documentation/reddit-corpus-small.html) sampled from 100 highly active subreddits is also available. 
+Reddit conversations from over 900k subreddits, arranged by subreddit. A [small subset](https://zissou.infosci.cornell.edu/socialkit/documentation/reddit-small.html) sampled from 100 highly active subreddits is also available. 
  
 Name for download: `subreddit-<name_of_subreddit>` for the by subreddit data, `reddit-corpus-small` for the small subset. 
 
