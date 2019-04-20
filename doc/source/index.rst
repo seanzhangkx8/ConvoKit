@@ -12,13 +12,8 @@ Contents
    :maxdepth: 2
 
    Core Concepts <architecture.rst>
-   High-level tutorial <tutorial.rst>
+   High-level Tutorial <tutorial.rst>
    Model <model.rst>
-   Coordination <coordination.rst>
-   QuestionTypology <questionTypology.rst>
-   PolitenessStrategies <politenessStrategies.rst>
-   Hyperconvo <hyperconvo.rst>
-   Parser <parser.rst>
-   Transformer <transformer.rst>
-   Utility functions <util.rst>
+   Data Format <data_format.rst>
+   API Reference <api.rst>
    Datasets <datasets.rst>
