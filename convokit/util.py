@@ -299,7 +299,7 @@ def get_subreddit_info(subreddit_name):
 
     # base directory of subreddit corpuses
     subreddit_base = "http://zissou.infosci.cornell.edu/convokit/datasets/subreddit-corpus/"
-    data_dir = os.path.join(subreddit_base, "corpus-zipped")
+    data_dir = subreddit_base + "corpus-zipped/"
     
     groupings_url = subreddit_base + "subreddit-groupings.txt"
     groups_fetched = urllib.request.urlopen(groupings_url) 
@@ -308,7 +308,8 @@ def get_subreddit_info(subreddit_name):
 
     for group in groups:
         if subreddit_in_grouping(subreddit_name, group):
-            return os.path.join(data_dir, group, subreddit_name + ".corpus.zip")
+            # return os.path.join(data_dir, group, subreddit_name + ".corpus.zip")
+            return data_dir + group + "/" + subreddit_name + ".corpus.zip"
 
     print("The subreddit requested is not available.")
 
