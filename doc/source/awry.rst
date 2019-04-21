@@ -20,7 +20,7 @@ Utterance-level information
 Metadata for each utterance include:
 
 * is_section_header: whether the utterance is a conversation "title" or "subject" as seen on the original talk page (if true, this utterance should be ignored when doing any NLP tasks)
-* comment_has_personal_attack: whether this comment was judged by 3 crowdsourced workers to contain a personal attack
+* comment_has_personal_attack: whether this comment was judged by 3 crowdsourced annotators to contain a personal attack
 * parsed: parsed version of the utterance text, represented as a SpaCy Doc
 
 
@@ -32,9 +32,9 @@ Metadata for each conversation include:
 * page_title: the title of the talk page the comment came from
 * page_id: the unique numerical ID of the talk page the comment came from
 * pair_id: the conversation ID (root) of the conversation that this comment's conversation is paired with
-* conversation_has_personal_attack: whether any comment in this comment's conversation contains a personal attack
-* verified: whether the personal attach label has been verified to be correct 
-* pair_verified: whether the personal attach label for the paired conversation has been verified to be correct
+* conversation_has_personal_attack: whether any comment in this comment's conversation contains a personal attack according to crowdsourced annotators
+* verified: whether the personal attack label has been double-checked by an internal annotator and confirmed to be correct 
+* pair_verified: whether the personal attack label for the paired conversation has been double-checked by an internal annotator and confirmed to be correct 
 
 
 Usage
