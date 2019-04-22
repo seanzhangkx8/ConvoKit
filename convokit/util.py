@@ -19,6 +19,13 @@ def download(name, verbose=True, data_dir=None, use_newest_version=True):
             http://www.cs.cornell.edu/~cristian/Asking_too_much.html)
         - "conversations-gone-awry-corpus": Wiki Personal Attacks Corpus (see
             http://www.cs.cornell.edu/~cristian/Conversations_gone_awry.html)
+        -  "movie-corpus": Cornell Movie-Dialogs Corpus (see 
+            https://www.cs.cornell.edu/~cristian/Chameleons_in_imagined_conversations.html)
+        -  "tennis-corpus": Tennis post-match press conferences transcripts (see 
+            http://www.cs.cornell.edu/~liye/tennis.html) 
+        -  "reddit-corpus-small": A sample from 100 highly-active subreddits
+        -  "subreddit-<subreddit-name>": A corpus made from the given subreddit
+
     :param data_dir: Output path of downloaded file (default: ~/.convokit)
     :param use_newest_version: Redownload if new version is found
 
@@ -33,7 +40,7 @@ def download(name, verbose=True, data_dir=None, use_newest_version=True):
         "parliament-corpus": 2,
         "wikiconv-corpus": 1,
         "tennis-corpus": 2,
-        "reddit-corpus": 2,
+        # "reddit-corpus": 2,
         "reddit-corpus-small": 2,
         "conversations-gone-awry-corpus": 2,
         "movie-corpus": 1,
@@ -292,7 +299,7 @@ def get_subreddit_info(subreddit_name):
 
     # base directory of subreddit corpuses
     subreddit_base = "http://zissou.infosci.cornell.edu/convokit/datasets/subreddit-corpus/"
-    data_dir = os.path.join(subreddit_base, "corpus-zipped")
+    data_dir = subreddit_base + "corpus-zipped/"
     
     groupings_url = subreddit_base + "subreddit-groupings.txt"
     groups_fetched = urllib.request.urlopen(groupings_url) 
@@ -301,7 +308,8 @@ def get_subreddit_info(subreddit_name):
 
     for group in groups:
         if subreddit_in_grouping(subreddit_name, group):
-            return os.path.join(data_dir, group, subreddit_name + ".corpus.zip")
+            # return os.path.join(data_dir, group, subreddit_name + ".corpus.zip")
+            return data_dir + group + "/" + subreddit_name + ".corpus.zip"
 
     print("The subreddit requested is not available.")
 
