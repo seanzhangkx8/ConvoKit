@@ -35,9 +35,6 @@ class PolitenessStrategies(Transformer):
         :param corpus: the corpus to compute features for.
         :type corpus: Corpus
         """
-        
-        if "parsed" not in corpus.meta_index["utterances-index"]:
-            raise RuntimeError("Cannot extract politeness strategies from a Corpus that has not been parsed. Run Parser.transform(corpus) before calling this function.")
 
         # preprocess the utterances in the format expected by the API
         if self.verbose: print("Preprocessing comments...")
