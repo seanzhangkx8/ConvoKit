@@ -17,6 +17,15 @@ Users in this dataset are Wikipedia editors; their account names are taken as th
 Utterance-level information
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Each conversational turn on the talk page is viewed as an utterance. For each utterance, we provide:
+
+* id: index of the utterance
+* user: the user who author the utterance
+* root: index of the conversation root of the utterance
+* reply_to: index of the utterance to which this utterance replies to (None if the utterance is not a reply)
+* timestamp: time of the utterance
+* text: textual content of the utterance
+
 Metadata for each utterance include:
 
 * is_section_header: whether the utterance is a conversation "title" or "subject" as seen on the original talk page (if true, this utterance should be ignored when doing any NLP tasks)

@@ -25,6 +25,15 @@ In the case that the user is a Justice, there may be an additional field:
 Utterance-level information
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+For each utterance, we provide:
+
+* id: index of the utterance
+* user: the user who author the utterance
+* root: index of the conversation root of the utterance
+* reply_to: index of the utterance to which this utterance replies to (None if the utterance is not a reply)
+* timestamp: time of the utterance
+* text: textual content of the utterance
+
 Metadata for utterances may include:
 
 * case: case number 

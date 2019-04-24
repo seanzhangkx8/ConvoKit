@@ -22,7 +22,16 @@ Users in this corpus are Reddit users, identified by their account names. The co
 Utterance-level information
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Each individual post or comment is viewed as an utterance. For each utterance, the corpus include:
+Each individual post or comment is viewed as an utterance. For each utterance, we provide:
+
+* id: index of the utterance
+* user: the user who author the utterance
+* root: index of the conversation root of the utterance (i.e., the index of the post the utterance belongs to)
+* reply_to: index of the utterance to which this utterance replies to (None if the utterance is not a reply)
+* timestamp: time of the utterance
+* text: textual content of the utterance
+
+Metadata for each utterance may include: 
 
 * score: score (i.e., the number of upvotes minus the number of downvotes) of the content 
 * top_level_comment: the id of the top level comment (None if the utterance is a post)

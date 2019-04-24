@@ -24,6 +24,15 @@ For each player, additional metadata include:
 Utterance-level information
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Each question or answer is viewed as an utterance. For each utterance, we provide:
+
+* id: index of the utterance
+* user: the user who author the utterance
+* root: index of the conversation root of the utterance
+* reply_to: index of the utterance to which this utterance replies to (None if the utterance is not a reply)
+* timestamp: time of the utterance
+* text: textual content of the utterance
+
 Metadata for each utterance include: 
 
 * is_answer: whether the utterance is an answer from a player

@@ -26,6 +26,17 @@ The users in the dataset are members of the Parliament. For each user, the datas
 Utterance-level information
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Each question or answer is viewed as an utterance. For each utterance, we provide:
+
+* id: index of the utterance
+* user: the user who author the utterance
+* root: index of the conversation root of the utterance
+* reply_to: index of the utterance to which this utterance replies to (None if the utterance is not a reply)
+* timestamp: time of the utterance
+* text: textual content of the utterance
+
+Additional metadata include:
+
 * is_question: whether the utterance is a question
 * is_answer: whether the utterance is an answer to a question
 * pair_idx: index of the question-answer pair
