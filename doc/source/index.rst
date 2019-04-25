@@ -20,3 +20,4 @@ Contents
    Data Format <data_format.rst>
    API Reference <api.rst>
    Datasets <datasets.rst>
+   Examples <examples.rst>
