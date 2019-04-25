@@ -4,14 +4,16 @@ class Transformer(ABC):
     """
     Abstract base class for modules that take in a Corpus and modify the Corpus
     and/or extend it with additional information, imitating the scikit-learn
-    Transformer API. Exposes fit() and transform() methods. fit() performs any
+    Transformer API. Exposes ``fit()`` and ``transform()`` methods. ``fit()`` performs any
     necessary precomputation (or “training” in machine learning parlance) while
-    transform() does the work of actually computing the modification and
-    applying it to the corpus. All subclasses must implement transform();
-    subclasses that require precomputation should also override fit(), which by
+    ``transform()`` does the work of actually computing the modification and
+    applying it to the corpus. 
+
+    All subclasses must implement ``transform()``;
+    subclasses that require precomputation should also override ``fit()``, which by
     default does nothing. Additionally, the interface also exposes a
-    fit_transform() method that does both steps on the same Corpus in one line.
-    By default this is implemented to simply call fit() followed by transform(),
+    ``fit_transform()`` method that does both steps on the same Corpus in one line.
+    By default this is implemented to simply call ``fit()`` followed by ``transform()``,
     but designers of Transformer subclasses may also choose to overwrite the
     default implementation in cases where the combined operation can be
     implemented more efficiently than doing the steps separately.
@@ -34,9 +36,10 @@ class Transformer(ABC):
 
         :param corpus: the Corpus to transform
 
-        :return: modified version of the input Corpus. Note that like the 
-            scikit-learn equivalent, transform() is not meant to be an inplace 
-            operation.
+        :return: modified version of the input Corpus. Note that unlike the 
+            scikit-learn equivalent, ``transform()`` operates inplace on the Corpus
+            (though for convenience and compatibility with scikit-learn, it also
+            returns the modified Corpus).
         """
         pass
 
