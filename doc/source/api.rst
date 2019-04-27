@@ -35,3 +35,5 @@ These are the main offerings of ConvoKit: standalone modules implementing variou
    QuestionTypology <questionTypology.rst>
    PolitenessStrategies <politenessStrategies.rst>
    Hyperconvo <hyperconvo.rst>
+   ThreadEmbedder <threadEmbedder.rst>
+   CommunityEmbedder <communityEmbedder.rst>

@@ -4,7 +4,7 @@ Quick-start tutorial
 
 Setup
 =====
-Read the :ref:`introduction to Convokit <README>` and the description of its :ref:`architecture`.
+Read the `introduction to Convokit <https://convokit.cornell.edu>`_ and the description of its :doc:`architecture </architecture>`.
 
 This toolkit requires Python 3.6.
 
@@ -13,6 +13,8 @@ If you haven't already,
 #. Download the toolkit: ``pip3 install convokit``
 
 #. Download Spacy's English model: ``python3 -m spacy download en``
+
+#. Download nltk's punkt tokenizer: ``import nltk; nltk.download('punkt')`` (in a ``python`` interactive session)
 
 Interactive tutorial
 ====================
@@ -26,22 +28,7 @@ By design, it includes 100 comment threads (each consisting of at least 10 Utter
 
 >>> corpus = convokit.Corpus(filename=convokit.download("reddit-corpus-small"))
 
-Alternatively, if you have a custom corpus, i.e. a corpus directory (say, "corpus-dir") containing the corpus component files:
-
-* conversations.json
-
-* corpus.json
-
-* index.json
-
-* users.json
-
-* utterances.json
-
-We can construct a corpus from that directory.
-
->>> filepath = "corpus-dir" # update the filepath accordingly
->>> corpus = convokit.Corpus(filename=filepath)
+Alternatively, if you would like to use a custom corpus, refer to our explanation of the Corpus :doc:`data format </data_format>`.
 
 Exploring the corpus
 --------------------
@@ -108,8 +95,10 @@ Applying a transformer
 
 We initialize a HyperConvo transformer, which extracts structural features of conversations through a hypergraph representation.
 
->>> # Limit hypergraph representation to threads of length at least 10, using the first 10 utterances
->>> # include_root is set to False as we only want comment threads (i.e. threads that begin with the top level comment, not the original post.)
+>>> # Limit hypergraph representation to threads of length at least 10,
+>>> # using the first 10 utterances
+>>> # include_root is set to False as we only want comment threads (i.e. threads that begin
+>>> # with the top level comment, not the original post.)
 >>> hc = convokit.HyperConvo(prefix_len=10, min_thread_len=10, include_root=False)
 >>> hc.fit_transform(corpus)
 >>> corpus.meta.keys()
@@ -132,7 +121,7 @@ dict_keys(['subreddit', 'num_posts', 'num_comments', 'num_user', 'hyperconvo'])
 
 The output of the HyperConvo transformer is stored in the Corpus metadata.
 
-Other transformers can be applied in the same way, and even chained in sequence, as described in :ref:`architecture`.
+Other transformers can be applied in the same way, and even chained in sequence, as described in the :doc:`Core Concepts Tutorial </architecture>`
 
 
 

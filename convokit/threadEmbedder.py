@@ -13,11 +13,11 @@ class ThreadEmbedder(Transformer):
 
     HyperConvo.fit_transform() must be run on the Corpus first
 
-    :return: a corpus with new meta key: "threadEmbedder",
-             value: Dict, containing "X": an array with rows corresponding
-             to embedded threads, "roots": an array whose ith entry is the
-             thread root id of the ith row of X. If return_components is True,
-             then the Dict contains a third key "components": the SVD components array
+
+    :param n_components: Number of dimensions to embed threads into
+    :param method: Embedding method; "svd", "tsne" or "none"
+    :param norm_method: Normalization method; "standard" or "none"
+    :param return_components: if True, returns the components from embedding
     """
 
     def __init__(self, n_components=7, method="svd",
@@ -34,6 +34,14 @@ class ThreadEmbedder(Transformer):
         return self.fit_transform(corpus)
 
     def fit_transform(self, corpus):
+        """
+        :param corpus: the Corpus to use
+        :return: a corpus with new meta key: "threadEmbedder",
+             value: Dict, containing "X": an array with rows corresponding
+             to embedded threads, "roots": an array whose ith entry is the
+             thread root id of the ith row of X. If return_components is True,
+             then the Dict contains a third key "components": the SVD components array
+        """
 
         corpus_meta = corpus.get_meta()
         if "hyperconvo" not in corpus_meta:

@@ -10,24 +10,17 @@ class CommunityEmbedder(Transformer):
     """
     Must be run after threadEmbedder.fit_transform()
 
-    Convenience method to embed the output of retrieve_feats in a
-    low-dimensional space, and group threads together into communities
+    Groups threads together into communities
     in this space for visualization or other such purposes.
 
-    :return: a Corpus with new meta key: "communityEmbedder",
-        value: Dict, containing "pts": an array with rows corresponding
-        to embedded communities, and "labels": an array whose ith entry is
-        the community of the ith row of X.
+    :param community_key: Key in "meta" dictionary of each utterance
+            whose corresponding value we'll use as the community label for that
+            utterance (see threadEmbedder)
+    :param n_components: Number of dimensions to embed communities into
+    :param method: Embedding method; "svd", "tsne" or "none"
     """
 
     def __init__(self, community_key=None, n_components=2, method="none"):
-        """
-        :param community_key: Key in "meta" dictionary of each utterance
-        whose corresponding value we'll use as the community label for that
-        utterance (see threadEmbedder)
-        :param n_components: Number of dimensions to embed communities into
-        :param method: Embedding method; "svd", "tsne" or "none"
-        """
         self.community_key = community_key
         self.n_components = n_components
         self.method = method
@@ -39,6 +32,13 @@ class CommunityEmbedder(Transformer):
         return self.fit_transform(corpus)
 
     def fit_transform(self, corpus):
+        """
+        :param corpus: the Corpus to use
+        :return: a Corpus with new meta key: "communityEmbedder",
+        value: Dict, containing "pts": an array with rows corresponding
+        to embedded communities, and "labels": an array whose ith entry is
+        the community of the ith row of X.
+        """
         if self.community_key is None:
             raise RuntimeError("Must specify community_key to retrieve label information from utterance")
 

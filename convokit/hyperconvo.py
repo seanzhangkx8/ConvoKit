@@ -15,8 +15,8 @@ class HyperConvo(Transformer):
     fit_transform() retrieves features from the corpus conversational
     threads using retrieve_feats, and stores it in the corpus's meta field under the key "hyperconvo"
 
-    Either use the features directly, or use the other transformers, communityEmbedder
-    or threadEmbedder to embed communities or threads respectively in a low-dimensional
+    Either use the features directly, or use the other transformers, <a href="https://zissou.infosci.cornell.edu/socialkit/documentation/threadEmbedder.html">threadEmbedder</a>
+    or <a href="https://zissou.infosci.cornell.edu/socialkit/documentation/communityEmbedder.html">communityEmbedder</a> to embed communities or threads respectively in a low-dimensional
     space for further analysis or visualization.
 
     As features, we compute the degree distribution statistics from Table 4 of
@@ -30,17 +30,15 @@ class HyperConvo(Transformer):
     distribution statistics from Table 4, as these rely on the presence of
     reaction edges. We hope to implement a more general version of these
     reaction features in an upcoming release.
+
+    :param prefix_len: Length (in number of utterances) of each thread to
+            consider when constructing its hypergraph
+    :param min_thread_len: Only consider threads of at least this length
+    :param include_root: True if root utterance should be included in the utterance thread,
+    False otherwise, i.e. thread begins from top level comment. (Affects prefix_len and min_thread_len counts.)
     """
 
     def __init__(self, prefix_len=10, min_thread_len=10, include_root=True):
-        """
-
-        :param prefix_len: Length (in number of utterances) of each thread to
-                            consider when constructing its hypergraph
-        :param min_thread_len: Only consider threads of at least this length
-        :param include_root: True if root utterance should be included in the utterance thread,
-            False otherwise, i.e. thread begins from top level comment. (Affects prefix_len and min_thread_len counts.)
-        """
         self.prefix_len = prefix_len
         self.min_thread_len = min_thread_len
         self.include_root = include_root
