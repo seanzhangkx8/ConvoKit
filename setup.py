@@ -14,12 +14,12 @@ setup(
         "console_scripts": ["convokit = convokit.command_line:command_line_main"]
     },
     install_requires = [
-        "matplotlib>=1.5.0",
-        "pandas>=0.20.3",
-        "spacy>=2.0.11",
-        "scipy>=0.16.0",
+        "matplotlib>=3.0.0",
+        "pandas>=0.23.4",
+        "spacy==2.0.12",
+        "scipy>=1.1.0",
         "scikit-learn>=0.20.0",
-        "nltk>=3.3",
-        "pyqt5>=5.11.2"
+        "nltk>=3.4",
+        "dill>=0.2.9"
     ]
 )
