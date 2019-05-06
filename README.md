@@ -72,6 +72,7 @@ This toolkit requires Python >= 3.6.
 
 1. Download the toolkit: `pip3 install convokit`
 2. Download Spacy's English model: `python3 -m spacy download en`
+3. Download NLTK's 'punkt' model: `import nltk; nltk.download('punkt')` (in Python interpreter)
 
 Alternatively, visit our [Github Page](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit) to install from source.
 
