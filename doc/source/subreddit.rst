@@ -89,5 +89,7 @@ Additional note
 
 1. Some subreddit corpus is big. If the subreddit of interest is highly active, it is advised to check the size of the compressed subreddit corpus file `here <https://zissou.infosci.cornell.edu/convokit/datasets/subreddit-corpus/corpus-zipped/>`_. before downloading.
 
-2. This is a beta version release. Not all subreddits that exist are included, and the completeness of subreddit history is not guaranteed. In some cases, the user activity information (i.e., number of posts/comments) may be inflated by duplicated entries in intermediate processing steps. We anticipate further updates to fix existing issues and to provide a more complete version of the dataset. 
+2. This is a beta version release. Not all subreddits that exist are included, and the completeness of subreddit history is not guaranteed. Notably, this also implies that some thread structure is broken: for some utterance, the reply-to ID may not match any utterance that exists in the current version of the data. We anticipate to provide a more complete version of the dataset in the next release. 
+
+3. In some cases, the user activity information (i.e., number of posts/comments) may be inflated by duplicated entries in intermediate processing steps. We anticipate further updates to fix existing issues. 
 

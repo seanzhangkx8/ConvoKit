@@ -17,10 +17,6 @@ For each user, additional information include:
 * is-justice: whether the user is a Justice 
 * gender: gender of the user 
 
-In the case that the user is a Justice, there may be an additional field: 
-
-* is-favorable: true if the Justice eventually vote for the side
-
 
 Utterance-level information
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
