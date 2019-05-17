@@ -10,7 +10,7 @@ Conversational data loading and processing with ConvoKit
 
 Coordination
 ------------
-- `Visualizing coordination between admins and nonadmins on Wikipedia <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/coordination/wiki.py>`_
+- `Exploring the balance of power in the US Supreme Court <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/coordination/examples.ipynb>`_
 
 Prompt Types
 ------------
