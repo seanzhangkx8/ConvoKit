@@ -455,13 +455,13 @@ class Corpus:
         #pickle.dump(l_bin, f)
         return d_out
 
-    """Dumps the corpus and its metadata to disk.
-
-    :param name: name of corpus
-    :param base_path: base directory to save corpus in (None to save to a default directory)
-    :param save_to_existing_path: if True, save to the path you loaded the corpus from (supercedes base_path)
-    """
     def dump(self, name, base_path=None, save_to_existing_path=False):
+        """Dumps the corpus and its metadata to disk.
+
+        :param name: name of corpus
+        :param base_path: base directory to save corpus in (None to save to a default directory)
+        :param save_to_existing_path: if True, save to the path you loaded the corpus from (supercedes base_path)
+        """
         dir_name = name
         if base_path is not None and save_to_existing_path:
             raise ValueError("Not allowed to specify both base_path and save_to_existing_path!")

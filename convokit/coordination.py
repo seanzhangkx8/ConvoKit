@@ -1,5 +1,8 @@
 """Coordination features
-(https://www.cs.cornell.edu/~cristian/Echoes_of_power.html)."""
+(https://www.cs.cornell.edu/~cristian/Echoes_of_power.html).
+
+Example usage: https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/coordination/wiki.py
+"""
 
 import pkg_resources
 import re
@@ -129,7 +132,7 @@ class CoordinationScore(dict):
 class Coordination(Transformer):
     """Encapsulates computation of coordination-based features for a particular
     corpus.
-
+    
     :param corpus: the corpus to compute features for.
     :type corpus: Corpus
 
