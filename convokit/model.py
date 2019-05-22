@@ -5,6 +5,7 @@ import pickle
 from functools import total_ordering
 from collections import defaultdict
 import os
+from typing import Dict, List, Collection, Hashable, Callable, Set, Generator, Tuple
 
 pair_delim = '-q-a-'
 
@@ -23,13 +24,13 @@ class User:
     :ivar meta: dictionary of attributes associated with the user.
     """
 
-    def __init__(self, name=None, meta=None):
+    def __init__(self, name: str=None, meta: Dict=None):
         self._name = name
         self._info = meta if meta is not None else {}
         self._split_attribs = set()
         self._update_uid()
 
-    def identify_by_attribs(self, attribs):
+    def identify_by_attribs(self, attribs: Collection) -> None:
         """Identify a user by a list of attributes. Sets which user info
         attributes should distinguish users of the same name in equality tests.
         For example, in the Supreme Court dataset, users are labeled with the
@@ -45,14 +46,14 @@ class User:
 
     def _get_name(self): return self._name
 
-    def _set_name(self, value):
+    def _set_name(self, value: str):
         self._name = value
         self._update_uid()
     name = property(_get_name, _set_name)
 
     def _get_info(self): return self._info
 
-    def _set_info(self, value):
+    def _set_info(self, value: Dict):
         self._info = value
         self._update_uid()
     meta = property(_get_info, _set_info)
@@ -97,8 +98,8 @@ class Utterance:
     :ivar text: text of the utterance.
     """
 
-    def __init__(self, id=None, user=None, root=None, reply_to=None,
-            timestamp=None, text=None, meta=None):
+    def __init__(self, id: Hashable=None, user: User=None, root: str=None, reply_to: str=None,
+            timestamp=None, text: str=None, meta: Dict=None):
         self.id = id
         self.user = user
         self.root = root
@@ -107,7 +108,7 @@ class Utterance:
         self.text = text
         self.meta = meta if meta is not None else {}
 
-    def get(self, key):
+    def get(self, key: str):
         if key == "id":
             return self.id
         elif key == "user":
@@ -144,7 +145,7 @@ class Conversation:
         metadata, use Corpus.meta.
     """
 
-    def __init__(self, owner, id=None, utterances=None, meta=None):
+    def __init__(self, owner, id: str=None, utterances: List[str]=None, meta: Dict=None):
         self._owner = owner
         self._id = id
         self._utterance_ids = utterances
@@ -168,7 +169,7 @@ class Conversation:
         return self._id
     id = property(_get_id)
 
-    def get_utterance_ids(self):
+    def get_utterance_ids(self) -> List[str]:
         """Produces a list of the unique IDs of all utterances in the 
         Conversation, which can be used in calls to get_utterance() to retrieve 
         specific utterances. Provides no ordering guarantees for the list.
@@ -180,7 +181,7 @@ class Conversation:
         # ID list (since lists are mutable)
         return [ut_id for ut_id in self._utterance_ids]
 
-    def get_utterance(self, ut_id):
+    def get_utterance(self, ut_id: str) -> Utterance:
         """Looks up the Utterance associated with the given ID. Raises a 
         KeyError if no utterance by that ID exists.
         
@@ -190,7 +191,7 @@ class Conversation:
         # any Utterances
         return self._owner.get_utterance(ut_id)
 
-    def iter_utterances(self):
+    def iter_utterances(self) -> Generator[Utterance]:
         """Generator allowing iteration over all utterances in the Conversation. 
         Provides no ordering guarantees.
         
@@ -199,7 +200,7 @@ class Conversation:
         for ut_id in self._utterance_ids:
             yield self._owner.get_utterance(ut_id)
 
-    def get_usernames(self):
+    def get_usernames(self) -> List[str]:
         """Produces a list of names of all users in the Conversation, which can 
         be used in calls to get_user() to retrieve specific users. Provides no 
         ordering guarantees for the list.
@@ -215,7 +216,7 @@ class Conversation:
                 self._usernames.add(ut.user.name)
         return list(self._usernames)
 
-    def get_user(self, username):
+    def get_user(self, username: str) -> User:
         """Looks up the User with the given name. Raises a KeyError if no user 
         with that name exists.
 
@@ -225,7 +226,7 @@ class Conversation:
         # any Utterances
         return self._owner.get_user(username)
 
-    def iter_users(self):
+    def iter_users(self) -> Generator[User]:
         """Generator allowing iteration over all users in the Conversation. 
         Provides no ordering guarantees.
 
@@ -266,9 +267,9 @@ class Corpus:
     :ivar utterances: dictionary of utterances in the dataset, indexed by id.
     """
 
-    def __init__(self, filename=None, utterances=None, merge_lines=False,
-                exclude_utterance_meta=None, exclude_conversation_meta=None,
-                exclude_user_meta=None, exclude_overall_meta=None, version=None):
+    def __init__(self, filename: str=None, utterances: List[Utterance]=None, merge_lines: bool=False,
+                exclude_utterance_meta: List[str]=None, exclude_conversation_meta: List[str]=None,
+                exclude_user_meta: List[str]=None, exclude_overall_meta: List[str]=None, version: int=None):
 
         self.original_corpus_path = None if filename is None else os.path.dirname(filename)
         self.meta = {}
@@ -336,8 +337,8 @@ class Corpus:
                         with open(os.path.join(filename, field + "-user-bin.p"), "rb") as f:
                             l_bin = pickle.load(f)
                         for k, v in users_meta.items():
-                            if k == field and type(v) == str and v.startswith(BIN_DELIM_L) and \
-                                v.endswith(BIN_DELIM_R):
+                            if k == field and type(v) == str and str(v).startswith(BIN_DELIM_L) and \
+                                str(v).endswith(BIN_DELIM_R):
                                     idx = int(v[len(BIN_DELIM_L):-len(BIN_DELIM_R)])
                                     users_meta[k] = l_bin[idx]
                 for field in exclude_user_meta:
@@ -349,8 +350,8 @@ class Corpus:
                         with open(os.path.join(filename, field + "-convo-bin.p"), "rb") as f:
                             l_bin = pickle.load(f)
                         for k, v in convos_meta.items():
-                            if k == field and type(v) == str and v.startswith(BIN_DELIM_L) and \
-                                v.endswith(BIN_DELIM_R):
+                            if k == field and type(v) == str and str(v).startswith(BIN_DELIM_L) and \
+                                str(v).endswith(BIN_DELIM_R):
                                     idx = int(v[len(BIN_DELIM_L):-len(BIN_DELIM_R)])
                                     convos_meta[k] = l_bin[idx]
 
@@ -439,7 +440,7 @@ class Corpus:
 
     # params: d is dict to encode, d_bin is dict of accumulated lists of binary attribs
     @staticmethod
-    def dump_helper_bin(d, d_bin, utterances_idx):
+    def dump_helper_bin(d: Dict, d_bin: Dict, utterances_idx: Dict) -> Dict:
         d_out = {}
         for k, v in d.items():
             try:   # try saving the field
@@ -455,7 +456,7 @@ class Corpus:
         #pickle.dump(l_bin, f)
         return d_out
 
-    def dump(self, name, base_path=None, save_to_existing_path=False):
+    def dump(self, name: str, base_path: str=None, save_to_existing_path: bool=False) -> None:
         """Dumps the corpus and its metadata to disk.
 
         :param name: name of corpus
@@ -539,28 +540,29 @@ class Corpus:
         with open(os.path.join(dir_name, "index.json"), "w") as f:
             json.dump(self.meta_index, f)
 
-    def get_utterance_ids(self):
+    def get_utterance_ids(self) -> List[str]:
         return list(self.utterances.keys())
 
-    def get_utterance(self, ut_id):
+    def get_utterance(self, ut_id: str) -> Utterance:
         return self.utterances[ut_id]
 
-    def iter_utterances(self):
+    def iter_utterances(self) -> Generator[Utterance]:
         for v in self.utterances.values():
             yield v
 
-    def get_conversation_ids(self):
+    def get_conversation_ids(self) -> List[str]:
         return list(self.conversations.keys())
 
-    def get_conversation(self, cid):
+    def get_conversation(self, cid: str) -> Conversation:
         return self.conversations[cid]
 
-    def iter_conversations(self):
+    def iter_conversations(self) -> Generator[Conversation]:
         for v in self.conversations.values():
             yield v
 
-    def filter_utterances_by(self, regular_kv_pairs=None,
-                             user_info_kv_pairs=None, meta_kv_pairs=None):
+    def filter_utterances_by(self, regular_kv_pairs: Dict=None,
+                             user_info_kv_pairs: Dict=None,
+                             meta_kv_pairs: Dict=None) -> None:
         """
         Creates a subset of the utterances filtered by certain attributes. Irreversible.
         If the method is run again, it will filter the already filtered subset.
@@ -592,7 +594,7 @@ class Corpus:
 #        uts = list(sorted(uts.values(), key=lambda u: u.timestamp))
 #        return uts[:n]
 
-    def utterance_threads(self, prefix_len=None, suffix_len=0, include_root=True):
+    def utterance_threads(self, prefix_len: int=None, suffix_len: int=0, include_root: bool=True) -> Dict[str, Dict[str, Utterance]]:
         """
         Returns dict of threads, where a thread is all utterances with the
         same root.
@@ -619,13 +621,13 @@ class Corpus:
             key=lambda ut: ut.timestamp))[-suffix_len:prefix_len]}
             for root, l in threads.items()}
 
-    def get_meta(self):
+    def get_meta(self) -> Dict:
         return self.meta
 
-    def add_meta(self, key, value):
+    def add_meta(self, key: Hashable, value) -> None:
         self.meta[key] = value
 
-    def iter_users(self, selector=None):
+    def iter_users(self, selector: Callable[[User], bool]=None) -> Set[User]:
         """Get users in the dataset.
 
         :param selector: optional function that takes in a
@@ -641,10 +643,10 @@ class Corpus:
         else:
             return set([u for u in self.all_users if selector(u)])
 
-    def get_user(self, name):
+    def get_user(self, name: str) -> User:
         return [u for u in self.all_users if u.name == name][0]
 
-    def get_usernames(self, selector=None):
+    def get_usernames(self, selector: Callable[[User], bool]=None) -> Set[str]:
         """Get names of users in the dataset.
 
         :param selector: optional function that takes in a
@@ -657,7 +659,8 @@ class Corpus:
         """
         return set([u.name for u in self.iter_users(selector)])
 
-    def speaking_pairs(self, selector=None, user_names_only=False):
+    def speaking_pairs(self, selector: Callable[[User, User], bool]=None,
+                       user_names_only: bool=False) -> Set[Tuple]:
         """Get all directed speaking pairs (a, b) of users such that a replies
             to b at least once in the dataset.
 
@@ -682,7 +685,7 @@ class Corpus:
                                 user_names_only else (u2.user, u1.user))
         return pairs
 
-    def pairwise_exchanges(self, selector=None, user_names_only=False):
+    def pairwise_exchanges(self, selector=None, user_names_only=False) -> Dict[Tuple, List[Utterance]]:
         """Get all directed pairwise exchanges in the dataset.
 
         :param selector: optional function that takes in a
@@ -701,12 +704,12 @@ class Corpus:
                 u1 = self.utterances[u2.reply_to]
                 if u1.user is not None:
                     if selector is None or selector(u2.user, u1.user):
-                        key = ((u2.user.name, u1.user.name) if
-                                user_names_only else (u2.user, u1.user))
+                        key = (u2.user.name, u1.user.name) if user_names_only else (u2.user, u1.user)
                         pairs[key].append(u2)
         return pairs
 
-    def iterate_by(self, iter_type, is_utterance_question):
+    def iterate_by(self, iter_type: str,
+                   is_utterance_question: Callable[[str], bool]) -> Generator[Tuple[str, str, str]]:
         """Iterator for utterances.
 
         Can give just questions, just answers or questions followed by their answers
@@ -718,12 +721,12 @@ class Corpus:
                 if is_utterance_question(root_text):
                     i += 1
                     if iter_type == 'answers':
-                        pair_idx = utterance.reply_to + pair_delim + utterance.id
+                        pair_idx = utterance.reply_to + pair_delim + str(utterance.id)
                         yield utterance.id, utterance.text, pair_idx
                         continue
                     question = self.utterances[utterance.reply_to]
                     pair_idx = question.id + pair_delim + utterance.id
                     yield question.id, question.text, pair_idx
                     if iter_type == 'both':
-                        pair_idx = utterance.reply_to + pair_delim + utterance.id
+                        pair_idx = utterance.reply_to + pair_delim + str(utterance.id)
                         yield utterance.id, utterance.text, pair_idx
