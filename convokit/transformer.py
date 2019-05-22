@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from .model import Corpus
 
 class Transformer(ABC):
     """
@@ -19,7 +20,7 @@ class Transformer(ABC):
     implemented more efficiently than doing the steps separately.
     """
 
-    def fit(self, corpus):
+    def fit(self, corpus: Corpus):
         """Use the provided Corpus to perform any precomputations necessary to
         later perform the actual transformation step.
 
@@ -30,7 +31,7 @@ class Transformer(ABC):
         return self
 
     @abstractmethod
-    def transform(self, corpus):
+    def transform(self, corpus: Corpus):
         """Modify the provided corpus. This is an abstract method that must be
         implemented by any Transformer subclass
 
@@ -43,7 +44,7 @@ class Transformer(ABC):
         """
         pass
 
-    def fit_transform(self, corpus):
+    def fit_transform(self, corpus: Corpus):
         """Fit and run the Transformer on a single Corpus.
 
         :param corpus: the Corpus to use

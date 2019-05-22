@@ -4,6 +4,7 @@ from sklearn.manifold import TSNE
 from sklearn.preprocessing import StandardScaler
 
 from .transformer import Transformer
+from .model import Corpus
 
 
 class ThreadEmbedder(Transformer):
@@ -20,20 +21,20 @@ class ThreadEmbedder(Transformer):
     :param return_components: if True, returns the components from embedding
     """
 
-    def __init__(self, n_components=7, method="svd",
-                 norm_method="standard", return_components=False):
+    def __init__(self, n_components: int=7, method: str="svd",
+                 norm_method: str="standard", return_components: bool=False):
         self.n_components = n_components
         self.method = method
         self.norm_method = norm_method
         self.return_components = return_components
 
-    def transform(self, corpus,):
+    def transform(self, corpus: Corpus):
         """
         Same as fit_transform()
         """
         return self.fit_transform(corpus)
 
-    def fit_transform(self, corpus):
+    def fit_transform(self, corpus: Corpus):
         """
         :param corpus: the Corpus to use
         :return: a corpus with new meta key: "threadEmbedder",

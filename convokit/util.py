@@ -1,14 +1,13 @@
 import urllib.request
 import shutil
 import os
-import pkg_resources
 import zipfile
 import json
 from typing import Dict
-from .model import Utterance
+from .model import Utterance, Corpus
 
 # returns a path to the dataset file
-def download(name, verbose=True, data_dir=None, use_newest_version=True):
+def download(name: str, verbose: bool=True, data_dir: str=None, use_newest_version: bool=True) -> str:
     """Use this to download (or use saved) convokit data by name.
 
     :param name: Which item to download. Currently supported:
@@ -29,7 +28,7 @@ def download(name, verbose=True, data_dir=None, use_newest_version=True):
             A sample from 100 highly-active subreddits
         -  "subreddit-<subreddit-name>": Subreddit Corpus 
             A corpus made from the given subreddit
-
+    :param verbose: Print checkpoint statements for download
     :param data_dir: Output path of downloaded file (default: ~/.convokit)
     :param use_newest_version: Redownload if new version is found
 
@@ -196,7 +195,6 @@ def download(name, verbose=True, data_dir=None, use_newest_version=True):
     if not os.path.exists(os.path.join(data_dir, "downloads")):
         os.mkdir(os.path.join(data_dir, "downloads"))
 
-    parent_dir = os.path.join(data_dir, "downloads")
     dataset_path = os.path.join(data_dir, "downloads", name)
 
     if custom_data_dir is not None:
@@ -257,7 +255,7 @@ def download(name, verbose=True, data_dir=None, use_newest_version=True):
 
     return dataset_path
 
-def download_helper(dataset_path, url, verbose, name, downloadeds_path):
+def download_helper(dataset_path: str, url: str, verbose: bool, name: str, downloadeds_path: str) -> None:
     
     if url.lower().endswith(".corpus") or url.lower().endswith(".corpus.zip"):
         dataset_path += ".zip"
@@ -293,13 +291,13 @@ def download_helper(dataset_path, url, verbose, name, downloadeds_path):
         f.write("{}$#${}$#${}\n".format(name, os.path.realpath(os.path.dirname(dataset_path) + "/"), corpus_version(fn)))
         #f.write(name + "\n")
 
-def corpus_version(filename):
+def corpus_version(filename: str) -> int:
     with open(os.path.join(filename, "index.json")) as f:
         d = json.load(f)
         return int(d["version"])
 
 # retrieve grouping and completes the download link for subreddit
-def get_subreddit_info(subreddit_name):
+def get_subreddit_info(subreddit_name: str) -> str:
 
     # base directory of subreddit corpuses
     subreddit_base = "http://zissou.infosci.cornell.edu/convokit/datasets/subreddit-corpus/"
@@ -319,7 +317,7 @@ def get_subreddit_info(subreddit_name):
 
     return ""
 
-def subreddit_in_grouping(subreddit: str, grouping_key: str):
+def subreddit_in_grouping(subreddit: str, grouping_key: str) -> bool:
     """
     :param subreddit: subreddit name
     :param grouping_key: example: "askreddit~-~blackburn"
@@ -331,7 +329,7 @@ def subreddit_in_grouping(subreddit: str, grouping_key: str):
     return bounds[0] <= subreddit <= bounds[1]
 
 
-def meta_index(corpus=None, filename=None):
+def meta_index(corpus: Corpus=None, filename: str=None) -> Dict:
     keys = ["utterances-index", "conversations-index", "users-index",
             "overall-index"]
     if corpus is not None:
@@ -341,7 +339,7 @@ def meta_index(corpus=None, filename=None):
             d = json.load(f)
             return d
 
-def display_thread_helper(thread, root, indent=0):
+def display_thread_helper(thread: Dict[str, Utterance], root: str, indent: int=0) -> None:
     """
     Helper method for display_thread().
     :param thread: Dict for Utterance id -> Utterance for all utterances in the thread
@@ -354,9 +352,9 @@ def display_thread_helper(thread, root, indent=0):
     for child in children:
         display_thread_helper(thread, child, indent=indent+4)
 
-def display_thread(threads: Dict[str, Dict[str, Utterance]], root: str):
+def display_thread(threads: Dict[str, Dict[str, Utterance]], root: str) -> None:
     """
-    Displays a compact representation of a specified thread, e.g. a comment thread on a reddit post.
+    Prints to console a compact representation of a specified thread, e.g. a comment thread on a reddit post.
     Example usage: threads = corpus.utterance_threads(prefix_len=10, include_root=False)
                    display_thread(threads, 'e5717fs') # assuming 'e5717fs' is a valid key in threads
     :param threads: Dictionary of threads, where key is the thread id, and the value is a Dict of Utterance ids -> Utterance.

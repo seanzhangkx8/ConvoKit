@@ -4,12 +4,6 @@
 
 import itertools
 import json
-import os
-import platform
-#if platform.system() == "Darwin":
-#    import matplotlib
-#    matplotlib.use("Qt5Agg")
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import spacy
@@ -18,12 +12,10 @@ import pickle
 from ast import literal_eval as make_tuple
 from collections import defaultdict, Counter
 from scipy import sparse
-from sklearn.externals import joblib
 from sklearn.cluster import KMeans
-from sklearn.metrics.pairwise import pairwise_distances
 from sklearn.preprocessing import Normalizer
 from spacy.symbols import *
-from spacy.tokens.doc import Doc
+from typing import Callable, Generator, Tuple, List, Dict, Set, Optional
 
 from .model import Corpus
 from .transformer import Transformer
@@ -77,13 +69,13 @@ class QuestionTypology(Transformer):
     :ivar a_u: the low dimensional A matrix
     """
 
-    def __init__(self, num_clusters=8,
-        question_threshold=100, answer_threshold=100,
-        num_dims=100, verbose=5000, dedup_threshold=.9,
-        follow_conj=True, norm='l2', num_svds=50, num_dims_to_inspect=5,
-        max_iter_for_k_means=1000, remove_first=False, min_support=5, item_set_size=5,
-        leaves_only_for_assign=True, idf=False, snip=True, leaves_only_for_extract=False,
-        random_seed=0, is_question=None, questions_only=True, enforce_formatting=True):
+    def __init__(self, num_clusters: int=8,
+        question_threshold: int=100, answer_threshold: int=100,
+        num_dims: int=100, verbose: int=5000, dedup_threshold: int=.9,
+        follow_conj: int=True, norm: str='l2', num_svds: int=50, num_dims_to_inspect: int=5,
+        max_iter_for_k_means: int=1000, remove_first: bool=False, min_support: int=5, item_set_size: int=5,
+        leaves_only_for_assign: bool=True, idf: bool=False, snip: bool=True, leaves_only_for_extract: bool=False,
+        random_seed: int=0, is_question: Callable[[str], bool]=None, questions_only: bool=True, enforce_formatting: bool=True):
 
         self.num_clusters = num_clusters
         self.question_threshold = question_threshold
@@ -120,7 +112,7 @@ class QuestionTypology(Transformer):
         else:
             self.answer_filter = lambda x: True
 
-    def fit(self, corpus):
+    def fit(self, corpus: Corpus):
         """Extract question-answer pairs from the given corpus and use them to
         construct the internal matrix objects (in other words, "train" the
         QuestionTypology object on the given corpus)
@@ -128,10 +120,9 @@ class QuestionTypology(Transformer):
         :param corpus: the Corpus to use for fitting the model
         :type corpus: Corpus
         """
-
-        self.motifs = MotifsExtractor.extract_question_motifs(self._iter_corpus(corpus, 'questions', self.is_question),
+        self.motifs = MotifsExtractor.extract_question_motifs(QuestionTypology._iter_corpus(corpus, 'questions', self.is_question),
             self.question_filter, self.follow_conj, self.min_support, self.dedup_threshold, self.item_set_size, self.verbose)
-        self.motifs["answer_arcs"] = MotifsExtractor.extract_answer_arcs(self._iter_corpus(corpus, 'answers', self.is_question),
+        self.motifs["answer_arcs"] = MotifsExtractor.extract_answer_arcs(QuestionTypology._iter_corpus(corpus, 'answers', self.is_question),
             self.answer_filter, self.follow_conj, self.verbose)
 
         self.mtx_obj = QuestionClusterer.build_matrix(self.motifs, self.question_threshold,
@@ -159,7 +150,9 @@ class QuestionTypology(Transformer):
 
         return self
 
-    def _iter_corpus(self, corpus, iter_type, is_utterance_question):
+    @staticmethod
+    def _iter_corpus(corpus: Corpus, iter_type: str,
+                     is_utterance_question: Callable[[str], bool]) -> Generator[Tuple[str, str, str]]:
         """Iterator over utterances in the Corpus being transformed
 
         Can give just questions, just answers or questions followed by their answers
@@ -215,8 +208,9 @@ class QuestionTypology(Transformer):
         print("Number of Motifs in each cluster: ", self.motifs_in_each_cluster)
         print("Number of Questions of each type: ", self.questions_in_each_cluster)
 
+    # TODO double check type_num type
     @staticmethod
-    def display_questions_for_type(corpus, type_num, num_egs=10):
+    def display_questions_for_type(corpus: Corpus, type_num: int, num_egs: int=10):
         """Displays num_egs number of questions in the given corpus that were assigned type
             type_num by the typing algorithm.
         """
@@ -236,7 +230,7 @@ class QuestionTypology(Transformer):
             print('\t\t%d.'%(n), questions[i])
 
     @staticmethod
-    def display_question_answer_pairs_for_type(corpus, type_num, num_egs=10):
+    def display_question_answer_pairs_for_type(corpus: Corpus, type_num: int, num_egs: int=10):
         """Displays num_egs number of question-answer pairs in the given corpus that were assigned type
             type_num by the typing algorithm.
         """
@@ -260,7 +254,7 @@ class QuestionTypology(Transformer):
             print('\t\tQuestion %d.'%(n), questions[i])
             print('\t\tAnswer %d.'%(n), answers[i])
 
-    def display_motifs_for_type(self, cluster_num, num_egs=10):
+    def display_motifs_for_type(self, cluster_num: int, num_egs: int=10):
         """Displays num_egs number of motifs that were assigned to cluster cluster_num
             by the clustering algorithm
         """
@@ -290,9 +284,9 @@ class QuestionTypology(Transformer):
         n = 0
         for i in indices_to_print:
             n += 1
-            print('\t\t%d.'%(n), answer_fragments[i])
+            print('\t\t%d.'% n, answer_fragments[i])
 
-    def _summarize_motifs(self):
+    def _summarize_motifs(self) -> Tuple[List, List]:
         """Helper function to summarize question motifs and corresponding answer
         fragments for inclusion in the transformed corpus"""
         motif_summary = []
@@ -307,7 +301,7 @@ class QuestionTypology(Transformer):
             answer_summary.append([answer_fragments[i] for i in fragments_idx])
         return motif_summary, answer_summary
 
-    def _corpus_to_dataframe(self, corpus):
+    def _corpus_to_dataframe(self, corpus: Corpus) -> pd.DataFrame:
         comment_ids = []
         content = []
         for utt in corpus.iter_utterances():
@@ -316,7 +310,7 @@ class QuestionTypology(Transformer):
                 content.append(utt.meta["parsed"])
         return pd.DataFrame({"content": content}, index=comment_ids)
 
-    def _load_motif_info(self):
+    def _load_motif_info(self) -> Tuple[Dict[Tuple, Tuple], Dict[Tuple, List[Tuple]], Dict[Tuple, int]]:
         if self.verbose:
             print("fitting extracted motifs to new data...")
 
@@ -328,7 +322,9 @@ class QuestionTypology(Transformer):
         node_counts = MotifsExtractor.read_nodecounts(self.motifs['question_tree_arc_set_counts'])
         return super_mappings, downlinks, node_counts
 
-    def _extract_arcs(self, comment_df, selector=lambda x: True, outfile=None):
+    def _extract_arcs(self, comment_df: pd.DataFrame,
+                      selector: Callable[[str], bool]=lambda x: True,
+                      outfile: str=None) -> pd.DataFrame:
         if self.verbose:
             print("getting question arcs")
         sent_df = []
@@ -349,9 +345,11 @@ class QuestionTypology(Transformer):
             sent_df.to_csv(outfile + '.sent_arcs.tsv', sep='\t')
         return sent_df
 
-    def _fit_questions_and_answers(self, sent_df, q_vocab, a_vocab, 
-                                   super_mappings, downlink_info, node_count_info,
-                                   threshold, outfile=None, per_sent=False): 
+    def _fit_questions_and_answers(self, sent_df: pd.DataFrame, q_vocab: Set[str], a_vocab: Set[str],
+                                   super_mappings: Dict[Tuple, Tuple],
+                                   downlink_info: Dict[Tuple, List[Tuple]],
+                                   node_count_info: Dict[Tuple, int],
+                                   threshold: int, outfile: str=None, per_sent: bool=False):
 
         if self.verbose:
             print("fitting motifs to questions")
@@ -458,7 +456,8 @@ class QuestionTypology(Transformer):
 
         return qdoc_vects, adoc_vects
 
-    def _assign_qtypes(self, qdoc_vects, adoc_vects, mtx_obj, km, comment_df,
+    @staticmethod
+    def _assign_qtypes(qdoc_vects, adoc_vects, mtx_obj, km, comment_df,
             display=None, max_dist_quantile=None, random_state=None, outfile=None):
 
         n_clusters = km.n_clusters
@@ -495,7 +494,7 @@ class QuestionTypology(Transformer):
         new_mtx_obj = self._make_new_qa_mtx_obj(question_to_fits, question_to_leaf_fits, question_to_a_fits, self.mtx_obj)
         qdoc_vects, adoc_vects = self._project_qa_embeddings(new_mtx_obj, self.lq, self.a_u)
 
-        new_qdoc_df = self._assign_qtypes(qdoc_vects, adoc_vects, new_mtx_obj, self.km, comment_df, 
+        new_qdoc_df = QuestionTypology._assign_qtypes(qdoc_vects, adoc_vects, new_mtx_obj, self.km, comment_df,
             random_state=self.random_seed, display=5, max_dist_quantile=.25)
 
         # add cluster assignments to the source Corpus
@@ -899,23 +898,23 @@ class MotifsExtractor:
         return (word.dep in NP_LABELS) or (word.tag_.startswith('NN') or word.tag_.startswith('PRP')) or (word.tag_.endswith('DT'))
 
     @staticmethod
-    def has_w_det(token):
+    def has_w_det(token) -> Optional[str]:
         """
-            Returns the tokens text if it has a W determiner, False otherwise
+            Returns the tokens text if it has a W determiner, None otherwise
         """
         if token.tag_.startswith('W'): return token.text
         first_tok = next(token.subtree)
         if (first_tok.tag_.startswith('W')): return first_tok.text
-        return False
+        return None
 
     @staticmethod
-    def get_tok(token):
+    def get_tok(token) -> Tuple[str, bool]:
         """
             TODO
         """
         if MotifsExtractor.is_noun_ish(token):
             has_w = MotifsExtractor.has_w_det(token)
-            if has_w:
+            if has_w is not None:
                 return has_w.lower(), True
             else:
                 return 'NN', True
@@ -988,7 +987,7 @@ class MotifsExtractor:
         return arcs
 
     @staticmethod
-    def is_utterance_question(text):
+    def is_utterance_question(text: str):
         """True if text is a question
         """
         return '?' in text
@@ -1074,7 +1073,7 @@ class MotifsExtractor:
         }
 
     @staticmethod
-    def read_downlinks(downlink_data):
+    def read_downlinks(downlink_data) -> Dict[Tuple, List[Tuple]]:
         """
             Returns a dicionary of parent to children nodes of the dependency parse of given input questions
         """
@@ -1084,9 +1083,9 @@ class MotifsExtractor:
         return downlinks
 
     @staticmethod
-    def read_nodecounts(nodecount_list):
+    def read_nodecounts(nodecount_list: List) -> Dict[Tuple, int]:
         """
-            Returns the count for each set of arcs
+        Returns the count for each set of arcs
         """
         node_counts = {}
         for split in nodecount_list:
@@ -1099,7 +1098,7 @@ class MotifsExtractor:
     @staticmethod
     def extract_answer_arcs(answer_text_iter, answer_filter_fn, follow_conj, verbose):
         """
-            convenience pipeline to get answer motifs
+        convenience pipeline to get answer motifs
         """
 
         if verbose: print('running answer arc pipeline')
@@ -1219,7 +1218,7 @@ class QuestionClusterer:
                 answer_term_idxes.append(term_idx)
                 answer_doc_idxes.append(idx)
 
-        mtx_obj = {}
+        mtx_obj = dict()
         mtx_obj["q_tidxes"] = np.asarray(question_term_idxes)
         mtx_obj["q_leaves"] = np.asarray(question_leaves)
         mtx_obj["a_tidxes"] = np.asarray(answer_term_idxes)
@@ -1227,7 +1226,7 @@ class QuestionClusterer:
         mtx_obj["a_didxes"] = np.asarray(answer_doc_idxes)
 
         mtx_obj['q_terms'] = []
-        mtx_obj['q_term_to_idx'] = {}
+        mtx_obj['q_term_to_idx'] = dict()
         mtx_obj['q_term_counts'] = []
         for idx, term in enumerate(question_term_list):
             mtx_obj['q_term_counts'].append(motif_counts[term])
@@ -1359,7 +1358,7 @@ class QuestionClusterer:
         return mtx
 
     @staticmethod
-    def run_simple_pipe(mtx_obj, verbose, norm, idf, leaves_only):
+    def run_simple_pipe(mtx_obj, verbose: bool, norm, idf, leaves_only):
         """
             Create and return q_mtx and a_mtx from precomputed mtx_obj.
             mtx_obj has the following keys
