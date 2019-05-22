@@ -4,6 +4,8 @@ import os
 import pkg_resources
 import zipfile
 import json
+from typing import Dict
+from .model import Utterance
 
 # returns a path to the dataset file
 def download(name, verbose=True, data_dir=None, use_newest_version=True):
@@ -338,3 +340,26 @@ def meta_index(corpus=None, filename=None):
         with open(os.path.join(filename, "index.json")) as f:
             d = json.load(f)
             return d
+
+def display_thread_helper(thread, root, indent=0):
+    """
+    Helper method for display_thread().
+    :param thread: Dict for Utterance id -> Utterance for all utterances in the thread
+    :param root: root of thread, aka thread id
+    :param indent: Level of indentation so that reply structure of thread can be visualized
+    :return:
+    """
+    print(" "*indent + thread[root].user.name)
+    children = [k for k, v in thread.items() if v.reply_to == root]
+    for child in children:
+        display_thread_helper(thread, child, indent=indent+4)
+
+def display_thread(threads: Dict[str, Dict[str, Utterance]], root: str):
+    """
+    Displays a compact representation of a specified thread, e.g. a comment thread on a reddit post.
+    Example usage: threads = corpus.utterance_threads(prefix_len=10, include_root=False)
+                   display_thread(threads, 'e5717fs') # assuming 'e5717fs' is a valid key in threads
+    :param threads: Dictionary of threads, where key is the thread id, and the value is a Dict of Utterance ids -> Utterance.
+    :param root: thread id
+    """
+    return display_thread_helper(threads[root],root)

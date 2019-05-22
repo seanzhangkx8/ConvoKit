@@ -191,7 +191,7 @@ class Conversation:
         # any Utterances
         return self._owner.get_utterance(ut_id)
 
-    def iter_utterances(self) -> Generator[Utterance]:
+    def iter_utterances(self) -> Generator[Utterance, None, None]:
         """Generator allowing iteration over all utterances in the Conversation. 
         Provides no ordering guarantees.
         
@@ -226,7 +226,7 @@ class Conversation:
         # any Utterances
         return self._owner.get_user(username)
 
-    def iter_users(self) -> Generator[User]:
+    def iter_users(self) -> Generator[User, None, None]:
         """Generator allowing iteration over all users in the Conversation. 
         Provides no ordering guarantees.
 
@@ -540,13 +540,13 @@ class Corpus:
         with open(os.path.join(dir_name, "index.json"), "w") as f:
             json.dump(self.meta_index, f)
 
-    def get_utterance_ids(self) -> List[str]:
+    def get_utterance_ids(self) -> List[Hashable]:
         return list(self.utterances.keys())
 
     def get_utterance(self, ut_id: str) -> Utterance:
         return self.utterances[ut_id]
 
-    def iter_utterances(self) -> Generator[Utterance]:
+    def iter_utterances(self) -> Generator[Utterance, None, None]:
         for v in self.utterances.values():
             yield v
 
@@ -556,7 +556,7 @@ class Corpus:
     def get_conversation(self, cid: str) -> Conversation:
         return self.conversations[cid]
 
-    def iter_conversations(self) -> Generator[Conversation]:
+    def iter_conversations(self) -> Generator[Conversation, None, None]:
         for v in self.conversations.values():
             yield v
 
@@ -709,7 +709,7 @@ class Corpus:
         return pairs
 
     def iterate_by(self, iter_type: str,
-                   is_utterance_question: Callable[[str], bool]) -> Generator[Tuple[str, str, str]]:
+                   is_utterance_question: Callable[[str], bool]) -> Generator[Tuple[str, str, str], None, None]:
         """Iterator for utterances.
 
         Can give just questions, just answers or questions followed by their answers
