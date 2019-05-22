@@ -181,7 +181,7 @@ class Conversation:
         # ID list (since lists are mutable)
         return [ut_id for ut_id in self._utterance_ids]
 
-    def get_utterance(self, ut_id: str) -> Utterance:
+    def get_utterance(self, ut_id: Hashable) -> Utterance:
         """Looks up the Utterance associated with the given ID. Raises a 
         KeyError if no utterance by that ID exists.
         
@@ -543,7 +543,7 @@ class Corpus:
     def get_utterance_ids(self) -> List[Hashable]:
         return list(self.utterances.keys())
 
-    def get_utterance(self, ut_id: str) -> Utterance:
+    def get_utterance(self, ut_id: Hashable) -> Utterance:
         return self.utterances[ut_id]
 
     def iter_utterances(self) -> Generator[Utterance, None, None]:

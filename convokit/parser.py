@@ -2,6 +2,8 @@ import spacy
 import sys
 
 from .transformer import Transformer
+from typing import Callable, Generator, Tuple, List, Dict, Set, Optional
+
 
 def _remove_tensor(doc):
     """minimize memory usage of spacy docs by removing the unneeded `tensor` field"""

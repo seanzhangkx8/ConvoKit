@@ -6,6 +6,9 @@ from collections import defaultdict, OrderedDict
 import numpy as np
 import scipy.stats
 from .transformer import Transformer
+from typing import Callable, Generator, Tuple, List, Dict, Set, Optional, Hashable
+from .model import Corpus, Utterance
+
 
 class HyperConvo(Transformer):
     """
@@ -38,18 +41,18 @@ class HyperConvo(Transformer):
     False otherwise, i.e. thread begins from top level comment. (Affects prefix_len and min_thread_len counts.)
     """
 
-    def __init__(self, prefix_len=10, min_thread_len=10, include_root=True):
+    def __init__(self, prefix_len: int=10, min_thread_len: int=10, include_root: bool=True):
         self.prefix_len = prefix_len
         self.min_thread_len = min_thread_len
         self.include_root = include_root
 
-    def transform(self, corpus):
+    def transform(self, corpus: Corpus):
         """
         Same as fit_transform()
         """
         return self.fit_transform(corpus)
 
-    def fit_transform(self, corpus):
+    def fit_transform(self, corpus: Corpus) -> None:
         """
         fit_transform() retrieves features from the corpus conversational
         threads using retrieve_feats()
@@ -63,7 +66,9 @@ class HyperConvo(Transformer):
                                                                        include_root=self.include_root))
 
     @staticmethod
-    def _make_hypergraph(corpus=None, uts=None, exclude_id=None):
+    def _make_hypergraph(corpus: Optional[Corpus]=None,
+                         uts: Optional[Dict[Hashable, Utterance]]=None,
+                         exclude_id: Optional[Hashable]=None):
         """
         Construct a Hypergraph from all the utterances of a Corpus, or a specified subset of utterances
         :param corpus: A Corpus to extract utterances from
@@ -111,7 +116,7 @@ class HyperConvo(Transformer):
         return G
 
     @staticmethod
-    def _node_type_name(b):
+    def _node_type_name(b: bool) -> str:
         """
         Helper method to get node type name (C or c)
         :param b: Bool, where True indicates node is a Hypernode

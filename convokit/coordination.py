@@ -6,7 +6,10 @@ Example usage: https://github.com/CornellNLP/Cornell-Conversational-Analysis-Too
 
 import pkg_resources
 import re
+from .model import Corpus
 from collections import defaultdict
+from typing import Callable, Generator, Tuple, List, Dict, Set, Optional
+
 
 from .transformer import Transformer
 
@@ -150,12 +153,12 @@ class Coordination(Transformer):
         self.corpus = None
         self.precomputed = False
 
-    def fit(self, corpus):
+    def fit(self, corpus: Corpus):
         """Learn coordination information for the given corpus."""
         self.corpus = corpus
         self.precompute()
 
-    def transform(self, corpus):
+    def transform(self, corpus: Corpus):
         """Generate coordination scores for the corpus you called fit on."""
         if corpus != self.corpus:
             raise Exception("Coordination: must fit and transform on same corpus")
@@ -267,8 +270,8 @@ class Coordination(Transformer):
             raise Exception("Must fit before calling score")
 
         if split_by_attribs is None: split_by_attribs = []
-        if speaker_attribs is None: speaker_attribs = {}
-        if target_attribs is None: target_attribs = {}
+        if speaker_attribs is None: speaker_attribs = dict()
+        if target_attribs is None: target_attribs = dict()
 
         #self.precompute()
         speakers = set(speakers)
@@ -391,9 +394,10 @@ class Coordination(Transformer):
                 # use "#" to mark word boundary
                 words = pat.replace("\\b", "#").split("|")
                 all_words += [(w[1:], cat) for w in words]
-            self.liwc_trie = self.make_trie(all_words)
-    
-    def make_trie(self, words):
+            self.liwc_trie = Coordination.make_trie(all_words)
+
+    @staticmethod
+    def make_trie(words):
         root = {}
         for word, cat in words:
             cur = root

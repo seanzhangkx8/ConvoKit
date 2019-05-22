@@ -31,7 +31,7 @@ class Transformer(ABC):
         return self
 
     @abstractmethod
-    def transform(self, corpus: Corpus):
+    def transform(self, corpus: Corpus) -> None:
         """Modify the provided corpus. This is an abstract method that must be
         implemented by any Transformer subclass
 
@@ -44,7 +44,7 @@ class Transformer(ABC):
         """
         pass
 
-    def fit_transform(self, corpus: Corpus):
+    def fit_transform(self, corpus: Corpus) -> None:
         """Fit and run the Transformer on a single Corpus.
 
         :param corpus: the Corpus to use

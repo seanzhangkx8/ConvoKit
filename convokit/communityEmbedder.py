@@ -4,6 +4,9 @@ from sklearn.manifold import TSNE
 from collections import defaultdict
 
 from .transformer import Transformer
+from .model import Corpus
+from typing import Callable, Generator, Tuple, List, Dict, Set, Optional, Hashable
+
 
 
 class CommunityEmbedder(Transformer):
@@ -20,21 +23,21 @@ class CommunityEmbedder(Transformer):
     :param method: Embedding method; "svd", "tsne" or "none"
     """
 
-    def __init__(self, community_key=None, n_components=2, method="none"):
+    def __init__(self, community_key: Optional[Hashable]=None, n_components: int=2, method: str="none"):
         self.community_key = community_key
         self.n_components = n_components
         self.method = method
 
-    def transform(self, corpus):
+    def transform(self, corpus: Corpus) -> None:
         """
         Same as fit_transform()
         """
         return self.fit_transform(corpus)
 
-    def fit_transform(self, corpus):
+    def fit_transform(self, corpus: Corpus) -> None:
         """
         :param corpus: the Corpus to use
-        :return: a Corpus with new meta key: "communityEmbedder",
+        :return None. Modifies Corpus with new meta key: "communityEmbedder",
         value: Dict, containing "pts": an array with rows corresponding
         to embedded communities, and "labels": an array whose ith entry is
         the community of the ith row of X.
@@ -78,5 +81,3 @@ class CommunityEmbedder(Transformer):
 
         retval = {"pts": pts, "labels": labels}
         corpus.add_meta("communityEmbedder", retval)
-
-        return corpus

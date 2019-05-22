@@ -2,8 +2,8 @@
 See Section 4 of http://www.cs.cornell.edu/~cristian/Conversations_gone_awry.html
 """
 
-import numpy as np
-import pandas as pd
+from typing import Callable, Generator, Tuple, List, Dict, Set, Optional, Hashable
+
 
 from collections import defaultdict
 
@@ -11,6 +11,7 @@ from .politeness_api.features.politeness_strategies import get_politeness_strate
 from .politeness_api.features.vectorizer import get_unigrams_and_bigrams
 
 from .transformer import Transformer
+from .model import Corpus
 
 class PolitenessStrategies(Transformer):
     """
@@ -19,14 +20,13 @@ class PolitenessStrategies(Transformer):
 
     :param verbose: whether or not to print status messages while computing features
 
-    :ivar corpus: the PolitenessStrategies object's corpus
     """
 
-    def __init__(self, verbose=False):
+    def __init__(self, verbose: bool=False):
         self.ATTR_NAME = "politeness_strategies"
         self.verbose = verbose
 
-    def transform(self, corpus):
+    def transform(self, corpus: Corpus):
         """Extract politeness strategies from each utterances in the corpus and annotate
         the utterances with the extracted strategies. Requires that the corpus has previously
         been transformed by a Parser, such that each utterance has dependency parse info in
@@ -51,7 +51,7 @@ class PolitenessStrategies(Transformer):
 
         return corpus
 
-    def _preprocess_utterances(self, corpus):
+    def _preprocess_utterances(self, corpus: Corpus) -> Tuple[List[Hashable], List[Dict]]:
         """Convert each Utterance in the given Corpus into the representation expected
         by the politeness API. Assumes that the Corpus has already been parsed, so that
         each Utterance contains the `parsed` metadata entry
