@@ -3,6 +3,7 @@ import sys
 
 from .transformer import Transformer
 from typing import Callable, Generator, Tuple, List, Dict, Set, Optional
+from .model import Corpus
 
 
 def _remove_tensor(doc):
@@ -34,7 +35,7 @@ class Parser(Transformer):
                 print("Convokit requires a SpaCy English model to be installed. Run `python -m spacy download en` and retry.")
                 sys.exit()
 
-    def transform(self, corpus):
+    def transform(self, corpus: Corpus):
         """Runs the SpaCy parser on each utterance in the corpus, and adds the 
         parses to the utterance metadata table.
 

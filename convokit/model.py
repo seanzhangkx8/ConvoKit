@@ -594,7 +594,9 @@ class Corpus:
 #        uts = list(sorted(uts.values(), key=lambda u: u.timestamp))
 #        return uts[:n]
 
-    def utterance_threads(self, prefix_len: int=None, suffix_len: int=0, include_root: bool=True) -> Dict[str, Dict[str, Utterance]]:
+    def utterance_threads(self, prefix_len: int=None,
+                          suffix_len: int=0,
+                          include_root: bool=True) -> Dict[Hashable, Dict[Hashable, Utterance]]:
         """
         Returns dict of threads, where a thread is all utterances with the
         same root.

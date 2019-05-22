@@ -152,7 +152,7 @@ class QuestionTypology(Transformer):
 
     @staticmethod
     def _iter_corpus(corpus: Corpus, iter_type: str,
-                     is_utterance_question: Callable[[str], bool]) -> Generator[Tuple[str, str, str]]:
+                     is_utterance_question: Callable[[str], bool]) -> Generator[Tuple[str, str, str], None, None]:
         """Iterator over utterances in the Corpus being transformed
 
         Can give just questions, just answers or questions followed by their answers

@@ -6,9 +6,150 @@ from collections import defaultdict, OrderedDict
 import numpy as np
 import scipy.stats
 from .transformer import Transformer
-from typing import Callable, Generator, Tuple, List, Dict, Set, Optional, Hashable
+from typing import Callable, Generator, Tuple, List, Dict, Set, Optional, Hashable, Collection
 from .model import Corpus, Utterance
 
+class Hypergraph:
+    """
+    Represents a hypergraph, consisting of nodes, directed edges,
+    hypernodes (each of which is a set of nodes) and hyperedges (directed edges
+    from hypernodes to hypernodes). Contains functionality to extract motifs
+    from hypergraphs (Fig 2 of
+    http://www.cs.cornell.edu/~cristian/Patterns_of_participant_interactions.html)
+    """
+    def __init__(self):
+        # public
+        self.nodes = OrderedDict()
+        self.hypernodes = OrderedDict()
+
+        # private
+        self.adj_out = OrderedDict()  # out edges for each (hyper)node
+        self.adj_in = OrderedDict()   # in edges for each (hyper)node
+
+    def add_node(self, u: Hashable, info: Optional[Dict]=None) -> None:
+        self.nodes[u] = info if info is not None else dict()
+        self.adj_out[u] = OrderedDict()
+        self.adj_in[u] = OrderedDict()
+
+    def add_hypernode(self, name: Hashable, nodes: Collection[Hashable], info=None) -> None:
+        self.hypernodes[name] = set(nodes)
+        self.adj_out[name] = OrderedDict()
+        self.adj_in[name] = OrderedDict()
+
+    # edge or hyperedge
+    def add_edge(self, u: Hashable, v: Hashable, info=None) -> None:
+        assert u in self.nodes or u in self.hypernodes
+        assert v in self.nodes or v in self.hypernodes
+        if u in self.hypernodes and v in self.hypernodes:
+            assert len(info.keys()) > 0
+        if v not in self.adj_out[u]:
+            self.adj_out[u][v] = []
+        if u not in self.adj_in[v]:
+            self.adj_in[v][u] = []
+        if info is None: info = dict()
+        self.adj_out[u][v].append(info)
+        self.adj_in[v][u].append(info)
+
+    def edges(self) -> Dict[Tuple[Hashable, Hashable], List]:
+        return OrderedDict(((u, v), lst) for u, d in self.adj_out.items()
+                           for v, lst in d.items())
+
+    def outgoing_nodes(self, u: Hashable) -> Dict[Hashable, List]:
+        assert u in self.adj_out
+        return OrderedDict((v, lst) for v, lst in self.adj_out[u].items()
+                           if v in self.nodes)
+
+    def outgoing_hypernodes(self, u) -> Dict[Hashable, List]:
+        assert u in self.adj_out
+        return OrderedDict((v, lst) for v, lst in self.adj_out[u].items()
+                           if v in self.hypernodes)
+
+    def incoming_nodes(self, v: Hashable) -> Dict[Hashable, List]:
+        assert v in self.adj_in
+        return OrderedDict((u, lst) for u, lst in self.adj_in[v].items() if u in
+                           self.nodes)
+
+    def incoming_hypernodes(self, v: Hashable) -> Dict[Hashable, List]:
+        assert v in self.adj_in
+        return OrderedDict((u, lst) for u, lst in self.adj_in[v].items() if u in
+                           self.hypernodes)
+
+    def outdegrees(self, from_hyper: bool=False, to_hyper: bool=False) -> List[int]:
+        return [sum([len(l) for v, l in self.adj_out[u].items() if v in
+                     (self.hypernodes if to_hyper else self.nodes)]) for u in
+                (self.hypernodes if from_hyper else self.nodes)]
+
+    def indegrees(self, from_hyper: bool=False, to_hyper: bool=False) -> List[int]:
+        return [sum([len(l) for u, l in self.adj_in[v].items() if u in
+                     (self.hypernodes if from_hyper else self.nodes)]) for v in
+                (self.hypernodes if to_hyper else self.nodes)]
+
+    def reciprocity_motifs(self) -> List[Tuple]:
+        """
+        :return: List of tuples of form (C1, c1, c2, C1->c2, c2->c1) as in paper
+        """
+        motifs = []
+        for C1, c1_nodes in self.hypernodes.items():
+            for c1 in c1_nodes:
+                motifs += [(C1, c1, c2, e1, e2) for c2 in self.adj_in[c1] if
+                           c2 in self.nodes and c2 in self.adj_out[C1]
+                           for e1 in self.adj_out[C1][c2]
+                           for e2 in self.adj_out[c2][c1]]
+        return motifs
+
+    def external_reciprocity_motifs(self) -> List[Tuple]:
+        """
+        :return: List of tuples of form (C3, c2, c1, C3->c2, c2->c1) as in paper
+        """
+        motifs = []
+        for C3 in self.hypernodes:
+            for c2 in self.adj_out[C3]:
+                if c2 in self.nodes:
+                    motifs += [(C3, c2, c1, e1, e2) for c1 in
+                               set(self.adj_out[c2].keys()) - self.hypernodes[C3]
+                               if c1 in self.nodes
+                               for e1 in self.adj_out[C3][c2]
+                               for e2 in self.adj_out[c2][c1]]
+        return motifs
+
+    def dyadic_interaction_motifs(self) -> List[Tuple]:
+        """
+        :return: List of tuples of form (C1, C2, C1->C2, C2->C1) as in paper
+        """
+
+        motifs = []
+        for C1 in self.hypernodes:
+            motifs += [(C1, C2, e1, e2) for C2 in self.adj_out[C1] if C2 in
+                       self.hypernodes and C1 in self.adj_out[C2]
+                       for e1 in self.adj_out[C1][C2]
+                       for e2 in self.adj_out[C2][C1]]
+        return motifs
+
+    def incoming_triad_motifs(self) -> List[Tuple]:
+        """
+        :return: List of tuples of form (C1, C2, C3, C2->C1, C3->C1) as in paper
+        """
+        motifs = []
+        for C1 in self.hypernodes:
+            incoming = list(self.adj_in[C1].keys())
+            motifs += [(C1, C2, C3, e1, e2) for C2, C3 in
+                       itertools.combinations(incoming, 2)
+                       for e1 in self.adj_out[C2][C1]
+                       for e2 in self.adj_out[C3][C1]]
+        return motifs
+
+    def outgoing_triad_motifs(self) -> List[Tuple]:
+        """
+        :return: List of tuples of form (C1, C2, C3, C1->C2, C1->C3) as in paper
+        """
+        motifs = []
+        for C1 in self.hypernodes:
+            outgoing = list(self.adj_out[C1].keys())
+            motifs += [(C1, C2, C3, e1, e2) for C2, C3 in
+                       itertools.combinations(outgoing, 2)
+                       for e1 in self.adj_out[C1][C2]
+                       for e2 in self.adj_out[C1][C3]]
+        return motifs
 
 class HyperConvo(Transformer):
     """
@@ -46,7 +187,7 @@ class HyperConvo(Transformer):
         self.min_thread_len = min_thread_len
         self.include_root = include_root
 
-    def transform(self, corpus: Corpus):
+    def transform(self, corpus: Corpus) -> None:
         """
         Same as fit_transform()
         """
@@ -68,7 +209,7 @@ class HyperConvo(Transformer):
     @staticmethod
     def _make_hypergraph(corpus: Optional[Corpus]=None,
                          uts: Optional[Dict[Hashable, Utterance]]=None,
-                         exclude_id: Optional[Hashable]=None):
+                         exclude_id: Hashable=None) -> Hypergraph:
         """
         Construct a Hypergraph from all the utterances of a Corpus, or a specified subset of utterances
         :param corpus: A Corpus to extract utterances from
@@ -125,7 +266,10 @@ class HyperConvo(Transformer):
         return "C" if b else "c"
 
     @staticmethod
-    def _degree_feats(uts=None, G=None, name_ext="", exclude_id=None):
+    def _degree_feats(uts: Optional[Dict[Hashable, Utterance]]=None,
+                      G: Optional[Hypergraph]=None,
+                      name_ext: str="",
+                      exclude_id: Optional[Hashable]=None) -> Dict:
         """
         Helper method for retrieve_feats().
         Generate statistics on degree-related features in a Hypergraph (G), or a Hypergraph
@@ -134,8 +278,7 @@ class HyperConvo(Transformer):
         :param G: Hypergraph to calculate degree features statistics from
         :param name_ext: Suffix to append to feature name
         :param exclude_id: id of utterance to exclude from Hypergraph construction
-        :return: A dictionary from a thread root id to its stats dictionary,
-            which is a dictionary from feature names to feature values. For degree-related
+        :return: A stats dictionary, i.e. a dictionary of feature names to feature values. For degree-related
             features specifically.
         """
         assert uts is None or G is None
@@ -179,7 +322,10 @@ class HyperConvo(Transformer):
         return stats
 
     @staticmethod
-    def _motif_feats(uts=None, G=None, name_ext="", exclude_id=None):
+    def _motif_feats(uts: Optional[Dict[Hashable, Utterance]]=None,
+                     G: Hypergraph=None,
+                     name_ext: str="",
+                     exclude_id: str=None) -> Dict:
         """
         Helper method for retrieve_feats().
         Generate statistics on degree-related features in a Hypergraph (G), or a Hypergraph
@@ -215,7 +361,9 @@ class HyperConvo(Transformer):
         return stats
 
     @staticmethod
-    def retrieve_feats(corpus, prefix_len=10, min_thread_len=10, include_root=True):
+    def retrieve_feats(corpus: Corpus, prefix_len: int=10,
+                       min_thread_len: int=10,
+                       include_root: bool=True) -> Dict[Hashable, Dict]:
         """
         Retrieve all hypergraph features for a given corpus (viewed as a set
         of conversation threads).
@@ -223,10 +371,11 @@ class HyperConvo(Transformer):
         See init() for further documentation.
 
         :return: A dictionary from a thread root id to its stats dictionary,
-            which is a dictionary from feature names to feature values.
+            which is a dictionary from feature names to feature values. For degree-related
+            features specifically.
         """
 
-        threads_stats = {}
+        threads_stats = dict()
 
         for i, (root, thread) in enumerate(
                 corpus.utterance_threads(prefix_len=prefix_len, include_root=include_root).items()):
@@ -243,144 +392,3 @@ class HyperConvo(Transformer):
             threads_stats[root] = stats
         return threads_stats
 
-class Hypergraph:
-    """
-    Represents a hypergraph, consisting of nodes, directed edges,
-    hypernodes (each of which is a set of nodes) and hyperedges (directed edges
-    from hypernodes to hypernodes). Contains functionality to extract motifs
-    from hypergraphs (Fig 2 of
-    http://www.cs.cornell.edu/~cristian/Patterns_of_participant_interactions.html)
-    """
-    def __init__(self):
-        # public
-        self.nodes = OrderedDict()
-        self.hypernodes = OrderedDict()
-
-        # private
-        self.adj_out = OrderedDict()  # out edges for each (hyper)node
-        self.adj_in = OrderedDict()   # in edges for each (hyper)node
-
-    def add_node(self, u, info=None):
-        self.nodes[u] = info if info is not None else dict()
-        self.adj_out[u] = OrderedDict()
-        self.adj_in[u] = OrderedDict()
-
-    def add_hypernode(self, name, nodes, info=None):
-        self.hypernodes[name] = set(nodes)
-        self.adj_out[name] = OrderedDict()
-        self.adj_in[name] = OrderedDict()
-
-    # edge or hyperedge
-    def add_edge(self, u, v, info=None):
-        assert u in self.nodes or u in self.hypernodes
-        assert v in self.nodes or v in self.hypernodes
-        if u in self.hypernodes and v in self.hypernodes:
-            assert len(info.keys()) > 0
-        if v not in self.adj_out[u]:
-            self.adj_out[u][v] = []
-        if u not in self.adj_in[v]:
-            self.adj_in[v][u] = []
-        if info is None: info = dict()
-        self.adj_out[u][v].append(info)
-        self.adj_in[v][u].append(info)
-
-    def edges(self):
-        return OrderedDict(((u, v), lst) for u, d in self.adj_out.items()
-                           for v, lst in d.items())
-
-    def outgoing_nodes(self, u):
-        assert u in self.adj_out
-        return OrderedDict((v, lst) for v, lst in self.adj_out[u].items()
-                           if v in self.nodes)
-
-    def outgoing_hypernodes(self, u):
-        assert u in self.adj_out
-        return OrderedDict((v, lst) for v, lst in self.adj_out[u].items()
-                           if v in self.hypernodes)
-
-    def incoming_nodes(self, v):
-        assert v in self.adj_in
-        return OrderedDict((u, lst) for u, lst in self.adj_in[v].items() if u in
-                           self.nodes)
-
-    def incoming_hypernodes(self, v):
-        assert v in self.adj_in
-        return OrderedDict((u, lst) for u, lst in self.adj_in[v].items() if u in
-                           self.hypernodes)
-
-    def outdegrees(self, from_hyper=False, to_hyper=False):
-        return [sum([len(l) for v, l in self.adj_out[u].items() if v in
-                     (self.hypernodes if to_hyper else self.nodes)]) for u in
-                (self.hypernodes if from_hyper else self.nodes)]
-
-    def indegrees(self, from_hyper=False, to_hyper=False):
-        return [sum([len(l) for u, l in self.adj_in[v].items() if u in
-                     (self.hypernodes if from_hyper else self.nodes)]) for v in
-                (self.hypernodes if to_hyper else self.nodes)]
-
-    def reciprocity_motifs(self):
-        """
-        :return: List of tuples of form (C1, c1, c2, C1->c2, c2->c1) as in paper
-        """
-        motifs = []
-        for C1, c1_nodes in self.hypernodes.items():
-            for c1 in c1_nodes:
-                motifs += [(C1, c1, c2, e1, e2) for c2 in self.adj_in[c1] if
-                           c2 in self.nodes and c2 in self.adj_out[C1]
-                           for e1 in self.adj_out[C1][c2]
-                           for e2 in self.adj_out[c2][c1]]
-        return motifs
-
-    def external_reciprocity_motifs(self):
-        """
-        :return: List of tuples of form (C3, c2, c1, C3->c2, c2->c1) as in paper
-        """
-        motifs = []
-        for C3 in self.hypernodes:
-            for c2 in self.adj_out[C3]:
-                if c2 in self.nodes:
-                    motifs += [(C3, c2, c1, e1, e2) for c1 in
-                               set(self.adj_out[c2].keys()) - self.hypernodes[C3]
-                               if c1 in self.nodes
-                               for e1 in self.adj_out[C3][c2]
-                               for e2 in self.adj_out[c2][c1]]
-        return motifs
-
-    def dyadic_interaction_motifs(self):
-        """
-        :return: List of tuples of form (C1, C2, C1->C2, C2->C1) as in paper
-        """
-
-        motifs = []
-        for C1 in self.hypernodes:
-            motifs += [(C1, C2, e1, e2) for C2 in self.adj_out[C1] if C2 in
-                       self.hypernodes and C1 in self.adj_out[C2]
-                       for e1 in self.adj_out[C1][C2]
-                       for e2 in self.adj_out[C2][C1]]
-        return motifs
-
-    def incoming_triad_motifs(self):
-        """
-        :return: List of tuples of form (C1, C2, C3, C2->C1, C3->C1) as in paper
-        """
-        motifs = []
-        for C1 in self.hypernodes:
-            incoming = list(self.adj_in[C1].keys())
-            motifs += [(C1, C2, C3, e1, e2) for C2, C3 in
-                       itertools.combinations(incoming, 2)
-                       for e1 in self.adj_out[C2][C1]
-                       for e2 in self.adj_out[C3][C1]]
-        return motifs
-
-    def outgoing_triad_motifs(self):
-        """
-        :return: List of tuples of form (C1, C2, C3, C1->C2, C1->C3) as in paper
-        """
-        motifs = []
-        for C1 in self.hypernodes:
-            outgoing = list(self.adj_out[C1].keys())
-            motifs += [(C1, C2, C3, e1, e2) for C2, C3 in
-                       itertools.combinations(outgoing, 2)
-                       for e1 in self.adj_out[C1][C2]
-                       for e2 in self.adj_out[C1][C3]]
-        return motifs
