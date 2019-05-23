@@ -6,9 +6,9 @@ Example usage: https://github.com/CornellNLP/Cornell-Conversational-Analysis-Too
 
 import pkg_resources
 import re
-from .model import Corpus
+from .model import Corpus, User, Utterance
 from collections import defaultdict
-from typing import Callable, Generator, Tuple, List, Dict, Set, Optional
+from typing import Callable, Tuple, List, Dict, Optional, Collection, Hashable, Union
 
 
 from .transformer import Transformer
@@ -38,34 +38,32 @@ class CoordinationScore(dict):
     There are also helper functions for filtering scores or getting aggregate
     scores:
     """
-    def scores_for_marker(self, marker):
+    def scores_for_marker(self, marker: str) -> Dict[Union[User, Hashable], float]:
         """Return a dictionary from speakers to their scores for just the given
         marker.
         
         :param marker: The marker to return scores for.
-        :type marker: str
-        """ 
+        """
         return {speaker: scores[marker] for speaker, scores in self.items()}
 
-    def averages_by_user(self):
+    def averages_by_user(self) -> Dict[Union[User, Hashable], float]:
         """Return a dictionary from speakers to the average of each speaker's
         marker scores."""
         return {speaker: sum(scores.values()) / len(scores)
             for speaker, scores in self.items()}
 
-    def averages_by_marker(self, strict_thresh=False):
+    def averages_by_marker(self, strict_thresh: bool=False) -> Dict[str, float]:
         """Return a dictionary mapping markers to the average coordination score
         on that marker.
         
         :param strict_thresh: Whether to only include users with all 8 marker
             scores. This corresponds to Aggregate 1 in the Echoes paper (see
             top).
-        :type strict_thresh: bool
         """
         self.precompute_aggregates()
         return self.a1_avg_by_marker if strict_thresh else self.avg_by_marker
 
-    def aggregate(self, method=3):
+    def aggregate(self, method: int=3) -> Optional[float]:
         """Return the aggregate coordination score.
 
         :param method: Can be 1, 2 or 3, corresponding to which aggregate method
@@ -91,7 +89,7 @@ class CoordinationScore(dict):
             return self.agg3
 
     # helper functions
-    def precompute_aggregates(self):
+    def precompute_aggregates(self) -> None:
         a1_scores_by_marker = defaultdict(list)
         scores_by_marker = defaultdict(list)
         for speaker, scores in self.items():
@@ -158,7 +156,7 @@ class Coordination(Transformer):
         self.corpus = corpus
         self.precompute()
 
-    def transform(self, corpus: Corpus):
+    def transform(self, corpus: Corpus) -> None:
         """Generate coordination scores for the corpus you called fit on."""
         if corpus != self.corpus:
             raise Exception("Coordination: must fit and transform on same corpus")
@@ -173,7 +171,7 @@ class Coordination(Transformer):
             else:
                 self.corpus.get_user(s.name).meta["coord-score"][t] = score
 
-    def precompute(self):
+    def precompute(self) -> None:
         """Call this to run the time-consuming annotation process explicitly.
         For example, this lets you save the annotated coordination object as a
         pickle to cache the precomputation results."""
@@ -197,11 +195,15 @@ class Coordination(Transformer):
             #        input()
             self.precomputed = True
 
-    def score(self, corpus, speakers, group, focus="speakers",
-        speaker_thresh=0, target_thresh=3,
-        utterances_thresh=0, speaker_thresh_indiv=0, target_thresh_indiv=0,
-        utterances_thresh_indiv=0, utterance_thresh_func=None,
-        split_by_attribs=None, speaker_attribs=None, target_attribs=None):
+    def score(self, corpus: Corpus, speakers: Collection[Union[User, Hashable]],
+              group: Collection[Union[User, Hashable]], focus: str="speakers",
+              speaker_thresh: int=0, target_thresh: int=3,
+              utterances_thresh: int=0, speaker_thresh_indiv: int=0,
+              target_thresh_indiv: int=0,
+              utterances_thresh_indiv: int=0,
+              utterance_thresh_func: Optional[Callable[Tuple[Utterance, Utterance], bool]]=None,
+              split_by_attribs: Optional[List[str]]=None,
+              speaker_attribs: Optional[Dict]=None, target_attribs: Optional[Dict]=None) -> CoordinationScore:
         """Computes the coordination scores for each speaker, given a set of
         speakers and a group of targets.
 
@@ -302,9 +304,12 @@ class Coordination(Transformer):
             fine_grained_speakers, fine_grained_targets, focus,
             split_by_attribs, speaker_attribs, target_attribs)
 
-    def pairwise_scores(self, corpus, pairs, speaker_thresh=0, target_thresh=3,
-        utterances_thresh=0, speaker_thresh_indiv=0, target_thresh_indiv=0,
-        utterances_thresh_indiv=0, utterance_thresh_func=None):
+    def pairwise_scores(self, corpus: Corpus,
+                        pairs: Collection[Tuple[Union[User, Hashable], Union[User, Hashable]]],
+                        speaker_thresh: int=0, target_thresh: int=3,
+                        utterances_thresh: int=0, speaker_thresh_indiv: int=0,
+                        target_thresh_indiv: int=0, utterances_thresh_indiv: int=0,
+                        utterance_thresh_func: Optional[Callable[Tuple[Utterance, Utterance], bool]]=None) -> CoordinationScore:
         """Computes all pairwise coordination scores given a collection of
         (speaker, target) pairs.
         
@@ -343,7 +348,7 @@ class Coordination(Transformer):
                 all_scores[speaker, target] = m
         return all_scores
 
-    def score_report(self, corpus, scores):
+    def score_report(self, corpus: Corpus, scores: CoordinationScore):
         """Create a "score report" of aggregate scores given a score output
         produced by `score` or `pairwise_scores`.
 
@@ -384,7 +389,7 @@ class Coordination(Transformer):
         return (marker_a1, marker, agg1, agg2, agg3)
 
     # helper functions
-    def compute_liwc_reverse_dict(self):
+    def compute_liwc_reverse_dict(self) -> None:
         with open(pkg_resources.resource_filename("convokit",
             "data/coord-liwc-patterns.txt"), "r") as f:
             all_words = []
@@ -397,7 +402,7 @@ class Coordination(Transformer):
             self.liwc_trie = Coordination.make_trie(all_words)
 
     @staticmethod
-    def make_trie(words):
+    def make_trie(words) -> Dict:
         root = {}
         for word, cat in words:
             cur = root
@@ -409,7 +414,7 @@ class Coordination(Transformer):
                 cur["$"].add(cat)
         return root
 
-    def annot_liwc_cats(self):
+    def annot_liwc_cats(self) -> None:
         # add liwc_categories field to each utterance
         word_chars = set("abcdefghijklmnopqrstuvwxyz0123456789_")
         for k, u in self.corpus.utterances.items():
@@ -441,7 +446,7 @@ class Coordination(Transformer):
                 last = c
             self.corpus.utterances[k].meta["liwc-categories"] = cats
 
-    def compute_liwc_reverse_dict_old(self):
+    def compute_liwc_reverse_dict_old(self) -> None:
         self.liwc_patterns = {}
         with open(pkg_resources.resource_filename("convokit",
             "data/coord-liwc-patterns.txt"), "r") as f:
@@ -449,7 +454,7 @@ class Coordination(Transformer):
                 cat, pat = line.strip().split("\t")
                 self.liwc_patterns[cat] = re.compile(pat, re.IGNORECASE)
 
-    def annot_liwc_cats_old(self):
+    def annot_liwc_cats_old(self) -> None:
         # add liwc_categories field to each utterance
         for k in self.corpus.utterances:
             self.corpus.utterances[k].liwc_categories_old = set()
@@ -460,13 +465,17 @@ class Coordination(Transformer):
                 if s is not None:
                     self.corpus.utterances[k].liwc_categories_old.add(cat)
 
-    def scores_over_utterances(self, speakers, utterances,
-            speaker_thresh, target_thresh, utterances_thresh,
-            speaker_thresh_indiv, target_thresh_indiv, utterances_thresh_indiv,
-            utterance_thresh_func=None,
-            fine_grained_speakers=False, fine_grained_targets=False,
-            focus="speakers",
-            split_by_attribs=None, speaker_attribs=None, target_attribs=None):
+    def scores_over_utterances(self, speakers: Collection[Union[User, Hashable]],
+                               utterances: Collection[Utterance],
+                               speaker_thresh: int, target_thresh: int,
+                               utterances_thresh: int, speaker_thresh_indiv: int,
+                               target_thresh_indiv: int, utterances_thresh_indiv: int,
+                               utterance_thresh_func: Optional[Callable[Tuple[Utterance, Utterance], bool]]=None,
+                               fine_grained_speakers: bool=False, fine_grained_targets: bool=False,
+                               focus: str="speakers",
+                               split_by_attribs: Optional[List[str]]=None,
+                               speaker_attribs: Optional[Dict]=None,
+                               target_attribs: Optional[Dict]=None) -> CoordinationScore:
         assert not isinstance(speakers, str)
         assert focus == "speakers" or focus == "targets"
 
@@ -474,7 +483,7 @@ class Coordination(Transformer):
         if speaker_attribs is None: speaker_attribs = {}
         if target_attribs is None: target_attribs = {}
 
-        def annot_user(user, ut):
+        def annot_user(user: User, ut: Utterance):
             return (user, tuple([ut.meta[attrib] if attrib in ut.meta else None 
                 for attrib in split_by_attribs]))
 
