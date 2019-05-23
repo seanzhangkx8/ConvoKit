@@ -6,7 +6,7 @@ Setup
 =====
 Read the `introduction to Convokit <https://convokit.cornell.edu>`_ and the description of its :doc:`architecture </architecture>`.
 
-This toolkit requires Python 3.6.
+This toolkit requires Python >=3.6.
 
 If you haven't already,
 
@@ -95,31 +95,28 @@ Applying a transformer
 
 We initialize a HyperConvo transformer, which extracts structural features of conversations through a hypergraph representation.
 
+For HyperConvo specifically, these features are saved to their corresponding conversation's metadata. Other transformers may update User, Utterance, or Corpus metadata instead.
+
 >>> # Limit hypergraph representation to threads of length at least 10,
 >>> # using the first 10 utterances
 >>> # include_root is set to False as we only want comment threads (i.e. threads that begin
 >>> # with the top level comment, not the original post.)
 >>> hc = convokit.HyperConvo(prefix_len=10, min_thread_len=10, include_root=False)
 >>> hc.fit_transform(corpus)
->>> corpus.meta.keys()
-dict_keys(['subreddit', 'num_posts', 'num_comments', 'num_user', 'hyperconvo'])
->>> corpus.meta # warning: outputs a lot of text
-{'subreddit': 'reddit-corpus-small',
- 'num_posts': 8286,
- 'num_comments': 288846,
- 'num_user': 119889,
- 'hyperconvo': {'e58slx0': {'max[outdegree over c->c responses]': 1,
-   'max[indegree over c->c responses]': 3,
-   'argmax[outdegree over c->c responses]': 1,
-   'argmax[indegree over c->c responses]': 1,
-   'norm.max[outdegree over c->c responses]': 0.1111111111111111,
-   'norm.max[indegree over c->c responses]': 0.3333333333333333,
-   '2nd-largest[outdegree over c->c responses]': 1,
-   '2nd-largest[indegree over c->c responses]': 3,
-   '2nd-argmax[outdegree over c->c responses]': 2,
+>>> convos = corpus.iter_conversations()
+>>> convo1 = next(iter(convos))
+>>> convo1.meta.keys()
+dict_keys(['title', 'num_comments', 'domain', 'timestamp', 'subreddit', 'gilded', 'gildings', 'stickied', 'author_flair_text', 'hyperconvo'])
+>>> convo1.meta['hyperconvo'] # warning: outputs a lot of text
+{'e594ur8': {'max[outdegree over c->c responses]': 1,
+  'max[indegree over c->c responses]': 5,
+  'argmax[outdegree over c->c responses]': 1,
+  'argmax[indegree over c->c responses]': 0,
+  'norm.max[outdegree over c->c responses]': 0.1111111111111111,
+  'norm.max[indegree over c->c responses]': 0.5555555555555556,
+  '2nd-largest[outdegree over c->c responses]': 1,
+  '2nd-largest[indegree over c->c responses]': 2,
 ......
-
-The output of the HyperConvo transformer is stored in the Corpus metadata.
 
 Other transformers can be applied in the same way, and even chained in sequence, as described in the :doc:`Core Concepts Tutorial </architecture>`
 

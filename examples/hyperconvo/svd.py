@@ -8,7 +8,13 @@ corpus = convokit.Corpus(filename=convokit.download("reddit-corpus-small"))
 print("Computing hypergraph features")
 hc = convokit.HyperConvo(prefix_len=10, include_root=False)
 hc.fit_transform(corpus)
-threads_feats = corpus.get_meta()["hyperconvo"]
+
+threads_feats = dict()
+convos = corpus.iter_conversations()
+
+for convo in convos:
+    threads_feats.update(convo.meta['hyperconvo'])
+
 feat_names = list(sorted(threads_feats[list(threads_feats.keys())[0]].keys()))
 
 print("Computing low-dimensional embeddings")

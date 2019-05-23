@@ -39,7 +39,12 @@ print()
 hc = convokit.HyperConvo()
 # HyperConvo interface: get high-level degree features
 hc.fit_transform(corpus)
-feats = corpus.get_meta()["hyperconvo"]
+
+feats = dict()
+convos = corpus.iter_conversations()
+
+for convo in convos:
+    feats.update(convo.meta['hyperconvo'])
 
 random_thread = next(iter(feats))
 
