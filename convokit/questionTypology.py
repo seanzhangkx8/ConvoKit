@@ -208,7 +208,6 @@ class QuestionTypology(Transformer):
         print("Number of Motifs in each cluster: ", self.motifs_in_each_cluster)
         print("Number of Questions of each type: ", self.questions_in_each_cluster)
 
-    # TODO double check type_num type
     @staticmethod
     def display_questions_for_type(corpus: Corpus, type_num: int, num_egs: int=10):
         """Displays num_egs number of questions in the given corpus that were assigned type
