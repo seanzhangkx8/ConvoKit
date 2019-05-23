@@ -43,12 +43,16 @@ class ThreadEmbedder(Transformer):
              thread root id of the ith row of X. If return_components is True,
              then the Dict contains a third key "components": the SVD components array
         """
-
-        corpus_meta = corpus.get_meta()
-        if "hyperconvo" not in corpus_meta:
+        convos = corpus.iter_conversations()
+        sample_convo_meta = next(iter(convos))
+        if "hyperconvo" not in sample_convo_meta:
             raise RuntimeError("Missing thread statistics: HyperConvo.fit_transform() must be run on the Corpus first")
 
-        thread_stats = corpus_meta["hyperconvo"]
+        thread_stats = dict()
+
+        for convo in convos:
+            thread_stats.update(convo.meta["hyperconvo"])
+
         X = []
         roots = []
         for root, feats in thread_stats.items():

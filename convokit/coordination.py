@@ -203,7 +203,7 @@ class Coordination(Transformer):
               utterances_thresh: int=0, speaker_thresh_indiv: int=0,
               target_thresh_indiv: int=0,
               utterances_thresh_indiv: int=0,
-              utterance_thresh_func: Optional[Callable[Tuple[Utterance, Utterance], bool]]=None,
+              utterance_thresh_func: Optional[Callable[[Tuple[Utterance, Utterance]], bool]]=None,
               split_by_attribs: Optional[List[str]]=None,
               speaker_attribs: Optional[Dict]=None, target_attribs: Optional[Dict]=None) -> CoordinationScore:
         """Computes the coordination scores for each speaker, given a set of
@@ -311,7 +311,7 @@ class Coordination(Transformer):
                         speaker_thresh: int=0, target_thresh: int=3,
                         utterances_thresh: int=0, speaker_thresh_indiv: int=0,
                         target_thresh_indiv: int=0, utterances_thresh_indiv: int=0,
-                        utterance_thresh_func: Optional[Callable[Tuple[Utterance, Utterance], bool]]=None) -> CoordinationScore:
+                        utterance_thresh_func: Optional[Callable[[Tuple[Utterance, Utterance]], bool]]=None) -> CoordinationScore:
         """Computes all pairwise coordination scores given a collection of
         (speaker, target) pairs.
         
@@ -472,7 +472,7 @@ class Coordination(Transformer):
                                speaker_thresh: int, target_thresh: int,
                                utterances_thresh: int, speaker_thresh_indiv: int,
                                target_thresh_indiv: int, utterances_thresh_indiv: int,
-                               utterance_thresh_func: Optional[Callable[Tuple[Utterance, Utterance], bool]]=None,
+                               utterance_thresh_func: Optional[Callable[[Tuple[Utterance, Utterance]], bool]]=None,
                                fine_grained_speakers: bool=False, fine_grained_targets: bool=False,
                                focus: str="speakers",
                                split_by_attribs: Optional[List[str]]=None,

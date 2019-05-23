@@ -163,6 +163,10 @@ class Conversation:
 
     meta = property(_get_meta, _set_meta)
 
+    # TODO: doublecheck if this is cool
+    def add_meta(self, key: Hashable, value) -> None:
+        self.meta[key] = value
+
     # Conversation.id property
     def _get_id(self):
         """The unique ID of this Conversation [read-only]"""
@@ -553,7 +557,7 @@ class Corpus:
     def get_conversation_ids(self) -> List[str]:
         return list(self.conversations.keys())
 
-    def get_conversation(self, cid: str) -> Conversation:
+    def get_conversation(self, cid: Hashable) -> Conversation:
         return self.conversations[cid]
 
     def iter_conversations(self) -> Generator[Conversation, None, None]:
