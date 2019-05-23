@@ -35,7 +35,7 @@ class Parser(Transformer):
                 print("Convokit requires a SpaCy English model to be installed. Run `python -m spacy download en` and retry.")
                 sys.exit()
 
-    def transform(self, corpus: Corpus):
+    def transform(self, corpus: Corpus) -> Corpus:
         """Runs the SpaCy parser on each utterance in the corpus, and adds the 
         parses to the utterance metadata table.
 

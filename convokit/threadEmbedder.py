@@ -28,16 +28,16 @@ class ThreadEmbedder(Transformer):
         self.norm_method = norm_method
         self.return_components = return_components
 
-    def transform(self, corpus: Corpus) -> None:
+    def transform(self, corpus: Corpus) -> Corpus:
         """
         Same as fit_transform()
         """
         return self.fit_transform(corpus)
 
-    def fit_transform(self, corpus: Corpus) -> None:
+    def fit_transform(self, corpus: Corpus) -> Corpus:
         """
         :param corpus: the Corpus to use
-        :return: None. Modifies corpus with new meta key: "threadEmbedder",
+        :return: Modifies and returns corpus with new meta key: "threadEmbedder",
              value: Dict, containing "X": an array with rows corresponding
              to embedded threads, "roots": an array whose ith entry is the
              thread root id of the ith row of X. If return_components is True,
@@ -78,4 +78,5 @@ class ThreadEmbedder(Transformer):
         retval = {"X": X_mid, "roots": roots}
         if self.return_components: retval["components"] = emb.components_
 
-        return corpus.add_meta("threadEmbedder", retval)
+        corpus.add_meta("threadEmbedder", retval)
+        return corpus

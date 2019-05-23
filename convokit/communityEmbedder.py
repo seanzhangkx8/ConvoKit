@@ -28,16 +28,16 @@ class CommunityEmbedder(Transformer):
         self.n_components = n_components
         self.method = method
 
-    def transform(self, corpus: Corpus) -> None:
+    def transform(self, corpus: Corpus) -> Corpus:
         """
         Same as fit_transform()
         """
         return self.fit_transform(corpus)
 
-    def fit_transform(self, corpus: Corpus) -> None:
+    def fit_transform(self, corpus: Corpus) -> Corpus:
         """
         :param corpus: the Corpus to use
-        :return None. Modifies Corpus with new meta key: "communityEmbedder",
+        :return Modifies and returns Corpus with new meta key: "communityEmbedder",
         value: Dict, containing "pts": an array with rows corresponding
         to embedded communities, and "labels": an array whose ith entry is
         the community of the ith row of X.
@@ -81,3 +81,5 @@ class CommunityEmbedder(Transformer):
 
         retval = {"pts": pts, "labels": labels}
         corpus.add_meta("communityEmbedder", retval)
+
+        return corpus

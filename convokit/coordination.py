@@ -156,7 +156,7 @@ class Coordination(Transformer):
         self.corpus = corpus
         self.precompute()
 
-    def transform(self, corpus: Corpus) -> None:
+    def transform(self, corpus: Corpus) -> Corpus:
         """Generate coordination scores for the corpus you called fit on."""
         if corpus != self.corpus:
             raise Exception("Coordination: must fit and transform on same corpus")
@@ -170,6 +170,8 @@ class Coordination(Transformer):
                 self.corpus.get_user(s.name).meta["coord-score"] = {}
             else:
                 self.corpus.get_user(s.name).meta["coord-score"][t] = score
+
+        return self.corpus
 
     def precompute(self) -> None:
         """Call this to run the time-consuming annotation process explicitly.

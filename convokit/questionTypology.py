@@ -467,7 +467,7 @@ class QuestionTypology(Transformer):
         qdoc_df = pd.DataFrame(data=qdoc_dists, index=mtx_obj['docs'], columns=["km_%d_dist" % i for i in range(n_clusters)])
         return qdoc_df
 
-    def transform(self, corpus):
+    def transform(self, corpus) -> Corpus:
         """Computes the distance to each question type cluster for some (possibly previously unseen) text.
         
         :param corpus: the Corpus to apply the fitted model to
