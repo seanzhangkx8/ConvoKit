@@ -5,8 +5,7 @@ import pickle
 from functools import total_ordering
 from collections import defaultdict
 import os
-from typing import Dict, List, Collection, Hashable, Callable, Set, Generator, Tuple
-
+from typing import Dict, List, Collection, Hashable, Callable, Set, Generator, Tuple, Optional
 pair_delim = '-q-a-'
 
 
@@ -24,9 +23,9 @@ class User:
     :ivar meta: dictionary of attributes associated with the user.
     """
 
-    def __init__(self, name: str=None, meta: Dict=None):
+    def __init__(self, name: str=None, meta: Optional[Dict]=None):
         self._name = name
-        self._info = meta if meta is not None else {}
+        self._meta = meta if meta is not None else {}
         self._split_attribs = set()
         self._update_uid()
 
@@ -51,19 +50,22 @@ class User:
         self._update_uid()
     name = property(_get_name, _set_name)
 
-    def _get_info(self): return self._info
+    def _get_meta(self): return self._meta
 
-    def _set_info(self, value: Dict):
-        self._info = value
+    def _set_meta(self, value: Dict):
+        self._meta = value
         self._update_uid()
-    meta = property(_get_info, _set_info)
+    meta = property(_get_meta, _set_meta)
+
+    def add_meta(self, key: Hashable, value) -> None:
+        self.meta[key] = value
 
     def _update_uid(self):
         rep = dict()
         rep["name"] = self._name
         if self._split_attribs:
-            rep["attribs"] = {k: self._info[k] for k in self._split_attribs
-                    if k in self._info}
+            rep["attribs"] = {k: self._meta[k] for k in self._split_attribs
+                    if k in self._meta}
         self._uid = "User(" + str(sorted(rep.items())) + ")"
 
     def __eq__(self, other):
@@ -98,8 +100,10 @@ class Utterance:
     :ivar text: text of the utterance.
     """
 
-    def __init__(self, id: Hashable=None, user: User=None, root: str=None, reply_to: str=None,
-            timestamp=None, text: str=None, meta: Dict=None):
+    def __init__(self, id: Optional[Hashable]=None, user: Optional[User]=None,
+                 root: Optional[Hashable]=None, reply_to: Optional[Hashable]=None,
+                 timestamp: Optional[int]=None, text: Optional[str]=None,
+                 meta: Optional[Dict]=None):
         self.id = id
         self.user = user
         self.root = root
@@ -124,6 +128,9 @@ class Utterance:
         elif key == "meta":
             return self.meta
 
+    def add_meta(self, key: Hashable, value) -> None:
+        self.meta[key] = value
+
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
 
@@ -145,7 +152,9 @@ class Conversation:
         metadata, use Corpus.meta.
     """
 
-    def __init__(self, owner, id: str=None, utterances: List[str]=None, meta: Dict=None):
+    def __init__(self, owner, id: Optional[str]=None,
+                 utterances: Optional[List[str]]=None,
+                 meta: Optional[Dict]=None):
         self._owner = owner
         self._id = id
         self._utterance_ids = utterances
@@ -271,9 +280,12 @@ class Corpus:
     :ivar utterances: dictionary of utterances in the dataset, indexed by id.
     """
 
-    def __init__(self, filename: str=None, utterances: List[Utterance]=None, merge_lines: bool=False,
-                exclude_utterance_meta: List[str]=None, exclude_conversation_meta: List[str]=None,
-                exclude_user_meta: List[str]=None, exclude_overall_meta: List[str]=None, version: int=None):
+    def __init__(self, filename: Optional[str]=None, utterances: Optional[List[Utterance]]=None,
+                 merge_lines: bool=False, exclude_utterance_meta: Optional[List[str]]=None,
+                 exclude_conversation_meta: Optional[List[str]]=None,
+                 exclude_user_meta: Optional[List[str]]=None,
+                 exclude_overall_meta: Optional[List[str]]=None,
+                 version: Optional[int]=None):
 
         self.original_corpus_path = None if filename is None else os.path.dirname(filename)
         self.meta = {}
@@ -460,7 +472,7 @@ class Corpus:
         #pickle.dump(l_bin, f)
         return d_out
 
-    def dump(self, name: str, base_path: str=None, save_to_existing_path: bool=False) -> None:
+    def dump(self, name: str, base_path: Optional[str]=None, save_to_existing_path: bool=False) -> None:
         """Dumps the corpus and its metadata to disk.
 
         :param name: name of corpus
@@ -564,29 +576,24 @@ class Corpus:
         for v in self.conversations.values():
             yield v
 
-    def filter_utterances_by(self, regular_kv_pairs: Dict=None,
-                             user_info_kv_pairs: Dict=None,
-                             meta_kv_pairs: Dict=None) -> None:
+    def filter_utterances_by(self, regular_kv_pairs: Optional[Dict]=None,
+                             meta_kv_pairs: Optional[Dict]=None) -> None:
         """
         Creates a subset of the utterances filtered by certain attributes. Irreversible.
         If the method is run again, it will filter the already filtered subset.
         Always takes the intersection of the specified key-pairs
         """
         if regular_kv_pairs is None: regular_kv_pairs = dict()
-        if user_info_kv_pairs is None: user_info_kv_pairs = dict()
         if meta_kv_pairs is None: meta_kv_pairs = dict()
         new_utterances = dict()
 
         regular_keys = list(regular_kv_pairs.keys())
-        user_info_keys = list(user_info_kv_pairs.keys())
         meta_keys = list(meta_kv_pairs.keys())
         for uid, utterance in self.utterances.items():
-            user_info = utterance.user._get_info()
             meta_dict = utterance.meta
             regular = all(utterance.get(key) == regular_kv_pairs[key] for key in regular_keys)
-            user = all(user_info[key] == user_info_kv_pairs[key] for key in user_info_keys)
             meta = all(meta_dict[key] == meta_kv_pairs[key] for key in meta_keys)
-            if regular and user and meta:
+            if regular and meta:
                 new_utterances[uid] = utterance
 
         self.utterances = new_utterances
@@ -598,7 +605,7 @@ class Corpus:
 #        uts = list(sorted(uts.values(), key=lambda u: u.timestamp))
 #        return uts[:n]
 
-    def utterance_threads(self, prefix_len: int=None,
+    def utterance_threads(self, prefix_len: Optional[int]=None,
                           suffix_len: int=0,
                           include_root: bool=True) -> Dict[Hashable, Dict[Hashable, Utterance]]:
         """
@@ -633,7 +640,7 @@ class Corpus:
     def add_meta(self, key: Hashable, value) -> None:
         self.meta[key] = value
 
-    def iter_users(self, selector: Callable[[User], bool]=None) -> Set[User]:
+    def iter_users(self, selector: Optional[Callable[[User], bool]]=None) -> Set[User]:
         """Get users in the dataset.
 
         :param selector: optional function that takes in a
@@ -652,7 +659,7 @@ class Corpus:
     def get_user(self, name: str) -> User:
         return [u for u in self.all_users if u.name == name][0]
 
-    def get_usernames(self, selector: Callable[[User], bool]=None) -> Set[str]:
+    def get_usernames(self, selector: Optional[Callable[[User], bool]]=None) -> Set[str]:
         """Get names of users in the dataset.
 
         :param selector: optional function that takes in a
@@ -665,7 +672,7 @@ class Corpus:
         """
         return set([u.name for u in self.iter_users(selector)])
 
-    def speaking_pairs(self, selector: Callable[[User, User], bool]=None,
+    def speaking_pairs(self, selector: Optional[Callable[[User, User], bool]]=None,
                        user_names_only: bool=False) -> Set[Tuple]:
         """Get all directed speaking pairs (a, b) of users such that a replies
             to b at least once in the dataset.
@@ -691,7 +698,8 @@ class Corpus:
                                 user_names_only else (u2.user, u1.user))
         return pairs
 
-    def pairwise_exchanges(self, selector=None, user_names_only=False) -> Dict[Tuple, List[Utterance]]:
+    def pairwise_exchanges(self, selector: Optional[Callable[[User, User], bool]]=None,
+                           user_names_only: bool=False) -> Dict[Tuple, List[Utterance]]:
         """Get all directed pairwise exchanges in the dataset.
 
         :param selector: optional function that takes in a
