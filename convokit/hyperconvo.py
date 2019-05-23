@@ -6,7 +6,7 @@ from collections import defaultdict
 import numpy as np
 import scipy.stats
 from .transformer import Transformer
-from typing import Tuple, List, Dict, Set, Optional, Hashable, Collection
+from typing import Tuple, List, Dict, Optional, Hashable, Collection
 from .model import Corpus, Utterance
 
 class Hypergraph:
@@ -31,13 +31,15 @@ class Hypergraph:
         self.adj_out[u] = dict()
         self.adj_in[u] = dict()
 
-    def add_hypernode(self, name: Hashable, nodes: Collection[Hashable], info=None) -> None:
+    def add_hypernode(self, name: Hashable,
+                      nodes: Collection[Hashable],
+                      info: Optional[dict]=None) -> None:
         self.hypernodes[name] = set(nodes)
         self.adj_out[name] = dict()
         self.adj_in[name] = dict()
 
     # edge or hyperedge
-    def add_edge(self, u: Hashable, v: Hashable, info=None) -> None:
+    def add_edge(self, u: Hashable, v: Hashable, info: Optional[dict]=None) -> None:
         assert u in self.nodes or u in self.hypernodes
         assert v in self.nodes or v in self.hypernodes
         if u in self.hypernodes and v in self.hypernodes:
