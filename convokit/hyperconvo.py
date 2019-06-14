@@ -162,8 +162,8 @@ class HyperConvo(Transformer):
     threads using retrieve_feats, and stores it in the corpus's conversations'
     meta field under the key "hyperconvo"
 
-    Either use the features directly, or use the other transformers, <a href="https://zissou.infosci.cornell.edu/socialkit/documentation/threadEmbedder.html">threadEmbedder</a>
-    or <a href="https://zissou.infosci.cornell.edu/socialkit/documentation/communityEmbedder.html">communityEmbedder</a> to embed communities or threads respectively in a low-dimensional
+    Either use the features directly, or use the other transformers, threadEmbedder (https://zissou.infosci.cornell.edu/socialkit/documentation/threadEmbedder.html)
+    or communityEmbedder (https://zissou.infosci.cornell.edu/socialkit/documentation/communityEmbedder.html) to embed communities or threads respectively in a low-dimensional
     space for further analysis or visualization.
 
     As features, we compute the degree distribution statistics from Table 4 of

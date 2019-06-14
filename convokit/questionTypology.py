@@ -1,4 +1,4 @@
-"""Implementes unsupervised identification of rhetorical roles in questions
+"""Implements unsupervised identification of rhetorical roles in questions
 (http://www.cs.cornell.edu/~cristian/Asking_too_much.html).
 """
 
