@@ -1,7 +1,8 @@
 """Coordination features
 (https://www.cs.cornell.edu/~cristian/Echoes_of_power.html).
 
-Example usage: https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/coordination/examples.ipynb
+Example usage: exploring the balance of power in the U.S. Supreme Court
+(https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/coordination/examples.ipynb)
 """
 
 import pkg_resources
