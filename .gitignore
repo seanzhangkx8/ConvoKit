@@ -24,3 +24,6 @@ website/output/
 update-website-live.sh
 examples/hyperconvo/.ipynb_checkpoints
 *.zip
+*.idea
+venv/
+*.iml
