@@ -575,8 +575,8 @@ class MotifsExtractor:
             spacy_NLP = spacy.load('en')
         spacy_keys = []
         spacy_objs = []
-        for idx,(text_idx, text, pair_idx) in enumerate(text_iter):
-            if verbose and (idx > 0) and (idx % verbose == 0):
+        for idx, (text_idx, text, pair_idx) in enumerate(text_iter):
+            if verbose and (idx > 0) and (idx % 10000 == 0):
                 print('\t%03d' % idx)
             spacy_keys.append(text_idx)
             spacy_objs.append(spacy_NLP(text))
