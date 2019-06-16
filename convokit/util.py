@@ -48,12 +48,10 @@ def download(name: str, verbose: bool=True, data_dir: str=None, use_newest_versi
         "conversations-gone-awry-corpus": 2,
         "movie-corpus": 1,
         "subreddit": 0,
+        "wikiconv": 0,
     }
 
     DatasetURLs = {
-        "wikiconv-corpus": "http://zissou.infosci.cornell.edu/convokit/"
-            "datasets/wikiconv-corpus/full.corpus",
-
         "supreme-corpus": "http://zissou.infosci.cornell.edu/convokit/"
             "datasets/supreme-corpus/full.corpus",
        
@@ -176,14 +174,18 @@ def download(name: str, verbose: bool=True, data_dir: str=None, use_newest_versi
 
     }
     
-    if not name.startswith("subreddit"): 
-        name = name.lower()
-    else:
+    if name.startswith("subreddit"):
         subreddit_name = name.split("-")[1]
         # print(subreddit_name)
         cur_version[name] = cur_version['subreddit']
         DatasetURLs[name] = get_subreddit_info(subreddit_name)
         # print(DatasetURLs[name])
+    elif name.startswith("wikiconv"):
+        wikiconv_year = name.split("-")[1]
+        cur_version[name] = cur_version['wikiconv']
+        DatasetURLs[name] = get_wikiconv_year_info(wikiconv_year)
+    else: 
+        name = name.lower()
 
     custom_data_dir = data_dir
 
@@ -328,6 +330,19 @@ def subreddit_in_grouping(subreddit: str, grouping_key: str) -> bool:
         print(subreddit, grouping_key)
     return bounds[0] <= subreddit <= bounds[1]
 
+def get_wikiconv_year_info(year: str) -> str:
+    """completes the download link for wikiconv"""
+    
+    # base directory of wikicon corpuses
+    wikiconv_base = "http://zissou.infosci.cornell.edu/convokit/datasets/wikiconv-corpus/"
+    data_dir = wikiconv_base + "corpus-zipped/"
+
+    # TEMPORARY: prevent the user from downloading years that have not yet been processed
+    if year in ["2004", "2005", "2007", "2011", "2012", "2015", "2018"]:
+        print("The year requested is not available.")
+        return ""
+
+    return data_dir + year + "/full.corpus"
 
 def meta_index(corpus: Corpus=None, filename: str=None) -> Dict:
     keys = ["utterances-index", "conversations-index", "users-index",
