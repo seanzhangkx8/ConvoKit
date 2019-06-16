@@ -41,9 +41,9 @@ We can examine the corpus metadata:
  'num_user': 119889,
  'subreddit': 'reddit-corpus-small'}
 
-So the corpus includes 288,846 comments and 8286 posts. This is a total of 297,132 Utterances. (An Utterance is either a post or a comment in a reddit corpus.)
+So the corpus includes 288846 comments and 8286 posts. This is a total of 297132 Utterances. (An Utterance is either a post or a comment in a reddit corpus.)
 
-These 297,132 Utterances were made by 119889 different users.
+These 297132 Utterances were made by 119889 different users.
 
 We can get iterators of Utterances, Users, and Conversations, and confirm their sizes match the metadata.
 
@@ -118,7 +118,7 @@ dict_keys(['title', 'num_comments', 'domain', 'timestamp', 'subreddit', 'gilded'
   '2nd-largest[indegree over c->c responses]': 2,
 ......
 
-Other transformers can be applied in the same way, and even chained in sequence, as described in the :doc:`Core Concepts Tutorial </architecture>`
+Other transformers can be applied in the same way, and even chained in sequence, as described in the :doc:`Core Concepts Tutorial </architecture>`.
 
 
 

@@ -8,7 +8,6 @@ from .model import Corpus
 from typing import Callable, Generator, Tuple, List, Dict, Set, Optional, Hashable
 
 
-
 class CommunityEmbedder(Transformer):
     """
     Must be run after threadEmbedder.fit_transform()
@@ -36,11 +35,13 @@ class CommunityEmbedder(Transformer):
 
     def fit_transform(self, corpus: Corpus) -> Corpus:
         """
+        Groups threads together into communities.
+
         :param corpus: the Corpus to use
-        :return Modifies and returns Corpus with new meta key: "communityEmbedder",
-        value: Dict, containing "pts": an array with rows corresponding
-        to embedded communities, and "labels": an array whose ith entry is
-        the community of the ith row of X.
+
+        :return: Modifies and returns Corpus with new meta key: "communityEmbedder", value: Dict,
+                containing "pts": an array with rows corresponding to embedded communities,
+                and "labels": an array whose ith entry is the community of the ith row of X.
         """
         if self.community_key is None:
             raise RuntimeError("Must specify community_key to retrieve label information from utterance")

@@ -14,7 +14,6 @@ class ThreadEmbedder(Transformer):
 
     HyperConvo.fit_transform() must be run on the Corpus first
 
-
     :param n_components: Number of dimensions to embed threads into
     :param method: Embedding method; "svd", "tsne" or "none"
     :param norm_method: Normalization method; "standard" or "none"
@@ -37,6 +36,7 @@ class ThreadEmbedder(Transformer):
     def fit_transform(self, corpus: Corpus) -> Corpus:
         """
         :param corpus: the Corpus to use
+
         :return: Modifies and returns corpus with new meta key: "threadEmbedder",
              value: Dict, containing "X": an array with rows corresponding
              to embedded threads, "roots": an array whose ith entry is the
