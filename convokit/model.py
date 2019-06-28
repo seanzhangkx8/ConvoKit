@@ -172,7 +172,6 @@ class Conversation:
 
     meta = property(_get_meta, _set_meta)
 
-    # TODO: doublecheck if this is cool
     def add_meta(self, key: Hashable, value) -> None:
         self.meta[key] = value
 
