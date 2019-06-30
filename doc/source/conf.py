@@ -55,7 +55,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'convokit'
-copyright = '2017 Cornell NLP'
+copyright = '2019 Cornell NLP'
 author = 'Cornell NLP'
 
 # The version info for the project you're documenting, acts as replacement for
