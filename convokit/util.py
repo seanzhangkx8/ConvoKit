@@ -337,11 +337,6 @@ def get_wikiconv_year_info(year: str) -> str:
     wikiconv_base = "http://zissou.infosci.cornell.edu/convokit/datasets/wikiconv-corpus/"
     data_dir = wikiconv_base + "corpus-zipped/"
 
-    # TEMPORARY: prevent the user from downloading years that have not yet been processed
-    if year in ["2004", "2005", "2007", "2011", "2012", "2015", "2018"]:
-        print("The year requested is not available.")
-        return ""
-
     return data_dir + year + "/full.corpus"
 
 def meta_index(corpus: Corpus=None, filename: str=None) -> Dict:

@@ -63,10 +63,14 @@ Reddit conversations from over 900k subreddits, arranged by subreddit. A [small 
  
 Name for download: `subreddit-<name_of_subreddit>` for the by subreddit data, `reddit-corpus-small` for the small subset. 
 
-### Wikiconv Corpus (coming soon)
+### Wikiconv Corpus (WIP)
 
 The full corpus of Wikipedia talk page conversations, based on the reconstruction described in [this paper](http://www.cs.cornell.edu/~cristian/index_files/wikiconv-conversation-corpus.pdf).
-Also comes with block data retrieved directly from the Wikipedia block log, for reproducing the [Trajectories of Blocked Community Members](http://www.cs.cornell.edu/~cristian/Recidivism_online_files/recidivism_online.pdf) paper.
+Note that due to the large size of the data, it is split up by year.
+We are currently working on implementing, as part of the corpus metadata, block data retrieved directly from the Wikipedia block log, for reproducing the [Trajectories of Blocked Community Members](http://www.cs.cornell.edu/~cristian/Recidivism_online_files/recidivism_online.pdf) paper.
+In the meantime, raw block data can be downloaded [here](https://zissou.infosci.cornell.edu/convokit/datasets/wikiconv-corpus/blocks.json).
+
+Name for download: `wikiconv-<year>` to download wikiconv data for the specified year.
 
 ### ...And your own corpus!
 
