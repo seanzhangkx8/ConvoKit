@@ -128,6 +128,18 @@ class Utterance:
         elif key == "meta":
             return self.meta
 
+    def copy(self):
+        """
+        :return: A duplicate of this Utterance with the same data and metadata
+        """
+        return Utterance(id=self.id,
+                         user=self.user,
+                         root=self.root,
+                         reply_to=self.reply_to,
+                         timestamp=self.timestamp,
+                         text=self.text,
+                         meta=self.meta.copy())
+
     def add_meta(self, key: Hashable, value) -> None:
         self.meta[key] = value
 
@@ -743,3 +755,71 @@ class Corpus:
                     if iter_type == 'both':
                         pair_idx = utterance.reply_to + pair_delim + str(utterance.id)
                         yield utterance.id, utterance.text, pair_idx
+
+    def merge_corpus(self, other_corpus):
+        """
+        Merges this corpus with another corpus.
+        Utterances with the same id must share the same data, but metadata will be merged.
+        If metadata of this corpus (or its conversations / utterances) shares a key with the metadata of the
+        other corpus, the other corpus's metadata (or its conversations / utterances) values will be used.
+
+        No
+
+        Prints warnings when:
+        1) Utterances with same id from this and other corpus do not share the same data
+        2) Conversation metadata keys (i.e. specific conversation ids) cannot be found in new merged corpus
+
+        :param other_corpus: Corpus
+        :return: new Corpus constructed from combined lists of utterances
+        """
+        utts1 = self.iter_utterances()
+        utts2 = other_corpus.iter_utterances()
+
+        seen_utts = dict()
+
+        # Add all the utterances from this corpus
+        for utt in utts1:
+            seen_utts[utt.id] = utt.copy()
+
+        # Add all the utterances from the other corpus, checking for data sameness and updating metadata as necessary
+        for utt in utts2:
+            if utt.id in seen_utts:
+                prev_utt = seen_utts[utt.id]
+                try:
+                    assert prev_utt.root == utt.root
+                    assert prev_utt.reply_to == utt.reply_to
+                    assert prev_utt.user == utt.user
+                    assert prev_utt.timestamp == utt.timestamp
+                    assert prev_utt.text == utt.text
+                except AssertionError:
+                    print("WARNING: Utterances with same id did not share the same data:\n" +
+                                         str(prev_utt) + "\n" +
+                                         str(utt) + "\n")
+                prev_utt.meta.update(utt.meta)
+            else:
+                seen_utts[utt.id] = utt
+
+        # Construct new Corpus from merged utterance list
+        new_utt_list = list(seen_utts.values())
+        new_corpus = Corpus(utterances=new_utt_list)
+
+        new_corpus.meta = self.meta.copy()
+        new_corpus.meta.update(other_corpus.meta)
+
+        convos1 = self.iter_conversations()
+        convos2 = other_corpus.iter_conversations()
+
+        new_convo_ids = new_corpus.get_conversation_ids()
+        for convo in convos1:
+            if convo.id not in new_convo_ids:
+                print("WARNING: Could not find conversation id {} from original corpus in merged corpus")
+            else:
+                new_corpus.get_conversation(convo.id).meta = convo.meta.copy()
+
+        for convo in convos2:
+            if convo.id not in new_convo_ids:
+                print("WARNING: Could not find conversation id {} from other corpus in merged corpus")
+            else:
+                new_corpus.get_conversation(convo.id).meta.update(convo.meta)
+
+        return new_corpus
