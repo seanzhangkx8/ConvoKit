@@ -15,7 +15,7 @@ Coordination
 Prompt Types
 ------------
 - `Exploring common types of questioning in the UK Parliament <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/question-typology/parliament_questions_example.ipynb>`_
-- `Using prompt types and politeness strategies to predict Wikipedia conversations going awry <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/conversations-gone-awry/Conversations%20Gone%20Awry%20Prediction.ipynb>`_
+- `Using prompt types and politeness strategies to predict Wikipedia conversations going awry <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/conversations-gone-awry/Conversations_Gone_Awry_Prediction.ipynb>`_
 
 Politeness Strategies
 ---------------------
