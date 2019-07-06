@@ -803,7 +803,7 @@ class Corpus:
                     prev_utt.meta.update(utt.meta) # other utterance metadata is ignored if data is not matched
 
                 except AssertionError:
-                    print('\033[91m'+ "WARNING: " + '\033[0m' + "Utterances with same id did not share the same data:\n" +
+                    print('\033[91m'+ "WARNING: " + '\033[0m' + "Utterances with same id do not share the same data:\n" +
                                          str(prev_utt) + "\n" +
                                          str(utt) + "\n" +
                                          "Ignoring second corpus's utterance.\n\n"
