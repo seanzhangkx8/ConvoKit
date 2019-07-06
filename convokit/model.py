@@ -756,6 +756,7 @@ class Corpus:
                         pair_idx = utterance.reply_to + pair_delim + str(utterance.id)
                         yield utterance.id, utterance.text, pair_idx
 
+
     def merge_corpus(self, other_corpus):
         """
         Merges this corpus with another corpus.
@@ -763,7 +764,7 @@ class Corpus:
         If metadata of this corpus (or its conversations / utterances) shares a key with the metadata of the
         other corpus, the other corpus's metadata (or its conversations / utterances) values will be used.
 
-        No
+        Does not mutate original and other corpus.
 
         Prints warnings when:
         1) Utterances with same id from this and other corpus do not share the same data
@@ -792,7 +793,7 @@ class Corpus:
                     assert prev_utt.timestamp == utt.timestamp
                     assert prev_utt.text == utt.text
                 except AssertionError:
-                    print("WARNING: Utterances with same id did not share the same data:\n" +
+                    print('\033[91m'+ "WARNING: " + '\033[0m' + "Utterances with same id did not share the same data:\n" +
                                          str(prev_utt) + "\n" +
                                          str(utt) + "\n")
                 prev_utt.meta.update(utt.meta)
@@ -810,16 +811,32 @@ class Corpus:
         convos2 = other_corpus.iter_conversations()
 
         new_convo_ids = new_corpus.get_conversation_ids()
+
         for convo in convos1:
             if convo.id not in new_convo_ids:
-                print("WARNING: Could not find conversation id {} from original corpus in merged corpus")
+                print('\033[91m'+"WARNING: "+'\033[0m' + "Could not find conversation id {} from original corpus in merged corpus")
             else:
                 new_corpus.get_conversation(convo.id).meta = convo.meta.copy()
 
         for convo in convos2:
             if convo.id not in new_convo_ids:
-                print("WARNING: Could not find conversation id {} from other corpus in merged corpus")
+                print('\033[91m'+"WARNING: "+'\033[0m' + "Could not find conversation id {} from other corpus in merged corpus")
             else:
                 new_corpus.get_conversation(convo.id).meta.update(convo.meta)
 
         return new_corpus
+
+    def add_utterances(self, utterances=List[Utterance]):
+        """
+        Add utterances to existing Corpus to generate a new Corpus. Does not mutate original Corpus.
+
+        If original corpus has utterances that share an id with an utterance in the input utterance list,
+
+        - Warnings will be printed if the utterances with same id do not share the same data
+        - The input utterance data will override the original utterance data & metadata
+
+        :param utterances:
+        :return: a new Corpus with the utterances from this Corpus and the input utterances combined
+        """
+        helper_corpus = Corpus(utterances=utterances)
+        return self.merge_corpus(helper_corpus)
