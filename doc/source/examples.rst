@@ -19,7 +19,7 @@ Prompt Types
 
 Politeness Strategies
 ---------------------
-- `Exploring the use of politeness strategies in Wikipedia talk page conversations <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/politeness-strategies/awry_politeness_strategies.py>`_
+- `Exploring the use of politeness strategies in Wikipedia talk page conversations <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/conversations-gone-awry/Conversations_Gone_Awry_Prediction.ipynb>`_
 
 Hyperconvo
 ----------
