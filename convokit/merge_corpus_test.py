@@ -19,7 +19,7 @@ class CorpusMerge(unittest.TestCase):
             Utterance(id=5, text="goodbye", user=User(name="foxtrot")),
         ])
 
-        merged = corpus1.merge_corpus(corpus2)
+        merged = corpus1.merge(corpus2)
         self.assertEqual(len(list(merged.iter_utterances())), 6)
         self.assertEqual(len(list(merged.iter_users())), 6)
         self.assertEqual(len(list(corpus1.iter_utterances())), 3)
@@ -41,7 +41,7 @@ class CorpusMerge(unittest.TestCase):
             Utterance(id=5, text="goodbye", user=User(name="foxtrot")),
         ])
 
-        merged = corpus1.merge_corpus(corpus2)
+        merged = corpus1.merge(corpus2)
         self.assertEqual
         self.assertEqual(len(list(merged.iter_utterances())), 5)
         self.assertEqual(len(list(merged.iter_users())), 5)
@@ -52,7 +52,7 @@ class CorpusMerge(unittest.TestCase):
         """
         Merge with overlap in utterance id and utterance has diff data but same metadata
 
-        Warning should be printed
+        Warning should be printed. Original utterance data should be preserved.
         """
         corpus1 = Corpus(utterances = [
             Utterance(id=0, text="hello world", user=User(name="alice")),
@@ -66,14 +66,66 @@ class CorpusMerge(unittest.TestCase):
             Utterance(id=5, text="goodbye", user=User(name="foxtrot")),
         ])
 
-        merged = corpus1.merge_corpus(corpus2)
+        merged = corpus1.merge(corpus2)
         self.assertEqual(len(list(merged.iter_utterances())), 5)
         self.assertEqual(len(list(merged.iter_users())), 5)
         self.assertEqual(len(list(corpus1.iter_utterances())), 3)
         self.assertEqual(len(list(corpus2.iter_utterances())), 3)
 
-        self.assertEqual(merged.get_utterance(2).text, "this is a test2")
-        self.assertEqual(merged.get_utterance(2).user, User(name="candace"))
+        self.assertEqual(merged.get_utterance(2).text, "this is a test")
+        self.assertEqual(merged.get_utterance(2).user, User(name="charlie"))
+
+    def test_overlap_diff_metadata(self):
+        """
+        Merge with overlap in utterance id and utterance has same data but diff metadata
+
+        Second corpus utterance metadata should override if the keys are the same.
+        """
+        corpus1 = Corpus(utterances = [
+            Utterance(id=0, text="hello world", user=User(name="alice")),
+            Utterance(id=1, text="my name is bob", user=User(name="bob")),
+            Utterance(id=2, text="this is a test", user=User(name="charlie"), meta={'hey': 'jude', 'the': 'beatles'}),
+        ])
+
+        corpus2 = Corpus(utterances = [
+            Utterance(id=2, text="this is a test", user=User(name="charlie"), meta={'hey': 'jude', 'the': 'ringo', 'let it': 'be'}),
+            Utterance(id=4, text="this is a sentence", user=User(name="echo")),
+            Utterance(id=5, text="goodbye", user=User(name="foxtrot")),
+        ])
+
+        merged = corpus1.merge(corpus2)
+        self.assertEqual(len(list(merged.iter_utterances())), 5)
+        self.assertEqual(len(list(merged.iter_users())), 5)
+
+        self.assertEqual(len(merged.get_utterance(2).meta), 3)
+        self.assertEqual(merged.get_utterance(2).meta['the'], 'ringo')
+
+    def test_overlap_convo_metadata(self):
+        """
+        Merge with overlap in conversation with metadata differences.
+
+        Expect second corpus convo metadata to override if keys are the same
+        """
+        corpus1 = Corpus(utterances = [
+            Utterance(id=0, text="hello world", user=User(name="alice")),
+            Utterance(id=1, text="my name is bob", user=User(name="bob")),
+            Utterance(id=2, text="this is a test", user=User(name="charlie")),
+        ])
+
+        corpus2 = Corpus(utterances = [
+            Utterance(id=2, text="this is a test", user=User(name="charlie")),
+            Utterance(id=4, text="this is a sentence", user=User(name="echo")),
+            Utterance(id=5, text="goodbye", user=User(name="foxtrot")),
+        ])
+
+        print(list(corpus2.iter_conversations())[0].meta)
+        self.assertEqual(1,1)
+        # merged = corpus1.merge(corpus2)
+        # self.assertEqual(len(list(merged.iter_utterances())), 5)
+        # self.assertEqual(len(list(merged.iter_users())), 5)
+        #
+        # self.assertEqual(len(merged.get_utterance(2).meta), 3)
+        # self.assertEqual(merged.get_utterance(2).meta['the'], 'ringo')
 
 
 if __name__ == '__main__':

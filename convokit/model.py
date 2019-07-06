@@ -266,7 +266,7 @@ class Conversation:
         for username in self._usernames:
            yield self._owner.get_user(username)
 
-
+    
 KeyId = "id"
 KeyUser = "user"
 KeyConvoRoot = "root"
@@ -757,10 +757,12 @@ class Corpus:
                         yield utterance.id, utterance.text, pair_idx
 
 
-    def merge_corpus(self, other_corpus):
+    def merge(self, other_corpus):
         """
         Merges this corpus with another corpus.
-        Utterances with the same id must share the same data, but metadata will be merged.
+        Utterances with the same id must share the same data, otherwise the other corpus utterance data & metadata
+        will be ignored.
+
         If metadata of this corpus (or its conversations / utterances) shares a key with the metadata of the
         other corpus, the other corpus's metadata (or its conversations / utterances) values will be used.
 
@@ -792,11 +794,15 @@ class Corpus:
                     assert prev_utt.user == utt.user
                     assert prev_utt.timestamp == utt.timestamp
                     assert prev_utt.text == utt.text
+
+                    prev_utt.meta.update(utt.meta) # other utterance metadata is ignored if data is not matched
+
                 except AssertionError:
                     print('\033[91m'+ "WARNING: " + '\033[0m' + "Utterances with same id did not share the same data:\n" +
                                          str(prev_utt) + "\n" +
-                                         str(utt) + "\n")
-                prev_utt.meta.update(utt.meta)
+                                         str(utt) + "\n" +
+                                         "Ignoring second corpus's utterance.\n\n"
+                          )
             else:
                 seen_utts[utt.id] = utt
 
@@ -839,4 +845,4 @@ class Corpus:
         :return: a new Corpus with the utterances from this Corpus and the input utterances combined
         """
         helper_corpus = Corpus(utterances=utterances)
-        return self.merge_corpus(helper_corpus)
+        return self.merge(helper_corpus)
