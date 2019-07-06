@@ -266,7 +266,12 @@ class Conversation:
         for username in self._usernames:
            yield self._owner.get_user(username)
 
-    
+    def __eq__(self, other):
+        return self.__dict__ == other.__dict__
+
+    def __repr__(self):
+        return "Conversation(" + str(self.__dict__) + ")"
+
 KeyId = "id"
 KeyUser = "user"
 KeyConvoRoot = "root"
