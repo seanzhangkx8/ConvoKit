@@ -158,5 +158,24 @@ class CorpusMerge(unittest.TestCase):
         self.assertEqual(len(merged.meta), 3)
         self.assertEqual(merged.meta['toxicity'], 0.9)
 
+    def test_add_utterance(self):
+        corpus1 = Corpus(utterances = [
+            Utterance(id=0, text="hello world", user=User(name="alice")),
+            Utterance(id=1, text="my name is bob", user=User(name="bob")),
+            Utterance(id=2, text="this is a test", user=User(name="charlie"), meta={'hey': 'jude', 'hello': 'world'}),
+        ])
+
+        utts = [
+            Utterance(id=1, text="i like pie", user=User(name="delta")),
+            Utterance(id=2, text="this is a test", user=User(name="charlie"), meta={'hello': 'food', 'what': 'a mood'}),
+            Utterance(id=5, text="goodbye", user=User(name="foxtrot")),
+        ]
+        added = corpus1.add_utterances(utts)
+
+        self.assertEqual(len(list(added.iter_utterances())), 4)
+        self.assertEqual(len(added.get_utterance(2).meta), 3)
+        self.assertEqual(added.get_utterance(2).meta['hello'], 'food')
+
+
 if __name__ == '__main__':
     unittest.main()
