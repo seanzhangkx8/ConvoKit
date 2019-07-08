@@ -36,6 +36,8 @@ class User:
         current case id. Call this method with attribs = ["case"] to count
         the same person across different cases as different users.
 
+        By default, if this function is not called, Users are identified by name
+
         :param attribs: Collection of attribute names.
         :type attribs: Collection
         """
@@ -424,6 +426,7 @@ class Corpus:
                 if user_key not in users_cache:
                     users_cache[user_key] = User(name=u[KeyUser],
                         meta=users_meta[u[KeyUser]])
+
                 user = users_cache[user_key]
                 self.all_users.add(user)
 
@@ -785,6 +788,7 @@ class Corpus:
 
         seen_utts = dict()
 
+        # Merge UTTERANCE metadata
         # Add all the utterances from this corpus
         for utt in utts1:
             seen_utts[utt.id] = utt.copy()
@@ -815,9 +819,11 @@ class Corpus:
         new_utt_list = list(seen_utts.values())
         new_corpus = Corpus(utterances=new_utt_list)
 
+        # Merge CORPUS metadata
         new_corpus.meta = self.meta.copy()
         new_corpus.meta.update(other_corpus.meta)
 
+        # Merge CONVERSATION metadata
         convos1 = self.iter_conversations()
         convos2 = other_corpus.iter_conversations()
 
@@ -834,6 +840,9 @@ class Corpus:
                 print('\033[91m'+"WARNING: "+'\033[0m' + "Could not find conversation id {} from other corpus in merged corpus")
             else:
                 new_corpus.get_conversation(convo.id).meta.update(convo.meta)
+
+        # Merge USER metadata
+
 
         return new_corpus
 
