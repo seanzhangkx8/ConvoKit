@@ -374,3 +374,11 @@ def display_thread(threads: Dict[str, Dict[str, Utterance]], root: str) -> None:
     """
 
     return display_thread_helper(threads[root],root)
+
+def warning(text: str):
+    """
+    Pre-pends a red-colored 'WARNING: ' to [text].
+    :param text: Warning message
+    :return: 'WARNING: [text]'
+    """
+    return '\033[91m'+ "WARNING: " + '\033[0m' + text

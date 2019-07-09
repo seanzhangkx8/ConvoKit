@@ -6,6 +6,7 @@ from functools import total_ordering
 from collections import defaultdict
 import os
 from typing import Dict, List, Collection, Hashable, Callable, Set, Generator, Tuple, Optional
+from util import warning
 pair_delim = '-q-a-'
 
 
@@ -25,6 +26,8 @@ class User:
 
     def __init__(self, name: str=None, meta: Optional[Dict]=None):
         self._name = name
+        # self.utts = utts if utts is not None else
+        # self.convos = None
         self._meta = meta if meta is not None else {}
         self._split_attribs = set()
         self._update_uid()
@@ -36,7 +39,7 @@ class User:
         current case id. Call this method with attribs = ["case"] to count
         the same person across different cases as different users.
 
-        By default, if this function is not called, Users are identified by name
+        By default, if this function is not called, Users are identified by name only.
 
         :param attribs: Collection of attribute names.
         :type attribs: Collection
@@ -413,7 +416,6 @@ class Corpus:
                         utterances = json.load(f)
                     except Exception as e:
                         raise Exception("Could not load corpus. Expected json file, encountered error: \n" + str(e))
-
 
             self.utterances = {}
             self.all_users = set()
@@ -807,17 +809,42 @@ class Corpus:
                     prev_utt.meta.update(utt.meta) # other utterance metadata is ignored if data is not matched
 
                 except AssertionError:
-                    print('\033[91m'+ "WARNING: " + '\033[0m' + "Utterances with same id do not share the same data:\n" +
+                    print(warning("Utterances with same id do not share the same data:\n" +
                                          str(prev_utt) + "\n" +
                                          str(utt) + "\n" +
                                          "Ignoring second corpus's utterance.\n\n"
-                          )
+                          ))
             else:
                 seen_utts[utt.id] = utt
+
+        # Collect USER data and metadata
+
+        all_users_data = defaultdict(set)
+
+        all_users_meta = defaultdict(lambda: defaultdict(lambda: defaultdict(str))) # Using defaultdict as an Ordered Set
+
+        for utt in seen_utts.values():
+            # all_users_data['convos'].union(set(utt.user.iter_conversations()))
+            # all_users_data['utts'].union(set(utt.user.iter_utterances()))
+
+            for meta_key, meta_val in utt.meta.items():
+                all_users_meta[utt.user][meta_key][meta_val] # initialize the values in the dict tree
 
         # Construct new Corpus from merged utterance list
         new_utt_list = list(seen_utts.values())
         new_corpus = Corpus(utterances=new_utt_list)
+
+        # Update USER data and metadata with merged versions
+        for user in new_corpus.iter_users():
+            user.conversations = all_users_data[user]['convos']
+            user.utterances = all_users_data[user]['utts']
+
+
+        for user in all_users_meta:
+            for meta_key, meta_val in all_users_meta[user].items():
+                if len(meta_val) > 1:
+                    print(warning("Multiple values found for {} meta key: {}, "
+                                                                "taking the last value seen".format(user, meta_key)))
 
         # Merge CORPUS metadata
         new_corpus.meta = self.meta.copy()
@@ -831,17 +858,15 @@ class Corpus:
 
         for convo in convos1:
             if convo.id not in new_convo_ids:
-                print('\033[91m'+"WARNING: "+'\033[0m' + "Could not find conversation id {} from original corpus in merged corpus")
+                print(warning("Could not find conversation id {} from original corpus in merged corpus"))
             else:
                 new_corpus.get_conversation(convo.id).meta = convo.meta.copy()
 
         for convo in convos2:
             if convo.id not in new_convo_ids:
-                print('\033[91m'+"WARNING: "+'\033[0m' + "Could not find conversation id {} from other corpus in merged corpus")
+                print(warning("Could not find conversation id {} from other corpus in merged corpus"))
             else:
                 new_corpus.get_conversation(convo.id).meta.update(convo.meta)
-
-        # Merge USER metadata
 
 
         return new_corpus
