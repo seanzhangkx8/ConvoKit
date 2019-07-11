@@ -6,9 +6,15 @@ from functools import total_ordering
 from collections import defaultdict
 import os
 from typing import Dict, List, Collection, Hashable, Callable, Set, Generator, Tuple, Optional, ValuesView
-from util import warning
 pair_delim = '-q-a-'
 
+def warning(text: str):
+    """
+    Pre-pends a red-colored 'WARNING: ' to [text].
+    :param text: Warning message
+    :return: 'WARNING: [text]'
+    """
+    return '\033[91m'+ "WARNING: " + '\033[0m' + text
 
 @total_ordering
 class User:
@@ -64,7 +70,7 @@ class User:
     def get_utterance(self, ut_id: Hashable): #-> Utterance:
         return self.utterances[ut_id]
 
-    def iter_utterances(self): #-> Generator[Utterance]:
+    def iter_utterances(self): #-> Generator[Utterance, None, None]:
         for v in self.utterances.values():
             yield v
 
@@ -74,7 +80,7 @@ class User:
     def get_conversation(self, cid: Hashable): # -> Conversation:
         return self.conversations[cid]
 
-    def iter_conversations(self): # -> Generator[Conversation]:
+    def iter_conversations(self): # -> Generator[Utterance, None, None]:
         for v in self.conversations.values():
             yield v
 
@@ -249,7 +255,7 @@ class Conversation:
         # any Utterances
         return self._owner.get_utterance(ut_id)
 
-    def iter_utterances(self) -> Generator[Utterance]:
+    def iter_utterances(self) -> Generator[Utterance, None, None]:
         """Generator allowing iteration over all utterances in the Conversation. 
         Provides no ordering guarantees.
         
@@ -284,7 +290,7 @@ class Conversation:
         # any Utterances
         return self._owner.get_user(username)
 
-    def iter_users(self) -> Generator[User]:
+    def iter_users(self) -> Generator[User, None, None]:
         """Generator allowing iteration over all users in the Conversation. 
         Provides no ordering guarantees.
 
@@ -380,7 +386,7 @@ class Corpus:
                 if version is not None:
                     if "version" in self.meta_index:
                         if self.meta_index["version"] != version:
-                            raise Warning("Requested version does not match file version")
+                            raise warning("Requested version does not match file version")
                         self.version = self.meta_index["version"]
 
                 # unpack utterance meta
@@ -612,7 +618,7 @@ class Corpus:
     def get_utterance(self, ut_id: Hashable) -> Utterance:
         return self.utterances[ut_id]
 
-    def iter_utterances(self) -> Generator[Utterance]:
+    def iter_utterances(self) -> Generator[Utterance, None, None]:
         for v in self.utterances.values():
             yield v
 
@@ -622,7 +628,7 @@ class Corpus:
     def get_conversation(self, cid: Hashable) -> Conversation:
         return self.conversations[cid]
 
-    def iter_conversations(self) -> Generator[Conversation]:
+    def iter_conversations(self) -> Generator[Conversation, None, None]:
         for v in self.conversations.values():
             yield v
 
@@ -773,7 +779,7 @@ class Corpus:
         return pairs
 
     def iterate_by(self, iter_type: str,
-                   is_utterance_question: Callable[[str], bool]) -> Generator[Tuple[str, str, str]]:
+                   is_utterance_question: Callable[[str], bool]) -> Generator[Tuple[str, str, str], None, None]:
         """Iterator for utterances.
 
         Can give just questions, just answers or questions followed by their answers
@@ -795,8 +801,10 @@ class Corpus:
                         pair_idx = utterance.reply_to + pair_delim + str(utterance.id)
                         yield utterance.id, utterance.text, pair_idx
     @staticmethod
-    def _merge_utterances(utts1: Generator[Utterance], utts2: Generator[Utterance]) -> ValuesView[Utterance]:
+    def _merge_utterances(utts1: Generator[Utterance, None, None], utts2: Generator[Utterance, None, None]) -> ValuesView[Utterance]:
         """
+        Helper function for merge().
+
         Combine two collections of utterances into a single dictionary of Utterance id -> Utterance.
 
         If metadata of utterances in the two collections share the same key, but different values,
@@ -820,7 +828,7 @@ class Corpus:
         for utt in utts1:
             seen_utts[utt.id] = utt
 
-        # Add all the utterances from the other corpus, checking for data sameness and updating metadata as necessary
+        # Add all the utterances from the other corpus, checking for data sameness and updating metadata as appropriate
         for utt in utts2:
             if utt.id in seen_utts:
                 prev_utt = seen_utts[utt.id]
@@ -847,6 +855,8 @@ class Corpus:
     @staticmethod
     def _collect_user_data(combined_utts: Collection[Utterance]) -> (Dict, Dict):
         """
+        Helper function for merge().
+
         Iterates through the input set of utterances, to collect User data and metadata.
 
         Collects User data (Utterances and Conversations) in a Dictionary indexed by User ID, merging the Utterances / Conversations.
@@ -864,7 +874,7 @@ class Corpus:
             all_users_data[utt.user]['convos'].union(set(utt.user.iter_conversations()))
             all_users_data[utt.user]['utts'].union(set(utt.user.iter_utterances()))
 
-            for meta_key, meta_val in utt.meta.items():
+            for meta_key, meta_val in utt.user.meta.items():
                 all_users_meta[utt.user][meta_key][meta_val] # initialize the values in the dict tree
 
         return all_users_data, all_users_meta
@@ -872,6 +882,8 @@ class Corpus:
     @staticmethod
     def _update_corpus_user_data(new_corpus, all_users_data: Dict, all_users_meta: Dict) -> None:
         """
+        Helper function for merge().
+
         Update new_corpus's Users' data (utterance and conversation lists) and metadata
 
         Prints a warning if multiple values are found for any user's metadata key; other corpus's user metadata is used
@@ -887,8 +899,8 @@ class Corpus:
 
             for meta_key, meta_vals in all_users_meta[user].items():
                 if len(meta_vals) > 1:
-                    print(warning("Multiple values found for {} for meta key: {}, "
-                                  "overwriting with other corpus's user metadata".format(user, meta_key)))
+                    print(warning("Multiple values found for {} for meta key: {}. "
+                                  "Overwriting with other corpus's user metadata".format(user, meta_key)))
                 user.meta[meta_key] = list(meta_vals)[-1]
 
     def merge(self, other_corpus):
@@ -917,14 +929,14 @@ class Corpus:
 
         all_users_data, all_users_meta = self._collect_user_data(combined_utts)
 
-        self._update_corpus_user_data(new_corpus, all_users_data, all_users_data)
+        self._update_corpus_user_data(new_corpus, all_users_data, all_users_meta)
 
         # Merge CORPUS metadata
         new_corpus.meta = self.meta.copy()
         for key, val in other_corpus.meta.items():
             if key in new_corpus.meta and new_corpus.meta[key] != val:
-                print(warning("Found conflicting values for corpus metadata: {}, "
-                              "overwriting with other corpus's metadata.".format(key)))
+                print(warning("Found conflicting values for corpus metadata: {}. "
+                              "Overwriting with other corpus's metadata.".format(key)))
             else:
                 new_corpus.meta[key] = val
 
@@ -939,8 +951,8 @@ class Corpus:
             for key, val in convo.meta.items():
                 curr_meta = new_corpus.get_conversation(convo.id).meta
                 if key in curr_meta and curr_meta[key] != val:
-                    print(warning("Found conflicting values for conversation: {} for meta key: {}, "
-                                  "overwriting with other corpus's conversation metadata".format(convo.id, key)))
+                    print(warning("Found conflicting values for conversation: {} for meta key: {}. "
+                                  "Overwriting with other corpus's conversation metadata".format(convo.id, key)))
                 else:
                     curr_meta[key] = val
 
