@@ -973,3 +973,23 @@ class Corpus:
         """
         helper_corpus = Corpus(utterances=utterances)
         return self.merge(helper_corpus)
+
+    def update_users_data(self) -> None:
+        """
+        Updates the conversation and utterance lists of every User in the Corpus
+        :return: None
+        """
+        users_utts = defaultdict(list)
+        users_convos = defaultdict(list)
+
+        for utt in self.iter_utterances():
+            users_utts[utt.user].append(utt)
+
+        for convo in self.iter_conversations():
+            for utt in convo.iter_utterances():
+                users_convos[utt.user].append(convo)
+
+        for user in self.iter_users():
+            user.utterances = {utt.id: utt for utt in users_utts[user]}
+            user.conversations = {convo.id: convo for convo in users_convos[user]}
+
