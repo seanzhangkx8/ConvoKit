@@ -80,7 +80,7 @@ class User:
     def get_conversation(self, cid: Hashable): # -> Conversation:
         return self.conversations[cid]
 
-    def iter_conversations(self): # -> Generator[Utterance, None, None]:
+    def iter_conversations(self): # -> Generator[Conversation, None, None]:
         for v in self.conversations.values():
             yield v
 
@@ -853,7 +853,7 @@ class Corpus:
         return seen_utts.values()
 
     @staticmethod
-    def _collect_user_data(combined_utts: Collection[Utterance]) -> (Dict, Dict):
+    def _collect_user_data(combined_utts: Collection[Utterance]) -> (Dict[str, Dict[str, Set]], Dict[str, Dict[Hashable, Dict[Hashable, str]]]):
         """
         Helper function for merge().
 
@@ -894,8 +894,8 @@ class Corpus:
         """
         # Update USER data and metadata with merged versions
         for user in new_corpus.iter_users():
-            user.conversations = all_users_data[user]['convos']
-            user.utterances = all_users_data[user]['utts']
+            user.conversations = {convo.id: convo for convo in all_users_data[user]['convos']}
+            user.utterances = {utt.id: utt for utt in all_users_data[user]['utts']}
 
             for meta_key, meta_vals in all_users_meta[user].items():
                 if len(meta_vals) > 1:
