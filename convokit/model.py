@@ -5,7 +5,7 @@ import pickle
 from functools import total_ordering
 from collections import defaultdict
 import os
-from typing import Dict, List, Collection, Hashable, Callable, Set, Generator, Tuple, Optional
+from typing import Dict, List, Collection, Hashable, Callable, Set, Generator, Tuple, Optional, Iterator
 from util import warning
 pair_delim = '-q-a-'
 
@@ -16,6 +16,8 @@ class User:
 
     :param name: name of the user.
     :type name: str
+    :param utts: dictionary of utterances by the user, where key is user id
+    :param convos: dictionary of conversations started by the user, where key is conversation id
     :param meta: arbitrary dictionary of attributes associated
         with the user.
     :type meta: dict
@@ -24,10 +26,10 @@ class User:
     :ivar meta: dictionary of attributes associated with the user.
     """
 
-    def __init__(self, name: str=None, meta: Optional[Dict]=None):
+    def __init__(self, name: str=None, utts=None, convos=None, meta: Optional[Dict]=None):
         self._name = name
-        # self.utts = utts if utts is not None else
-        # self.convos = None
+        self.utterances = utts if utts is not None else dict()
+        self.conversations = convos if convos is not None else dict()
         self._meta = meta if meta is not None else {}
         self._split_attribs = set()
         self._update_uid()
@@ -53,7 +55,28 @@ class User:
     def _set_name(self, value: str):
         self._name = value
         self._update_uid()
+
     name = property(_get_name, _set_name)
+
+    def get_utterance_ids(self) -> List[Hashable]:
+        return list(self.utterances.keys())
+
+    def get_utterance(self, ut_id: Hashable) -> Utterance:
+        return self.utterances[ut_id]
+
+    def iter_utterances(self) -> Generator[Utterance, None, None]:
+        for v in self.utterances.values():
+            yield v
+
+    def get_conversation_ids(self) -> List[str]:
+        return list(self.conversations.keys())
+
+    def get_conversation(self, cid: Hashable) -> Conversation:
+        return self.conversations[cid]
+
+    def iter_conversations(self) -> Generator[Conversation, None, None]:
+        for v in self.conversations.values():
+            yield v
 
     def _get_meta(self): return self._meta
 
@@ -84,6 +107,12 @@ class User:
 
     def __repr__(self):
         return self._uid
+
+    def copy(self):
+        """
+        :return: A duplicate of the User with the same data and metadata
+        """
+        return User(name=self.name, utts=self.utterances, convos=self.conversations, meta=self.meta.copy())
 
 class Utterance:
     """Represents a single utterance in the dataset.
@@ -765,7 +794,57 @@ class Corpus:
                     if iter_type == 'both':
                         pair_idx = utterance.reply_to + pair_delim + str(utterance.id)
                         yield utterance.id, utterance.text, pair_idx
+    @staticmethod
+    def _merge_utterances(utts1: Collection[Utterance], utts2: Collection[Utterance]) -> Iterator[Utterance]:
+        """
+        Combine two collections of utterances into a single dictionary of Utterance id -> Utterance.
+        Utterances (and Users) in returned Iterator will be copies of the input Utterances (and Users)
 
+        If metadata of utterances in the two collections share the same key, but different values,
+        the second collections' utterance metadata will be used.
+
+        Does not mutate original collections of Utterances.
+
+        Prints warnings when:
+        1) Utterances with same id from this and other collection) do not share the same data
+           (second collection's utterance is ignored)
+        2) Utterance metadata has different values for the same key, and overwriting occurs
+
+        :param utts1: First collection of Utterances
+        :param utts2: Second collection of Utterances
+        :return: Iterator for merged set of utterances
+        """
+        seen_utts = dict()
+
+        # Merge UTTERANCE metadata
+        # Duplicate and add all the utterances from this corpus
+        for utt in utts1:
+            seen_utts[utt.id] = utt.copy()
+
+        # Add all the utterances from the other corpus, checking for data sameness and updating metadata as necessary
+        for utt in utts2:
+            if utt.id in seen_utts:
+                prev_utt = seen_utts[utt.id]
+                try:
+                    assert prev_utt.root == utt.root
+                    assert prev_utt.reply_to == utt.reply_to
+                    assert prev_utt.user == utt.user
+                    assert prev_utt.timestamp == utt.timestamp
+                    assert prev_utt.text == utt.text
+
+                    prev_utt.meta.update(utt.meta) # other utterance metadata is ignored if data is not matched
+
+                except AssertionError:
+                    print(warning("Utterances with same id do not share the same data:\n" +
+                                  str(prev_utt) + "\n" +
+                                  str(utt) + "\n" +
+                                  "Ignoring second corpus's utterance.\n\n"
+                                  ))
+            else:
+                seen_utts[utt.id] = utt.copy()
+
+        for utt in seen_utts.values():
+            utt.user = utt.user.copy()
 
     def merge(self, other_corpus):
         """
@@ -790,42 +869,19 @@ class Corpus:
 
         seen_utts = dict()
 
-        # Merge UTTERANCE metadata
-        # Add all the utterances from this corpus
-        for utt in utts1:
-            seen_utts[utt.id] = utt.copy()
 
-        # Add all the utterances from the other corpus, checking for data sameness and updating metadata as necessary
-        for utt in utts2:
-            if utt.id in seen_utts:
-                prev_utt = seen_utts[utt.id]
-                try:
-                    assert prev_utt.root == utt.root
-                    assert prev_utt.reply_to == utt.reply_to
-                    assert prev_utt.user == utt.user
-                    assert prev_utt.timestamp == utt.timestamp
-                    assert prev_utt.text == utt.text
 
-                    prev_utt.meta.update(utt.meta) # other utterance metadata is ignored if data is not matched
 
-                except AssertionError:
-                    print(warning("Utterances with same id do not share the same data:\n" +
-                                         str(prev_utt) + "\n" +
-                                         str(utt) + "\n" +
-                                         "Ignoring second corpus's utterance.\n\n"
-                          ))
-            else:
-                seen_utts[utt.id] = utt
+
 
         # Collect USER data and metadata
-
-        all_users_data = defaultdict(set)
+        all_users_data = defaultdict(lambda: defaultdict(set))
 
         all_users_meta = defaultdict(lambda: defaultdict(lambda: defaultdict(str))) # Using defaultdict as an Ordered Set
 
         for utt in seen_utts.values():
-            # all_users_data['convos'].union(set(utt.user.iter_conversations()))
-            # all_users_data['utts'].union(set(utt.user.iter_utterances()))
+            all_users_data[utt.user]['convos'].union(set(utt.user.iter_conversations()))
+            all_users_data[utt.user]['utts'].union(set(utt.user.iter_utterances()))
 
             for meta_key, meta_val in utt.meta.items():
                 all_users_meta[utt.user][meta_key][meta_val] # initialize the values in the dict tree
@@ -839,12 +895,11 @@ class Corpus:
             user.conversations = all_users_data[user]['convos']
             user.utterances = all_users_data[user]['utts']
 
-
-        for user in all_users_meta:
-            for meta_key, meta_val in all_users_meta[user].items():
-                if len(meta_val) > 1:
-                    print(warning("Multiple values found for {} meta key: {}, "
-                                                                "taking the last value seen".format(user, meta_key)))
+            for meta_key, meta_vals in all_users_meta[user].items():
+                if len(meta_vals) > 1:
+                    print(warning("Multiple values found for {} for meta key: {}, "
+                                  "taking last value found.".format(user, meta_key)))
+                user.meta[meta_key] = list(meta_vals)[-1]
 
         # Merge CORPUS metadata
         new_corpus.meta = self.meta.copy()
