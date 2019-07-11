@@ -162,17 +162,17 @@ class Utterance:
         elif key == "meta":
             return self.meta
 
-    def copy(self):
-        """
-        :return: A duplicate of this Utterance with the same data and metadata
-        """
-        return Utterance(id=self.id,
-                         user=self.user,
-                         root=self.root,
-                         reply_to=self.reply_to,
-                         timestamp=self.timestamp,
-                         text=self.text,
-                         meta=self.meta.copy())
+    # def copy(self):
+    #     """
+    #     :return: A duplicate of this Utterance with the same data and metadata
+    #     """
+    #     return Utterance(id=self.id,
+    #                      user=self.user,
+    #                      root=self.root,
+    #                      reply_to=self.reply_to,
+    #                      timestamp=self.timestamp,
+    #                      text=self.text,
+    #                      meta=self.meta.copy())
 
     def add_meta(self, key: Hashable, value) -> None:
         self.meta[key] = value
@@ -773,7 +773,7 @@ class Corpus:
         return pairs
 
     def iterate_by(self, iter_type: str,
-                   is_utterance_question: Callable[[str], bool]) -> Generator[Tuple[str, str, str], None, None]:
+                   is_utterance_question: Callable[[str], bool]) -> Generator[Tuple[str, str, str]]:
         """Iterator for utterances.
 
         Can give just questions, just answers or questions followed by their answers
@@ -948,15 +948,15 @@ class Corpus:
 
     def add_utterances(self, utterances=List[Utterance]):
         """
-        Add utterances to existing Corpus
+        Add utterances to the Corpus
 
-        If original corpus has utterances that share an id with an utterance in the input utterance list,
+        If the corpus has utterances that share an id with an utterance in the input utterance list,
 
         Warnings will be printed:
         - if the utterances with same id do not share the same data (added utterance is ignored)
-        - added utterances' metadata have the same key but different values (added utterance metadata will overwrite)
+        - added utterances' metadata have the same key but different values (added utterance's metadata will overwrite)
 
-        :param utterances:
+        :param utterances: Utterances to be added to the Corpus
         :return: a new Corpus with the utterances from this Corpus and the input utterances combined
         """
         helper_corpus = Corpus(utterances=utterances)
