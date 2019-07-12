@@ -812,10 +812,7 @@ class Corpus:
 
         May mutate original collections of Utterances.
 
-        Prints warnings when:
-        1) Utterances with same id from this and other collection do not share the same data
-           (second collection's utterance is then ignored)
-        2) Utterance metadata has different values for the same key, and overwriting occurs
+        Prints warnings when Utterance metadata has different values for the same key, and overwriting occurs
 
         :param utts1: First collection of Utterances
         :param utts2: Second collection of Utterances
@@ -832,24 +829,15 @@ class Corpus:
         for utt in utts2:
             if utt.id in seen_utts:
                 prev_utt = seen_utts[utt.id]
-                try:
-                    assert prev_utt.root == utt.root
-                    assert prev_utt.reply_to == utt.reply_to
-                    assert prev_utt.user == utt.user
-                    assert prev_utt.timestamp == utt.timestamp
-                    assert prev_utt.text == utt.text
-
-                    # other utterance metadata is ignored if data is not matched
-                    prev_utt.meta.update(utt.meta)
-
-                except AssertionError:
-                    print(warning("Utterances with same id do not share the same data:\n" +
-                                  str(prev_utt) + "\n" +
-                                  str(utt) + "\n" +
-                                  "Ignoring second corpus's utterance.\n\n"
-                                  ))
+                for key, val in utt.meta.items():
+                    if key in prev_utt.meta and prev_utt.meta[key] != val:
+                        print(warning("Found conflicting values for Utterance metadata key: {}. "
+                                      "Overwriting with other corpus's Utterance metadata.".format(key)))
+                    else:
+                        prev_utt.meta[key] = val
             else:
                 seen_utts[utt.id] = utt
+
         return seen_utts.values()
 
     @staticmethod
@@ -910,13 +898,10 @@ class Corpus:
         will be ignored.
 
         If metadata of this corpus (or its conversations / utterances) shares a key with the metadata of the
-        other corpus, the other corpus's metadata (or its conversations / utterances) values will be used.
+        other corpus, the other corpus's metadata (or its conversations / utterances) values will be used. A warning
+        is printed whenever this happens.
 
         May mutate original and other corpus.
-
-        Prints warnings when:
-        1) Utterances with same id from this and other corpus do not share the same data
-        2) Conversation metadata keys (i.e. specific conversation ids) cannot be found in new merged corpus
 
         :param other_corpus: Corpus
         :return: new Corpus constructed from combined lists of utterances
@@ -932,7 +917,7 @@ class Corpus:
         self._update_corpus_user_data(new_corpus, all_users_data, all_users_meta)
 
         # Merge CORPUS metadata
-        new_corpus.meta = self.meta.copy()
+        new_corpus.meta = self.meta
         for key, val in other_corpus.meta.items():
             if key in new_corpus.meta and new_corpus.meta[key] != val:
                 print(warning("Found conflicting values for corpus metadata: {}. "
@@ -945,7 +930,7 @@ class Corpus:
         convos2 = other_corpus.iter_conversations()
 
         for convo in convos1:
-            new_corpus.get_conversation(convo.id).meta = convo.meta.copy()
+            new_corpus.get_conversation(convo.id).meta = convo.meta
 
         for convo in convos2:
             for key, val in convo.meta.items():
