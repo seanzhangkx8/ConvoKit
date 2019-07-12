@@ -801,7 +801,7 @@ class Corpus:
                         pair_idx = utterance.reply_to + pair_delim + str(utterance.id)
                         yield utterance.id, utterance.text, pair_idx
     @staticmethod
-    def _merge_utterances(utts1: Generator[Utterance, None, None], utts2: Generator[Utterance, None, None]) -> ValuesView[Utterance]:
+    def _merge_utterances(utts1: List[Utterance], utts2: List[Utterance]) -> ValuesView[Utterance]:
         """
         Helper function for merge().
 
@@ -843,8 +843,7 @@ class Corpus:
                         if key in prev_utt.meta and prev_utt.meta[key] != val:
                             print(warning("Found conflicting values for Utterance {} for metadata key: {}. "
                                           "Overwriting with other corpus's Utterance metadata.".format(utt.id, key)))
-                        else:
-                            prev_utt.meta[key] = val
+                        prev_utt.meta[key] = val
 
                 except AssertionError:
                     print(warning("Utterances with same id do not share the same data:\n" +
@@ -946,11 +945,9 @@ class Corpus:
         new_corpus.meta = self.meta
         for key, val in other_corpus.meta.items():
             if key in new_corpus.meta and new_corpus.meta[key] != val:
-                new_corpus.meta[key] = val
                 print(warning("Found conflicting values for corpus metadata: {}. "
                               "Overwriting with other corpus's metadata.".format(key)))
-            else:
-                new_corpus.meta[key] = val
+            new_corpus.meta[key] = val
 
         # Merge CONVERSATION metadata
         convos1 = self.iter_conversations()
@@ -963,11 +960,9 @@ class Corpus:
             for key, val in convo.meta.items():
                 curr_meta = new_corpus.get_conversation(convo.id).meta
                 if key in curr_meta and curr_meta[key] != val:
-                    curr_meta[key] = val
                     print(warning("Found conflicting values for conversation: {} for meta key: {}. "
                                   "Overwriting with other corpus's conversation metadata".format(convo.id, key)))
-                else:
-                    curr_meta[key] = val
+                curr_meta[key] = val
 
         return new_corpus
 
