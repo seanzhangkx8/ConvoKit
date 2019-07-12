@@ -800,6 +800,7 @@ class Corpus:
                     if iter_type == 'both':
                         pair_idx = utterance.reply_to + pair_delim + str(utterance.id)
                         yield utterance.id, utterance.text, pair_idx
+                        
     @staticmethod
     def _merge_utterances(utts1: List[Utterance], utts2: List[Utterance]) -> ValuesView[Utterance]:
         """
@@ -913,16 +914,13 @@ class Corpus:
     def merge(self, other_corpus):
         """
         Merges this corpus with another corpus.
+
         Utterances with the same id must share the same data, otherwise the other corpus utterance data & metadata
-        will be ignored.
+        will be ignored. A warning is printed when this happens.
 
         If metadata of this corpus (or its conversations / utterances) shares a key with the metadata of the
-        other corpus, the other corpus's metadata (or its conversations / utterances) values will be used.
-
-        Prints warnings when:
-        - Utterances with same id from this and other corpus do not share the same data (utterance from other corpus ignored)
-        - Utterance metadata from corpora share the same key but different values (other corpus's utterance metadata
-          takes precedence)
+        other corpus, the other corpus's metadata (or its conversations / utterances) values will be used. A warning
+        is printed when this happens.
 
         May mutate original and other corpus.
 
@@ -935,8 +933,9 @@ class Corpus:
         combined_utts = self._merge_utterances(utts1, utts2)
         new_corpus = Corpus(utterances=list(combined_utts))
 
-        # Note that we collect Users from the utt sets directly instead of the combined utts, because
-        # differences in User meta will not be registered for duplicate Utterances in both utt sets
+        # Note that we collect Users from the utt sets directly instead of the combined utts, otherwise
+        # differences in User meta will not be registered for duplicate Utterances (because one utt would be discarded
+        # during merging)
         all_users_data, all_users_meta = self._collect_user_data([utts1, utts2])
 
         self._update_corpus_user_data(new_corpus, all_users_data, all_users_meta)
