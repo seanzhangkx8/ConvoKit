@@ -4,7 +4,7 @@ import os
 import zipfile
 import json
 from typing import Dict
-from .model import Utterance, Corpus
+from model import Utterance, Corpus
 
 # returns a path to the dataset file
 def download(name: str, verbose: bool=True, data_dir: str=None, use_newest_version: bool=True) -> str:
@@ -248,7 +248,6 @@ def download(name: str, verbose: bool=True, data_dir: str=None, use_newest_versi
                     download_helper(motif_file_path, url, verbose, full_name, downloadeds_path)
         else:
             url = DatasetURLs[name]
-            print("Downloading to {}".format(dataset_path))
             download_helper(dataset_path, url, verbose, name, downloadeds_path)
     else:
 
@@ -374,3 +373,4 @@ def display_thread(threads: Dict[str, Dict[str, Utterance]], root: str) -> None:
     """
 
     return display_thread_helper(threads[root],root)
+

@@ -5,9 +5,16 @@ import pickle
 from functools import total_ordering
 from collections import defaultdict
 import os
-from typing import Dict, List, Collection, Hashable, Callable, Set, Generator, Tuple, Optional
+from typing import Dict, List, Collection, Hashable, Callable, Set, Generator, Tuple, Optional, ValuesView
 pair_delim = '-q-a-'
 
+def warning(text: str):
+    """
+    Pre-pends a red-colored 'WARNING: ' to [text].
+    :param text: Warning message
+    :return: 'WARNING: [text]'
+    """
+    return '\033[91m'+ "WARNING: " + '\033[0m' + text
 
 @total_ordering
 class User:
@@ -15,6 +22,8 @@ class User:
 
     :param name: name of the user.
     :type name: str
+    :param utts: dictionary of utterances by the user, where key is user id
+    :param convos: dictionary of conversations started by the user, where key is conversation id
     :param meta: arbitrary dictionary of attributes associated
         with the user.
     :type meta: dict
@@ -23,8 +32,10 @@ class User:
     :ivar meta: dictionary of attributes associated with the user.
     """
 
-    def __init__(self, name: str=None, meta: Optional[Dict]=None):
+    def __init__(self, name: str=None, utts=None, convos=None, meta: Optional[Dict]=None):
         self._name = name
+        self.utterances = utts if utts is not None else dict()
+        self.conversations = convos if convos is not None else dict()
         self._meta = meta if meta is not None else {}
         self._split_attribs = set()
         self._update_uid()
@@ -35,6 +46,8 @@ class User:
         For example, in the Supreme Court dataset, users are labeled with the
         current case id. Call this method with attribs = ["case"] to count
         the same person across different cases as different users.
+
+        By default, if this function is not called, Users are identified by name only.
 
         :param attribs: Collection of attribute names.
         :type attribs: Collection
@@ -48,7 +61,28 @@ class User:
     def _set_name(self, value: str):
         self._name = value
         self._update_uid()
+
     name = property(_get_name, _set_name)
+
+    def get_utterance_ids(self) -> List[Hashable]:
+        return list(self.utterances.keys())
+
+    def get_utterance(self, ut_id: Hashable): #-> Utterance:
+        return self.utterances[ut_id]
+
+    def iter_utterances(self): #-> Generator[Utterance, None, None]:
+        for v in self.utterances.values():
+            yield v
+
+    def get_conversation_ids(self) -> List[str]:
+        return list(self.conversations.keys())
+
+    def get_conversation(self, cid: Hashable): # -> Conversation:
+        return self.conversations[cid]
+
+    def iter_conversations(self): # -> Generator[Conversation, None, None]:
+        for v in self.conversations.values():
+            yield v
 
     def _get_meta(self): return self._meta
 
@@ -79,6 +113,12 @@ class User:
 
     def __repr__(self):
         return self._uid
+
+    # def copy(self):
+    #     """
+    #     :return: A duplicate of the User with the same data and metadata
+    #     """
+    #     return User(name=self.name, utts=self.utterances, convos=self.conversations, meta=self.meta.copy())
 
 class Utterance:
     """Represents a single utterance in the dataset.
@@ -127,6 +167,18 @@ class Utterance:
             return self.text
         elif key == "meta":
             return self.meta
+
+    # def copy(self):
+    #     """
+    #     :return: A duplicate of this Utterance with the same data and metadata
+    #     """
+    #     return Utterance(id=self.id,
+    #                      user=self.user,
+    #                      root=self.root,
+    #                      reply_to=self.reply_to,
+    #                      timestamp=self.timestamp,
+    #                      text=self.text,
+    #                      meta=self.meta.copy())
 
     def add_meta(self, key: Hashable, value) -> None:
         self.meta[key] = value
@@ -254,6 +306,11 @@ class Conversation:
         for username in self._usernames:
            yield self._owner.get_user(username)
 
+    def __eq__(self, other):
+        return self.__dict__ == other.__dict__
+
+    def __repr__(self):
+        return "Conversation(" + str(self.__dict__) + ")"
 
 KeyId = "id"
 KeyUser = "user"
@@ -329,7 +386,7 @@ class Corpus:
                 if version is not None:
                     if "version" in self.meta_index:
                         if self.meta_index["version"] != version:
-                            raise Warning("Requested version does not match file version")
+                            raise warning("Requested version does not match file version")
                         self.version = self.meta_index["version"]
 
                 # unpack utterance meta
@@ -395,7 +452,6 @@ class Corpus:
                     except Exception as e:
                         raise Exception("Could not load corpus. Expected json file, encountered error: \n" + str(e))
 
-
             self.utterances = {}
             self.all_users = set()
             users_cache = {}   # avoids creating duplicate user objects
@@ -407,6 +463,7 @@ class Corpus:
                 if user_key not in users_cache:
                     users_cache[user_key] = User(name=u[KeyUser],
                         meta=users_meta[u[KeyUser]])
+
                 user = users_cache[user_key]
                 self.all_users.add(user)
 
@@ -743,3 +800,214 @@ class Corpus:
                     if iter_type == 'both':
                         pair_idx = utterance.reply_to + pair_delim + str(utterance.id)
                         yield utterance.id, utterance.text, pair_idx
+
+    @staticmethod
+    def _merge_utterances(utts1: List[Utterance], utts2: List[Utterance]) -> ValuesView[Utterance]:
+        """
+        Helper function for merge().
+
+        Combine two collections of utterances into a single dictionary of Utterance id -> Utterance.
+
+        If metadata of utterances in the two collections share the same key, but different values,
+        the second collections' utterance metadata will be used.
+
+        May mutate original collections of Utterances.
+
+        Prints warnings when:
+        1) Utterances with same id from this and other collection do not share the same data
+        2) Utterance metadata has different values for the same key, and overwriting occurs
+
+        :param utts1: First collection of Utterances
+        :param utts2: Second collection of Utterances
+        :return: ValuesView for merged set of utterances
+        """
+        seen_utts = dict()
+
+        # Merge UTTERANCE metadata
+        # Add all the utterances from this corpus
+        for utt in utts1:
+            seen_utts[utt.id] = utt
+
+        # Add all the utterances from the other corpus, checking for data sameness and updating metadata as appropriate
+        for utt in utts2:
+            if utt.id in seen_utts:
+                prev_utt = seen_utts[utt.id]
+                try:
+                    assert prev_utt.root == utt.root
+                    assert prev_utt.reply_to == utt.reply_to
+                    assert prev_utt.user == utt.user
+                    assert prev_utt.timestamp == utt.timestamp
+                    assert prev_utt.text == utt.text
+
+                    # other utterance metadata is ignored if data is not matched
+                    for key, val in utt.meta.items():
+                        if key in prev_utt.meta and prev_utt.meta[key] != val:
+                            print(warning("Found conflicting values for Utterance {} for metadata key: {}. "
+                                          "Overwriting with other corpus's Utterance metadata.".format(utt.id, key)))
+                        prev_utt.meta[key] = val
+
+                except AssertionError:
+                    print(warning("Utterances with same id do not share the same data:\n" +
+                              str(prev_utt) + "\n" +
+                              str(utt) + "\n" +
+                              "Ignoring second corpus's utterance."
+                              ))
+            else:
+                seen_utts[utt.id] = utt
+
+        return seen_utts.values()
+
+    @staticmethod
+    def _collect_user_data(utt_sets: Collection[Collection[Utterance]]) -> (Dict[str, Dict[str, Set]], Dict[str, Dict[Hashable, Dict[Hashable, str]]]):
+        """
+        Helper function for merge().
+
+        Iterates through the input set of utterances, to collect User data and metadata.
+
+        Collects User data (Utterances and Conversations) in a Dictionary indexed by User ID, merging the Utterances / Conversations.
+
+        Collect User metadata in another Dictionary indexed by User ID while keeping all metadata values in an ordered set
+
+        :param utt_sets: Collections of collections of Utterances to extract Users from
+        :return: collected User data and User metadata
+        """
+        # Collect USER data and metadata
+        all_users_data = defaultdict(lambda: defaultdict(set))
+        all_users_meta = defaultdict(lambda: defaultdict(lambda: defaultdict(str))) # Using defaultdict as an Ordered Set
+
+        for utt_set in utt_sets:
+            for utt in utt_set:
+                all_users_data[utt.user]['convos'].union(set(utt.user.iter_conversations()))
+                all_users_data[utt.user]['utts'].union(set(utt.user.iter_utterances()))
+
+                # collect the metadata in this way to avoid having to explicitly check
+                # for meta key-value matches for every Utterance
+                for meta_key, meta_val in utt.user.meta.items():
+                    all_users_meta[utt.user][meta_key][meta_val] # initialize the values in the dict tree
+
+        return all_users_data, all_users_meta
+
+    @staticmethod
+    def _update_corpus_user_data(new_corpus, all_users_data: Dict, all_users_meta: Dict) -> None:
+        """
+        Helper function for merge().
+
+        Update new_corpus's Users' data (utterance and conversation lists) and metadata
+
+        Prints a warning if multiple values are found for any user's metadata key; other corpus's user metadata is used
+
+        :param all_users_data: Dictionary indexed by User ID, containing the merged Utterance and Conversation lists
+        :param all_users_meta: Dictionary indexed by User ID, containing the collected User metadata
+        :return: None (mutates the new_corpus's Users)
+        """
+        # Update USER data and metadata with merged versions
+        for user in new_corpus.iter_users():
+            user.conversations = {convo.id: convo for convo in all_users_data[user]['convos']}
+            user.utterances = {utt.id: utt for utt in all_users_data[user]['utts']}
+
+            for meta_key, meta_vals in all_users_meta[user].items():
+                if len(meta_vals) > 1:
+                    print(warning("Multiple values found for {} for meta key: {}. "
+                                  "Overwriting with other corpus's user metadata".format(user, meta_key)))
+                user.meta[meta_key] = list(meta_vals)[-1]
+
+    def merge(self, other_corpus):
+        """
+        Merges this corpus with another corpus.
+
+        Utterances with the same id must share the same data, otherwise the other corpus utterance data & metadata
+        will be ignored. A warning is printed when this happens.
+
+        If metadata of this corpus (or its conversations / utterances) shares a key with the metadata of the
+        other corpus, the other corpus's metadata (or its conversations / utterances) values will be used. A warning
+        is printed when this happens.
+
+        May mutate original and other corpus.
+
+        :param other_corpus: Corpus
+        :return: new Corpus constructed from combined lists of utterances
+        """
+        utts1 = list(self.iter_utterances())
+        utts2 = list(other_corpus.iter_utterances())
+
+        combined_utts = self._merge_utterances(utts1, utts2)
+        new_corpus = Corpus(utterances=list(combined_utts))
+
+        # Note that we collect Users from the utt sets directly instead of the combined utts, otherwise
+        # differences in User meta will not be registered for duplicate Utterances (because one utt would be discarded
+        # during merging)
+        all_users_data, all_users_meta = self._collect_user_data([utts1, utts2])
+
+        self._update_corpus_user_data(new_corpus, all_users_data, all_users_meta)
+
+        # Merge CORPUS metadata
+        new_corpus.meta = self.meta
+        for key, val in other_corpus.meta.items():
+            if key in new_corpus.meta and new_corpus.meta[key] != val:
+                print(warning("Found conflicting values for corpus metadata: {}. "
+                              "Overwriting with other corpus's metadata.".format(key)))
+            new_corpus.meta[key] = val
+
+        # Merge CONVERSATION metadata
+        convos1 = self.iter_conversations()
+        convos2 = other_corpus.iter_conversations()
+
+        for convo in convos1:
+            new_corpus.get_conversation(convo.id).meta = convo.meta
+
+        for convo in convos2:
+            for key, val in convo.meta.items():
+                curr_meta = new_corpus.get_conversation(convo.id).meta
+                if key in curr_meta and curr_meta[key] != val:
+                    print(warning("Found conflicting values for conversation: {} for meta key: {}. "
+                                  "Overwriting with other corpus's conversation metadata".format(convo.id, key)))
+                curr_meta[key] = val
+
+        return new_corpus
+
+    def add_utterances(self, utterances=List[Utterance]):
+        """
+        Add utterances to the Corpus
+
+        If the corpus has utterances that share an id with an utterance in the input utterance list,
+
+        Warnings will be printed:
+        - if the utterances with same id do not share the same data (added utterance is ignored)
+        - added utterances' metadata have the same key but different values (added utterance's metadata will overwrite)
+
+        :param utterances: Utterances to be added to the Corpus
+        :return: a new Corpus with the utterances from this Corpus and the input utterances combined
+        """
+        helper_corpus = Corpus(utterances=utterances)
+        return self.merge(helper_corpus)
+
+    def update_users_data(self) -> None:
+        """
+        Updates the conversation and utterance lists of every User in the Corpus
+        :return: None
+        """
+        users_utts = defaultdict(list)
+        users_convos = defaultdict(list)
+
+        for utt in self.iter_utterances():
+            users_utts[utt.user].append(utt)
+
+        for convo in self.iter_conversations():
+            for utt in convo.iter_utterances():
+                users_convos[utt.user].append(convo)
+
+        for user in self.iter_users():
+            user.utterances = {utt.id: utt for utt in users_utts[user]}
+            user.conversations = {convo.id: convo for convo in users_convos[user]}
+
+    # def generate_metadata(self, corpus_type: str) -> None:
+    #     """
+    #     Updates the metadata of the User based on the corpus type according to pre-determined rules
+    #     :param corpus_type: The type of Corpus, e.g. reddit, wikiconv
+    #     :return: None
+    #     """
+    #     for user in self.iter_users():
+    #         if corpus_type == "reddit":
+    #             num_posts = sum(utt.root == utt.id for utt in user.iter_utterances())
+    #             user.add_meta("num_posts", num_posts)
+    #             user.add_meta("num_comments", len(user.get_utterance_ids()) - num_posts)
