@@ -800,7 +800,7 @@ class Corpus:
                     if iter_type == 'both':
                         pair_idx = utterance.reply_to + pair_delim + str(utterance.id)
                         yield utterance.id, utterance.text, pair_idx
-                        
+
     @staticmethod
     def _merge_utterances(utts1: List[Utterance], utts2: List[Utterance]) -> ValuesView[Utterance]:
         """
@@ -1000,3 +1000,14 @@ class Corpus:
             user.utterances = {utt.id: utt for utt in users_utts[user]}
             user.conversations = {convo.id: convo for convo in users_convos[user]}
 
+    # def generate_metadata(self, corpus_type: str) -> None:
+    #     """
+    #     Updates the metadata of the User based on the corpus type according to pre-determined rules
+    #     :param corpus_type: The type of Corpus, e.g. reddit, wikiconv
+    #     :return: None
+    #     """
+    #     for user in self.iter_users():
+    #         if corpus_type == "reddit":
+    #             num_posts = sum(utt.root == utt.id for utt in user.iter_utterances())
+    #             user.add_meta("num_posts", num_posts)
+    #             user.add_meta("num_comments", len(user.get_utterance_ids()) - num_posts)
