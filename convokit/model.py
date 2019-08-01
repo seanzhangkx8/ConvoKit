@@ -452,22 +452,19 @@ class Corpus:
                     except Exception as e:
                         raise Exception("Could not load corpus. Expected json file, encountered error: \n" + str(e))
 
-            self.utterances = {}
-            self.all_users = set()
-            users_cache = {}   # avoids creating duplicate user objects
+            self.utterances = dict()
+            self.all_users = dict()
 
             for i, u in enumerate(utterances):
 
                 u = defaultdict(lambda: None, u)
                 user_key = u[KeyUser]
-                if user_key not in users_cache:
-                    users_cache[user_key] = User(name=u[KeyUser],
-                        meta=users_meta[u[KeyUser]])
+                if user_key not in self.all_users:
+                    self.all_users[user_key] = User(name=u[KeyUser], meta=users_meta[u[KeyUser]])
 
-                user = users_cache[user_key]
-                self.all_users.add(user)
+                user = self.all_users[user_key]
 
-                # temp fix
+                # temp fix for reddit reply_to
                 if "reply_to" in u:
                     reply_to_data = u["reply_to"]
                 else:
@@ -479,7 +476,7 @@ class Corpus:
                         text=u[KeyText], meta=u[KeyMeta])
                 self.utterances[ut.id] = ut
         elif utterances is not None:
-            self.all_users = set([u.user for u in utterances])
+            self.all_users = {u.user.id: u.user for u in utterances}
             self.utterances = {u.id: u for u in utterances}
 
         if merge_lines:
@@ -687,7 +684,7 @@ class Corpus:
                 if top_level_comment is None: continue # i.e. this is a post (root) utterance
                 threads[top_level_comment].append(ut)
         return {root: {utt.id: utt for utt in list(sorted(l,
-            key=lambda ut: ut.timestamp))[-suffix_len:prefix_len]}
+            key=lambda x: x.timestamp))[-suffix_len:prefix_len]}
             for root, l in threads.items()}
 
     def get_meta(self) -> Dict:
@@ -696,7 +693,7 @@ class Corpus:
     def add_meta(self, key: Hashable, value) -> None:
         self.meta[key] = value
 
-    def iter_users(self, selector: Optional[Callable[[User], bool]]=None) -> Set[User]:
+    def iter_users(self, selector: Optional[Callable[[User], bool]]=None) -> Generator[User, None, None]:
         """Get users in the dataset.
 
         :param selector: optional function that takes in a
@@ -708,14 +705,15 @@ class Corpus:
             used.
         """
         if selector is None:
-            return self.all_users
+            for user in self.all_users.values():
+                yield user
         else:
-            return set([u for u in self.all_users if selector(u)])
+            for user in self.all_users.values():
+                if selector(user):
+                    yield user
 
-    def get_user(self, name: str) -> Optional[User]:
-        for u in self.all_users:
-            if u.name == name: return u
-        return None
+    def get_user(self, name: str) -> User:
+        return self.all_users[name]
 
     def get_usernames(self, selector: Optional[Callable[[User], bool]]=None) -> Set[str]:
         """Get names of users in the dataset.
