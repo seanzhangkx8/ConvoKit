@@ -192,14 +192,14 @@ class Utterance:
 class Conversation:
     """Represents a discrete subset of utterances in the dataset, connected by a
     reply-to chain.
-    
+
     :param owner: The Corpus that this Conversation belongs to
     :param id: The unique ID of this Conversation
     :param utterances: A list of the IDs of the Utterances in this Conversation
     :param meta: Table of initial values for conversation-level metadata
 
     :ivar meta: A dictionary-like view object providing read-write access to
-        conversation-level metadata. For utterance-level metadata, use 
+        conversation-level metadata. For utterance-level metadata, use
         Utterance.meta. For user-level metadata, use User.meta. For corpus-level
         metadata, use Corpus.meta.
     """
@@ -234,10 +234,10 @@ class Conversation:
     id = property(_get_id)
 
     def get_utterance_ids(self) -> List[str]:
-        """Produces a list of the unique IDs of all utterances in the 
-        Conversation, which can be used in calls to get_utterance() to retrieve 
+        """Produces a list of the unique IDs of all utterances in the
+        Conversation, which can be used in calls to get_utterance() to retrieve
         specific utterances. Provides no ordering guarantees for the list.
-        
+
         :return: a list of IDs of Utterances in the Conversation
         """
         # we construct a new list instead of returning self._utterance_ids in
@@ -246,9 +246,9 @@ class Conversation:
         return [ut_id for ut_id in self._utterance_ids]
 
     def get_utterance(self, ut_id: Hashable) -> Utterance:
-        """Looks up the Utterance associated with the given ID. Raises a 
+        """Looks up the Utterance associated with the given ID. Raises a
         KeyError if no utterance by that ID exists.
-        
+
         :return: the Utterance with the given ID
         """
         # delegate to the owner Corpus since Conversation does not itself own
@@ -256,19 +256,19 @@ class Conversation:
         return self._owner.get_utterance(ut_id)
 
     def iter_utterances(self) -> Generator[Utterance, None, None]:
-        """Generator allowing iteration over all utterances in the Conversation. 
+        """Generator allowing iteration over all utterances in the Conversation.
         Provides no ordering guarantees.
-        
+
         :return: Generator that produces Users
         """
         for ut_id in self._utterance_ids:
             yield self._owner.get_utterance(ut_id)
 
     def get_usernames(self) -> List[str]:
-        """Produces a list of names of all users in the Conversation, which can 
-        be used in calls to get_user() to retrieve specific users. Provides no 
+        """Produces a list of names of all users in the Conversation, which can
+        be used in calls to get_user() to retrieve specific users. Provides no
         ordering guarantees for the list.
-        
+
         :return: a list of usernames
         """
         if self._usernames is None:
@@ -281,7 +281,7 @@ class Conversation:
         return list(self._usernames)
 
     def get_user(self, username: str) -> User:
-        """Looks up the User with the given name. Raises a KeyError if no user 
+        """Looks up the User with the given name. Raises a KeyError if no user
         with that name exists.
 
         :return: the User with the given username
@@ -291,7 +291,7 @@ class Conversation:
         return self._owner.get_user(username)
 
     def iter_users(self) -> Generator[User, None, None]:
-        """Generator allowing iteration over all users in the Conversation. 
+        """Generator allowing iteration over all users in the Conversation.
         Provides no ordering guarantees.
 
         :return: Generator that produces Users.
@@ -712,8 +712,10 @@ class Corpus:
         else:
             return set([u for u in self.all_users if selector(u)])
 
-    def get_user(self, name: str) -> User:
-        return [u for u in self.all_users if u.name == name][0]
+    def get_user(self, name: str) -> Optional[User]:
+        for u in self.all_users:
+            if u.name == name: return u
+        return None
 
     def get_usernames(self, selector: Optional[Callable[[User], bool]]=None) -> Set[str]:
         """Get names of users in the dataset.
