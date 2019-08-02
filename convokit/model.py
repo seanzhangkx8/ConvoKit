@@ -476,7 +476,7 @@ class Corpus:
                         text=u[KeyText], meta=u[KeyMeta])
                 self.utterances[ut.id] = ut
         elif utterances is not None:
-            self.all_users = {u.user.id: u.user for u in utterances}
+            self.all_users = {u.user.name: u.user for u in utterances}
             self.utterances = {u.id: u for u in utterances}
 
         if merge_lines:
@@ -559,20 +559,25 @@ class Corpus:
             users = {u: Corpus.dump_helper_bin(self.get_user(u).meta, d_bin,
                 users_idx) for u in self.get_usernames()}
             json.dump(users, f)
+
             for name, l_bin in d_bin.items():
                 with open(os.path.join(dir_name, name + "-user-bin.p"), "wb") as f_pk:
                     pickle.dump(l_bin, f_pk)
+
         with open(os.path.join(dir_name, "conversations.json"), "w") as f:
             d_bin = defaultdict(list)
             convos = {c: Corpus.dump_helper_bin(self.get_conversation(c).meta,
                 d_bin, convos_idx) for c in self.get_conversation_ids()}
             json.dump(convos, f)
+
             for name, l_bin in d_bin.items():
                 with open(os.path.join(dir_name, name + "-convo-bin.p"), "wb") as f_pk:
                     pickle.dump(l_bin, f_pk)
+
         with open(os.path.join(dir_name, "utterances.json"), "w") as f:
             uts = []
             d_bin = defaultdict(list)
+
             for ut in self.iter_utterances():
                 uts.append({
                     KeyId: ut.id,
@@ -584,6 +589,7 @@ class Corpus:
                     KeyTimestamp: ut.timestamp
                 })
             json.dump(uts, f)
+
             for name, l_bin in d_bin.items():
                 with open(os.path.join(dir_name, name + "-bin.p"), "wb") as f_pk:
                     pickle.dump(l_bin, f_pk)
