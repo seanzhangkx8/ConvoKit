@@ -356,16 +356,13 @@ class Corpus:
 
         if filename is not None:
             if os.path.isdir(filename):
+
                 with open(os.path.join(filename, "utterances.json"), "r") as f:
                     utterances = json.load(f)
                     if exclude_utterance_meta:
-                        utterances_2 = []
-                        for v in utterances:
-                            v2 = v
+                        for utt in utterances:
                             for field in exclude_utterance_meta:
-                                del v2["meta"][field]
-                            utterances_2.append(v2)
-                        utterances = utterances_2
+                                del utt["meta"][field]
 
                 with open(os.path.join(filename, "users.json"), "r") as f:
                     users_meta = defaultdict(dict)
@@ -575,9 +572,9 @@ class Corpus:
                     pickle.dump(l_bin, f_pk)
 
         with open(os.path.join(dir_name, "utterances.json"), "w") as f:
-            uts = []
             d_bin = defaultdict(list)
 
+            uts = []
             for ut in self.iter_utterances():
                 uts.append({
                     KeyId: ut.id,
