@@ -411,11 +411,12 @@ class Corpus:
                     if field_type == "bin" and field not in exclude_utterance_meta:
                         with open(os.path.join(filename, field + "-user-bin.p"), "rb") as f:
                             l_bin = pickle.load(f)
-                        for k, v in users_meta.items():
-                            if k == field and type(v) == str and str(v).startswith(BIN_DELIM_L) and \
-                                str(v).endswith(BIN_DELIM_R):
-                                    idx = int(v[len(BIN_DELIM_L):-len(BIN_DELIM_R)])
-                                    users_meta[k] = l_bin[idx]
+                        for user, metadata in users_meta.items():
+                            for k, v in metadata.items():
+                                if k == field and type(v) == str and str(v).startswith(BIN_DELIM_L) and \
+                                    str(v).endswith(BIN_DELIM_R):
+                                        idx = int(v[len(BIN_DELIM_L):-len(BIN_DELIM_R)])
+                                        metadata[k] = l_bin[idx]
                 for field in exclude_user_meta:
                     del self.meta_index["users-index"][field]
 
