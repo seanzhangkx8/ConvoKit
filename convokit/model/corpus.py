@@ -1,12 +1,12 @@
-"""The objects used to represent a dataset."""
 
-import json
-import pickle
-from functools import total_ordering
-from collections import defaultdict
-import os
 from typing import Dict, List, Collection, Hashable, Callable, Set, Generator, Tuple, Optional, ValuesView
-pair_delim = '-q-a-'
+import pickle
+from collections import defaultdict
+import json
+import os
+from .user import User
+from .utterance import Utterance
+from .conversation import Conversation
 
 def warning(text: str):
     """
@@ -16,301 +16,7 @@ def warning(text: str):
     """
     return '\033[91m'+ "WARNING: " + '\033[0m' + text
 
-@total_ordering
-class User:
-    """Represents a single user in a dataset.
-
-    :param name: name of the user.
-    :type name: str
-    :param utts: dictionary of utterances by the user, where key is user id
-    :param convos: dictionary of conversations started by the user, where key is conversation id
-    :param meta: arbitrary dictionary of attributes associated
-        with the user.
-    :type meta: dict
-
-    :ivar name: name of the user.
-    :ivar meta: dictionary of attributes associated with the user.
-    """
-
-    def __init__(self, name: str=None, utts=None, convos=None, meta: Optional[Dict]=None):
-        self._name = name
-        self.utterances = utts if utts is not None else dict()
-        self.conversations = convos if convos is not None else dict()
-        self._meta = meta if meta is not None else {}
-        self._split_attribs = set()
-        self._update_uid()
-
-    def identify_by_attribs(self, attribs: Collection) -> None:
-        """Identify a user by a list of attributes. Sets which user info
-        attributes should distinguish users of the same name in equality tests.
-        For example, in the Supreme Court dataset, users are labeled with the
-        current case id. Call this method with attribs = ["case"] to count
-        the same person across different cases as different users.
-
-        By default, if this function is not called, Users are identified by name only.
-
-        :param attribs: Collection of attribute names.
-        :type attribs: Collection
-        """
-
-        self._split_attribs = set(attribs)
-        self._update_uid()
-
-    def _get_name(self): return self._name
-
-    def _set_name(self, value: str):
-        self._name = value
-        self._update_uid()
-
-    name = property(_get_name, _set_name)
-
-    def get_utterance_ids(self) -> List[Hashable]:
-        return list(self.utterances.keys())
-
-    def get_utterance(self, ut_id: Hashable): #-> Utterance:
-        return self.utterances[ut_id]
-
-    def iter_utterances(self): #-> Generator[Utterance, None, None]:
-        for v in self.utterances.values():
-            yield v
-
-    def get_conversation_ids(self) -> List[str]:
-        return list(self.conversations.keys())
-
-    def get_conversation(self, cid: Hashable): # -> Conversation:
-        return self.conversations[cid]
-
-    def iter_conversations(self): # -> Generator[Conversation, None, None]:
-        for v in self.conversations.values():
-            yield v
-
-    def _get_meta(self): return self._meta
-
-    def _set_meta(self, value: Dict):
-        self._meta = value
-        self._update_uid()
-    meta = property(_get_meta, _set_meta)
-
-    def add_meta(self, key: Hashable, value) -> None:
-        self.meta[key] = value
-
-    def _update_uid(self):
-        rep = dict()
-        rep["name"] = self._name
-        if self._split_attribs:
-            rep["attribs"] = {k: self._meta[k] for k in self._split_attribs
-                    if k in self._meta}
-        self._uid = "User(" + str(sorted(rep.items())) + ")"
-
-    def __eq__(self, other):
-        return self._uid == other._uid
-
-    def __lt__(self, other):
-        return self._uid < other._uid
-
-    def __hash__(self):
-        return hash(self._uid)
-
-    def __repr__(self):
-        return self._uid
-
-    # def copy(self):
-    #     """
-    #     :return: A duplicate of the User with the same data and metadata
-    #     """
-    #     return User(name=self.name, utts=self.utterances, convos=self.conversations, meta=self.meta.copy())
-
-class Utterance:
-    """Represents a single utterance in the dataset.
-
-    :param id: the unique id of the utterance. Can be any hashable type.
-    :param user: the user giving the utterance.
-    :param root: the id of the root utterance of the conversation.
-    :param reply_to: id of the utterance this was a reply to.
-    :param timestamp: timestamp of the utterance. Can be any
-        comparable type.
-    :param text: text of the utterance.
-    :type text: str
-
-    :ivar id: the unique id of the utterance.
-    :ivar user: the user giving the utterance.
-    :ivar root: the id of the root utterance of the conversation.
-    :ivar reply_to: id of the utterance this was a reply to.
-    :ivar timestamp: timestamp of the utterance.
-    :ivar text: text of the utterance.
-    """
-
-    def __init__(self, id: Optional[Hashable]=None, user: Optional[User]=None,
-                 root: Optional[Hashable]=None, reply_to: Optional[Hashable]=None,
-                 timestamp: Optional[int]=None, text: Optional[str]=None,
-                 meta: Optional[Dict]=None):
-        self.id = id
-        self.user = user
-        self.root = root
-        self.reply_to = reply_to
-        self.timestamp = timestamp
-        self.text = text
-        self.meta = meta if meta is not None else {}
-
-    def get(self, key: str):
-        if key == "id":
-            return self.id
-        elif key == "user":
-            return self.user
-        elif key == "root":
-            return self.root
-        elif key == "reply_to":
-            return self.reply_to
-        elif key == "timestamp":
-            return self.timestamp
-        elif key == "text":
-            return self.text
-        elif key == "meta":
-            return self.meta
-
-    # def copy(self):
-    #     """
-    #     :return: A duplicate of this Utterance with the same data and metadata
-    #     """
-    #     return Utterance(id=self.id,
-    #                      user=self.user,
-    #                      root=self.root,
-    #                      reply_to=self.reply_to,
-    #                      timestamp=self.timestamp,
-    #                      text=self.text,
-    #                      meta=self.meta.copy())
-
-    def add_meta(self, key: Hashable, value) -> None:
-        self.meta[key] = value
-
-    def __eq__(self, other):
-        return self.__dict__ == other.__dict__
-
-    def __repr__(self):
-        return "Utterance(" + str(self.__dict__) + ")"
-
-class Conversation:
-    """Represents a discrete subset of utterances in the dataset, connected by a
-    reply-to chain.
-
-    :param owner: The Corpus that this Conversation belongs to
-    :param id: The unique ID of this Conversation
-    :param utterances: A list of the IDs of the Utterances in this Conversation
-    :param meta: Table of initial values for conversation-level metadata
-
-    :ivar meta: A dictionary-like view object providing read-write access to
-        conversation-level metadata. For utterance-level metadata, use
-        Utterance.meta. For user-level metadata, use User.meta. For corpus-level
-        metadata, use Corpus.meta.
-    """
-
-    def __init__(self, owner, id: Optional[str]=None,
-                 utterances: Optional[List[str]]=None,
-                 meta: Optional[Dict]=None):
-        self._owner = owner
-        self._id = id
-        self._utterance_ids = utterances
-        self._usernames = None
-        self._meta = {} if meta is None else meta
-
-    # Conversation.meta property
-    def _get_meta(self):
-        """Provides read-write access to conversation-level metadata. For
-        utterance-level metadata, use Utterance.meta. For user-level metadata,
-        use User.meta. For corpus-level metadata, use Corpus.meta."""
-        return self._meta
-    def _set_meta(self, new_meta):
-        self._meta = new_meta
-
-    meta = property(_get_meta, _set_meta)
-
-    def add_meta(self, key: Hashable, value) -> None:
-        self.meta[key] = value
-
-    # Conversation.id property
-    def _get_id(self):
-        """The unique ID of this Conversation [read-only]"""
-        return self._id
-    id = property(_get_id)
-
-    def get_utterance_ids(self) -> List[str]:
-        """Produces a list of the unique IDs of all utterances in the
-        Conversation, which can be used in calls to get_utterance() to retrieve
-        specific utterances. Provides no ordering guarantees for the list.
-
-        :return: a list of IDs of Utterances in the Conversation
-        """
-        # we construct a new list instead of returning self._utterance_ids in
-        # order to prevent the user from accidentally modifying the internal
-        # ID list (since lists are mutable)
-        return [ut_id for ut_id in self._utterance_ids]
-
-    def get_utterance(self, ut_id: Hashable) -> Utterance:
-        """Looks up the Utterance associated with the given ID. Raises a
-        KeyError if no utterance by that ID exists.
-
-        :return: the Utterance with the given ID
-        """
-        # delegate to the owner Corpus since Conversation does not itself own
-        # any Utterances
-        return self._owner.get_utterance(ut_id)
-
-    def iter_utterances(self) -> Generator[Utterance, None, None]:
-        """Generator allowing iteration over all utterances in the Conversation.
-        Provides no ordering guarantees.
-
-        :return: Generator that produces Users
-        """
-        for ut_id in self._utterance_ids:
-            yield self._owner.get_utterance(ut_id)
-
-    def get_usernames(self) -> List[str]:
-        """Produces a list of names of all users in the Conversation, which can
-        be used in calls to get_user() to retrieve specific users. Provides no
-        ordering guarantees for the list.
-
-        :return: a list of usernames
-        """
-        if self._usernames is None:
-            # first call to get_usernames or iter_users; precompute cached list
-            # of usernames
-            self._usernames = set()
-            for ut_id in self._utterance_ids:
-                ut = self._owner.get_utterance(ut_id)
-                self._usernames.add(ut.user.name)
-        return list(self._usernames)
-
-    def get_user(self, username: str) -> User:
-        """Looks up the User with the given name. Raises a KeyError if no user
-        with that name exists.
-
-        :return: the User with the given username
-        """
-        # delegate to the owner Corpus since Conversation does not itself own
-        # any Utterances
-        return self._owner.get_user(username)
-
-    def iter_users(self) -> Generator[User, None, None]:
-        """Generator allowing iteration over all users in the Conversation.
-        Provides no ordering guarantees.
-
-        :return: Generator that produces Users.
-        """
-        if self._usernames is None:
-            # first call to get_usernames or iter_users; precompute cached list
-            # of usernames
-            self._usernames = set()
-            for ut_id in self._utterance_ids:
-                ut = self._owner.get_utterance(ut_id)
-                self._usernames.add(ut.user.name)
-        for username in self._usernames:
-           yield self._owner.get_user(username)
-
-    def __eq__(self, other):
-        return self.__dict__ == other.__dict__
-
-    def __repr__(self):
-        return "Conversation(" + str(self.__dict__) + ")"
+pair_delim = '-q-a-'
 
 KeyId = "id"
 KeyUser = "user"
@@ -414,8 +120,8 @@ class Corpus:
                             for k, v in ut[KeyMeta].items():
                                 if k == field and type(v) == str and v.startswith(BIN_DELIM_L) and \
                                         v.endswith(BIN_DELIM_R):
-                                        idx = int(v[len(BIN_DELIM_L):-len(BIN_DELIM_R)])
-                                        utterances[i][KeyMeta][k] = l_bin[idx]
+                                    idx = int(v[len(BIN_DELIM_L):-len(BIN_DELIM_R)])
+                                    utterances[i][KeyMeta][k] = l_bin[idx]
                 for field in exclude_utterance_meta:
                     del self.meta_index["utterances-index"][field]
 
@@ -427,9 +133,9 @@ class Corpus:
                         for user, metadata in users_meta.items():
                             for k, v in metadata.items():
                                 if k == field and type(v) == str and str(v).startswith(BIN_DELIM_L) and \
-                                    str(v).endswith(BIN_DELIM_R):
-                                        idx = int(v[len(BIN_DELIM_L):-len(BIN_DELIM_R)])
-                                        metadata[k] = l_bin[idx]
+                                        str(v).endswith(BIN_DELIM_R):
+                                    idx = int(v[len(BIN_DELIM_L):-len(BIN_DELIM_R)])
+                                    metadata[k] = l_bin[idx]
                 for field in exclude_user_meta:
                     del self.meta_index["users-index"][field]
 
@@ -440,9 +146,9 @@ class Corpus:
                             l_bin = pickle.load(f)
                         for k, v in convos_meta.items():
                             if k == field and type(v) == str and str(v).startswith(BIN_DELIM_L) and \
-                                str(v).endswith(BIN_DELIM_R):
-                                    idx = int(v[len(BIN_DELIM_L):-len(BIN_DELIM_R)])
-                                    convos_meta[k] = l_bin[idx]
+                                    str(v).endswith(BIN_DELIM_R):
+                                idx = int(v[len(BIN_DELIM_L):-len(BIN_DELIM_R)])
+                                convos_meta[k] = l_bin[idx]
 
                 for field in exclude_conversation_meta:
                     del self.meta_index["conversations-index"][field]
@@ -454,9 +160,9 @@ class Corpus:
                             l_bin = pickle.load(f)
                         for k, v in self.meta.items():
                             if k == field and type(v) == str and v.startswith(BIN_DELIM_L) and \
-                                v.endswith(BIN_DELIM_R):
-                                    idx = int(v[len(BIN_DELIM_L):-len(BIN_DELIM_R)])
-                                    self.meta[k] = l_bin[idx]
+                                    v.endswith(BIN_DELIM_R):
+                                idx = int(v[len(BIN_DELIM_L):-len(BIN_DELIM_R)])
+                                self.meta[k] = l_bin[idx]
                 for field in exclude_overall_meta:
                     del self.meta_index["overall-index"][field]
 
@@ -499,9 +205,9 @@ class Corpus:
                     reply_to_data = u[KeyReplyTo]
 
                 ut = Utterance(id=u[KeyId], user=user,
-                        root=u[KeyConvoRoot],
-                        reply_to=reply_to_data, timestamp=u[KeyTimestamp],
-                        text=u[KeyText], meta=u[KeyMeta])
+                               root=u[KeyConvoRoot],
+                               reply_to=reply_to_data, timestamp=u[KeyTimestamp],
+                               text=u[KeyText], meta=u[KeyMeta])
                 self.utterances[ut.id] = ut
         elif utterances is not None:
             self.all_users = {u.user.name: u.user for u in utterances}
@@ -530,8 +236,8 @@ class Corpus:
             # look up the metadata associated with this conversation, if any
             convo_meta = convos_meta.get(convo_id, None)
             convo = Conversation(self, id=convo_id,
-                        utterances=convo_to_utts[convo_id],
-                        meta=convo_meta)
+                                 utterances=convo_to_utts[convo_id],
+                                 meta=convo_meta)
             self.conversations[convo_id] = convo
 
 
@@ -591,7 +297,7 @@ class Corpus:
         with open(os.path.join(dir_name, "users.json"), "w") as f:
             d_bin = defaultdict(list)
             users = {u: Corpus.dump_helper_bin(self.get_user(u).meta, d_bin,
-                users_idx) for u in self.get_usernames()}
+                                               users_idx) for u in self.get_usernames()}
             json.dump(users, f)
 
             for name, l_bin in d_bin.items():
@@ -601,7 +307,7 @@ class Corpus:
         with open(os.path.join(dir_name, "conversations.json"), "w") as f:
             d_bin = defaultdict(list)
             convos = {c: Corpus.dump_helper_bin(self.get_conversation(c).meta,
-                d_bin, convos_idx) for c in self.get_conversation_ids()}
+                                                d_bin, convos_idx) for c in self.get_conversation_ids()}
             json.dump(convos, f)
 
             for name, l_bin in d_bin.items():
@@ -631,10 +337,10 @@ class Corpus:
         with open(os.path.join(dir_name, "corpus.json"), "w") as f:
             d_bin = defaultdict(list)
             meta_up = Corpus.dump_helper_bin(self.meta, d_bin, overall_idx)
-#            keys = ["utterances-index", "conversations-index", "users-index",
-#                "overall-index"]
-#            meta_minus = {k: v for k, v in overall_idx.items() if k not in keys}
-#            meta_up["overall-index"] = meta_minus
+            #            keys = ["utterances-index", "conversations-index", "users-index",
+            #                "overall-index"]
+            #            meta_minus = {k: v for k, v in overall_idx.items() if k not in keys}
+            #            meta_up["overall-index"] = meta_minus
             json.dump(meta_up, f)
             for name, l_bin in d_bin.items():
                 with open(os.path.join(dir_name, name + "-overall-bin.p"), "wb") as f_pk:
@@ -691,12 +397,12 @@ class Corpus:
 
         self.utterances = new_utterances
 
-#    def earliest_n_utterances(self, n, uts=None):
-#        """Returns the first n utterances (ordered by time)."""
-#        if uts is None:
-#            uts = self.utterances
-#        uts = list(sorted(uts.values(), key=lambda u: u.timestamp))
-#        return uts[:n]
+    #    def earliest_n_utterances(self, n, uts=None):
+    #        """Returns the first n utterances (ordered by time)."""
+    #        if uts is None:
+    #            uts = self.utterances
+    #        uts = list(sorted(uts.values(), key=lambda u: u.timestamp))
+    #        return uts[:n]
 
     def utterance_threads(self, prefix_len: Optional[int]=None,
                           suffix_len: int=0,
@@ -724,8 +430,8 @@ class Corpus:
                 if top_level_comment is None: continue # i.e. this is a post (root) utterance
                 threads[top_level_comment].append(ut)
         return {root: {utt.id: utt for utt in list(sorted(l,
-            key=lambda x: x.timestamp))[-suffix_len:prefix_len]}
-            for root, l in threads.items()}
+                                                          key=lambda x: x.timestamp))[-suffix_len:prefix_len]}
+                for root, l in threads.items()}
 
     def get_meta(self) -> Dict:
         return self.meta
@@ -791,7 +497,7 @@ class Corpus:
                 if u1.user is not None:
                     if selector is None or selector(u2.user, u1.user):
                         pairs.add((u2.user.name, u1.user.name) if
-                                user_names_only else (u2.user, u1.user))
+                                  user_names_only else (u2.user, u1.user))
         return pairs
 
     def pairwise_exchanges(self, selector: Optional[Callable[[User, User], bool]]=None,
@@ -888,10 +594,10 @@ class Corpus:
 
                 except AssertionError:
                     print(warning("Utterances with same id do not share the same data:\n" +
-                              str(prev_utt) + "\n" +
-                              str(utt) + "\n" +
-                              "Ignoring second corpus's utterance."
-                              ))
+                                  str(prev_utt) + "\n" +
+                                  str(utt) + "\n" +
+                                  "Ignoring second corpus's utterance."
+                                  ))
             else:
                 seen_utts[utt.id] = utt
 
