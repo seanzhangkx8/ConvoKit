@@ -357,12 +357,18 @@ class Corpus:
         if filename is not None:
             if os.path.isdir(filename):
 
-                with open(os.path.join(filename, "utterances.json"), "r") as f:
-                    utterances = json.load(f)
-                    if exclude_utterance_meta:
-                        for utt in utterances:
-                            for field in exclude_utterance_meta:
-                                del utt["meta"][field]
+                if os.path.exists(os.path.join(filename, 'utterances.json')):
+                    with open(os.path.join(filename, "utterances.json"), "r") as f:
+                        utterances = json.load(f)
+
+                elif os.path.exists(os.path.join(filename, 'utterances.jsonl')):
+                    with open(os.path.join(filename, 'utterances.jsonl'), 'r') as f:
+                        utterances = [json.loads(line) for line in f]
+
+                if exclude_utterance_meta:
+                    for utt in utterances:
+                        for field in exclude_utterance_meta:
+                            del utt["meta"][field]
 
                 with open(os.path.join(filename, "users.json"), "r") as f:
                     users_meta = defaultdict(dict)
@@ -445,7 +451,11 @@ class Corpus:
                 convos_meta = defaultdict(dict)
                 with open(filename, "r") as f:
                     try:
-                        utterances = json.load(f)
+                        ext = filename.split(".")[-1]
+                        if ext == "json":
+                            utterances = json.load(f)
+                        elif ext == "jsonl":
+                            utterances = [json.loads(line) for line in f]
                     except Exception as e:
                         raise Exception("Could not load corpus. Expected json file, encountered error: \n" + str(e))
 
@@ -571,12 +581,11 @@ class Corpus:
                 with open(os.path.join(dir_name, name + "-convo-bin.p"), "wb") as f_pk:
                     pickle.dump(l_bin, f_pk)
 
-        with open(os.path.join(dir_name, "utterances.json"), "w") as f:
+        with open(os.path.join(dir_name, "utterances.jsonl"), "w") as f:
             d_bin = defaultdict(list)
 
-            uts = []
             for ut in self.iter_utterances():
-                uts.append({
+                ut_obj = {
                     KeyId: ut.id,
                     KeyConvoRoot: ut.root,
                     KeyText: ut.text,
@@ -584,8 +593,9 @@ class Corpus:
                     KeyMeta: self.dump_helper_bin(ut.meta, d_bin, utterances_idx),
                     KeyReplyTo: ut.reply_to,
                     KeyTimestamp: ut.timestamp
-                })
-            json.dump(uts, f)
+                }
+                json.dump(ut_obj, f)
+                f.write("\n")
 
             for name, l_bin in d_bin.items():
                 with open(os.path.join(dir_name, name + "-bin.p"), "wb") as f_pk:
