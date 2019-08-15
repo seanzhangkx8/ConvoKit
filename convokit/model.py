@@ -324,24 +324,30 @@ KeyMeta = "meta"
 BIN_DELIM_L, BIN_DELIM_R = "<##bin{", "}&&@**>"
 
 class Corpus:
-    """Represents a dataset, which can be loaded from a JSON file or a
+    """Represents a dataset, which can be loaded from a folder or a
     list of utterances.
-
-    :param filename: path of json file to load
-    :param utterances: list of utterances to load
-    :param merge_lines: whether to merge adjacent
-        lines from the same user if the two utterances have the same root.
-    :param version: version number of the corpus
-
-    :ivar utterances: dictionary of utterances in the dataset, indexed by id.
     """
 
-    def __init__(self, filename: Optional[str]=None, utterances: Optional[List[Utterance]]=None,
-                 merge_lines: bool=False, exclude_utterance_meta: Optional[List[str]]=None,
-                 exclude_conversation_meta: Optional[List[str]]=None,
-                 exclude_user_meta: Optional[List[str]]=None,
-                 exclude_overall_meta: Optional[List[str]]=None,
-                 version: Optional[int]=None):
+    def __init__(self, filename: Optional[str] = None, utterances: Optional[List[Utterance]] = None,
+                 utterance_start_index: int = None, utterance_end_index: int = None, merge_lines: bool = False,
+                 exclude_utterance_meta: Optional[List[str]] = None,
+                 exclude_conversation_meta: Optional[List[str]] = None,
+                 exclude_user_meta: Optional[List[str]] = None,
+                 exclude_overall_meta: Optional[List[str]] = None,
+                 version: Optional[int] = None):
+        """
+
+        :param filename: Path to a folder containing a Corpus or to an utterances.jsonl / utterances.json file to load
+        :param utterances: List of utterances to initialize Corpus from
+        :param utterance_start_index: For utterances.jsonl, specify the line number (zero-indexed) to begin parsing utterances from
+        :param utterance_end_index: For utterances.jsonl, specify the line number (zero-indexed) of the last utterance to be parsed.
+        :param merge_lines: whether to merge adjacent lines from same user if the two utterances have same root
+        :param exclude_utterance_meta: utterance metadata to be ignored
+        :param exclude_conversation_meta: conversation metadata to be ignored
+        :param exclude_user_meta: user metadata to be ignored
+        :param exclude_overall_meta: overall metadata to be ignored
+        :param version: version no. of corpus
+        """
 
         self.original_corpus_path = None if filename is None else os.path.dirname(filename)
         self.meta = {}
@@ -363,7 +369,14 @@ class Corpus:
 
                 elif os.path.exists(os.path.join(filename, 'utterances.jsonl')):
                     with open(os.path.join(filename, 'utterances.jsonl'), 'r') as f:
-                        utterances = [json.loads(line) for line in f]
+                        utterances = []
+                        if utterance_start_index is None: utterance_start_index = 0
+                        if utterance_end_index is None: utterance_end_index = float('inf')
+                        idx = 0
+                        for line in f:
+                            if utterance_start_index <= idx <= utterance_end_index:
+                                utterances.append(json.loads(line))
+                            idx += 1
 
                 if exclude_utterance_meta:
                     for utt in utterances:
@@ -456,7 +469,14 @@ class Corpus:
                         if ext == "json":
                             utterances = json.load(f)
                         elif ext == "jsonl":
-                            utterances = [json.loads(line) for line in f]
+                            utterances = []
+                            if utterance_start_index is None: utterance_start_index = 0
+                            if utterance_end_index is None: utterance_end_index = float('inf')
+                            idx = 0
+                            for line in f:
+                                if utterance_start_index <= idx <= utterance_end_index:
+                                    utterances.append(json.loads(line))
+                                idx += 1
                     except Exception as e:
                         raise Exception("Could not load corpus. Expected json file, encountered error: \n" + str(e))
 
@@ -515,9 +535,15 @@ class Corpus:
             self.conversations[convo_id] = convo
 
 
-    # params: d is dict to encode, d_bin is dict of accumulated lists of binary attribs
     @staticmethod
     def dump_helper_bin(d: Dict, d_bin: Dict, utterances_idx: Dict) -> Dict:
+        """
+
+        :param d: The dict to encode
+        :param d_bin: The dict of accumulated lists of binary attribs
+        :param utterances_idx:
+        :return:
+        """
         d_out = {}
         for k, v in d.items():
             try:   # try saving the field
@@ -538,7 +564,7 @@ class Corpus:
 
         :param name: name of corpus
         :param base_path: base directory to save corpus in (None to save to a default directory)
-        :param save_to_existing_path: if True, save to the path you loaded the corpus from (supercedes base_path)
+        :param save_to_existing_path: if True, save to the path you loaded the corpus from (supersedes base_path)
         """
         dir_name = name
         if base_path is not None and save_to_existing_path:
