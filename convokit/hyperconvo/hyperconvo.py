@@ -9,9 +9,9 @@ import itertools
 from collections import defaultdict
 import numpy as np
 import scipy.stats
-from .transformer import Transformer
+from convokit.transformer import Transformer
 from typing import Tuple, List, Dict, Optional, Hashable, Collection
-from .model import Corpus, Utterance
+from convokit.model import Corpus, Utterance
 
 class Hypergraph:
     """
