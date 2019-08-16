@@ -1,5 +1,9 @@
 import unittest
-from model import Corpus, Utterance, User
+
+import os
+os.chdir('..')
+from convokit import Utterance, User, Corpus
+os.chdir('./tests')
 
 
 class CorpusMerge(unittest.TestCase):
