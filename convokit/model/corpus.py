@@ -239,6 +239,7 @@ class Corpus:
                                  meta=convo_meta)
             self.conversations[convo_id] = convo
 
+        self.update_users_data()
 
     @staticmethod
     def dump_helper_bin(d: Dict, d_bin: Dict, utterances_idx: Dict) -> Dict:
@@ -603,7 +604,7 @@ class Corpus:
         return seen_utts.values()
 
     @staticmethod
-    def _collect_user_data(utt_sets: Collection[Collection[Utterance]]) -> (Dict[str, Dict[str, Set]], Dict[str, Dict[Hashable, Dict[Hashable, str]]]):
+    def _collect_user_data(utt_sets: Collection[Collection[Utterance]]) -> Tuple[Dict[str, Dict[Hashable, str]], Dict[str, Dict[Hashable, bool]]]:
         """
         Helper function for merge().
 
@@ -617,29 +618,34 @@ class Corpus:
         :return: collected User data and User metadata
         """
         # Collect USER data and metadata
-        all_users_data = defaultdict(lambda: defaultdict(set))
-        all_users_meta = defaultdict(lambda: defaultdict(lambda: defaultdict(str))) # Using defaultdict as an Ordered Set
-
+        # all_users_data = defaultdict(lambda: defaultdict(set))
+        all_users_meta = defaultdict(lambda: defaultdict(str))
+        all_users_meta_conflict = defaultdict(lambda: defaultdict(bool))
         for utt_set in utt_sets:
             for utt in utt_set:
-                all_users_data[utt.user]['convos'].union(set(utt.user.iter_conversations()))
-                all_users_data[utt.user]['utts'].union(set(utt.user.iter_utterances()))
+                # all_users_data[utt.user]['convos'].union(set(utt.user.iter_conversations()))
+                # all_users_data[utt.user]['utts'].union(set(utt.user.iter_utterances()))
 
                 # collect the metadata in this way to avoid having to explicitly check
                 # for meta key-value matches for every Utterance
                 for meta_key, meta_val in utt.user.meta.items():
-                    all_users_meta[utt.user][meta_key][meta_val] # initialize the values in the dict tree
+                    curr = all_users_meta[utt.user][meta_key]
 
-        return all_users_data, all_users_meta
+                    if curr != meta_val:
+                        if curr != "":
+                            all_users_meta_conflict[utt.user][meta_key] = True
+                        all_users_meta[utt.user][meta_key] = meta_val # initialize the values in the dict tree
+
+        return all_users_meta, all_users_meta_conflict
 
     @staticmethod
-    def _update_corpus_user_data(new_corpus, all_users_data: Dict, all_users_meta: Dict) -> None:
+    def _update_corpus_user_data(new_corpus, all_users_meta: Dict, all_users_meta_conflict: Dict) -> None:
         """
         Helper function for merge().
 
         Update new_corpus's Users' data (utterance and conversation lists) and metadata
 
-        Prints a warning if multiple values are found for any user's metadata key; other corpus's user metadata is used
+        # Prints a warning if multiple values are found for any user's metadata key; other corpus's user metadata is used
 
         :param all_users_data: Dictionary indexed by User ID, containing the merged Utterance and Conversation lists
         :param all_users_meta: Dictionary indexed by User ID, containing the collected User metadata
@@ -647,14 +653,14 @@ class Corpus:
         """
         # Update USER data and metadata with merged versions
         for user in new_corpus.iter_users():
-            user.conversations = {convo.id: convo for convo in all_users_data[user]['convos']}
-            user.utterances = {utt.id: utt for utt in all_users_data[user]['utts']}
+            # user.conversations = {convo.id: convo for convo in all_users_data[user]['convos']}
+            # user.utterances = {utt.id: utt for utt in all_users_data[user]['utts']}
 
-            for meta_key, meta_vals in all_users_meta[user].items():
-                if len(meta_vals) > 1:
+            for meta_key, meta_val in all_users_meta[user].items():
+                if all_users_meta_conflict[user][meta_key]:
                     print(warning("Multiple values found for {} for meta key: {}. "
-                                  "Overwriting with other corpus's user metadata".format(user, meta_key)))
-                user.meta[meta_key] = list(meta_vals)[-1]
+                                  "Taking the latest one found".format(user, meta_key)))
+                user.meta[meta_key] = meta_val
 
     def merge(self, other_corpus):
         """
@@ -681,9 +687,11 @@ class Corpus:
         # Note that we collect Users from the utt sets directly instead of the combined utts, otherwise
         # differences in User meta will not be registered for duplicate Utterances (because one utt would be discarded
         # during merging)
-        all_users_data, all_users_meta = self._collect_user_data([utts1, utts2])
+        # all_users_data,
+        all_users_meta, all_users_meta_conflict = self._collect_user_data([utts1, utts2])
 
-        self._update_corpus_user_data(new_corpus, all_users_data, all_users_meta)
+        #self._update_corpus_user_data(new_corpus, all_users_data, all_users_meta)
+        self._update_corpus_user_data(new_corpus, all_users_meta, all_users_meta_conflict)
 
         # Merge CORPUS metadata
         new_corpus.meta = self.meta
@@ -707,6 +715,8 @@ class Corpus:
                     print(warning("Found conflicting values for conversation: {} for meta key: {}. "
                                   "Overwriting with other corpus's conversation metadata".format(convo.id, key)))
                 curr_meta[key] = val
+
+        new_corpus.update_users_data()
 
         return new_corpus
 
