@@ -20,6 +20,6 @@ setup(
         "scipy>=1.1.0",
         "scikit-learn>=0.20.0",
         "nltk>=3.4",
-        "dill>=0.2.9"
+        "dill==0.2.9"
     ]
 )
