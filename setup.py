@@ -7,12 +7,12 @@ setup(
     url = "https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit",
     description = "Cornell Conversational Analysis Toolkit",
     version = "2.0.6",
-    packages = ["convokit", "convokit.politeness_api",
-        "convokit.politeness_api.features"],
+    packages = ["convokit",
+                "convokit.hyperconvo",
+                "convokit.model",
+                "convokit.politeness_api",
+                "convokit.politeness_api.features"],
     package_data = {"convokit": ["data/*.txt"]},
-    entry_points = {
-        "console_scripts": ["convokit = convokit.command_line:command_line_main"]
-    },
     install_requires = [
         "matplotlib>=3.0.0",
         "pandas>=0.23.4",
