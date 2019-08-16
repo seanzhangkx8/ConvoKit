@@ -68,12 +68,7 @@ class Corpus:
 
         if filename is not None:
             if os.path.isdir(filename):
-
-                if os.path.exists(os.path.join(filename, 'utterances.json')):
-                    with open(os.path.join(filename, "utterances.json"), "r") as f:
-                        utterances = json.load(f)
-
-                elif os.path.exists(os.path.join(filename, 'utterances.jsonl')):
+                if os.path.exists(os.path.join(filename, 'utterances.jsonl')):
                     with open(os.path.join(filename, 'utterances.jsonl'), 'r') as f:
                         utterances = []
                         if utterance_start_index is None: utterance_start_index = 0
@@ -83,6 +78,10 @@ class Corpus:
                             if utterance_start_index <= idx <= utterance_end_index:
                                 utterances.append(json.loads(line))
                             idx += 1
+
+                elif os.path.exists(os.path.join(filename, 'utterances.json')):
+                    with open(os.path.join(filename, "utterances.json"), "r") as f:
+                        utterances = json.load(f)
 
                 if exclude_utterance_meta:
                     for utt in utterances:
