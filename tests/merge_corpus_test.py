@@ -1,10 +1,5 @@
 import unittest
-
-import os
-os.chdir('..')
-from convokit import Utterance, User, Corpus
-os.chdir('./tests')
-
+from convokit.model import Utterance, User, Corpus
 
 class CorpusMerge(unittest.TestCase):
     def test_no_overlap(self):
