@@ -355,7 +355,7 @@ class Corpus:
         with open(os.path.join(dir_name, "index.json"), "w") as f:
             json.dump(self.meta_index, f)
 
-    def get_utterance_ids(self) -> List[Hashable]:
+    def get_utterance_ids(self) -> List:
         return list(self.utterances.keys())
 
     def get_utterance(self, ut_id: Hashable) -> Utterance:
@@ -610,12 +610,12 @@ class Corpus:
 
         Iterates through the input set of utterances, to collect User data and metadata.
 
-        Collects User data (Utterances and Conversations) in a Dictionary indexed by User ID, merging the Utterances / Conversations.
+        Collect User metadata in another Dictionary indexed by User ID
 
-        Collect User metadata in another Dictionary indexed by User ID while keeping all metadata values in an ordered set
+        Track if conflicting user metadata is found in another dictionary
 
         :param utt_sets: Collections of collections of Utterances to extract Users from
-        :return: collected User data and User metadata
+        :return: user metadata and the corresponding tracker
         """
         # Collect USER data and metadata
         # all_users_data = defaultdict(lambda: defaultdict(set))
@@ -623,18 +623,12 @@ class Corpus:
         all_users_meta_conflict = defaultdict(lambda: defaultdict(bool))
         for utt_set in utt_sets:
             for utt in utt_set:
-                # all_users_data[utt.user]['convos'].union(set(utt.user.iter_conversations()))
-                # all_users_data[utt.user]['utts'].union(set(utt.user.iter_utterances()))
-
-                # collect the metadata in this way to avoid having to explicitly check
-                # for meta key-value matches for every Utterance
                 for meta_key, meta_val in utt.user.meta.items():
                     curr = all_users_meta[utt.user][meta_key]
-
                     if curr != meta_val:
                         if curr != "":
                             all_users_meta_conflict[utt.user][meta_key] = True
-                        all_users_meta[utt.user][meta_key] = meta_val # initialize the values in the dict tree
+                        all_users_meta[utt.user][meta_key] = meta_val
 
         return all_users_meta, all_users_meta_conflict
 
@@ -645,10 +639,10 @@ class Corpus:
 
         Update new_corpus's Users' data (utterance and conversation lists) and metadata
 
-        # Prints a warning if multiple values are found for any user's metadata key; other corpus's user metadata is used
+        Prints a warning if multiple values are found for any user's metadata key; latest user metadata is used
 
-        :param all_users_data: Dictionary indexed by User ID, containing the merged Utterance and Conversation lists
         :param all_users_meta: Dictionary indexed by User ID, containing the collected User metadata
+        :param all_users_meta_conflict: Dictionary indexed by User ID, indicating if there were value conflicts for the associated meta keys
         :return: None (mutates the new_corpus's Users)
         """
         # Update USER data and metadata with merged versions
@@ -685,12 +679,9 @@ class Corpus:
         new_corpus = Corpus(utterances=list(combined_utts))
 
         # Note that we collect Users from the utt sets directly instead of the combined utts, otherwise
-        # differences in User meta will not be registered for duplicate Utterances (because one utt would be discarded
+        # differences in User meta will not be registered for duplicate Utterances (because utts would be discarded
         # during merging)
-        # all_users_data,
         all_users_meta, all_users_meta_conflict = self._collect_user_data([utts1, utts2])
-
-        #self._update_corpus_user_data(new_corpus, all_users_data, all_users_meta)
         self._update_corpus_user_data(new_corpus, all_users_meta, all_users_meta_conflict)
 
         # Merge CORPUS metadata
