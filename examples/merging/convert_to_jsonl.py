@@ -41,6 +41,20 @@ def convert_json_to_jsonl_fast(filepath):
                     utt_acc = ''
                     ignore_chars = 2
 
+def find_utterance_jsons(filepath):
+    """
+    :param filepath: Location of folder to start searching for utterance.json's from
+    :return: generator for all filepaths of utterance.jsons
+    """
+    filepath = os.path.abspath(filepath)
+    for file in os.listdir(filepath):
+        base_file = file
+        full_file = os.path.join(filepath, file)
+        if os.path.isdir(full_file):
+            yield from find_utterance_jsons(full_file)
+        elif base_file == "utterances.json":
+            yield full_file
+
 def convert_json_to_jsonl_regex(filepath):
     pattern = re.compile(r'({"id":.+?"timestamp":.+?})')
     with open(filepath, 'r') as f:
@@ -53,9 +67,12 @@ def convert_json_to_jsonl_regex(filepath):
             f.write("\n")
 
 if __name__ == "__main__":
-    os.chdir("temp-corpus")
-    convert_json_to_jsonl_regex("utterances.json")
-    os.chdir("..")
-    corpus1 = Corpus(filename="temp-corpus")
-    print(corpus1.utterances)
+    # os.chdir("temp-corpus")
+    # convert_json_to_jsonl_regex("utterances.json")
+    # os.chdir("..")
+    # corpus1 = Corpus(filename="temp-corpus")
+    # print(corpus1.utterances)
+
+    for m in find_utterance_jsons('./lolol'):
+        convert_json_to_jsonl_regex(m)
 
