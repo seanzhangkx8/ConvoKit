@@ -2,7 +2,6 @@ import spacy
 import sys
 
 from convokit.transformer import Transformer
-from typing import Callable, Generator, Tuple, List, Dict, Set, Optional
 from convokit.model import Corpus
 
 
