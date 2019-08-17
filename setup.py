@@ -10,8 +10,11 @@ setup(
     packages = ["convokit",
                 "convokit.hyperconvo",
                 "convokit.model",
+                "convokit.parser",
                 "convokit.politeness_api",
-                "convokit.politeness_api.features"],
+                "convokit.politeness_api.features",
+                "convokit.politenessStrategies",
+                "convokit.questionTypology"],
     package_data = {"convokit": ["data/*.txt"]},
     install_requires = [
         "matplotlib>=3.0.0",

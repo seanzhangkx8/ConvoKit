@@ -20,8 +20,8 @@ from sklearn.preprocessing import Normalizer
 from spacy.symbols import *
 from typing import Callable, Generator, Tuple, List, Dict, Set, Optional
 
-from .model import Corpus
-from .transformer import Transformer
+from convokit.model import Corpus
+from convokit.transformer import Transformer
 
 NP_LABELS = {nsubj, nsubjpass, dobj, iobj, pobj, attr}
 SPACY_META = "parsed"

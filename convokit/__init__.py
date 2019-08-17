@@ -1,6 +1,6 @@
 from .model import *
-from .coordination import *
 from .util import *
+from .coordination import *
 from .questionTypology import *
 from .politenessStrategies import *
 from .transformer import *
