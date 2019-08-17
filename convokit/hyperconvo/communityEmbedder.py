@@ -5,7 +5,7 @@ from collections import defaultdict
 
 from convokit.transformer import Transformer
 from convokit.model import Corpus
-from typing import Callable, Generator, Tuple, List, Dict, Set, Optional, Hashable
+from typing import Optional, Hashable
 
 
 class CommunityEmbedder(Transformer):
