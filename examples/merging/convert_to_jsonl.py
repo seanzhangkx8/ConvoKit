@@ -1,8 +1,7 @@
 import os
-os.chdir("../..")
 from convokit import Corpus
-os.chdir("./examples/merging")
 import re
+import multiprocessing as mp
 
 def convert_json_to_jsonl_safe(corpus_filepath):
     corpus = Corpus(filename=corpus_filepath)
@@ -43,7 +42,7 @@ def convert_json_to_jsonl_fast(filepath):
 
 def find_utterance_jsons(filepath):
     """
-    :param filepath: Location of folder to start searching for utterance.json's from
+    :param filepath: Location of folder to start searching for utterances.json's from
     :return: generator for all filepaths of utterance.jsons
     """
     filepath = os.path.abspath(filepath)
@@ -72,7 +71,6 @@ if __name__ == "__main__":
     # os.chdir("..")
     # corpus1 = Corpus(filename="temp-corpus")
     # print(corpus1.utterances)
-
-    for m in find_utterance_jsons('./lolol'):
-        convert_json_to_jsonl_regex(m)
+    with mp.Pool(processes=5, maxtasksperchild=1000) as pool:
+        pool.map(convert_json_to_jsonl_regex, find_utterance_jsons('./lolol'))
 
