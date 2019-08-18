@@ -39,8 +39,9 @@ Metadata for each utterance include:
 Usage
 -----
 
-To download directly with ConvoKit: 
+To download directly with ConvoKit:
 
+>>> from convokit import Corpus, download
 >>> corpus = Corpus(filename=download("wiki-corpus"))
 
 
