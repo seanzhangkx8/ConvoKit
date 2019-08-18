@@ -1,8 +1,13 @@
 Troubleshooting FAQ
 ===================
 
+General checks
+^^^^^^^^^^^^^^
+- Check that you are using the latest version of ConvoKit
+- Verify that your installed package dependencies for ConvoKit satisfy the `versioning requirements <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/requirements.txt>`_
+
 Issues
-^^^^^^^^^^^^^^^^
+^^^^^^
 
 - **OSError: [E050] Can't find model 'en'. It doesn't seem to be a shortcut link, a Python package or a valid path to a directory.**
 
