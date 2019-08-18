@@ -80,6 +80,14 @@ This toolkit requires Python >= 3.6.
 
 Alternatively, visit our [Github Page](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit) to install from source.
 
+ConvoKit has several dependencies (such as SpaCy) that receive frequent updates and have certain particularities that may result in incompatibilities and errors when they are installed for ConvoKit.
+
+For compatibility with these dependencies, we strongly advise that ConvoKit be run in a Unix system (i.e. Mac OS or any of the Linux distros.)
+
+If one wishes to run ConvoKit on a Windows machine however, we would then recommend using the Linux subsystem.
+
+Please see the [Troubleshooting FAQ](https://zissou.infosci.cornell.edu/socialkit/documentation/troubleshooting.html) for a list of commonly encountered issues when installing the dependencies.
+
 ## Documentation
 Documentation is hosted [here](http://zissou.infosci.cornell.edu/socialkit/documentation/). If you are new to ConvoKit, great places to get started are the [Core Concepts tutorial](https://zissou.infosci.cornell.edu/socialkit/documentation/architecture.html) for an overview of the ConvoKit "philosophy" and object model, and the [High-level tutorial](https://zissou.infosci.cornell.edu/socialkit/documentation/tutorial.html) for an walkthrough of how to import ConvoKit into your project, load a Corpus, and use ConvoKit functions.
 
