@@ -541,14 +541,14 @@ class Corpus:
                         yield utterance.id, utterance.text, pair_idx
                         continue
                     question = self.utterances[utterance.reply_to]
-                    pair_idx = question.id + pair_delim + utterance.id
+                    pair_idx = str(question.id) + pair_delim + str(utterance.id)
                     yield question.id, question.text, pair_idx
                     if iter_type == 'both':
                         pair_idx = utterance.reply_to + pair_delim + str(utterance.id)
                         yield utterance.id, utterance.text, pair_idx
 
     @staticmethod
-    def _merge_utterances(utts1: List[Utterance], utts2: List[Utterance]) -> ValuesView[Utterance]:
+    def _merge_utterances(utts1: List[Utterance], utts2: List[Utterance], warnings: bool) -> ValuesView[Utterance]:
         """
         Helper function for merge().
 
@@ -565,6 +565,7 @@ class Corpus:
 
         :param utts1: First collection of Utterances
         :param utts2: Second collection of Utterances
+        :param warnings: whether to print warnings when conflicting data is found.
         :return: ValuesView for merged set of utterances
         """
         seen_utts = dict()
@@ -588,12 +589,12 @@ class Corpus:
                     # other utterance metadata is ignored if data is not matched
                     for key, val in utt.meta.items():
                         if key in prev_utt.meta and prev_utt.meta[key] != val:
-                            print(warning("Found conflicting values for Utterance {} for metadata key: {}. "
+                            if warnings: print(warning("Found conflicting values for Utterance {} for metadata key: {}. "
                                           "Overwriting with other corpus's Utterance metadata.".format(utt.id, key)))
                         prev_utt.meta[key] = val
 
                 except AssertionError:
-                    print(warning("Utterances with same id do not share the same data:\n" +
+                    if warnings: print(warning("Utterances with same id do not share the same data:\n" +
                                   str(prev_utt) + "\n" +
                                   str(utt) + "\n" +
                                   "Ignoring second corpus's utterance."
@@ -633,7 +634,7 @@ class Corpus:
         return all_users_meta, all_users_meta_conflict
 
     @staticmethod
-    def _update_corpus_user_data(new_corpus, all_users_meta: Dict, all_users_meta_conflict: Dict) -> None:
+    def _update_corpus_user_data(new_corpus, all_users_meta: Dict, all_users_meta_conflict: Dict, warnings: bool) -> None:
         """
         Helper function for merge().
 
@@ -647,16 +648,13 @@ class Corpus:
         """
         # Update USER data and metadata with merged versions
         for user in new_corpus.iter_users():
-            # user.conversations = {convo.id: convo for convo in all_users_data[user]['convos']}
-            # user.utterances = {utt.id: utt for utt in all_users_data[user]['utts']}
-
             for meta_key, meta_val in all_users_meta[user].items():
                 if all_users_meta_conflict[user][meta_key]:
-                    print(warning("Multiple values found for {} for meta key: {}. "
+                    if warnings: print(warning("Multiple values found for {} for meta key: {}. "
                                   "Taking the latest one found".format(user, meta_key)))
                 user.meta[meta_key] = meta_val
 
-    def merge(self, other_corpus):
+    def merge(self, other_corpus, warnings: bool = True):
         """
         Merges this corpus with another corpus.
 
@@ -670,25 +668,26 @@ class Corpus:
         May mutate original and other corpus.
 
         :param other_corpus: Corpus
+        :param warnings: print warnings when data conflicts are encountered
         :return: new Corpus constructed from combined lists of utterances
         """
         utts1 = list(self.iter_utterances())
         utts2 = list(other_corpus.iter_utterances())
 
-        combined_utts = self._merge_utterances(utts1, utts2)
+        combined_utts = self._merge_utterances(utts1, utts2, warnings=warnings)
         new_corpus = Corpus(utterances=list(combined_utts))
 
         # Note that we collect Users from the utt sets directly instead of the combined utts, otherwise
         # differences in User meta will not be registered for duplicate Utterances (because utts would be discarded
         # during merging)
         all_users_meta, all_users_meta_conflict = self._collect_user_data([utts1, utts2])
-        self._update_corpus_user_data(new_corpus, all_users_meta, all_users_meta_conflict)
+        self._update_corpus_user_data(new_corpus, all_users_meta, all_users_meta_conflict, warnings=warnings)
 
         # Merge CORPUS metadata
         new_corpus.meta = self.meta
         for key, val in other_corpus.meta.items():
             if key in new_corpus.meta and new_corpus.meta[key] != val:
-                print(warning("Found conflicting values for corpus metadata: {}. "
+                if warnings: print(warning("Found conflicting values for corpus metadata: {}. "
                               "Overwriting with other corpus's metadata.".format(key)))
             new_corpus.meta[key] = val
 
@@ -703,7 +702,7 @@ class Corpus:
             for key, val in convo.meta.items():
                 curr_meta = new_corpus.get_conversation(convo.id).meta
                 if key in curr_meta and curr_meta[key] != val:
-                    print(warning("Found conflicting values for conversation: {} for meta key: {}. "
+                    if warnings: print(warning("Found conflicting values for conversation: {} for meta key: {}. "
                                   "Overwriting with other corpus's conversation metadata".format(convo.id, key)))
                 curr_meta[key] = val
 
@@ -745,6 +744,16 @@ class Corpus:
         for user in self.iter_users():
             user.utterances = {utt.id: utt for utt in users_utts[user]}
             user.conversations = {convo.id: convo for convo in users_convos[user]}
+
+    def print_summary_stats(self) -> None:
+        """
+        Helper function for printing the number of Users, Utterances, and Conversations in this Corpus
+        :return: None
+        """
+        print("Number of Users: {}".format(len(self.all_users)))
+        print("Number of Utterances: {}".format(len(self.utterances)))
+        print("Number of Conversations: {}".format(len(self.conversations)))
+
 
     # def generate_metadata(self, corpus_type: str) -> None:
     #     """
