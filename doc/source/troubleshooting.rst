@@ -30,8 +30,18 @@ The solution is to either do the installation in a venv (where the privileges re
 
 -----------------------------
 
-**error: Microsoft Visual C++ 14.0 is required.**
+**error: Microsoft Visual C++ 14.0 is required.** when installing SpaCy [Windows]
 
-SpaCy, one of ConvoKit's dependencies, itself has an assortment of dependencies (e.g. murmurhash, cytoolz) that require Microsoft Visual C++ build tools to be built properly.
+SpaCy, one of ConvoKit's dependencies, itself has an assortment of dependencies (e.g. murmurhash, cytoolz.) On Windows, these must be built using Microsoft Visual C++ build tools to be built properly.
 
 The build tools can be downloaded `from Microsoft here <https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2019>`_. Take care to not `confuse these tools with other Microsoft distributables <https://github.com/explosion/spaCy/issues/2441>`_.
+
+-----------------------------
+
+**error: command 'gcc' failed with exit status 1**
+
+This is an error encountered when installing the SpaCy dependency for ConvoKit. The solution is to link the required C++ standard library explicitly, like so:
+
+>>> CFLAGS=-stdlib=libc++ python3 -m pip install convokit
+
+
