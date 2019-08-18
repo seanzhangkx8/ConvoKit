@@ -4,18 +4,20 @@ Troubleshooting FAQ
 General checks
 ^^^^^^^^^^^^^^
 - Check that you are using the latest version of ConvoKit
-- Verify that your installed package dependencies for ConvoKit satisfy the `versioning requirements <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/requirements.txt>`_
+- Verify that your installed package dependencies for ConvoKit satisfy the `ConvoKit's versioning requirements <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/requirements.txt>`_
 
 Issues
 ^^^^^^
 
-- **OSError: [E050] Can't find model 'en'. It doesn't seem to be a shortcut link, a Python package or a valid path to a directory.**
+**OSError: [E050] Can't find model 'en'. It doesn't seem to be a shortcut link, a Python package or a valid path to a directory.**
 
 As mentioned in the installation instructions, one needs to "python -m spacy download en" so that a model 'en' exists.
 
 However, there is a secondary issue specific to Windows machines:
 
-- **python -m spacy download en** appears successful but actually fails to link the downloaded model to spaCy [Windows]
+-----------------------------
+
+**python -m spacy download en** appears successful but actually fails to link the downloaded model to spaCy [Windows]
 
 .. image:: img/windows-failed-spacy-link.jpeg
 .. image:: img/windows-failed-spacy-load.jpeg
@@ -26,7 +28,9 @@ The operation referred to is the linking of 'en'. This issue has been raised `he
 
 The solution is to either do the installation in a venv (where the privileges required for linking is lower) or run powershell as administrator.
 
-- **error: Microsoft Visual C++ 14.0 is required.**
+-----------------------------
+
+**error: Microsoft Visual C++ 14.0 is required.**
 
 SpaCy, one of ConvoKit's dependencies, itself has an assortment of dependencies (e.g. murmurhash, cytoolz) that require Microsoft Visual C++ build tools to be built properly.
 
