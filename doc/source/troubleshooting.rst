@@ -5,7 +5,7 @@ General checks
 ^^^^^^^^^^^^^^
 - Check that you are using the latest version of ConvoKit
 - Verify that your installed package dependencies for ConvoKit satisfy `ConvoKit's versioning requirements <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/requirements.txt>`_
-- If possible, use a Unix system, i.e. Mac OS or the Linux distros. We advise against using Windows, but Windows users should consider using the Windows subsystem for Linux (WSL) instead.
+- If possible, use a Unix system, i.e. Mac OS or the Linux distros. We advise against using Windows, but Windows users may consider using the Windows subsystem for Linux (WSL) instead.
 
 Issues
 ^^^^^^
@@ -39,9 +39,9 @@ The build tools can be downloaded `from Microsoft here <https://visualstudio.mic
 
 -----------------------------
 
-**error: command 'gcc' failed with exit status 1**
+**error: command 'gcc' failed with exit status 1** [Mac OS]
 
-This is an error encountered when installing the SpaCy dependency for ConvoKit. The solution is to link the required C++ standard library explicitly, like so:
+This is an error encountered when installing the SpaCy dependency for ConvoKit on MacOS. The solution is to link the required C++ standard library explicitly, like so:
 
 >>> CFLAGS=-stdlib=libc++ python3 -m pip install convokit
 
