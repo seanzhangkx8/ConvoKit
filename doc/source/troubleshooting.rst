@@ -5,14 +5,14 @@ General checks
 ^^^^^^^^^^^^^^
 - Check that you are using the latest version of ConvoKit
 - Verify that your installed package dependencies for ConvoKit satisfy `ConvoKit's versioning requirements <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/requirements.txt>`_
-- If possible, use a Unix system: Mac OS, Linux distros, or the Windows subsystem for Linux
+- If possible, use a Unix system, i.e. Mac OS or the Linux distros. We advise against using Windows, but Windows users should consider using the Windows subsystem for Linux (WSL) instead.
 
 Issues
 ^^^^^^
 
 **OSError: [E050] Can't find model 'en'. It doesn't seem to be a shortcut link, a Python package or a valid path to a directory.**
 
-As mentioned in the installation instructions, one needs to "python -m spacy download en" so that a model 'en' exists.
+As mentioned in the installation instructions, one needs to run "python -m spacy download en" so that a model 'en' exists.
 
 However, there is a secondary issue specific to Windows machines:
 
@@ -25,9 +25,9 @@ However, there is a secondary issue specific to Windows machines:
 
 The output from the command suggests that linking is successful and that *spacy.load('en')* should succeed. However, a closer inspection of the first set of outputs reveals an error message: "You do not have sufficient privilege to perform this operation."
 
-The operation referred to is the linking of 'en'. This issue has been raised `here <https://github.com/explosion/spaCy/issues/1283>`_, and has been acknowledged as a bug.
+The operation referred to is the linking of 'en'. This issue has been raised `here <https://github.com/explosion/spaCy/issues/1283>`_ and has been acknowledged as a bug.
 
-The solution is to either do the installation in a venv (where the privileges required for linking is lower) or run powershell as administrator.
+The solution is to either do the installation in a virtualenv (where the privileges required for linking is lower) or run powershell as administrator.
 
 -----------------------------
 
