@@ -681,7 +681,7 @@ class Corpus:
         # differences in User meta will not be registered for duplicate Utterances (because utts would be discarded
         # during merging)
         all_users_meta, all_users_meta_conflict = self._collect_user_data([utts1, utts2])
-        self._update_corpus_user_data(new_corpus, all_users_meta, all_users_meta_conflict, warnings=warnings)
+        Corpus._update_corpus_user_data(new_corpus, all_users_meta, all_users_meta_conflict, warnings=warnings)
 
         # Merge CORPUS metadata
         new_corpus.meta = self.meta
