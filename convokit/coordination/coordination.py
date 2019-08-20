@@ -7,12 +7,12 @@ Example usage: exploring the balance of power in the U.S. Supreme Court
 
 import pkg_resources
 import re
-from .model import Corpus, User, Utterance
+from convokit.model import Corpus, User, Utterance
 from collections import defaultdict
 from typing import Callable, Tuple, List, Dict, Optional, Collection, Hashable, Union
 
 
-from .transformer import Transformer
+from convokit.transformer import Transformer
 
 CoordinationWordCategories = ["article", "auxverb", "conj", "adverb",
     "ppron", "ipron", "preps", "quant"]

@@ -10,11 +10,11 @@ from typing import Callable, Generator, Tuple, List, Dict, Set, Optional, Hashab
 
 from collections import defaultdict
 
-from .politeness_api.features.politeness_strategies import get_politeness_strategy_features
-from .politeness_api.features.vectorizer import get_unigrams_and_bigrams
+from convokit.politeness_api.features.politeness_strategies import get_politeness_strategy_features
+from convokit.politeness_api.features.vectorizer import get_unigrams_and_bigrams
 
-from .transformer import Transformer
-from .model import Corpus
+from convokit.transformer import Transformer
+from convokit.model import Corpus
 
 class PolitenessStrategies(Transformer):
     """

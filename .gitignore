@@ -1,4 +1,5 @@
 *.json
+*.jsonl
 *.jsonlist
 *.jsonlistx
 *.dat
@@ -27,3 +28,4 @@ examples/hyperconvo/.ipynb_checkpoints
 *.idea
 venv/
 *.iml
+venv-triadmotif/
