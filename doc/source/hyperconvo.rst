@@ -1,5 +1,8 @@
 Hyperconvo
 ============
 
-.. automodule:: convokit.hyperconvo
+.. automodule:: convokit.hyperconvo.hyperconvo
+    :members:
+
+.. automodule:: convokit.hyperconvo.hypergraph
     :members:

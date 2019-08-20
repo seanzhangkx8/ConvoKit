@@ -1,5 +1,5 @@
 politenessStrategies
 ====================
 
-.. automodule:: convokit.politenessStrategies
+.. automodule:: convokit.politenessStrategies.politenessStrategies
     :members:

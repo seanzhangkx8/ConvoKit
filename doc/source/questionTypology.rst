@@ -1,6 +1,6 @@
 Question Typology
 ==================
 
-.. automodule:: convokit.questionTypology
+.. automodule:: convokit.questionTypology.questionTypology
     :members:
 
