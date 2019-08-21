@@ -1,9 +1,4 @@
-"""Implements unsupervised identification of rhetorical roles in questions
-(http://www.cs.cornell.edu/~cristian/Asking_too_much.html).
 
-Example usage: extracting common question types in UK parliament
-(https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/question-typology/parliament_questions_example.ipynb)
-"""
 
 import itertools
 import json

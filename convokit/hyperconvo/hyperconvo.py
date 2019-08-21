@@ -1,10 +1,3 @@
-"""Implements the hypergraph conversation model from
-http://www.cs.cornell.edu/~cristian/Patterns_of_participant_interactions.html.
-
-Example usage: hypergraph creation and feature extraction, visualization and interpretation on a subsample of Reddit.
-(https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/hyperconvo/demo.ipynb)
-"""
-
 from collections import defaultdict
 import numpy as np
 import scipy.stats
