@@ -2,12 +2,13 @@ from setuptools import setup, find_packages
 
 setup(
     name = "convokit",
-    author = "Cristian Danescu-Niculescu-Mizil, Andrew Wang",
-    author_email = "azw7@cornell.edu",
+    author = "Jonathan P. Chang, Caleb Chiam, Liye Fu, Andrew Wang, Justine Zhang, Cristian Danescu-Niculescu-Mizil",
+    author_email = "cristian@cs.cornell.edu",
     url = "https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit",
     description = "Cornell Conversational Analysis Toolkit",
-    version = "2.0.7",
+    version = "2.0.10",
     packages = ["convokit",
+                "convokit.coordination",
                 "convokit.hyperconvo",
                 "convokit.model",
                 "convokit.parser",
