@@ -3,22 +3,22 @@ This toolkit contains tools to extract conversational features and analyze socia
 
 The toolkit currently implements features for:
 
-### [Linguistic coordination](https://www.cs.cornell.edu/~cristian/Echoes_of_power.html)
+### [Linguistic coordination](https://www.cs.cornell.edu/~cristian/Echoes_of_power.html) <sub><sup>[(API)](https://zissou.infosci.cornell.edu/convokit/documentation/coordination.html)</sup></sub>
 
 A measure of linguistic influence (and relative power) between individuals or groups based on their use of function words.  
 Example: [exploring the balance of power in the U.S. Supreme Court](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/coordination/examples.ipynb).
 
-### [Politeness strategies](https://www.cs.cornell.edu/~cristian/Politeness.html)
+### [Politeness strategies](https://www.cs.cornell.edu/~cristian/Politeness.html) <sub><sup>[(API)](https://zissou.infosci.cornell.edu/convokit/documentation/politenessStrategies.html)</sup></sub>
 
 A set of lexical and parse-based features correlating with politeness and impoliteness.  
 Example: [understanding the (mis)use of politeness strategies in conversations gone awry on Wikipedia](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/conversations-gone-awry/Conversations_Gone_Awry_Prediction.ipynb).
 
-### [Conversational prompts](http://www.cs.cornell.edu/~cristian/Asking_too_much.html)
+### [Conversational prompts](http://www.cs.cornell.edu/~cristian/Asking_too_much.html) <sub><sup>[(API)](https://zissou.infosci.cornell.edu/convokit/documentation/questionTypology.html)</sup></sub>
 
 An unsupervised method for extracting surface motifs that occur in conversations and grouping them by rhetorical role.  
 Examples: [extracting common question types in U.K. parliament](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/question-typology/parliament_questions_example.ipynb), [understanding the use of conversational prompts in conversations gone awry on Wikipedia](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/conversations-gone-awry/Conversations_Gone_Awry_Prediction.ipynb).
 
-### [Hypergraph conversation representation](http://www.cs.cornell.edu/~cristian/Patterns_of_participant_interactions.html) 
+### [Hypergraph conversation representation](http://www.cs.cornell.edu/~cristian/Patterns_of_participant_interactions.html) <sub><sup>[(API)](https://zissou.infosci.cornell.edu/convokit/documentation/hyperconvo.html)</sup></sub>
 A method for extracting structural features of conversations through a hypergraph representation.  
 Example: [hypergraph creation and feature extraction, visualization and interpretation on a subsample of Reddit](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/hyperconvo/demo.ipynb).
 
