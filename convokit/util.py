@@ -45,7 +45,8 @@ def download(name: str, verbose: bool=True, data_dir: str=None, use_newest_versi
         "tennis-corpus": 2,
         # "reddit-corpus": 2,
         "reddit-corpus-small": 2,
-        "conversations-gone-awry-corpus": 2,
+        "conversations-gone-awry-corpus": 3,
+        "conversations-gone-awry-cmv-corpus": 1,
         "movie-corpus": 1,
         "subreddit": 0,
         "wikiconv": 0,
@@ -75,6 +76,9 @@ def download(name: str, verbose: bool=True, data_dir: str=None, use_newest_versi
 
         "conversations-gone-awry-corpus": "http://zissou.infosci.cornell.edu/convokit/"
             "datasets/conversations-gone-awry-corpus/full.corpus",
+
+        "conversations-gone-awry-cmv-corpus": "http://zissou.infosci.cornell.edu/convokit/"
+            "datasets/conversations-gone-awry-cmv-corpus/full.corpus",
         
         "reddit-corpus-small": reddit_base_dir + "reddit-corpus-small.corpus", 
 
