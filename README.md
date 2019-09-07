@@ -64,7 +64,7 @@ Name for download: `tennis-corpus`
 
 Reddit conversations from over 900k subreddits, arranged by subreddit. A [small subset](https://zissou.infosci.cornell.edu/convokit/documentation/reddit-small.html) sampled from 100 highly active subreddits is also available. 
  
-Name for download: `subreddit-<name_of_subreddit>` for the by subreddit data, `reddit-corpus-small` for the small subset. 
+Name for download: `subreddit-<name_of_subreddit>` for the by-subreddit data, `reddit-corpus-small` for the small subset. 
 
 ### Wikiconv Corpus (WIP)
 
@@ -74,6 +74,12 @@ We are currently working on implementing, as part of the corpus metadata, block 
 In the meantime, raw block data can be downloaded [here](https://zissou.infosci.cornell.edu/convokit/datasets/wikiconv-corpus/blocks.json).
 
 Name for download: `wikiconv-<year>` to download wikiconv data for the specified year.
+
+### [Chromium Conversations Corpus](https://zissou.infosci.cornell.edu/convokit/documentation/chromium.html)
+
+A collection of almost 1.5 million comments posted by developers reviewing proposed code changes in the Chromium project.
+
+Name for download: `chromium-corpus`
 
 ### ...And your own corpus!
 
