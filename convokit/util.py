@@ -5,6 +5,9 @@ import zipfile
 import json
 from typing import Dict
 from convokit.model import Utterance, Corpus
+import requests
+
+dataset_config = requests.get('https://zissou.infosci.cornell.edu/convokit/datasets/download_config.json').json()
 
 # returns a path to the dataset file
 def download(name: str, verbose: bool=True, data_dir: str=None, use_newest_version: bool=True) -> str:
@@ -34,150 +37,9 @@ def download(name: str, verbose: bool=True, data_dir: str=None, use_newest_versi
 
     :return: The path to the downloaded item.
     """
-    top = "http://zissou.infosci.cornell.edu/socialkit/"
 
-    reddit_base_dir = "http://zissou.infosci.cornell.edu/convokit/datasets/subreddit-corpus/"
-    cur_version = {
-        "supreme-corpus": 2,
-        "wiki-corpus": 2,
-        "parliament-corpus": 2,
-        "wikiconv-corpus": 1,
-        "tennis-corpus": 2,
-        "reddit-corpus": 3,
-        "reddit-corpus-small": 2,
-        "conversations-gone-awry-corpus": 3,
-        "conversations-gone-awry-cmv-corpus": 1,
-        "movie-corpus": 1,
-        "subreddit": 0,
-        "wikiconv": 0,
-    }
-
-    DatasetURLs = {
-        "supreme-corpus": "http://zissou.infosci.cornell.edu/convokit/"
-            "datasets/supreme-corpus/full.corpus",
-       
-        "wiki-corpus": "http://zissou.infosci.cornell.edu/convokit/"
-            "datasets/wiki-corpus/full.corpus",
-       
-        "parliament-corpus": "http://zissou.infosci.cornell.edu/convokit/"
-            "datasets/parliament-corpus/full.corpus",
-
-        "tennis-corpus": "http://zissou.infosci.cornell.edu/convokit/"
-            "datasets/tennis-corpus/full.corpus",
-
-        "movie-corpus": "http://zissou.infosci.cornell.edu/convokit/"
-            "datasets/movie-corpus/full.corpus",
-
-        # "reddit-corpus": top + \
-        #     "datasets/reddit-corpus/full.json",
-
-        # "reddit-corpus-small": top + \
-        #     "datasets/reddit-corpus/small.json",
-
-        "conversations-gone-awry-corpus": "http://zissou.infosci.cornell.edu/convokit/"
-            "datasets/conversations-gone-awry-corpus/full.corpus",
-
-        "conversations-gone-awry-cmv-corpus": "http://zissou.infosci.cornell.edu/convokit/"
-            "datasets/conversations-gone-awry-cmv-corpus/full.corpus",
-        
-        "reddit-corpus-small": reddit_base_dir + "reddit-corpus-small.corpus",
-
-        "reddit-corpus": reddit_base_dir + "reddit-corpus.corpus",
-
-        "parliament-motifs": [
-            top + \
-            "datasets/parliament-corpus/parliament-motifs/answer_arcs.json",
-            top + \
-            "datasets/parliament-corpus/parliament-motifs/question_arcs.json",
-            top + \
-            "datasets/parliament-corpus/parliament-motifs/question_fits.json",
-            top + \
-            "datasets/parliament-corpus/parliament-motifs/question_fits.json.super",
-            top + \
-            "datasets/parliament-corpus/parliament-motifs/question_supersets_arcset_to_super.json",
-            top + \
-            "datasets/parliament-corpus/parliament-motifs/question_supersets_sets.json",
-            top + \
-            "datasets/parliament-corpus/parliament-motifs/question_tree_arc_set_counts.tsv",
-            top + \
-            "datasets/parliament-corpus/parliament-motifs/question_tree_downlinks.json",
-            top + \
-            "datasets/parliament-corpus/parliament-motifs/question_tree_edges.json",
-            top + \
-            "datasets/parliament-corpus/parliament-motifs/question_tree_uplinks.json"
-
-        ],
-        "supreme-motifs": [
-            top + \
-            "datasets/supreme-corpus/supreme-motifs/answer_arcs.json",
-            top + \
-            "datasets/supreme-corpus/supreme-motifs/question_arcs.json",
-            top + \
-            "datasets/supreme-corpus/supreme-motifs/question_fits.json",
-            top + \
-            "datasets/supreme-corpus/supreme-motifs/question_fits.json.super",
-            top + \
-            "datasets/supreme-corpus/supreme-motifs/question_supersets_arcset_to_super.json",
-            top + \
-            "datasets/supreme-corpus/supreme-motifs/question_supersets_sets.json",
-            top + \
-            "datasets/supreme-corpus/supreme-motifs/question_tree_arc_set_counts.tsv",
-            top + \
-            "datasets/supreme-corpus/supreme-motifs/question_tree_downlinks.json",
-            top + \
-            "datasets/supreme-corpus/supreme-motifs/question_tree_edges.json",
-            top + \
-            "datasets/supreme-corpus/supreme-motifs/question_tree_uplinks.json"
-
-        ],
-        "tennis-motifs": [
-            top + \
-            "datasets/tennis-corpus/tennis-motifs/answer_arcs.json",
-            top + \
-            "datasets/tennis-corpus/tennis-motifs/question_arcs.json",
-            top + \
-            "datasets/tennis-corpus/tennis-motifs/question_fits.json",
-            top + \
-            "datasets/tennis-corpus/tennis-motifs/question_fits.json.super",
-            top + \
-            "datasets/tennis-corpus/tennis-motifs/question_supersets_arcset_to_super.json",
-            top + \
-            "datasets/tennis-corpus/tennis-motifs/question_supersets_sets.json",
-            top + \
-            "datasets/tennis-corpus/tennis-motifs/question_tree_arc_set_counts.tsv",
-            top + \
-            "datasets/tennis-corpus/tennis-motifs/question_tree_downlinks.json",
-            top + \
-            "datasets/tennis-corpus/tennis-motifs/question_tree_edges.json",
-            top + \
-            "datasets/tennis-corpus/tennis-motifs/question_tree_uplinks.json"
-
-        ],
-        "wiki-motifs": [
-            top + \
-            "datasets/wiki-corpus/wiki-motifs/answer_arcs.json",
-            top + \
-            "datasets/wiki-corpus/wiki-motifs/question_arcs.json",
-            top + \
-            "datasets/wiki-corpus/wiki-motifs/question_fits.json",
-            top + \
-            "datasets/wiki-corpus/wiki-motifs/question_fits.json.super",
-            top + \
-            "datasets/wiki-corpus/wiki-motifs/question_supersets_arcset_to_super.json",
-            top + \
-            "datasets/wiki-corpus/wiki-motifs/question_supersets_sets.json",
-            top + \
-            "datasets/wiki-corpus/wiki-motifs/question_tree_arc_set_counts.tsv",
-            top + \
-            "datasets/wiki-corpus/wiki-motifs/question_tree_downlinks.json",
-            top + \
-            "datasets/wiki-corpus/wiki-motifs/question_tree_edges.json",
-            top + \
-            "datasets/wiki-corpus/wiki-motifs/question_tree_uplinks.json"
-
-        ]
-
-    }
+    cur_version = dataset_config['cur_version']
+    DatasetURLs = dataset_config['DatasetURLs']
     
     if name.startswith("subreddit"):
         subreddit_name = name.split("-")[1]
