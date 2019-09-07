@@ -10,3 +10,4 @@ Datasets
    Tennis Interviews <tennis.rst>
    Reddit Corpus (all, by subreddit) <subreddit.rst>
    Reddit Corpus (small) <reddit-small.rst>
+   Chromium Conversations Corpus <chromium.rst>
