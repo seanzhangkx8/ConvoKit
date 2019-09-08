@@ -3,6 +3,12 @@ Chromium Conversations Corpus
 
 A collection of almost 1.5 million comments posted by developers reviewing proposed code changes in the Chromium project.
 
+**Contributed by:** Benjamin S. Meyers (bsm9339@rit.edu)
+
+**Please cite:** Benjamin S. Meyers, Nuthan Munaiah, Emily Prud'hommeaux, Andrew Meneely, Cecilia O. Alm, Josephine Wolff, and Pradeep Murukannaiah. **A Dataset for Identifying Actionable Feedback in Collaborative Software Development.** Proceedings of the 2018 Meeting for the Association for Computational Linguistics (ACL). Melbourne, Australia. http://www.aclweb.org/anthology/P18-2021
+
+A full description of the dataset can be found `here <https://zenodo.org/record/2590548>`_.
+
 
 Dataset details
 ---------------
@@ -10,15 +16,7 @@ Dataset details
 User-level information
 ^^^^^^^^^^^^^^^^^^^^^^
 
-The users in the dataset are members of the Parliament. For each user, the dataset further includes the following metadata:
-
-* name: name of the user
-* member_start: start time of the user as the member of the Parliament
-* member_end: end time of the user as the member of the Parliament
-* changed_parties: whether the user has changed parties
-* first_party: first party the user is affiliated with
-* last_party: last party the user is affiliated with
-
+*pending*
 
 Utterance-level information
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -73,23 +71,14 @@ Number of Users: 4842
 Number of Utterances: 2853498
 Number of Conversations: 1484843
 
-Dataset Publication
--------------------
-Benjamin S. Meyers, Nuthan Munaiah, Emily Prud'hommeaux, Andrew Meneely, Cecilia O. Alm, Josephine Wolff, and Pradeep Murukannaiah. **A Dataset for Identifying Actionable Feedback in Collaborative Software Development.** Proceedings of the 2018 Meeting for the Association for Computational Linguistics (ACL). Melbourne, Australia. http://www.aclweb.org/anthology/P18-2021
-
 
 Additional note
 ---------------
-
-Full Description
-^^^^^^^^^^^^^^^^
-A full description of the dataset can be found `here <https://zenodo.org/record/2590548>`_.
 
 Data License
 ^^^^^^^^^^^^
 
 Creative Commons Attribution 4.0 International
-
 
 Contact
 ^^^^^^^
