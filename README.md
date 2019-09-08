@@ -25,14 +25,17 @@ Example: [hypergraph creation and feature extraction, visualization and interpre
 ### [Linguistic diversity in conversations (Coming Soon!)](http://www.cs.cornell.edu/~cristian/Finding_your_voice__linguistic_development.html)
 A method to compute the linguistic diversity of individuals within their own conversations, and between other individuals in a population.  
 
+### [CRAFT: Online forecasting of conversational outcomes (Coming Soon!)](https://arxiv.org/abs/1909.01362)
+A neural model for forecasting future outcomes of conversations (e.g., derailment into personal attacks) as they develop.
+
 ## Datasets
 ConvoKit ships with several datasets ready for use "out-of-the-box".
 These datasets can be downloaded using the `convokit.download()` [helper function](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/convokit/util.py).  Alternatively you can access them directly [here](http://zissou.infosci.cornell.edu/convokit/datasets/).
 
 ### [Conversations Gone Awry Dataset](https://zissou.infosci.cornell.edu/convokit/documentation/awry.html)
 
-A collection of conversations from Wikipedia talk pages that derail into personal attacks (1,270 conversations, 6,963 comments)  
-Name for download: `conversations-gone-awry-corpus`
+Two related corpora of conversations that derail into antisocial behavior. One corpus consists of Wikipedia talk page conversations that derail into personal attacks as labeled by crowdworkers (4,188 conversations containing 30.021 comments). The other consists of discussion threads on the subreddit ChangeMyView (CMV) that derail into rule-violating behavior as determined by the presence of a moderator intervention (6,842 conversations containing 42,964 comments).  
+Name for download: `conversations-gone-awry-corpus` (Wikipedia version) or `conversations-gone-awry-cmv-corpus` (Reddit CMV version)
 
 ### [Cornell Movie-Dialogs Corpus](https://zissou.infosci.cornell.edu/convokit/documentation/movie.html)
 
