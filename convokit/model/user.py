@@ -7,7 +7,7 @@ class User:
 
     :param name: name of the user.
     :type name: str
-    :param utts: dictionary of utterances by the user, where key is user id
+    :param utts: dictionary of utterances by the user, where key is utterance id
     :param convos: dictionary of conversations started by the user, where key is conversation id
     :param meta: arbitrary dictionary of attributes associated
         with the user.
