@@ -7,3 +7,4 @@ Example usage: `understanding the (mis)use of politeness strategies in conversat
 
 .. automodule:: convokit.politenessStrategies.politenessStrategies
     :members:
+    :undoc-members:
