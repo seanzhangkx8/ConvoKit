@@ -15,21 +15,21 @@ def download(name: str, verbose: bool=True, data_dir: str=None, use_newest_versi
 
     :param name: Which item to download. Currently supported:
 
-        - "wiki-corpus": Wikipedia Talk Page Conversations Corpus 
+        - "wiki-corpus": Wikipedia Talk Page Conversations Corpus
             (see http://www.cs.cornell.edu/~cristian/Echoes_of_power.html)
-        - "supreme-corpus": Supreme Court Dialogs Corpus 
+        - "supreme-corpus": Supreme Court Dialogs Corpus
             (see http://www.cs.cornell.edu/~cristian/Echoes_of_power.html)
-        - "parliament-corpus": UK Parliament Question-Answer Corpus 
+        - "parliament-corpus": UK Parliament Question-Answer Corpus
             (see http://www.cs.cornell.edu/~cristian/Asking_too_much.html)
-        - "conversations-gone-awry-corpus": Wiki Personal Attacks Corpus 
+        - "conversations-gone-awry-corpus": Wiki Personal Attacks Corpus
             (see http://www.cs.cornell.edu/~cristian/Conversations_gone_awry.html)
-        -  "movie-corpus": Cornell Movie-Dialogs Corpus 
+        -  "movie-corpus": Cornell Movie-Dialogs Corpus
             (see https://www.cs.cornell.edu/~cristian/Chameleons_in_imagined_conversations.html)
-        -  "tennis-corpus": Tennis post-match press conferences transcripts 
-            (see http://www.cs.cornell.edu/~liye/tennis.html) 
-        -  "reddit-corpus-small" Reddit Corpus (sampled): 
+        -  "tennis-corpus": Tennis post-match press conferences transcripts
+            (see http://www.cs.cornell.edu/~liye/tennis.html)
+        -  "reddit-corpus-small" Reddit Corpus (sampled):
             A sample from 100 highly-active subreddits
-        -  "subreddit-<subreddit-name>": Subreddit Corpus 
+        -  "subreddit-<subreddit-name>": Subreddit Corpus
             A corpus made from the given subreddit
     :param verbose: Print checkpoint statements for download
     :param data_dir: Output path of downloaded file (default: ~/.convokit)
@@ -40,7 +40,7 @@ def download(name: str, verbose: bool=True, data_dir: str=None, use_newest_versi
 
     cur_version = dataset_config['cur_version']
     DatasetURLs = dataset_config['DatasetURLs']
-    
+
     if name.startswith("subreddit"):
         subreddit_name = name.split("-")[1]
         # print(subreddit_name)
@@ -51,7 +51,7 @@ def download(name: str, verbose: bool=True, data_dir: str=None, use_newest_versi
         wikiconv_year = name.split("-")[1]
         cur_version[name] = cur_version['wikiconv']
         DatasetURLs[name] = get_wikiconv_year_info(wikiconv_year)
-    else: 
+    else:
         name = name.lower()
 
     custom_data_dir = data_dir
@@ -124,7 +124,7 @@ def download(name: str, verbose: bool=True, data_dir: str=None, use_newest_versi
     return dataset_path
 
 def download_helper(dataset_path: str, url: str, verbose: bool, name: str, downloadeds_path: str) -> None:
-    
+
     if url.lower().endswith(".corpus") or url.lower().endswith(".corpus.zip"):
         dataset_path += ".zip"
 
@@ -146,7 +146,7 @@ def download_helper(dataset_path: str, url: str, verbose: bool, name: str, downl
             if not os.path.exists(corpus_dir):
                 os.mkdir(corpus_dir)
             zipf.extractall(corpus_dir)
-    
+
     elif url.lower().endswith(".corpus"):
         #print(dataset_path)
         with zipfile.ZipFile(dataset_path, "r") as zipf:
@@ -170,10 +170,10 @@ def get_subreddit_info(subreddit_name: str) -> str:
     # base directory of subreddit corpuses
     subreddit_base = "http://zissou.infosci.cornell.edu/convokit/datasets/subreddit-corpus/"
     data_dir = subreddit_base + "corpus-zipped/"
-    
+
     groupings_url = subreddit_base + "subreddit-groupings.txt"
-    groups_fetched = urllib.request.urlopen(groupings_url) 
-    
+    groups_fetched = urllib.request.urlopen(groupings_url)
+
     groups = [line.decode("utf-8").strip("\n") for line in groups_fetched]
 
     for group in groups:
@@ -198,7 +198,7 @@ def subreddit_in_grouping(subreddit: str, grouping_key: str) -> bool:
 
 def get_wikiconv_year_info(year: str) -> str:
     """completes the download link for wikiconv"""
-    
+
     # base directory of wikicon corpuses
     wikiconv_base = "http://zissou.infosci.cornell.edu/convokit/datasets/wikiconv-corpus/"
     data_dir = wikiconv_base + "corpus-zipped/"
@@ -240,4 +240,3 @@ def display_thread(threads: Dict[str, Dict[str, Utterance]], root: str) -> None:
     """
 
     return display_thread_helper(threads[root],root)
-
