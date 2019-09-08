@@ -748,6 +748,7 @@ class Corpus:
     def print_summary_stats(self) -> None:
         """
         Helper function for printing the number of Users, Utterances, and Conversations in this Corpus
+
         :return: None
         """
         print("Number of Users: {}".format(len(self.all_users)))
