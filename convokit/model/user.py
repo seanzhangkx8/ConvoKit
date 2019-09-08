@@ -59,6 +59,7 @@ class User:
     def get_utterance(self, ut_id: Hashable): #-> Utterance:
         """
         Get the Utterance with the specified Utterance id
+
         :param ut_id: The id of the Utterance
         :return: An Utterance object
         """
@@ -82,6 +83,7 @@ class User:
     def get_conversation(self, cid: Hashable): # -> Conversation:
         """
         Get the Conversation with the specified Conversation id
+
         :param cid: The id of the Conversation
         :return: A Conversation object
         """

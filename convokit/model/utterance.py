@@ -64,6 +64,7 @@ class Utterance:
     def add_meta(self, key: Hashable, value) -> None:
         """
         Add a key-value pair to the Utterance metadata
+
         :return: None
         """
         self.meta[key] = value
