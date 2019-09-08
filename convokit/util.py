@@ -50,6 +50,7 @@ def download(name: str, verbose: bool=True, data_dir: str=None, use_newest_versi
         "movie-corpus": 1,
         "subreddit": 0,
         "wikiconv": 0,
+        "wiki-politeness-annotated":0,
     }
 
     DatasetURLs = {
@@ -79,7 +80,10 @@ def download(name: str, verbose: bool=True, data_dir: str=None, use_newest_versi
 
         "conversations-gone-awry-cmv-corpus": "http://zissou.infosci.cornell.edu/convokit/"
             "datasets/conversations-gone-awry-cmv-corpus/full.corpus",
-        
+
+        "wiki-politeness-annotated": "http://zissou.infosci.cornell.edu/convokit/"
+            "datasets/wiki-politeness-annotated-corpus/full.corpus", 
+
         "reddit-corpus-small": reddit_base_dir + "reddit-corpus-small.corpus",
 
         "reddit-corpus": reddit_base_dir + "reddit-corpus.corpus",
