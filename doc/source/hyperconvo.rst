@@ -7,8 +7,6 @@ Example usage: `hypergraph creation and feature extraction, visualization and in
 
 .. automodule:: convokit.hyperconvo.hyperconvo
     :members:
-    :undoc-members:
 
 .. automodule:: convokit.hyperconvo.hypergraph
     :members:
-    :undoc-members:
