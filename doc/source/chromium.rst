@@ -3,9 +3,9 @@ Chromium Conversations Corpus
 
 A collection of almost 1.5 million comments posted by developers reviewing proposed code changes in the Chromium project.
 
-**Contributed by:** Benjamin S. Meyers (bsm9339@rit.edu)
+Contributed by: Benjamin S. Meyers (bsm9339@rit.edu)
 
-**Please cite:** Benjamin S. Meyers, Nuthan Munaiah, Emily Prud'hommeaux, Andrew Meneely, Cecilia O. Alm, Josephine Wolff, and Pradeep Murukannaiah. **A Dataset for Identifying Actionable Feedback in Collaborative Software Development.** Proceedings of the 2018 Meeting for the Association for Computational Linguistics (ACL). Melbourne, Australia. http://www.aclweb.org/anthology/P18-2021
+Distributed together with: Benjamin S. Meyers, Nuthan Munaiah, Emily Prud'hommeaux, Andrew Meneely, Cecilia O. Alm, Josephine Wolff, and Pradeep Murukannaiah. **A Dataset for Identifying Actionable Feedback in Collaborative Software Development.** Proceedings of the 2018 Meeting for the Association for Computational Linguistics (ACL). Melbourne, Australia. http://www.aclweb.org/anthology/P18-2021
 
 A full description of the dataset can be found `here <https://zenodo.org/record/2590548>`_.
 
