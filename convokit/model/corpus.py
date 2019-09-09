@@ -9,11 +9,9 @@ from .utterance import Utterance
 from .conversation import Conversation
 
 def warning(text: str):
-    """
-    Pre-pends a red-colored 'WARNING: ' to [text].
-    :param text: Warning message
-    :return: 'WARNING: [text]'
-    """
+    # Pre-pends a red-colored 'WARNING: ' to [text].
+    # :param text: Warning message
+    # :return: 'WARNING: [text]'
     return '\033[91m'+ "WARNING: " + '\033[0m' + text
 
 pair_delim = '-q-a-'
