@@ -1,7 +1,7 @@
 Chromium Conversations Corpus
 ===============================
 
-A collection of almost 1.5 million comments posted by developers reviewing proposed code changes in the Chromium project.
+A collection of almost 1.5 million conversations and 2.8 million comments posted by developers reviewing proposed code changes in the Chromium project.
 
 Contributed by: Benjamin S. Meyers (bsm9339@rit.edu)
 
@@ -16,7 +16,11 @@ Dataset details
 User-level information
 ^^^^^^^^^^^^^^^^^^^^^^
 
-*pending*
+User names have been anonymized randomly to 'developer_#' where '#' is a number between 1 and 4842.
+
+Additional metadata includes:
+
+* user_type: either 'developer', the developer who proposed the code change, or 'reviewer', other developers reviewing the code change
 
 Utterance-level information
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
