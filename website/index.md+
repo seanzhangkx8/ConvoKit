@@ -79,7 +79,7 @@ Name for download: `wikiconv-<year>` to download wikiconv data for the specified
 
 ### [Chromium Conversations Corpus](https://zissou.infosci.cornell.edu/convokit/documentation/chromium.html)
 
-A collection of almost 1.5 million comments posted by developers reviewing proposed code changes in the Chromium project.
+A collection of almost 1.5 million conversations and 2.8 million comments posted by developers reviewing proposed code changes in the Chromium project.
 
 Name for download: `chromium-corpus`
 
