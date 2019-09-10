@@ -26,8 +26,9 @@ Once you have created a Corpus representation of your dataset, follow these step
 * Include the following information in the issue: 
   * the name of the dataset
   * brief description
-  * the dataset details, i.e. User-, Utterance-, Conversation-, Corpus-level data and metadata (refer to [this](https://zissou.infosci.cornell.edu/convokit/documentation/chromium.html>) for an example)
+  * the dataset details, i.e. User-, Utterance-, Conversation-, Corpus-level data and metadata (refer to [this](https://zissou.infosci.cornell.edu/convokit/documentation/chromium.html) for an example)
   * licensing information
+  * publication to be cited with the dataset (if any)
   * contact information (for acknowledgement purposes)
   * a way to access the zipped corpus itself (you can either upload the file to a public file-sharing website and provide the URL, or include the file as an attachment in the issue)
 - (Optional, but recommended): Also tell us some statistics about your dataset (e.g., number of conversations and participants) that we can use to advertise it!
