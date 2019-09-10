@@ -16,21 +16,34 @@ def download(name: str, verbose: bool=True, data_dir: str=None, use_newest_versi
     :param name: Which item to download. Currently supported:
 
         - "wiki-corpus": Wikipedia Talk Page Conversations Corpus
+            A medium-size collection of conversations from Wikipedia editors' talk pages.
             (see http://www.cs.cornell.edu/~cristian/Echoes_of_power.html)
+        - "wikiconv-<year>": Wikipedia Talk Page Conversations Corpus
+            Conversations data for the specified year.
         - "supreme-corpus": Supreme Court Dialogs Corpus
+            A collection of conversations from the U.S. Supreme Court Oral Arguments.
             (see http://www.cs.cornell.edu/~cristian/Echoes_of_power.html)
         - "parliament-corpus": UK Parliament Question-Answer Corpus
+            Parliamentary question periods from May 1979 to December 2016
             (see http://www.cs.cornell.edu/~cristian/Asking_too_much.html)
         - "conversations-gone-awry-corpus": Wiki Personal Attacks Corpus
+            Wikipedia talk page conversations that derail into personal attacks as labeled by crowdworkers
+            (see http://www.cs.cornell.edu/~cristian/Conversations_gone_awry.html)
+        - "conversations-gone-awry-cmv-corpus"
+            Discussion threads on the subreddit ChangeMyView (CMV) that derail into rule-violating behavior
             (see http://www.cs.cornell.edu/~cristian/Conversations_gone_awry.html)
         -  "movie-corpus": Cornell Movie-Dialogs Corpus
+            A large metadata-rich collection of fictional conversations extracted from raw movie scripts.
             (see https://www.cs.cornell.edu/~cristian/Chameleons_in_imagined_conversations.html)
         -  "tennis-corpus": Tennis post-match press conferences transcripts
+            Transcripts for tennis singles post-match press conferences for major tournaments between 2007 to 2015
             (see http://www.cs.cornell.edu/~liye/tennis.html)
         -  "reddit-corpus-small" Reddit Corpus (sampled):
             A sample from 100 highly-active subreddits
         -  "subreddit-<subreddit-name>": Subreddit Corpus
             A corpus made from the given subreddit
+        -  "chromium-corpus": Chromium Conversations Corpus
+            A collection of almost 1.5 million conversations and 2.8 million comments posted by developers reviewing proposed code changes in the Chromium project.
     :param verbose: Print checkpoint statements for download
     :param data_dir: Output path of downloaded file (default: ~/.convokit)
     :param use_newest_version: Redownload if new version is found
