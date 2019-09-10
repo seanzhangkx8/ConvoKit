@@ -7,7 +7,6 @@ from typing import Dict
 from convokit.model import Utterance, Corpus
 import requests
 
-dataset_config = requests.get('https://zissou.infosci.cornell.edu/convokit/datasets/download_config.json').json()
 
 # returns a path to the dataset file
 def download(name: str, verbose: bool=True, data_dir: str=None, use_newest_version: bool=True) -> str:
@@ -50,6 +49,8 @@ def download(name: str, verbose: bool=True, data_dir: str=None, use_newest_versi
 
     :return: The path to the downloaded item.
     """
+
+    dataset_config = requests.get('https://zissou.infosci.cornell.edu/convokit/datasets/download_config.json').json()
 
     cur_version = dataset_config['cur_version']
     DatasetURLs = dataset_config['DatasetURLs']
