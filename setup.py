@@ -15,7 +15,10 @@ setup(
                 "convokit.politeness_api",
                 "convokit.politeness_api.features",
                 "convokit.politenessStrategies",
-                "convokit.questionTypology"],
+                "convokit.questionTypology",
+                "convokit.userConvoDiversity",
+                "convokit.user_convo_helpers",
+                "convokit.basic"],
     package_data = {"convokit": ["data/*.txt"]},
     install_requires = [
         "matplotlib>=3.0.0",
