@@ -74,9 +74,9 @@ class HyperConvo(Transformer):
             # Construct top-level-comment to root mapping
             tlc_to_root_mapping = dict() # tlc = top level comment
             threads = corpus.utterance_threads(prefix_len=self.prefix_len, include_root=False)
-
             root_to_tlc = dict()
             for tlc_id, utts in threads.items():
+                if len(utts) < self.min_thread_len: continue
                 thread_root = threads[tlc_id][tlc_id].root
                 if thread_root in root_to_tlc:
                     root_to_tlc[thread_root][tlc_id] = feats[tlc_id]
