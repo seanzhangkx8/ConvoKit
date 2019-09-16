@@ -23,12 +23,12 @@ class UserConvoDiversity(Transformer):
         :param sample_size: number of words to sample per convo
         :param min_convo_len: minimum number of utterances a user contributes per convo for that (user, convo) to get scored
         :param n_iters: number of samples to take for perplexity scoring
-        :param cohort_delta: timespan between when users start for them to e counted as part of the same cohort. defaults to 2 months
+        :param cohort_delta: timespan between when users start for them to be counted as part of the same cohort. defaults to 2 months
         :param verbosity: amount of output to print
         :param test: if True, only runs for 1000 (user,convo)s.
     '''
     
-    def __init__(self, stage_size, max_exp, sample_size=200, min_convo_len=1,
+    def __init__(self, stage_size=20, max_exp=120, sample_size=200, min_convo_len=1,
                 n_iters=50, cohort_delta=60*60*24*30*2, verbosity=250, test=False):
         self.stage_size = stage_size
         self.max_exp = max_exp
