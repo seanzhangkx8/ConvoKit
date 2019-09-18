@@ -10,22 +10,22 @@ import numpy as np
 
 class UserConvoDiversity(Transformer):
     '''
-        implements methodology for calculating linguistic diversity from http://www.cs.cornell.edu/~cristian/Finding_your_voice__linguistic_development.html . 
+    implements methodology for calculating linguistic diversity from http://www.cs.cornell.edu/~cristian/Finding_your_voice__linguistic_development.html . 
 
-        Outputs the following (user, convo) attributes:
-            * self_div (within-diversity in paper)
-            * other_div (across-diversity in paper)
-            * adj_other_div (relative diversity in paper)
-        Note that np.nan is returned for (user, convo) pairs with not enough text.
+    Outputs the following (user, convo) attributes:
+        * self_div (within-diversity in paper)
+        * other_div (across-diversity in paper)
+        * adj_other_div (relative diversity in paper)
+    Note that np.nan is returned for (user, convo) pairs with not enough text.
 
-        :param stage_size: number of conversations per lifestage
-        :param max_exp: highest experience level (i.e., # convos taken) to compute diversity scores for.
-        :param sample_size: number of words to sample per convo
-        :param min_convo_len: minimum number of utterances a user contributes per convo for that (user, convo) to get scored
-        :param n_iters: number of samples to take for perplexity scoring
-        :param cohort_delta: timespan between when users start for them to be counted as part of the same cohort. defaults to 2 months
-        :param verbosity: amount of output to print
-        :param test: if True, only runs for 1000 (user,convo)s.
+    :param stage_size: number of conversations per lifestage
+    :param max_exp: highest experience level (i.e., # convos taken) to compute diversity scores for.
+    :param sample_size: number of words to sample per convo
+    :param min_convo_len: minimum number of utterances a user contributes per convo for that (user, convo) to get scored
+    :param n_iters: number of samples to take for perplexity scoring
+    :param cohort_delta: timespan between when users start for them to be counted as part of the same cohort. defaults to 2 months
+    :param verbosity: amount of output to print
+    :param test: if True, only runs for 1000 (user,convo)s. 
     '''
     
     def __init__(self, stage_size=20, max_exp=120, sample_size=200, min_convo_len=1,

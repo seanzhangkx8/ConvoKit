@@ -1,5 +1,5 @@
 User Convo Diversity
-==================
+=====================
 
 Implements linguistic diversity measures as described in this `paper <http://www.cs.cornell.edu/~cristian/Finding_your_voice__linguistic_development.html>`_.
 

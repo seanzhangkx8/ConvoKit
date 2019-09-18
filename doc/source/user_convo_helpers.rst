@@ -1,5 +1,5 @@
 User Conversation Utilities
-=================
+============================
 
 Various helpers regarding aggregated user,conversation-level attributes. 
 
