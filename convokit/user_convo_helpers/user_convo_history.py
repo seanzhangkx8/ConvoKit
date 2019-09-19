@@ -6,6 +6,7 @@ from collections import defaultdict
 class UserConvoHistory(Transformer):
 
     '''
+        Transformer.
         for each user, pre-computes a list of all of their utterances, organized by conversation. also annotates user with # of convos participated in, and time of first utterance.
 
         :param utterance_filter: function that returns True for an utterance that counts towards a user having participated in that conversation. (e.g., one could filter out conversations where the user contributed less than k words per utterance)

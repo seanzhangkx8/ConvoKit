@@ -4,7 +4,7 @@ from convokit.model import Corpus
 class UserConvoAttrs(Transformer):
 
     '''
-        aggregates statistics per (user, convo). e.g., average wordcount of all utterances that user contributed per convo.
+        Transformer that aggregates statistics per (user, convo). e.g., average wordcount of all utterances that user contributed per convo.
 
         :param attr_name: name of attribute to aggregate over. note that this attribute must already exist as an annotation to utterances in the corpus.
         :param agg_fn: function to aggregate utterance-level attribute with. defaults to returning a list.
