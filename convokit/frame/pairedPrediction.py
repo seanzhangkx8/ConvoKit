@@ -1,4 +1,5 @@
-from .frame import Frame
+from .framework import Framework
+from .util import extract_convo_features
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
@@ -10,12 +11,14 @@ from pandas import DataFrame
 from convokit.model import Corpus, Conversation
 from collections import defaultdict
 from random import shuffle, choice
+from scipy.sparse import csr_matrix
 
-class PairedPrediction(Frame):
+
+class PairedPrediction(Framework):
     def __init__(self, pairing_feat, pred_feats, pos_label_func, neg_label_func, filter_func=None,
                        clf=None, exclude_na=True, impute_na=None):
         """
-        DESIGN DECISION: assume that features live in metadata, not data
+        DESIGN DECISION: assume that features live in metadata, not data # TODO
 
         :param pairing_feat: the Conversation feature to pair on
         :param pred_feats: List of features to be used in prediction
@@ -50,9 +53,6 @@ class PairedPrediction(Frame):
                 neg_convos.append(convo)
         return pos_convos, neg_convos
 
-    def _extract_convo_features(self, convo: Conversation):
-        return {feat_name: convo.meta[feat_name] for feat_name in self.pred_feats}
-
     def _pair_convos(self, pos_convos, neg_convos):
         """
 
@@ -80,8 +80,8 @@ class PairedPrediction(Frame):
         pos_convo_dict = dict()
         neg_convo_dict = dict()
         for pair_id, (pos_convo, neg_convo) in convo_pairs.items():
-            pos_convo_dict[pair_id] = self._extract_convo_features(pos_convo)
-            neg_convo_dict[pair_id] = self._extract_convo_features(neg_convo)
+            pos_convo_dict[pair_id] = extract_convo_features(pos_convo)
+            neg_convo_dict[pair_id] = extract_convo_features(neg_convo)
         pos_convo_df = DataFrame.from_dict(pos_convo_dict, orient='index')
         neg_convo_df = DataFrame.from_dict(neg_convo_dict, orient='index')
 
@@ -111,7 +111,7 @@ class PairedPrediction(Frame):
         if excluded > 0:
             print("Excluded {} data point(s) that contained NaN values.".format(excluded))
 
-        return np.array(X), np.array(y)
+        return csr_matrix(np.array(X)), np.array(y)
 
     def fit(self, corpus: Corpus):
         pos_convos, neg_convos = self._get_pos_neg_convos(corpus)
