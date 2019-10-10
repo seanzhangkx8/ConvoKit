@@ -1,2 +1,2 @@
-from .framework import *
+from .frame import *
 from .pairedPrediction import *
