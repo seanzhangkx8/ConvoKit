@@ -1,12 +1,12 @@
 from .framework import Framework
-from .util import extract_convo_features
+from .util import extract_feats_from_obj
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
 from sklearn.exceptions import NotFittedError
 import numpy as np
 from sklearn.model_selection import train_test_split
-from typing import List, Union
+from typing import List, Hashable, Callable
 from pandas import DataFrame
 from convokit.model import Corpus, Conversation
 from collections import defaultdict
@@ -15,11 +15,13 @@ from scipy.sparse import csr_matrix
 
 
 class PairedPrediction(Framework):
-    def __init__(self, pairing_feat, pred_feats, pos_label_func, neg_label_func, filter_func=None,
-                       clf=None, exclude_na=True, impute_na=None):
+    def __init__(self, pairing_feat: Hashable, pred_feats: List[Hashable],
+                 pos_label_func: Callable[[Conversation], bool], neg_label_func: Callable[[Conversation], bool],
+                 filter_func: Callable[[Conversation], bool] = None, clf=None, exclude_na: bool = True,
+                 impute_na: bool = None):
         """
         DESIGN DECISION: assume that features live in metadata, not data # TODO
-
+        DESIGN DECISION: handle NaN values # TODO
         :param pairing_feat: the Conversation feature to pair on
         :param pred_feats: List of features to be used in prediction
         :param pos_label_func: The function to check if the Conversation is a positive instance
@@ -80,8 +82,8 @@ class PairedPrediction(Framework):
         pos_convo_dict = dict()
         neg_convo_dict = dict()
         for pair_id, (pos_convo, neg_convo) in convo_pairs.items():
-            pos_convo_dict[pair_id] = extract_convo_features(pos_convo)
-            neg_convo_dict[pair_id] = extract_convo_features(neg_convo)
+            pos_convo_dict[pair_id] = extract_feats_from_obj(pos_convo)
+            neg_convo_dict[pair_id] = extract_feats_from_obj(neg_convo)
         pos_convo_df = DataFrame.from_dict(pos_convo_dict, orient='index')
         neg_convo_df = DataFrame.from_dict(neg_convo_dict, orient='index')
 
@@ -129,14 +131,19 @@ class PairedPrediction(Framework):
         except NotFittedError:
             print("Failed evaluation: fit() must be run first.")
 
-    def fit_evaluate(self, corpus: Corpus, test_size: int = 0.2):
+    def fit_evaluate(self, corpus: Corpus, test_size: int = None):
         pos_convos, neg_convos = self._get_pos_neg_convos(corpus)
         convo_pairs = self._pair_convos(pos_convos, neg_convos)
         X, y = self._generate_paired_X_y(convo_pairs)
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size)
-        self.clf.fit(X_train, y_train)
-        preds = self.clf.predict(X_test)
-        return np.mean(preds == y)
+
+        if test_size is None:
+            self.clf.fit(X, y)
+            return self.clf.predict(X)
+        else:
+            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size)
+            self.clf.fit(X_train, y_train)
+            preds = self.clf.predict(X_test)
+            return np.mean(preds == y_test)
 
     def print_extreme_coefs(self, feature_names: List[str], num_features: int = 5):
         coefs = self.clf.named_steps['logreg'].coef_[0].tolist()
