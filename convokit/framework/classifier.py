@@ -4,8 +4,10 @@ from convokit.model import Corpus, Conversation, User, Utterance
 from sklearn import svm
 from typing import List, Hashable, Callable, Union
 from .util import extract_feats_and_label, extract_feats, extract_feats_from_obj
+from .framework import Framework
 
-class Classifier():
+
+class Classifier(Framework):
     def __init__(self, obj_type: str, pred_feats: List[Hashable],
                  y_func: Callable[[Union[User, Utterance, Conversation]], bool],
                  clf=None):
