@@ -20,35 +20,42 @@ def extract_feats_from_obj(obj: Union[Utterance, Conversation, User], pred_feats
             retval[feat_name] = feat_val
     return retval
 
-def extract_feats_dict(corpus: Corpus, obj_type: str, pred_feats: List[Hashable]):
+
+def extract_feats_dict(corpus: Corpus, obj_type: str, pred_feats: List[Hashable],
+                       filter_func: Callable[[Union[User, Utterance, Conversation]], bool] = None):
     obj_iters = {"conversation": corpus.iter_conversations,
                  "user": corpus.iter_users,
                  "utterance": corpus.iter_utterances}
 
-    obj_id_to_feats = {obj.id: extract_feats_from_obj(obj, pred_feats) for obj in obj_iters[obj_type]()}
+    obj_id_to_feats = {obj.id: extract_feats_from_obj(obj, pred_feats) for obj in obj_iters[obj_type]()
+                       if filter_func is None or filter_func(obj)}
 
     return obj_id_to_feats
 
-def extract_feats(corpus: Corpus, obj_type: str, pred_feats: List[Hashable]):
-    obj_id_to_feats = extract_feats_dict(corpus, obj_type, pred_feats)
+def extract_feats(corpus: Corpus, obj_type: str, pred_feats: List[Hashable],
+                  filter_func: Callable[[Union[User, Utterance, Conversation]], bool] = None):
+    obj_id_to_feats = extract_feats_dict(corpus, obj_type, pred_feats, filter_func)
     feats_df = pd.DataFrame.from_dict(obj_id_to_feats, orient='index')
     return csr_matrix(feats_df.values)
 
-def extract_label_dict(corpus: Corpus, obj_type: str, y_func: Callable[[Union[User, Utterance, Conversation]], bool]):
+def extract_label_dict(corpus: Corpus, obj_type: str, y_func: Callable[[Union[User, Utterance, Conversation]], bool],
+                       filter_func: Callable[[Union[User, Utterance, Conversation]], bool] = None):
     obj_iters = {"conversation": corpus.iter_conversations,
                  "user": corpus.iter_users,
                  "utterance": corpus.iter_utterances}
 
     obj_id_to_label = dict()
     for obj in obj_iters[obj_type]():
-        obj_id_to_label[obj.id] = {'y': 1} if y_func(obj) else {'y': 0}
+        if filter_func is None or filter_func(obj):
+            obj_id_to_label[obj.id] = {'y': 1} if y_func(obj) else {'y': 0}
 
     return obj_id_to_label
 
 def extract_feats_and_label(corpus: Corpus, obj_type: str, pred_feats: List[Hashable],
-                        y_func: Callable[[Union[User, Utterance, Conversation]], bool]):
-    obj_id_to_feats = extract_feats_dict(corpus, obj_type, pred_feats)
-    obj_id_to_label = extract_label_dict(corpus, obj_type, y_func)
+                        y_func: Callable[[Union[User, Utterance, Conversation]], bool],
+                        filter_func: Callable[[Union[User, Utterance, Conversation]], bool] = None):
+    obj_id_to_feats = extract_feats_dict(corpus, obj_type, pred_feats, filter_func)
+    obj_id_to_label = extract_label_dict(corpus, obj_type, y_func, filter_func)
 
     X_df = pd.DataFrame.from_dict(obj_id_to_feats, orient='index')
     y_df = pd.DataFrame.from_dict(obj_id_to_label, orient='index')

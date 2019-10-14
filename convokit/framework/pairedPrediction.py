@@ -82,8 +82,8 @@ class PairedPrediction(Framework):
         pos_convo_dict = dict()
         neg_convo_dict = dict()
         for pair_id, (pos_convo, neg_convo) in convo_pairs.items():
-            pos_convo_dict[pair_id] = extract_feats_from_obj(pos_convo)
-            neg_convo_dict[pair_id] = extract_feats_from_obj(neg_convo)
+            pos_convo_dict[pair_id] = extract_feats_from_obj(pos_convo, self.pred_feats)
+            neg_convo_dict[pair_id] = extract_feats_from_obj(neg_convo, self.pred_feats)
         pos_convo_df = DataFrame.from_dict(pos_convo_dict, orient='index')
         neg_convo_df = DataFrame.from_dict(neg_convo_dict, orient='index')
 
