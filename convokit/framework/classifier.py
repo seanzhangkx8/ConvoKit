@@ -10,7 +10,7 @@ from .framework import Framework
 class Classifier(Framework):
     def __init__(self, obj_type: str, pred_feats: List[Hashable],
                  y_func: Callable[[Union[User, Utterance, Conversation]], bool],
-                 filter_func: Callable[[Union[User, Utterance, Conversation]], bool]=None, clf=None):
+                 filter_func: Callable[[Union[User, Utterance, Conversation]], bool] = None, clf=None):
         self.pred_feats = pred_feats
         self.y_func = y_func
         self.filter_func = filter_func
