@@ -9,6 +9,8 @@ exclude = set(string.punctuation)
 
 class FightingWords(Framework):
     """
+    Adapted from: https://github.com/jmhessel/FightingWords
+    
     # DESIGN DECISION: restrict unit to utterance list #TODO
 
     - ngram; an int describing up to what n gram you want to consider (1 is unigrams,
