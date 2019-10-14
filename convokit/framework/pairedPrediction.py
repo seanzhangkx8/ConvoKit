@@ -120,6 +120,7 @@ class PairedPrediction(Framework):
         convo_pairs = self._pair_convos(pos_convos, neg_convos)
         X, y = self._generate_paired_X_y(convo_pairs)
         self.clf.fit(X, y)
+        return self
 
     def evaluate(self, corpus: Corpus):
         pos_convos, neg_convos = self._get_pos_neg_convos(corpus)
@@ -138,7 +139,7 @@ class PairedPrediction(Framework):
 
         if test_size is None:
             self.clf.fit(X, y)
-            return self.clf.predict(X)
+            return np.mean(self.clf.predict(X) == y)
         else:
             X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size)
             self.clf.fit(X_train, y_train)

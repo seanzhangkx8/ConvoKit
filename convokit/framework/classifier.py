@@ -20,12 +20,12 @@ class Classifier(Framework):
         X, y = extract_feats_and_label(corpus, self.obj_type, self.pred_feats, self.y_func)
         self.clf.fit(X, y)
 
-    def evaluate(self, corpus: Corpus = None, obj: Union[User, Utterance, Conversation] = None):
-        assert (corpus is None and obj is not None) or (corpus is not None and obj is None)
-        if obj is None:
+    def evaluate(self, corpus: Corpus = None, objs: List[Union[User, Utterance, Conversation]] = None):
+        assert (corpus is None and objs is not None) or (corpus is not None and objs is None)
+        if objs is None:
             X = extract_feats(corpus, self.obj_type, self.pred_feats)
         else:
-            X = np.array([list(extract_feats_from_obj(obj, self.pred_feats).values())])
+            X = np.array([list(extract_feats_from_obj(obj, self.pred_feats).values()) for obj in objs])
 
         return self.clf.predict(X), self.clf.predict_proba(X)
 
