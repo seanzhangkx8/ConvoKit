@@ -18,6 +18,13 @@ class UserConvoAttrs(Transformer):
             self.agg_fn = agg_fn
     
     def transform(self, corpus: Corpus):
+        '''
+            creates and populates user, convo aggregates.
+
+            :param corpus: the Corpus to transform.
+            :type corpus: Corpus  
+        '''
+
         for user in corpus.iter_users():
             if 'conversations' not in user.meta: continue
 

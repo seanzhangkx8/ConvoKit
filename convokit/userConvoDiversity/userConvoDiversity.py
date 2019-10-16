@@ -80,6 +80,13 @@ class UserConvoDiversity(Transformer):
                 'adj_other_div': self._nan_mean(adj_other_divs)}
     
     def transform(self, corpus: Corpus):
+        '''
+            computes diversity measures for each utterance in the corpus.
+
+            :param corpus: the Corpus to compute features for.
+            :type corpus: Corpus      
+        '''
+
         convos_per_split = self.stage_size // 2
         ref_sample_size = self.sample_size * convos_per_split
         

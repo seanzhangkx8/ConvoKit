@@ -10,7 +10,6 @@ class UserConvoHistory(Transformer):
         for each user, pre-computes a list of all of their utterances, organized by conversation. also annotates user with # of convos participated in, and time of first utterance.
 
         :param utterance_filter: function that returns True for an utterance that counts towards a user having participated in that conversation. (e.g., one could filter out conversations where the user contributed less than k words per utterance)
-        TODO: per-convo filters?
     '''
     
     def __init__(self, utterance_filter=None):
@@ -20,6 +19,13 @@ class UserConvoHistory(Transformer):
             self.utterance_filter = utterance_filter
     
     def transform(self, corpus: Corpus):
+        '''
+            compiles a list of all utterances by each user, organized by conversation; also annotates user with summary statistics.
+
+            :param corpus: the Corpus to transform.
+            :type corpus: Corpus  
+        '''
+
         user_to_convo_utts = defaultdict(lambda: defaultdict(list))
         for utterance in corpus.iter_utterances():
             if not self.utterance_filter(utterance): continue
