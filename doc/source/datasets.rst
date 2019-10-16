@@ -12,3 +12,4 @@ Datasets
    Reddit Corpus (all, by subreddit) <subreddit.rst>
    Reddit Corpus (small) <reddit-small.rst>
    Chromium Conversations Corpus <chromium.rst>
+   Winning Arguments Corpus <winning.rst>
