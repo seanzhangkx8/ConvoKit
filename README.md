@@ -63,7 +63,6 @@ Name for download: `wiki-corpus`
 Transcripts for tennis singles post-match press conferences for major tournaments between 2007 to 2015 (6,467 post-match press conferences).  
 Name for download: `tennis-corpus`
 
-
 ### [Reddit Corpus](https://zissou.infosci.cornell.edu/convokit/documentation/subreddit.html)
 
 Reddit conversations from over 900k subreddits, arranged by subreddit. A [small subset](https://zissou.infosci.cornell.edu/convokit/documentation/reddit-small.html) sampled from 100 highly active subreddits is also available. 
@@ -84,6 +83,12 @@ Name for download: `wikiconv-<year>` to download wikiconv data for the specified
 A collection of almost 1.5 million conversations and 2.8 million comments posted by developers reviewing proposed code changes in the Chromium project.
 
 Name for download: `chromium-corpus`
+
+### [Winning Arguments Corpus](https://zissou.infosci.cornell.edu/convokit/documentation/winning.html)
+
+A metadata-rich subset of conversations made in the r/ChangeMyView subreddit between 1 Jan 2013 - 7 May 2015, with information on the success 
+
+Name for download: `winning-args-corpus`
 
 ### ...And your own corpus!
 
