@@ -86,7 +86,7 @@ Name for download: `chromium-corpus`
 
 ### [Winning Arguments Corpus](https://zissou.infosci.cornell.edu/convokit/documentation/winning.html)
 
-A metadata-rich subset of conversations made in the r/ChangeMyView subreddit between 1 Jan 2013 - 7 May 2015, with information on the success 
+A metadata-rich subset of conversations made in the r/ChangeMyView subreddit between 1 Jan 2013 - 7 May 2015, with information on the delta (success) of a user's utterance in convincing the poster.
 
 Name for download: `winning-args-corpus`
 
