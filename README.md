@@ -90,6 +90,12 @@ A metadata-rich subset of conversations made in the r/ChangeMyView subreddit bet
 
 Name for download: `winning-args-corpus`
 
+### [Coarse Discourse Corpus](https://zissou.infosci.cornell.edu/convokit/documentation/coarseDiscourse.html)
+
+A subset of Reddit conversations that have been manually annotated with discourse act labels.
+
+Name for download: `reddit-coarse-discourse-corpus`
+
 ### ...And your own corpus!
 
 In addition to the provided datasets, you may also use ConvoKit with your own custom datasets by loading them into a `convokit.Corpus` object. [This example script](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/converting_movie_corpus.ipynb) shows how to construct a Corpus from custom data.
