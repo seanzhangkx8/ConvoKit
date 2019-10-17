@@ -56,6 +56,10 @@ class Corpus:
         self.original_corpus_path = None if filename is None else os.path.dirname(filename)
         self.meta = {}
         self.meta_index = {}
+
+        # stores processed texts -- reformatted utterance texts, as opposed to features computed from them.
+        self.processed_text = {}
+        
         convos_meta = defaultdict(dict)
         if exclude_utterance_meta is None: exclude_utterance_meta = []
         if exclude_conversation_meta is None: exclude_conversation_meta = []
@@ -101,6 +105,14 @@ class Corpus:
                         self.meta[k] = v
                 with open(os.path.join(filename, "index.json"), "r") as f:
                     self.meta_index = json.load(f)
+
+                # load all processed text information, but don't load actual text. 
+                # also checks if the index file exists.
+                try:
+                    with open(os.path.join(filename, "processed_text.index.json"), "r") as f:
+                        self.processed_text = {k: {} for k in json.load(f)}
+                except:
+                    pass
 
                 if version is not None:
                     if "version" in self.meta_index:
@@ -354,6 +366,9 @@ class Corpus:
 
         with open(os.path.join(dir_name, "index.json"), "w") as f:
             json.dump(self.meta_index, f)
+
+        with open(os.path.join(dir_name, "processed_text.index.json"), "w") as f:
+            json.dump(list(self.processed_text.keys()), f)
 
     def get_utterance_ids(self) -> List:
         return list(self.utterances.keys())
@@ -767,3 +782,51 @@ class Corpus:
     #             num_posts = sum(utt.root == utt.id for utt in user.iter_utterances())
     #             user.add_meta("num_posts", num_posts)
     #             user.add_meta("num_comments", len(user.get_utterance_ids()) - num_posts)
+    
+    def get_processed_text(self, id, field):
+        return self.processed_text[field][id]
+
+    @staticmethod
+    def _load_jsonlist_to_dict(filename, index_key='id', value_key='value'):
+        entries = {}
+        with open(filename, 'r') as f:
+            for line in f:
+                entry = json.loads(line)
+                entries[entry[index_key]] = entry[value_key]
+        return entries
+
+    @staticmethod
+    def _dump_jsonlist_from_dict(entries, filename, index_key='id', value_key='value'):
+        with open(filename, 'w') as f:
+            for k, v in entries.items():
+                json.dump({index_key: k, value_key: v}, f)
+                f.write('\n')
+
+    def load_processed_text(self, fields=[], dir_name=None):
+        if (self.original_corpus_path is None) and (dir_name is None):
+            raise ValueError('must specify a directory to read from')
+        if dir_name is None:
+            dir_name = self.original_corpus_path
+        
+        if len(fields) == 0:
+            fields = self.processed_text.keys()
+
+        for field in fields:
+            if field == 'index':
+                raise ValueError("illegal field name 'index'")
+            self.processed_text[field] = self._load_jsonlist_to_dict(
+                os.path.join(dir_name, 'processed_text.%s.json' % field))
+
+    def dump_processed_text(self, fields=[], dir_name=None):
+        if (self.original_corpus_path is None) and (dir_name is None):
+            raise ValueError('must specify a directory to write to')
+        
+        if dir_name is None:
+            dir_name = self.original_corpus_path
+        if len(fields) == 0:
+            fields = self.processed_text.keys()
+        for field in fields:
+            if field not in self.processed_text:
+                raise ValueError("field %s not in index" % field)
+            self._dump_jsonlist_from_dict(self.processed_text[field],
+                os.path.join(dir_name, 'processed_text.%s.json' % field))
