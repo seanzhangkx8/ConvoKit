@@ -8,4 +8,5 @@ from .parser import *
 from .hyperconvo import *
 from .userConvoDiversity import *
 from .basic import *
+from .text_processing import *
 #__path__ = __import__('pkgutil').extend_path(__path__, __name__)

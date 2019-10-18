@@ -18,6 +18,7 @@ setup(
                 "convokit.questionTypology",
                 "convokit.userConvoDiversity",
                 "convokit.user_convo_helpers",
+                "convokit.text_processing",
                 "convokit.basic"],
     package_data = {"convokit": ["data/*.txt"]},
     install_requires = [

@@ -808,6 +808,7 @@ class Corpus:
         if dir_name is None:
             dir_name = self.original_corpus_path
         
+        # TODO fix: this should actually read the directory or something.
         if len(fields) == 0:
             fields = self.processed_text.keys()
 
