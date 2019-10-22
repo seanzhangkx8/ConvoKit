@@ -1,5 +1,5 @@
 Intelligence Squared Debates Corpus
-==============================================
+====================================
 
 This dataset contains transcripts of debates held as part of Intelligence Squared Debates. There are 108 debates in all, that were held between September 2006 and September 2015. 
 
@@ -47,22 +47,24 @@ We provide:
 * url: the url where the debate can be accessed
 * winner: indicates which side won a debate, 'for,' 'against,' or 'tie'
 * results: a full breakdown of the starting and ending positions of the audience in the debates. These are all represented as percentages. The 'results' json file contains 3 dicts with the following metadata:
-	* breakdown: entries in this dictionary take the form position1_position2, where position1 is the position at the start of the debate and position2 is the position at the end of the debate. This breakdown is not available for the earlier debates. The entries are thus:
-		* against_against
-		* against_for
-		* against_undecided
-		* undecided_against
-		* undecided_for
-		* undecided_undecided
-		* for_against
-		* for_for
-		* for_undecided
-	* pre: percentage of audience that voted 'for,' 'against,' or 'undecided' at the beginning of the debate. This results breakdown follows the same structure as the original dataset.
-	* post: percentage of audience that voted 'for,' 'against,' or 'undecided' at the end of the debate.
+* breakdown: entries in this dictionary take the form position1_position2, where position1 is the position at the start of the debate and position2 is the position at the end of the debate. This breakdown is not available for the earlier debates. The entries are thus:
+
+    * against_against
+    * against_for
+    * against_undecided
+    * undecided_against
+    * undecided_for
+    * undecided_undecided
+    * for_against
+    * for_for
+    * for_undecided
+    * pre: percentage of audience that voted 'for,' 'against,' or 'undecided' at the beginning of the debate. This results breakdown follows the same structure as the original dataset.
+    * post: percentage of audience that voted 'for,' 'against,' or 'undecided' at the end of the debate.
+
 * speakers: the official speakers of the debate (note our users corpus is more expansive than this definition)
 
 Usage
-^^^^^
+-----
 
 To download with ConvoKit:
 
@@ -77,6 +79,6 @@ Number of Utterances: 26562
 Number of Conversations: 108
 
 Additional notes
-^^^^^^^^^^^^^^^^
+----------------
 
 Corpus translated into ConvoKit format by Lucas Van Bramer and Marianne Aubin Le Quere.
