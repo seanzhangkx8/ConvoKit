@@ -108,6 +108,14 @@ Transcripts of debates held as part of Intelligence Squared Debates.
 
 Name for download: `iq2-corpus`
 
+### [Friends Corpus](https://zissou.infosci.cornell.edu/convokit/documentation/friends.html)
+
+A collection of all the conversations that occurred over 10 seasons of Friends, a popular American TV sitcom that ran in the 1990s.
+
+Name for download: `friends-corpus`
+
+
+
 ### ...And your own corpus!
 
 In addition to the provided datasets, you may also use ConvoKit with your own custom datasets by loading them into a `convokit.Corpus` object. [This example script](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/converting_movie_corpus.ipynb) shows how to construct a Corpus from custom data.
