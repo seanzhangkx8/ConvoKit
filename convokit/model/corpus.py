@@ -808,13 +808,11 @@ class Corpus:
         if dir_name is None:
             dir_name = self.original_corpus_path
         
-        # TODO fix: this should actually read the directory or something.
         if len(fields) == 0:
-            fields = self.processed_text.keys()
+            fields = [x.replace('processed_text.','').replace('.json', '') for x in os.listdir(dir_name)
+                if x.startswith('processed_text')]
 
         for field in fields:
-            if field == 'index':
-                raise ValueError("illegal field name 'index'")
             self.processed_text[field] = self._load_jsonlist_to_dict(
                 os.path.join(dir_name, 'processed_text.%s.json' % field))
 
