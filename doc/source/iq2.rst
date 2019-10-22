@@ -81,4 +81,4 @@ Number of Conversations: 108
 Additional notes
 ----------------
 
-Corpus translated into ConvoKit format by Lucas Van Bramer and Marianne Aubin Le Quere.
+Corpus translated into ConvoKit format by Lucas Van Bramer (ljv32@cornell.edu) and Marianne Aubin Le Quere.
