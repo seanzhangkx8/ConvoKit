@@ -57,13 +57,12 @@ We provide:
 		* for_against
 		* for_for
 		* for_undecided
-	* pre: percentage of audience that voted 'for,' 'against,' or 'undecided' at the beginning of the debate.
+	* pre: percentage of audience that voted 'for,' 'against,' or 'undecided' at the beginning of the debate. This results breakdown follows the same structure as the original dataset.
 	* post: percentage of audience that voted 'for,' 'against,' or 'undecided' at the end of the debate.
-	This results breakdown follows the same structure as the original dataset.
 * speakers: the official speakers of the debate (note our users corpus is more expansive than this definition)
 
 Usage
-=====
+^^^^^
 
 To download with ConvoKit:
 
@@ -78,6 +77,6 @@ Number of Utterances: 26562
 Number of Conversations: 108
 
 Additional notes
-================
+^^^^^^^^^^^^^^^^
 
 Corpus translated into ConvoKit format by Lucas Van Bramer and Marianne Aubin Le Quere.
