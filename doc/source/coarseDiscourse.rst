@@ -39,7 +39,7 @@ Each utterance represents either a top-level Reddit post or a comment on a post.
 
 Additional information including the annotations for discourse actions that are specific to this dataset and the information specific to reddit are contained in the meta data: 
 
-* post_depth: depth of the post, 0 if post depth of the utterance is the post itself
+* comment_depth: depth of the comment, 0 if the utterance is the top-level post itself.
 * majority type: discourse action type by one of the following: question, answer, announcement, agreement,  appreciation, disagreement, elaboration, humor
 * annotation_types (list of annotation types by three annotators)
 * majority_link : link in relation to previous post, none if no relation with previous comment
@@ -57,7 +57,7 @@ Each conversation has the following metadata:
 * title: title of the post that started this conversation
 
 Usage
-^^^^^
+-----
 
 To download directly with ConvoKit: 
 
@@ -73,6 +73,9 @@ Some stats on the data set:
 >>> len(corpus.get_conversation_ids())
 9483
 
+Additional notes
+----------------
+The official dataset distribution from the paper authors contains only comment/post IDs, not text content; the dataset also came with a script to join IDs with text using the Reddit API. This ConvoKit version of the dataset was constructed using that script; however, as some comments may have been deleted in the time between when the paper was published and when the script was run, this Corpus may not correspond 100% to the data used in the paper.
 
 Contact
 ^^^^^^^

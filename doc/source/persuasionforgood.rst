@@ -85,13 +85,13 @@ Additional metadata includes:
 * role: whether the utterance's author is the persuader (0) or persuadee (1)
 * user_turn_id: i, such that this utterance is the particular user's ith turn in the conversation
 
-In addition, for 6,136 utterances in 300 human-annotated conversations, the following information is provided. 
+In addition, for 6,136 utterances in 300 human-annotated conversations, the following information is provided:
 
-* label_1: the dialogue acts in each sentence of the utterance, stored as a list. If the utterance is authored by a persuader, these are persuasion strategies, otherwise these are dialogue acts particular to the persuadee's role. 
-* label_2: the second dialogue act in each sentence (available for a limited number of utterances)
-* sentiment: the sentiment score for each sentence, stored as a dict of lists, where entries correspond to pos, neg and neutral sentiment.
-* n_sents: the number of sentences in the utterance
-* text_by_sent: a string containing the utterance's text, where <s> denotes sentence breaks.
+* label_1: the dialogue acts in each sentence of the utterance, stored as a list. If the utterance is authored by a persuader, these are persuasion strategies, otherwise these are dialogue acts particular to the persuadee's role. np.nan if the utterance is not annotated.
+* label_2: the second dialogue act in each sentence (available for a limited number of utterances). np.nan if the utterance is not annotated.
+* sentiment: the sentiment score for each sentence, stored as a dict of lists, where entries correspond to pos, neg and neutral sentiment. np.nan for each sentiment category if the utterance is not annotated.
+* n_sents: the number of sentences in the utterance. None if the utterance is not annotated.
+* text_by_sent: a string containing the utterance's text, where <s> denotes sentence breaks. np.nan if the utterance is not annotated.
 
 Conversation-level information
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -107,7 +107,7 @@ Each conversation contains the following metadata:
 
 Annotated conversations also contain the following metadata:
 
-* intended: the amount that the persuadee intends to donate, as inferred by the annotator.
+* intended: the amount that the persuadee intends to donate, as inferred by the annotator. np.nan if the conversation is not annotated.
 
 Usage
 -----
@@ -127,9 +127,15 @@ Number of Conversations: 1017
 Additional note
 ---------------
 
+License
+^^^^^^^
+
+Licensed under the Apache License 2.0 (license for original dataset found `here <https://gitlab.com/ucdavisnlp/persuasionforgood/blob/master/LICENSE>`_.)
+
+
 Contact
 ^^^^^^^
 
-Corpus converted into ConvoKit format by Justine Zhang, with work by Frank Li, Grace Deng, Di Ni (fl338@cornell.edu, gd3435@cornell.edu, dn273@cornell.edu).
+Corpus converted into ConvoKit format by Justine Zhang, with additional work by Frank Li, Grace Deng, Di Ni (fl338@cornell.edu, gd3435@cornell.edu, dn273@cornell.edu).
 
 

@@ -15,3 +15,4 @@ Datasets
    Winning Arguments Corpus <winning.rst>
    Coarse Discourse Corpus <coarseDiscourse.rst>
    Persuasion For Good Corpus <persuasionforgood.rst>
+   Intelligence Squared Debates Corpus <iq2.rst>
