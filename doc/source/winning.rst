@@ -3,7 +3,9 @@ Winning Arguments (ChangeMyView) Corpus
 
 A metadata-rich subset of conversations made in the r/ChangeMyView subreddit between 1 Jan 2013 - 7 May 2015, with information on the delta (success) of a user's utterance in convincing the poster.
 
-Each convokit conversation in this dataset is the corresponding full comment thread of an original post made to r/ChangeMyView. Within each full thread are comments made by Redditors (with the objective of the subreddit being to change the opinion of the original poster.) There are 34911 Users, 293297 Utterances, and 3051 Conversations.
+Each ConvoKit Conversation in this dataset is the corresponding full comment thread of an original post made to r/ChangeMyView. Within each full thread are comments made by Redditors (with the objective of the subreddit being to change the opinion of the original poster.) There are 34911 Users, 293297 Utterances, and 3051 Conversations.
+
+This corpus was in a paired prediction task predicting for whether a comment thread was successful in convincing the original poster. As stated in Section 4 of the original paper, the threads were paired by first selecting a thread that wins a ∆ (i.e. was successful in convincing the OP), then paired with an unsuccessful thread in the same discussion tree that did not win a ∆ but was the most “similar” in topic, as measured by Jaccard similarity. This means some comment threads in this corpus are paired into successful-unsuccessful thread pairs, and the Conversations and Utterances contain metadata that indicate this.
 
 Original dataset was distributed together with:
 `Winning Arguments: Interaction Dynamics and Persuasion Strategies in Good-faith Online Discussions: A new Approach to Understanding Coordination of Linguistic Style in Dialogs <https://chenhaot.com/pages/changemyview.html>`_. Chenhao Tan, Vlad Niculae, Cristian Danescu-Niculescu-Mizil, Lillian Lee.
