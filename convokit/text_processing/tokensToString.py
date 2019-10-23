@@ -1,5 +1,4 @@
-from convokit.transformer import Transformer
-from convokit.model import Corpus
+
 from .textProcessor import TextProcessor
 
 class TokensToString(TextProcessor):

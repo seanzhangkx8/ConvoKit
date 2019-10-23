@@ -19,7 +19,8 @@ setup(
                 "convokit.userConvoDiversity",
                 "convokit.user_convo_helpers",
                 "convokit.text_processing",
-                "convokit.basic"],
+                "convokit.basic",
+		"convokit.phrasing_motifs"],
     package_data = {"convokit": ["data/*.txt"]},
     install_requires = [
         "matplotlib>=3.0.0",
