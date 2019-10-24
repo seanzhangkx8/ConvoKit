@@ -53,3 +53,6 @@ class Transformer(ABC):
         """
         self.fit(corpus)
         return self.transform(corpus)
+
+    def analyze(self, corpus: Corpus):
+        pass

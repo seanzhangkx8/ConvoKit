@@ -5,9 +5,10 @@ from sklearn import svm
 from typing import List, Hashable, Callable, Union
 from .util import extract_feats_and_label, extract_feats, extract_feats_from_obj
 from .framework import Framework
+from convokit import Transformer
 
 
-class Classifier(Framework):
+class Classifier(Transformer):
     def __init__(self, obj_type: str, pred_feats: List[Hashable],
                  y_func: Callable[[Union[User, Utterance, Conversation]], bool],
                  filter_func: Callable[[Union[User, Utterance, Conversation]], bool] = None, clf=None):
@@ -21,7 +22,7 @@ class Classifier(Framework):
         X, y = extract_feats_and_label(corpus, self.obj_type, self.pred_feats, self.y_func, self.filter_func)
         self.clf.fit(X, y)
 
-    def evaluate(self, corpus: Corpus = None, objs: List[Union[User, Utterance, Conversation]] = None):
+    def analyze(self, corpus: Corpus = None, objs: List[Union[User, Utterance, Conversation]] = None):
         assert (corpus is None and objs is not None) or (corpus is not None and objs is None)
         if objs is None:
             X = extract_feats(corpus, self.obj_type, self.pred_feats, self.filter_func)
@@ -30,7 +31,7 @@ class Classifier(Framework):
 
         return self.clf.predict(X), self.clf.predict_proba(X)
 
-    def fit_evaluate(self, corpus: Corpus, test_size: int = None):
+    def fit_analyze(self, corpus: Corpus, test_size: int = None):
         X, y = extract_feats_and_label(corpus, self.obj_type, self.pred_feats, self.y_func, self.filter_func)
 
         if test_size is None:

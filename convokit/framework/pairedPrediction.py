@@ -1,4 +1,3 @@
-from .framework import Framework
 from .util import extract_feats_from_obj
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
@@ -12,9 +11,10 @@ from convokit.model import Corpus, Conversation
 from collections import defaultdict
 from random import shuffle, choice
 from scipy.sparse import csr_matrix
+from convokit import Transformer
 
 
-class PairedPrediction(Framework):
+class PairedPrediction(Transformer):
     def __init__(self, pairing_feat: Hashable, pred_feats: List[Hashable],
                  pos_label_func: Callable[[Conversation], bool], neg_label_func: Callable[[Conversation], bool],
                  filter_func: Callable[[Conversation], bool] = None, clf=None, exclude_na: bool = True,
@@ -122,7 +122,7 @@ class PairedPrediction(Framework):
         self.clf.fit(X, y)
         return self
 
-    def evaluate(self, corpus: Corpus):
+    def analyze(self, corpus: Corpus):
         pos_convos, neg_convos = self._get_pos_neg_convos(corpus)
         convo_pairs = self._pair_convos(pos_convos, neg_convos)
         X, y = self._generate_paired_X_y(convo_pairs)
@@ -132,7 +132,7 @@ class PairedPrediction(Framework):
         except NotFittedError:
             print("Failed evaluation: fit() must be run first.")
 
-    def fit_evaluate(self, corpus: Corpus, test_size: int = None):
+    def fit_analyze(self, corpus: Corpus, test_size: int = None):
         pos_convos, neg_convos = self._get_pos_neg_convos(corpus)
         convo_pairs = self._pair_convos(pos_convos, neg_convos)
         X, y = self._generate_paired_X_y(convo_pairs)

@@ -1,13 +1,13 @@
 import numpy as np
 from sklearn.feature_extraction.text import CountVectorizer as CV
 import string
-from .framework import Framework
+from convokit import Transformer
 from convokit.model import Corpus, Utterance
 from typing import List, Callable
 
 exclude = set(string.punctuation)
 
-class FightingWords(Framework):
+class FightingWords(Transformer):
     """
     Adapted from: https://github.com/jmhessel/FightingWords
     

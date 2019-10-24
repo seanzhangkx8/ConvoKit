@@ -1,9 +1,9 @@
 from convokit.model import Corpus, Conversation, User, Utterance
 from typing import List, Callable, Union
-from .framework import Framework
+from convokit import Transformer
 
 
-class Ranker(Framework):
+class Ranker(Transformer):
     def __init__(self, obj_type: str,
                  score_func: Callable[[Union[User, Utterance, Conversation]], Union[int, float]],
                  filter_func: Callable[[Union[User, Utterance, Conversation]], bool] = None):
@@ -11,7 +11,7 @@ class Ranker(Framework):
         self.score_func = score_func
         self.filter_func = filter_func
 
-    def evaluate(self, corpus: Corpus = None, objs: List[Union[User, Utterance, Conversation]] = None):
+    def analyze(self, corpus: Corpus = None, objs: List[Union[User, Utterance, Conversation]] = None):
         assert (corpus is None and objs is not None) or (corpus is not None and objs is None)
 
         if objs is None:
