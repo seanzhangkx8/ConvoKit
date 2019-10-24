@@ -289,5 +289,5 @@ def get_phrasing_motifs(arcs_per_sent, phrasing_motif_info):
     for sent in arcs_per_sent:
         result = _get_itemset_collection(sent, phrasing_motif_info['downlinks'], phrasing_motif_info['itemset_counts'],
                                        phrasing_motif_info['itemset_to_ids'])
-        phrasings.append({'__'.join(k): v < phrasing_motif_info['min_support'] for k, v in result.items()})
+        phrasings.append({'__'.join(k): v  for k, v in result.items()})
     return phrasings
