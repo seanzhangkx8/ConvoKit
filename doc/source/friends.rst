@@ -5,7 +5,7 @@ A collection of all the conversations that occurred over 10 seasons of Friends, 
 
 Across the 10 seasons there are 236 episodes, 3,107 scenes (conversations), 67,373 utterances, and 700 characters (users).
 
-The original dataset is available `here <https://github.com/emorynlp/character-mining>`_.
+The original dataset is available `here <https://github.com/emorynlp/character-mining>`_. It was originally distributed with `Character Identification on Multiparty Conversation: Identifying Mentions of Characters in TV Shows <https://github.com/emorynlp/character-identification>`_, Henry Y. Chen and Jinho D. Choi. Proceedings of the 17th Annual SIGdial Meeting on Discourse and Dialogue, SIGDIAL'16, 2016.
 
 Dataset details
 ---------------
