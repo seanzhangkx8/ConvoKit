@@ -1,6 +1,7 @@
 
 from typing import Dict, List, Collection, Hashable, Callable, Set, Generator, Tuple, Optional, ValuesView
 import pickle
+import numpy as np
 from collections import defaultdict
 import json
 import os
@@ -59,6 +60,7 @@ class Corpus:
 
         # stores processed texts -- reformatted utterance texts, as opposed to features computed from them.
         self.processed_text = {}
+        self.vector_reprs = {}
         
         convos_meta = defaultdict(dict)
         if exclude_utterance_meta is None: exclude_utterance_meta = []
@@ -786,6 +788,16 @@ class Corpus:
     def get_processed_text(self, id, field):
         return self.processed_text[field][id]
 
+    def get_vector_repr(self, id, field):
+        repr_obj = self.vector_reprs[field]
+        idx = repr_obj['key_to_idx'][id]
+        return repr_obj['vects'][idx]
+
+    def set_vector_reprs(self, field, keys, vects):
+        repr_obj = {'vects': vects, 'keys': keys}
+        repr_obj['key_to_idx'] = {k: idx for idx, k in enumerate(repr_obj['keys'])}
+        self.vector_reprs[field] = repr_obj
+
     @staticmethod
     def _load_jsonlist_to_dict(filename, index_key='id', value_key='value'):
         entries = {}
@@ -797,10 +809,25 @@ class Corpus:
 
     @staticmethod
     def _dump_jsonlist_from_dict(entries, filename, index_key='id', value_key='value'):
-        with open(filename, 'w') as f:
+        with open(filename + '.keys', 'w') as f:
             for k, v in entries.items():
                 json.dump({index_key: k, value_key: v}, f)
                 f.write('\n')
+
+    @staticmethod
+    def _load_vector_repr(filename):
+        repr_obj = {}
+        with open(filename + '.keys') as f:
+            repr_obj['keys'] = f.readlines()
+        repr_obj['key_to_idx'] = {k: idx for idx, k in enumerate(repr_obj['keys'])}
+        repr_obj['vects'] = np.load(filename + '.npy')
+        return repr_obj
+
+    @staticmethod
+    def _dump_vector_repr(repr_obj, filename):
+        with open(filename + '.keys', 'w') as f:
+            f.write('\n'.join(repr_obj['keys']))
+        np.save(filename, repr_obj['vects'])
 
     def load_processed_text(self, fields=[], dir_name=None):
         if (self.original_corpus_path is None) and (dir_name is None):
@@ -829,3 +856,22 @@ class Corpus:
                 raise ValueError("field %s not in index" % field)
             self._dump_jsonlist_from_dict(self.processed_text[field],
                 os.path.join(dir_name, 'processed_text.%s.json' % field))
+
+    def load_vector_repr(self, field, dir_name=None):
+        if (self.original_corpus_path is None) and (dir_name is None):
+            raise ValueError('must specify a directory to read from')
+        if dir_name is None:
+            dir_name = self.original_corpus_path
+
+        self.vector_reprs[field] = self._load_vector_repr(
+                os.path.join(dir_name, 'vector_repr.' + field)
+            )
+
+    def dump_vector_repr(self, field, dir_name=None):
+        if (self.original_corpus_path is None) and (dir_name is None):
+            raise ValueError('must specify a directory to write to')
+        
+        if dir_name is None:
+            dir_name = self.original_corpus_path
+
+        self._dump_vector_repr(self.vector_reprs[field], os.path.join(dir_name, 'vector_repr.' + field))
