@@ -5,12 +5,12 @@ def use_text(text):
 
 class TextToArcs(TextProcessor):
 	
-	def __init__(self, output_field, 
+	def __init__(self, output_field, input_field='parsed',
 				 use_start=True, root_only=False, follow_deps=('conj',),
-				 filter_fn=use_text,
-				 input_field='parsed', verbosity=0):
+				 filter_fn=use_text,input_filter=lambda utt_id,corpus,aux: True,
+				  verbosity=0):
 		aux_input = {'root_only': root_only, 'use_start': use_start, 'follow_deps': follow_deps, 'filter_fn': filter_fn}
-		TextProcessor.__init__(self, self._get_arcs_per_message_wrapper, output_field, aux_input, input_field, verbosity)
+		TextProcessor.__init__(self, proc_fn=self._get_arcs_per_message_wrapper, output_field=output_field, input_field=input_field, aux_input=aux_input, input_filter=input_filter, verbosity=verbosity)
 	
 	
 	def _get_arcs_per_message_wrapper(self, text_entry, aux_input={}):
@@ -54,5 +54,5 @@ def _get_arcs_at_root(root, sent, use_start=True, root_only=False, follow_deps=(
 	return arcs
 
 def get_arcs_per_message(message, use_start=True, root_only=False, follow_deps=('conj',), filter_fn=use_text):
-	return [sorted(_get_arcs_at_root(sent['toks'][sent['rt']], sent, use_start=use_start, root_only=root_only, follow_deps=follow_deps, filter_fn=filter_fn))
+	return [' '.join(sorted(_get_arcs_at_root(sent['toks'][sent['rt']], sent, use_start=use_start, root_only=root_only, follow_deps=follow_deps, filter_fn=filter_fn)))
 		for sent in message]

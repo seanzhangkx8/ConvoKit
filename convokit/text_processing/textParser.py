@@ -5,7 +5,7 @@ from .textProcessor import TextProcessor
 
 class TextParser(TextProcessor):
 	
-	def __init__(self, output_field, mode='parse', input_field=None, spacy_nlp=None, sent_tokenizer=None, verbosity=0):
+	def __init__(self, output_field, input_field=None, mode='parse', input_filter=lambda utt_id,corpus,aux: True, spacy_nlp=None, sent_tokenizer=None, verbosity=0):
 
 		self.mode = mode
 		aux_input = {'mode': mode}
@@ -34,7 +34,7 @@ class TextParser(TextProcessor):
 			else:
 				aux_input['sent_tokenizer'] = sent_tokenizer
 
-		TextProcessor.__init__(self, self._process_text_wrapper, output_field, aux_input, input_field, verbosity)
+		TextProcessor.__init__(self, proc_fn=self._process_text_wrapper, output_field=output_field, input_field=input_field, input_filter=input_filter, aux_input=aux_input, verbosity=verbosity)
 	
 	def _process_text_wrapper(self, text, aux_input={}):
 		return process_text(text, aux_input.get('mode','parse'), 

@@ -11,6 +11,9 @@ def preprocess_text(text): # replace w your own
     text = text.replace(' -- ', ' ')
     return text
 
+def question_filter(utt, corpus, aux_input={}):
+    return corpus.get_utterance(utt).meta['is_question']
+
 if __name__ == '__main__':
 
 	ROOT_DIR = sys.argv[1]
@@ -18,19 +21,19 @@ if __name__ == '__main__':
 	print('reading corpus', ROOT_DIR)
 	corpus = Corpus(ROOT_DIR)
 
-	print('preprocessing text')
-	text_prep = TextProcessor(preprocess_text, 'text', verbosity=VERBOSITY)
-	corpus = text_prep.transform(corpus)
+	# print('preprocessing text')
+	# text_prep = TextProcessor(preprocess_text, 'text', verbosity=VERBOSITY)
+	# corpus = text_prep.transform(corpus)
 
-	print('parsing text')
-	textparser = TextParser('parsed', input_field='text', verbosity=VERBOSITY)
-	corpus = textparser.transform(corpus)
+	# print('parsing text')
+	# textparser = TextParser('parsed', input_field='text', verbosity=VERBOSITY)
+	# corpus = textparser.transform(corpus)
 
-	# corpus.load_processed_text(['parsed'])
+	corpus.load_features(['parsed'])
 
-	print('converting text to simple serializable form')
-	tok_to_str = TokensToString('tok_str', verbosity=VERBOSITY)
-	corpus = tok_to_str.transform(corpus)
+	# print('converting text to simple serializable form')
+	# tok_to_str = TokensToString('tok_str', verbosity=VERBOSITY)
+	# corpus = tok_to_str.transform(corpus)
 
 	print('extracting full arcs')
 	text_to_arc = TextToArcs('arcs', verbosity=VERBOSITY)
@@ -45,23 +48,24 @@ if __name__ == '__main__':
 	corpus = text_to_arc_mini_censored.transform(corpus)
 
 
-	# corpus.load_processed_text(['arcs_censored', 'tok_str'])
+	# corpus.load_features(['arcs_censored'])
 
 	print('extracting question-only arcs')
-	qs = QuestionSentences(output_field='question_arcs', input_field='arcs_censored', use_caps=True)
+	qs = QuestionSentences(output_field='question_arcs', input_field='arcs_censored', input_filter=question_filter, verbosity=VERBOSITY)
 	corpus = qs.transform(corpus)
 
 
-	print('extracting phrasing motifs')
-	try:
-		os.mkdir(os.path.join(ROOT_DIR, 'pm_model'))
-	except: pass
-	pm_model = PhrasingMotifs('question_motifs','question_arcs',50,verbosity=20000)
-	pm_model.fit(corpus)
-	pm_model.print_top_phrasings(25)
-	corpus = pm_model.transform(corpus)
-	pm_model.dump_model(os.path.join(ROOT_DIR, 'pm_model'))
+	# print('extracting phrasing motifs')
+	# try:
+	# 	os.mkdir(os.path.join(ROOT_DIR, 'pm_model'))
+	# except: pass
+	# pm_model = PhrasingMotifs('question_motifs','question_arcs',50,verbosity=20000)
+	# pm_model.fit(corpus)
+	# pm_model.print_top_phrasings(25)
+	# corpus = pm_model.transform(corpus)
+	# pm_model.dump_model(os.path.join(ROOT_DIR, 'pm_model'))
 
 	print('dumping corpus to', corpus.original_corpus_path)
-	corpus.dump_processed_text(['parsed', 'tok_str', 'arcs', 'arcs_censored', 'question_arcs', 'question_motifs'])
+	# corpus.dump_features(['parsed', 'tok_str', 'arcs', 'arcs_censored', 'question_arcs'])
+	corpus.dump_features(['arcs', 'arcs_censored', 'question_arcs'])
 	# corpus.dump_processed_text(['question_arcs','question_motifs'])

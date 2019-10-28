@@ -54,13 +54,18 @@ class Corpus:
         :param version: version no. of corpus
         """
 
-        self.original_corpus_path = None if filename is None else os.path.dirname(filename)
+
+        if filename is None:
+            self.original_corpus_path = None
+        elif os.path.isdir(filename):
+            self.original_corpus_path = filename
+        else:
+            self.original_corpus_path = os.path.dirname(filename)
         self.meta = {}
         self.meta_index = {}
 
-        # stores processed texts -- reformatted utterance texts, as opposed to features computed from them.
-        self.processed_text = {}
-        self.vector_reprs = {}
+        self.features = {}
+        self.vector_features = {}
         
         convos_meta = defaultdict(dict)
         if exclude_utterance_meta is None: exclude_utterance_meta = []
@@ -110,11 +115,11 @@ class Corpus:
 
                 # load all processed text information, but don't load actual text. 
                 # also checks if the index file exists.
-                try:
-                    with open(os.path.join(filename, "processed_text.index.json"), "r") as f:
-                        self.processed_text = {k: {} for k in json.load(f)}
-                except:
-                    pass
+                # try:
+                #     with open(os.path.join(filename, "processed_text.index.json"), "r") as f:
+                #         self.processed_text = {k: {} for k in json.load(f)}
+                # except:
+                #     pass
 
                 if version is not None:
                     if "version" in self.meta_index:
@@ -369,8 +374,8 @@ class Corpus:
         with open(os.path.join(dir_name, "index.json"), "w") as f:
             json.dump(self.meta_index, f)
 
-        with open(os.path.join(dir_name, "processed_text.index.json"), "w") as f:
-            json.dump(list(self.processed_text.keys()), f)
+        # with open(os.path.join(dir_name, "processed_text.index.json"), "w") as f:
+        #     json.dump(list(self.processed_text.keys()), f)
 
     def get_utterance_ids(self) -> List:
         return list(self.utterances.keys())
@@ -785,18 +790,28 @@ class Corpus:
     #             user.add_meta("num_posts", num_posts)
     #             user.add_meta("num_comments", len(user.get_utterance_ids()) - num_posts)
     
-    def get_processed_text(self, id, field):
-        return self.processed_text[field][id]
+    def get_feature(self, id, field):
+        if field not in self.features:
+            raise ValueError('feature %s is not loaded' % field)
+        return self.features[field].get(id,None)
 
-    def get_vector_repr(self, id, field):
-        repr_obj = self.vector_reprs[field]
-        idx = repr_obj['key_to_idx'][id]
-        return repr_obj['vects'][idx]
+    def set_feature(self, id, field, value):
+        if field not in self.features:
+            self.features[field] = {}
+        self.features[field][id] = value
 
-    def set_vector_reprs(self, field, keys, vects):
-        repr_obj = {'vects': vects, 'keys': keys}
-        repr_obj['key_to_idx'] = {k: idx for idx, k in enumerate(repr_obj['keys'])}
-        self.vector_reprs[field] = repr_obj
+    def get_vect_repr(self, id, field):
+        vect_obj = self.vector_features[field]
+        try:
+            idx = vect_obj['key_to_idx'][id]
+            return vect_obj['vects'][idx]
+        except:
+            return None
+
+    def set_vect_reprs(self, field, keys, vects):
+        vect_obj = {'vects': vects, 'keys': keys}
+        vect_obj['key_to_idx'] = {k: idx for idx, k in enumerate(vect_obj['keys'])}
+        self.vector_features[field] = vect_obj
 
     @staticmethod
     def _load_jsonlist_to_dict(filename, index_key='id', value_key='value'):
@@ -809,69 +824,69 @@ class Corpus:
 
     @staticmethod
     def _dump_jsonlist_from_dict(entries, filename, index_key='id', value_key='value'):
-        with open(filename + '.keys', 'w') as f:
+        with open(filename, 'w') as f:
             for k, v in entries.items():
                 json.dump({index_key: k, value_key: v}, f)
                 f.write('\n')
 
     @staticmethod
-    def _load_vector_repr(filename):
-        repr_obj = {}
+    def _load_vectors(filename):
+        vect_obj = {}
         with open(filename + '.keys') as f:
-            repr_obj['keys'] = f.readlines()
-        repr_obj['key_to_idx'] = {k: idx for idx, k in enumerate(repr_obj['keys'])}
-        repr_obj['vects'] = np.load(filename + '.npy')
-        return repr_obj
+            vect_obj['keys'] = [x.strip() for x in f.readlines()]
+        vect_obj['key_to_idx'] = {k: idx for idx, k in enumerate(vect_obj['keys'])}
+        vect_obj['vects'] = np.load(filename + '.npy')
+        return vect_obj
 
     @staticmethod
-    def _dump_vector_repr(repr_obj, filename):
+    def _dump_vectors(vect_obj, filename):
         with open(filename + '.keys', 'w') as f:
-            f.write('\n'.join(repr_obj['keys']))
-        np.save(filename, repr_obj['vects'])
+            f.write('\n'.join(vect_obj['keys']))
+        np.save(filename, vect_obj['vects'])
 
-    def load_processed_text(self, fields=[], dir_name=None):
+    def load_features(self, fields=[], dir_name=None):
         if (self.original_corpus_path is None) and (dir_name is None):
             raise ValueError('must specify a directory to read from')
         if dir_name is None:
             dir_name = self.original_corpus_path
         
         if len(fields) == 0:
-            fields = [x.replace('processed_text.','').replace('.json', '') for x in os.listdir(dir_name)
-                if x.startswith('processed_text')]
+            fields = [x.replace('feat.','').replace('.json', '') for x in os.listdir(dir_name)
+                if x.startswith('feat')]
 
         for field in fields:
-            self.processed_text[field] = self._load_jsonlist_to_dict(
-                os.path.join(dir_name, 'processed_text.%s.json' % field))
+            self.features[field] = self._load_jsonlist_to_dict(
+                os.path.join(dir_name, 'feat.%s.json' % field))
 
-    def dump_processed_text(self, fields=[], dir_name=None):
+    def dump_features(self, fields=[], dir_name=None):
         if (self.original_corpus_path is None) and (dir_name is None):
             raise ValueError('must specify a directory to write to')
         
         if dir_name is None:
             dir_name = self.original_corpus_path
         if len(fields) == 0:
-            fields = self.processed_text.keys()
+            fields = self.features.keys()
         for field in fields:
-            if field not in self.processed_text:
+            if field not in self.features:
                 raise ValueError("field %s not in index" % field)
-            self._dump_jsonlist_from_dict(self.processed_text[field],
-                os.path.join(dir_name, 'processed_text.%s.json' % field))
+            self._dump_jsonlist_from_dict(self.features[field],
+                os.path.join(dir_name, 'feat.%s.json' % field))
 
-    def load_vector_repr(self, field, dir_name=None):
+    def load_vector_features(self, field, dir_name=None):
         if (self.original_corpus_path is None) and (dir_name is None):
             raise ValueError('must specify a directory to read from')
         if dir_name is None:
             dir_name = self.original_corpus_path
 
-        self.vector_reprs[field] = self._load_vector_repr(
-                os.path.join(dir_name, 'vector_repr.' + field)
+        self.vector_features[field] = self._load_vectors(
+                os.path.join(dir_name, 'vfeat.' + field)
             )
 
-    def dump_vector_repr(self, field, dir_name=None):
+    def dump_vector_features(self, field, dir_name=None):
         if (self.original_corpus_path is None) and (dir_name is None):
             raise ValueError('must specify a directory to write to')
         
         if dir_name is None:
             dir_name = self.original_corpus_path
 
-        self._dump_vector_repr(self.vector_reprs[field], os.path.join(dir_name, 'vector_repr.' + field))
+        self._dump_vectors(self.vector_features[field], os.path.join(dir_name, 'vfeat.' + field))

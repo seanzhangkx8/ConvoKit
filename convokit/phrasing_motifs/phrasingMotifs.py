@@ -7,16 +7,29 @@ import os
 
 class PhrasingMotifs(TextProcessor):
     
-    def __init__(self, output_field, input_field, 
-                 min_support, deduplication_threshold=.9,
+    def __init__(self, output_field, fit_field, 
+                 min_support, 
+                 fit_filter=lambda utt_id, corpus, aux: True, 
+                 transform_field=None,
+                 transform_filter=None,
+                 deduplication_threshold=.9,
                  max_naive_itemset_size=5, max_itemset_size=10,
                  verbosity=0):
         self.min_support = min_support
         self.deduplication_threshold = deduplication_threshold
         self.max_naive_itemset_size = max_naive_itemset_size
         self.max_itemset_size = max_itemset_size
+
+        self.fit_field = fit_field
+        self.fit_filter=fit_filter
+        if transform_field is None:
+            transform_field = fit_field
+        if transform_filter is None:
+            transform_filter = fit_filter
+
+
         aux_input = {'phrasing_motif_info': {}}
-        TextProcessor.__init__(self, self._get_phrasing_motifs_wrapper, output_field=output_field, input_field=input_field, aux_input=aux_input,
+        TextProcessor.__init__(self, self._get_phrasing_motifs_wrapper, output_field=[output_field, output_field + '__sink'], input_field=transform_field, input_filter=transform_filter, aux_input=aux_input,
                               verbosity=verbosity)
     
     def fit(self, corpus):
@@ -30,8 +43,10 @@ class PhrasingMotifs(TextProcessor):
     def _get_sent_arcset_dict(self, corpus):
         sent_dict = {}
         for utt_id in corpus.get_utterance_ids():
-            for idx, sent in enumerate(corpus.get_processed_text(utt_id, self.input_field)):
-                sent_dict['%s__%d' % (utt_id, idx)] = sent
+            if self.fit_filter(utt_id, corpus, {}):
+                for idx, sent in enumerate(corpus.get_feature(utt_id, self.input_field)):
+
+                    sent_dict['%s__%d' % (utt_id, idx)] = sent.split()
         return sent_dict
     
     def load_model(self, model_dir):
@@ -57,6 +72,9 @@ class PhrasingMotifs(TextProcessor):
     def dump_model(self, model_dir):
         if self.verbosity > 0:
             print('writing itemset counts')
+        if not os.path.exists(model_dir):
+            os.mkdir(model_dir)
+
         with open(os.path.join(model_dir, 'itemset_counts.json'), 'w') as f:
             json.dump({'__'.join(k):v for k, v in self.aux_input['phrasing_motif_info']['itemset_counts'].items()}, f)
 
@@ -110,14 +128,14 @@ def _count_frequent_itemsets(set_dict, min_support,
     
     if verbosity > 0:
         print('\tfirst pass: counting itemsets up to and including %d items large' % max_naive_itemset_size)
-    for idx, (key, set_) in enumerate(set_dict.items()):
+    for idx, (key, set_) in enumerate(sorted(set_dict.items())):
         if print_output(idx, verbosity):
             print('\tfirst pass: %03d/%03d sets processed' % (idx, len(set_dict)))
         for itemset in _get_mini_powerset(set_, max_naive_itemset_size):
             itemset_counts[len(itemset)][itemset] += 1
             key_to_itemsets[key][len(itemset)].add(itemset)
     
-    for key, count_dicts in key_to_itemsets.items():
+    for key, count_dicts in sorted(key_to_itemsets.items()):
         for i in range(1, max_naive_itemset_size + 1):
             count_dicts[i] = [itemset for itemset in count_dicts[i]
                              if itemset_counts[i][itemset] >= min_support]
@@ -126,7 +144,7 @@ def _count_frequent_itemsets(set_dict, min_support,
     
     if verbosity > 0:
         print('\tsecond pass: counting itemsets more than %d items large' % max_naive_itemset_size)
-    remaining_sets = [key for key, count_dicts in key_to_itemsets.items() 
+    remaining_sets = [key for key, count_dicts in sorted(key_to_itemsets.items()) 
                           if len(count_dicts[max_naive_itemset_size]) > 0]
     itemset_size = max_naive_itemset_size + 1
     while (len(remaining_sets) > 0) and (itemset_size <= max_itemset_size):
@@ -150,23 +168,23 @@ def _count_frequent_itemsets(set_dict, min_support,
             for new_itemset in new_itemsets:
                 itemset_counts[itemset_size][new_itemset] += 1
                 key_to_itemsets[key][itemset_size].add(new_itemset)
-        for key, count_dicts in key_to_itemsets.items():
+        for key, count_dicts in sorted(key_to_itemsets.items()):
             count_dicts[itemset_size] = [itemset for itemset in count_dicts[itemset_size]
                                         if itemset_counts[itemset_size][itemset] >= min_support]
-        remaining_sets = [key for key, count_dicts in key_to_itemsets.items()
+        remaining_sets = [key for key, count_dicts in sorted(key_to_itemsets.items())
                          if len(count_dicts[itemset_size]) > 0]
         itemset_size += 1
     
     unrolled_itemset_counts = {}
-    for itemset_size, count_dict in itemset_counts.items():
-        for k, v in count_dict.items():
+    for itemset_size, count_dict in sorted(itemset_counts.items()):
+        for k, v in sorted(count_dict.items()):
             if v >= min_support: unrolled_itemset_counts[k] = v
     unrolled_itemset_counts[('*',)] = len(set_dict)
     
     unrolled_key_to_itemsets = {}
-    for key, count_dicts in key_to_itemsets.items():
+    for key, count_dicts in sorted(key_to_itemsets.items()):
         curr_unrolled = set()
-        for count_dict in count_dicts.values():
+        for _, count_dict in sorted(count_dicts.items()):
             curr_unrolled.update((k for k in count_dict if k in unrolled_itemset_counts))
         unrolled_key_to_itemsets[key] = sorted(curr_unrolled)
     return unrolled_itemset_counts, unrolled_key_to_itemsets
@@ -180,7 +198,7 @@ def _make_itemset_tree(itemset_counts, verbosity=0):
     uplinks = {}
     downlinks = defaultdict(set)
     
-    for itemset, count in itemset_counts.items():
+    for itemset, count in sorted(itemset_counts.items()):
         parents = []
         itemset_size = len(itemset)
         if itemset_size == 1:
@@ -207,7 +225,7 @@ def _deduplicate_itemsets(itemset_counts, itemset_collections, threshold, verbos
     if verbosity > 0:
         print('deduplicating itemsets')
     cooccurrence_counts = defaultdict(lambda: defaultdict(int))
-    for idx, (key, itemsets) in enumerate(itemset_collections.items()):
+    for idx, (key, itemsets) in enumerate(sorted(itemset_collections.items())):
         if print_output(idx, verbosity):
             print('\tcounting itemset cooccurrences for %03d/%03d collections' 
                   % (idx, len(itemset_collections)))
@@ -221,27 +239,27 @@ def _deduplicate_itemsets(itemset_counts, itemset_collections, threshold, verbos
     superset_idx = 0
     supersets = defaultdict(set)
     itemset_to_superset = {}
-    for itemset, count in itemset_counts.items():
+    for itemset, count in sorted(itemset_counts.items()):
         if itemset in itemset_to_superset: continue
         itemset_to_superset[itemset] = superset_idx
         supersets[superset_idx].add(itemset)
-        stack = [itemset2 for itemset2, count2 in cooccurrence_counts.get(itemset, {}).items()
+        stack = [itemset2 for itemset2, count2 in sorted(cooccurrence_counts.get(itemset, {}).items())
                 if (count2/count >= threshold) and (count2/itemset_counts[itemset2] >= threshold)]
         while len(stack) > 0:
             neighbor = stack.pop()
             itemset_to_superset[neighbor] = superset_idx
             supersets[superset_idx].add(neighbor)
             neighbor_count = itemset_counts[neighbor]
-            stack += [itemset2 for itemset2, count2 in cooccurrence_counts.get(neighbor, {}).items()
+            stack += [itemset2 for itemset2, count2 in sorted(cooccurrence_counts.get(neighbor, {}).items())
                  if (count2/neighbor_count >= threshold) and (count2/itemset_counts[itemset2] >= threshold)
                  and (itemset2 not in itemset_to_superset)]
         superset_idx += 1
     superset_ids = {}
     
-    for idx, superset in supersets.items():
+    for idx, superset in sorted(supersets.items()):
         superset_ids[idx] = sorted(superset, key=lambda x: (itemset_counts[x], len(x)), reverse=True)[0]
-    itemset_to_ids = {k: superset_ids[v] for k, v in itemset_to_superset.items()}
-    supersets_by_id = {superset_ids[k]: list(v) for k, v in supersets.items()}
+    itemset_to_ids = {k: superset_ids[v] for k, v in sorted(itemset_to_superset.items())}
+    supersets_by_id = {superset_ids[k]: list(v) for k, v in sorted(supersets.items())}
     return itemset_to_ids, supersets_by_id
 
 def extract_phrasing_motifs(set_dict, min_support, deduplication_threshold=.9, 
@@ -260,7 +278,7 @@ def _contains_candidate(container, candidate):
     return set(candidate).issubset(container)
 
 def _get_itemset_collection(items, downlinks, itemset_counts, itemset_to_ids):
-    items = set(items)
+    items = sorted(set(items))
     fit_itemsets = {}
     itemset_stack = [(x,) for x in items if (x,) in itemset_counts]
     if len(itemset_stack) == 0: return {('*',): 0}
@@ -270,7 +288,7 @@ def _get_itemset_collection(items, downlinks, itemset_counts, itemset_to_ids):
         next_itemset = itemset_stack.pop()
         itemset_count = itemset_counts.get(next_itemset, None)
         if itemset_count:
-            children = downlinks.get(next_itemset, [])
+            children = sorted(downlinks.get(next_itemset, []))
             valid_children = [child for child in children if _contains_candidate(items, child) 
                              and (child in itemset_counts)]
             if len(valid_children) == 0:
@@ -280,14 +298,18 @@ def _get_itemset_collection(items, downlinks, itemset_counts, itemset_to_ids):
                                                 for child in valid_children)
             itemset_stack += valid_children
     fit_supersets = defaultdict(list)
-    for k, v in fit_itemsets.items():
+    for k, v in sorted(fit_itemsets.items()):
         fit_supersets[itemset_to_ids[k]].append(v)
-    return {k: min(v) for k, v in fit_supersets.items()}
+    return {k: min(v) for k, v in sorted(fit_supersets.items())}
 
 def get_phrasing_motifs(arcs_per_sent, phrasing_motif_info):
     phrasings = []
+    sink_phrasings = []
     for sent in arcs_per_sent:
-        result = _get_itemset_collection(sent, phrasing_motif_info['downlinks'], phrasing_motif_info['itemset_counts'],
+        result = _get_itemset_collection(sent.split(), phrasing_motif_info['downlinks'], phrasing_motif_info['itemset_counts'],
                                        phrasing_motif_info['itemset_to_ids'])
-        phrasings.append({'__'.join(k): v  for k, v in result.items()})
-    return phrasings
+        # phrasings.append({'__'.join(k): v  for k, v in result.items() if k != ('*',)})
+        phrasings.append(' '.join(sorted('__'.join(k) for k,v in result.items() if k != ('*',))))
+        sink_phrasings.append(' '.join(sorted('__'.join(k) for k,v in result.items() if (k != ('*',))
+            and (v < phrasing_motif_info['min_support']))))
+    return phrasings, sink_phrasings
