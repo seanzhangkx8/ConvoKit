@@ -26,7 +26,8 @@ A method to compute the linguistic diversity of individuals within their own con
 Example: [user conversation attributes and diversity example on ChangeMyView](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/user-convo-attributes/user-convo-diversity-demo.ipynb)
 
 ### [CRAFT: Online forecasting of conversational outcomes (Coming Soon!)](https://arxiv.org/abs/1909.01362)
-A neural model for forecasting future outcomes of conversations (e.g., derailment into personal attacks) as they develop.
+A neural model for forecasting future outcomes of conversations (e.g., derailment into personal attacks) as they develop.  
+The ConvoKit CRAFT API is still under development, but in the meantime an ad-hoc implementation using ConvoKit data can be found [here](https://colab.research.google.com/drive/1GvICZN0VwZQSWw3pJaEVY-EQGoO-L5lH).
 
 ## Datasets
 ConvoKit ships with several datasets ready for use "out-of-the-box".
