@@ -6,10 +6,10 @@ import os
 
 
 class PhrasingMotifs(TextProcessor):
-    
+
     def __init__(self, output_field, fit_field, 
                  min_support, 
-                 fit_filter=lambda utt_id, corpus, aux: True, 
+                 fit_filter=None, 
                  transform_field=None,
                  transform_filter=None,
                  deduplication_threshold=.9,
@@ -21,53 +21,65 @@ class PhrasingMotifs(TextProcessor):
         self.max_itemset_size = max_itemset_size
 
         self.fit_field = fit_field
-        self.fit_filter=fit_filter
+        if fit_filter is None:
+            self.fit_filter = lambda utt, aux: True
+        else:
+            self.fit_filter = fit_filter
         if transform_field is None:
             transform_field = fit_field
         if transform_filter is None:
             transform_filter = fit_filter
 
-
-        aux_input = {'phrasing_motif_info': {}}
-        TextProcessor.__init__(self, self._get_phrasing_motifs_wrapper, output_field=[output_field, output_field + '__sink'], input_field=transform_field, input_filter=transform_filter, aux_input=aux_input,
+        self.phrasing_motif_info = {'itemset_counts': {},
+            'downlinks': {}, 'itemset_to_ids': {}, 'min_support': {}}
+        TextProcessor.__init__(self, self._get_phrasing_motifs_wrapper, output_field=[output_field, output_field + '__sink'], input_field=transform_field, input_filter=transform_filter, aux_input=self.phrasing_motif_info,
                               verbosity=verbosity)
     
-    def fit(self, corpus):
+    def fit(self, corpus, y=None):
         arcset_dict = self._get_sent_arcset_dict(corpus)
-        self.aux_input['phrasing_motif_info'] = extract_phrasing_motifs(arcset_dict, self.min_support, self.deduplication_threshold,
+        self.phrasing_motif_info = extract_phrasing_motifs(arcset_dict, self.min_support, self.deduplication_threshold,
                        self.max_naive_itemset_size, self.max_itemset_size, self.verbosity)
     
     def _get_phrasing_motifs_wrapper(self, arcs_per_sent, aux_input):
-        return get_phrasing_motifs(arcs_per_sent, aux_input['phrasing_motif_info'])
-    
+        return get_phrasing_motifs(arcs_per_sent, self.phrasing_motif_info)
+
     def _get_sent_arcset_dict(self, corpus):
         sent_dict = {}
-        for utt_id in corpus.get_utterance_ids():
-            if self.fit_filter(utt_id, corpus, {}):
-                for idx, sent in enumerate(corpus.get_feature(utt_id, self.input_field)):
+        for utterance in corpus.iter_utterances():
+            if self.fit_filter(utterance, {}):
+                for idx, sent in enumerate(utterance.get_info(self.input_field)):
 
-                    sent_dict['%s__%d' % (utt_id, idx)] = sent.split()
+                    sent_dict['%s__%d' % (utterance.id, idx)] = sent.split()
         return sent_dict
+    
+    # def _get_sent_arcset_dict(self, corpus):
+    #     sent_dict = {}
+    #     for utt_id in corpus.get_utterance_ids():
+    #         if self.fit_filter(utt_id, corpus, {}):
+    #             for idx, sent in enumerate(corpus.get_info(utt_id, self.input_field)):
+
+    #                 sent_dict['%s__%d' % (utt_id, idx)] = sent.split()
+    #     return sent_dict
     
     def load_model(self, model_dir):
         if self.verbosity > 0:
             print('reading itemset counts')
         with open(os.path.join(model_dir, 'itemset_counts.json')) as f:
-            self.aux_input['phrasing_motif_info']['itemset_counts'] = {tuple(k.split('__')): v for k, v in json.load(f).items()}
+            self.phrasing_motif_info['itemset_counts'] = {tuple(k.split('__')): v for k, v in json.load(f).items()}
         
         if self.verbosity > 0:
             print('reading downlinks')
         with open(os.path.join(model_dir, 'downlinks.json')) as f:
-            self.aux_input['phrasing_motif_info']['downlinks'] = {tuple(k.split('__')): 
+            self.phrasing_motif_info['downlinks'] = {tuple(k.split('__')): 
                   set([tuple(x) for x in v]) for k, v in json.load(f).items()}
         if self.verbosity > 0:
             print('reading itemset to ids')
         with open(os.path.join(model_dir, 'itemset_to_ids.json')) as f:
-            self.aux_input['phrasing_motif_info']['itemset_to_ids'] = {tuple(k.split('__')): tuple(v.split('__')) for k, v in json.load(f).items()}       
+            self.phrasing_motif_info['itemset_to_ids'] = {tuple(k.split('__')): tuple(v.split('__')) for k, v in json.load(f).items()}       
         if self.verbosity > 0:
             print('reading meta information')
         with open(os.path.join(model_dir, 'meta.json')) as f:
-            self.aux_input['phrasing_motif_info']['min_support'] = json.load(f)['min_support']
+            self.phrasing_motif_info['min_support'] = json.load(f)['min_support']
     
     def dump_model(self, model_dir):
         if self.verbosity > 0:
@@ -76,26 +88,26 @@ class PhrasingMotifs(TextProcessor):
             os.mkdir(model_dir)
 
         with open(os.path.join(model_dir, 'itemset_counts.json'), 'w') as f:
-            json.dump({'__'.join(k):v for k, v in self.aux_input['phrasing_motif_info']['itemset_counts'].items()}, f)
+            json.dump({'__'.join(k):v for k, v in self.phrasing_motif_info['itemset_counts'].items()}, f)
 
         if self.verbosity > 0:
             print('writing downlinks')
         with open(os.path.join(model_dir, 'downlinks.json'), 'w') as f:
             json.dump({'__'.join(k):sorted(v) 
-                       for k, v in self.aux_input['phrasing_motif_info']['downlinks'].items()}, f)
+                       for k, v in self.phrasing_motif_info['downlinks'].items()}, f)
         if self.verbosity > 0:
             print('writing itemset to ids')
         with open(os.path.join(model_dir, 'itemset_to_ids.json'), 'w') as f:
             json.dump({'__'.join(k):'__'.join(v) 
-                       for k, v in self.aux_input['phrasing_motif_info']['itemset_to_ids'].items()}, f)
+                       for k, v in self.phrasing_motif_info['itemset_to_ids'].items()}, f)
         
         if self.verbosity > 0:
             print('writing meta information')
         with open(os.path.join(model_dir, 'meta.json'), 'w') as f:
-            json.dump({'min_support': self.aux_input['phrasing_motif_info']['min_support']}, f)
+            json.dump({'min_support': self.phrasing_motif_info['min_support']}, f)
     
     def print_top_phrasings(self, k):
-        sorted_phrasings = sorted(self.aux_input['phrasing_motif_info']['itemset_counts'].items(),
+        sorted_phrasings = sorted(self.phrasing_motif_info['itemset_counts'].items(),
                                  key=lambda x: (-x[1], len(x[0]), x[0]))[:k]
         for phrasing, count in sorted_phrasings:
             print(phrasing,count)

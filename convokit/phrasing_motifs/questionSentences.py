@@ -3,7 +3,7 @@ from convokit.text_processing import TextProcessor
 class QuestionSentences(TextProcessor):
     
     def __init__(self, output_field, input_field, use_caps=True, filter_field='parsed',
-        input_filter=lambda utt_id, corpus, aux: True,
+        input_filter=None,
         verbosity=0):
 
 

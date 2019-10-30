@@ -69,6 +69,12 @@ class Utterance:
         """
         self.meta[key] = value
 
+    def get_info(self, key):
+        return self.meta.get(key,None)
+
+    def set_info(self, key, value):
+        self.meta[key] = value
+
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
 

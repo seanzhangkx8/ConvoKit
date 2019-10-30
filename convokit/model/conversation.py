@@ -45,6 +45,12 @@ class Conversation:
         """
         self.meta[key] = value
 
+    def get_info(self, key):
+        return self.meta.get(key,None)
+
+    def set_info(self, key, value):
+        self.meta[key] = value
+
     # Conversation.id property
     def _get_id(self):
         """The unique ID of this Conversation [read-only]"""

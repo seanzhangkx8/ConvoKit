@@ -112,6 +112,12 @@ class User:
         """
         self.meta[key] = value
 
+    def get_info(self, key):
+        return self.meta.get(key,None)
+
+    def set_info(self, key, value):
+        self.meta[key] = value
+
     def _update_uid(self):
         rep = dict()
         rep["name"] = self._name

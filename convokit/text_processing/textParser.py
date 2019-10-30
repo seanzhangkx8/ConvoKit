@@ -5,7 +5,7 @@ from .textProcessor import TextProcessor
 
 class TextParser(TextProcessor):
 	
-	def __init__(self, output_field, input_field=None, mode='parse', input_filter=lambda utt_id,corpus,aux: True, spacy_nlp=None, sent_tokenizer=None, verbosity=0):
+	def __init__(self, output_field='parsed', input_field=None, mode='parse', input_filter=None, spacy_nlp=None, sent_tokenizer=None, verbosity=0):
 
 		self.mode = mode
 		aux_input = {'mode': mode}

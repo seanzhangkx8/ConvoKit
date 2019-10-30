@@ -64,8 +64,8 @@ class Corpus:
         self.meta = {}
         self.meta_index = {}
 
-        self.features = {}
-        self.vector_features = {}
+        self.aux_info = {}
+        self.vector_reprs = {}
         
         convos_meta = defaultdict(dict)
         if exclude_utterance_meta is None: exclude_utterance_meta = []
@@ -261,7 +261,7 @@ class Corpus:
         self.update_users_data()
 
     @staticmethod
-    def dump_helper_bin(d: Dict, d_bin: Dict, utterances_idx: Dict) -> Dict:
+    def dump_helper_bin(d: Dict, d_bin: Dict, utterances_idx: Dict, fields_to_skip=[]) -> Dict:
         """
 
         :param d: The dict to encode
@@ -271,6 +271,7 @@ class Corpus:
         """
         d_out = {}
         for k, v in d.items():
+            if k in fields_to_skip: continue
             try:   # try saving the field
                 json.dumps(v)
                 d_out[k] = v
@@ -284,7 +285,7 @@ class Corpus:
         #pickle.dump(l_bin, f)
         return d_out
 
-    def dump(self, name: str, base_path: Optional[str]=None, save_to_existing_path: bool=False) -> None:
+    def dump(self, name: str, base_path: Optional[str]=None, save_to_existing_path: bool=False, fields_to_skip={}) -> None:
         """Dumps the corpus and its metadata to disk.
 
         :param name: name of corpus
@@ -316,7 +317,7 @@ class Corpus:
         with open(os.path.join(dir_name, "users.json"), "w") as f:
             d_bin = defaultdict(list)
             users = {u: Corpus.dump_helper_bin(self.get_user(u).meta, d_bin,
-                                               users_idx) for u in self.get_usernames()}
+                                               users_idx, fields_to_skip.get('user',[])) for u in self.get_usernames()}
             json.dump(users, f)
 
             for name, l_bin in d_bin.items():
@@ -326,7 +327,7 @@ class Corpus:
         with open(os.path.join(dir_name, "conversations.json"), "w") as f:
             d_bin = defaultdict(list)
             convos = {c: Corpus.dump_helper_bin(self.get_conversation(c).meta,
-                                                d_bin, convos_idx) for c in self.get_conversation_ids()}
+                                                d_bin, convos_idx, fields_to_skip.get('conversation', [])) for c in self.get_conversation_ids()}
             json.dump(convos, f)
 
             for name, l_bin in d_bin.items():
@@ -342,7 +343,7 @@ class Corpus:
                     KeyConvoRoot: ut.root,
                     KeyText: ut.text,
                     KeyUser: ut.user.name,
-                    KeyMeta: self.dump_helper_bin(ut.meta, d_bin, utterances_idx),
+                    KeyMeta: self.dump_helper_bin(ut.meta, d_bin, utterances_idx, fields_to_skip.get('utterance', [])),
                     KeyReplyTo: ut.reply_to,
                     KeyTimestamp: ut.timestamp
                 }
@@ -355,7 +356,7 @@ class Corpus:
 
         with open(os.path.join(dir_name, "corpus.json"), "w") as f:
             d_bin = defaultdict(list)
-            meta_up = Corpus.dump_helper_bin(self.meta, d_bin, overall_idx)
+            meta_up = Corpus.dump_helper_bin(self.meta, d_bin, overall_idx, fields_to_skip.get('corpus', []))
             #            keys = ["utterances-index", "conversations-index", "users-index",
             #                "overall-index"]
             #            meta_minus = {k: v for k, v in overall_idx.items() if k not in keys}
@@ -790,18 +791,18 @@ class Corpus:
     #             user.add_meta("num_posts", num_posts)
     #             user.add_meta("num_comments", len(user.get_utterance_ids()) - num_posts)
     
-    def get_feature(self, id, field):
-        if field not in self.features:
-            raise ValueError('feature %s is not loaded' % field)
-        return self.features[field].get(id,None)
+    def get_info(self, id, field):
+        if field not in self.aux_info:
+            raise ValueError('field %s is not loaded' % field)
+        return self.aux_info[field].get(id,None)
 
-    def set_feature(self, id, field, value):
-        if field not in self.features:
-            self.features[field] = {}
-        self.features[field][id] = value
+    def set_info(self, id, field, value):
+        if field not in self.aux_info:
+            self.aux_info[field] = {}
+        self.aux_info[field][id] = value
 
     def get_vect_repr(self, id, field):
-        vect_obj = self.vector_features[field]
+        vect_obj = self.vector_reprs[field]
         try:
             idx = vect_obj['key_to_idx'][id]
             return vect_obj['vects'][idx]
@@ -811,7 +812,7 @@ class Corpus:
     def set_vect_reprs(self, field, keys, vects):
         vect_obj = {'vects': vects, 'keys': keys}
         vect_obj['key_to_idx'] = {k: idx for idx, k in enumerate(vect_obj['keys'])}
-        self.vector_features[field] = vect_obj
+        self.vector_reprs[field] = vect_obj
 
     @staticmethod
     def _load_jsonlist_to_dict(filename, index_key='id', value_key='value'):
@@ -844,49 +845,76 @@ class Corpus:
             f.write('\n'.join(vect_obj['keys']))
         np.save(filename, vect_obj['vects'])
 
-    def load_features(self, fields=[], dir_name=None):
+    def load_info(self, obj_type, fields=[], dir_name=None):
         if (self.original_corpus_path is None) and (dir_name is None):
             raise ValueError('must specify a directory to read from')
         if dir_name is None:
             dir_name = self.original_corpus_path
         
         if len(fields) == 0:
-            fields = [x.replace('feat.','').replace('.json', '') for x in os.listdir(dir_name)
-                if x.startswith('feat')]
+            fields = [x.replace('info.','').replace('.jsonl', '') for x in os.listdir(dir_name)
+                if x.startswith('info')]
 
         for field in fields:
-            self.features[field] = self._load_jsonlist_to_dict(
-                os.path.join(dir_name, 'feat.%s.json' % field))
+            # self.aux_info[field] = self._load_jsonlist_to_dict(
+            #     os.path.join(dir_name, 'feat.%s.jsonl' % field))
+            if obj_type == 'utterance':
+                getter = self.get_utterance
+            elif obj_type == 'user':
+                getter = self.get_user
+            elif obj_type == 'conversation':
+                getter = self.get_conversation
+            entries = self._load_jsonlist_to_dict(
+                os.path.join(dir_name, 'info.%s.jsonl' % field))
+            for k, v in entries.items():
+                try:
+                    obj = getter(k)
+                    obj.set_info(field, v)
+                except:
+                    continue
 
-    def dump_features(self, fields=[], dir_name=None):
+    def dump_info(self, obj_type, fields=[], dir_name=None):
+
+        # note presently this isn't order-preserving.
         if (self.original_corpus_path is None) and (dir_name is None):
             raise ValueError('must specify a directory to write to')
         
         if dir_name is None:
             dir_name = self.original_corpus_path
-        if len(fields) == 0:
-            fields = self.features.keys()
+        # if len(fields) == 0:
+        #     fields = self.aux_info.keys()
         for field in fields:
-            if field not in self.features:
-                raise ValueError("field %s not in index" % field)
-            self._dump_jsonlist_from_dict(self.features[field],
-                os.path.join(dir_name, 'feat.%s.json' % field))
+            # if field not in self.aux_info:
+            #     raise ValueError("field %s not in index" % field)
+            if obj_type == 'utterance':
+                iterator = self.iter_utterances()
+            elif obj_type == 'user':
+                iterator = self.iter_users()
+            elif obj_type == 'conversation':
+                iterator = self.iter_conversations()
+            if obj_type == 'user':
+                entries = {obj.name: obj.get_info(field) for obj in iterator}
+            else:
+                entries = {obj.id: obj.get_info(field) for obj in iterator}
+            # self._dump_jsonlist_from_dict(self.aux_info[field],
+            #     os.path.join(dir_name, 'feat.%s.jsonl' % field))
+            self._dump_jsonlist_from_dict(entries, os.path.join(dir_name, 'info.%s.jsonl' % field))
 
-    def load_vector_features(self, field, dir_name=None):
+    def load_vector_reprs(self, field, dir_name=None):
         if (self.original_corpus_path is None) and (dir_name is None):
             raise ValueError('must specify a directory to read from')
         if dir_name is None:
             dir_name = self.original_corpus_path
 
-        self.vector_features[field] = self._load_vectors(
-                os.path.join(dir_name, 'vfeat.' + field)
+        self.vector_reprs[field] = self._load_vectors(
+                os.path.join(dir_name, 'vect_info.' + field)
             )
 
-    def dump_vector_features(self, field, dir_name=None):
+    def dump_vector_reprs(self, field, dir_name=None):
         if (self.original_corpus_path is None) and (dir_name is None):
             raise ValueError('must specify a directory to write to')
         
         if dir_name is None:
             dir_name = self.original_corpus_path
 
-        self._dump_vectors(self.vector_features[field], os.path.join(dir_name, 'vfeat.' + field))
+        self._dump_vectors(self.vector_reprs[field], os.path.join(dir_name, 'vect_info.' + field))

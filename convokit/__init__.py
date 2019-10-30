@@ -4,6 +4,7 @@ from .coordination import *
 from .questionTypology import *
 from .politenessStrategies import *
 from .transformer import *
+from .convokitPipeline import *
 from .parser import *
 from .hyperconvo import *
 from .userConvoDiversity import *
