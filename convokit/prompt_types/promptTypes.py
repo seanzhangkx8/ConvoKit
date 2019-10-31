@@ -98,20 +98,46 @@ class PromptTypes(Transformer):
         return corpus
 
     def transform_utterance(self, utterance):
-    	utt_id = utterance.id 
-    	utt_input = utterance.get_info(self.prompt_transform_field)
+    	if self.prompt_transform_filter(utterance, {}):
+    		utterance = self._transform_utterance_side(utterance, 'prompt')
+    	if self.ref_transform_filter(utterance, {}):
+    		utterance = self._transform_utterance_side(utterance, 'ref')
+    	return utterance
+    	# utt_id = utterance.id 
+    	# utt_input = utterance.get_info(self.prompt_transform_field)
+    	# if isinstance(utt_input, list):
+    	# 	utt_input = '\n'.join(utt_input)
+    	# utt_ids, utt_vects = transform_embeddings(self.prompt_embedding_model, [utt_id], [utt_input], side='prompt')
+    	# prompt_df = assign_prompt_types(self.type_models[self.default_n_types], utt_ids, utt_vects, self.max_dist)
+    	# vals = prompt_df.values[0]
+    	# dists = vals[:-1]
+    	# min_dist = min(dists)
+    	# assign = vals[-1]
+    	# utterance.set_info(self.output_field + '__prompt_type.%s' % self.default_n_types, assign)
+    	# utterance.set_info(self.output_field + '__prompt_type_dist.%s' % self.default_n_types, float(min_dist))
+    	# utterance.set_info(self.output_field + '__prompt_dists.%s' % self.default_n_types, [float(x) for x in dists])
+    	# utterance.set_info(self.output_field + '__prompt_repr', [float(x) for x in utt_vects[0]])
+    	# return utterance
+
+    def _transform_utterance_side(self, utterance, side):
+    	if side == 'prompt':
+    		input_field = self.prompt_transform_field
+    	elif side == 'ref':
+    		input_field = self.ref_transform_field
+    	utt_id = utterance.id
+    	utt_input = utterance.get_info(input_field)
     	if isinstance(utt_input, list):
     		utt_input = '\n'.join(utt_input)
-    	utt_ids, utt_vects = transform_embeddings(self.prompt_embedding_model, [utt_id], [utt_input], side='prompt')
-    	prompt_df = assign_prompt_types(self.type_models[self.default_n_types], utt_ids, utt_vects, self.max_dist)
-    	vals = prompt_df.values[0]
+    	utt_ids, utt_vects = transform_embeddings(self.prompt_embedding_model, [utt_id], [utt_input], side=side)
+    	assign_df = assign_prompt_types(self.type_models[self.default_n_types], utt_ids, utt_vects, self.max_dist)
+    	vals = assign_df.values[0]
     	dists = vals[:-1]
     	min_dist = min(dists)
     	assign = vals[-1]
-    	utterance.set_info(self.output_field + '__prompt_type.%s' % self.default_n_types, assign)
-    	utterance.set_info(self.output_field + '__prompt_type_dist.%s' % self.default_n_types, float(min_dist))
-    	utterance.set_info(self.output_field + '__prompt_dists.%s' % self.default_n_types, [float(x) for x in dists])
-    	utterance.set_info(self.output_field + '__prompt_repr', [float(x) for x in utt_vects[0]])
+    	utterance.set_info(self.output_field + '__%s_type.%s' % (side, self.default_n_types), assign)
+    	utterance.set_info(self.output_field + '__%s_type_dist.%s' % (side, self.default_n_types), float(min_dist))
+    	utterance.set_info(self.output_field + '__%s_dists.%s' % (side, self.default_n_types), [float(x) for x in dists])
+    	utterance.set_info(self.output_field + '__%s_repr' % side, [float(x) for x in utt_vects[0]])
     	return utterance
         
     def refit_types(self, n_types, random_state=None, name=None):
@@ -300,7 +326,10 @@ class PromptTypes(Transformer):
             if ref_utt.reply_to is None:
                 continue
             prompt_utt_id = ref_utt.reply_to
-            prompt_utt = corpus.get_utterance(prompt_utt_id)
+            try:
+            	prompt_utt = corpus.get_utterance(prompt_utt_id)
+            except: 
+            	continue
             if prompt_filter(prompt_utt, aux_input) \
                 and ref_filter(ref_utt, aux_input):
 

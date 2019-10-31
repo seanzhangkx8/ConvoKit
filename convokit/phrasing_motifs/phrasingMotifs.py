@@ -251,20 +251,25 @@ def _deduplicate_itemsets(itemset_counts, itemset_collections, threshold, verbos
     superset_idx = 0
     supersets = defaultdict(set)
     itemset_to_superset = {}
-    for itemset, count in sorted(itemset_counts.items()):
+    for idx, (itemset, count) in enumerate(sorted(itemset_counts.items())):
+        if print_output(idx, verbosity):
+            print('\tgetting supersets for %03d/%03d itemsets' % (idx, len(itemset_counts)))
         if itemset in itemset_to_superset: continue
         itemset_to_superset[itemset] = superset_idx
         supersets[superset_idx].add(itemset)
         stack = [itemset2 for itemset2, count2 in sorted(cooccurrence_counts.get(itemset, {}).items())
                 if (count2/count >= threshold) and (count2/itemset_counts[itemset2] >= threshold)]
+        curr_stack = set(stack)
         while len(stack) > 0:
             neighbor = stack.pop()
             itemset_to_superset[neighbor] = superset_idx
             supersets[superset_idx].add(neighbor)
             neighbor_count = itemset_counts[neighbor]
-            stack += [itemset2 for itemset2, count2 in sorted(cooccurrence_counts.get(neighbor, {}).items())
+            to_push = [itemset2 for itemset2, count2 in sorted(cooccurrence_counts.get(neighbor, {}).items())
                  if (count2/neighbor_count >= threshold) and (count2/itemset_counts[itemset2] >= threshold)
-                 and (itemset2 not in itemset_to_superset)]
+                 and (itemset2 not in itemset_to_superset) and (itemset2 not in curr_stack)]
+            curr_stack.update(to_push)
+            stack += to_push
         superset_idx += 1
     superset_ids = {}
     

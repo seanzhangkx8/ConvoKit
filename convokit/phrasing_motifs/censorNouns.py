@@ -5,9 +5,10 @@ NP_LABELS = set(['nsubj', 'nsubjpass', 'dobj', 'iobj', 'pobj', 'attr'])
 
 class CensorNouns(TextProcessor):
 
-	def __init__(self, output_field, input_field='parsed', verbosity=0):
+	def __init__(self, output_field, input_field='parsed', input_filter=None, verbosity=0):
 		TextProcessor.__init__(self, censor_nouns, 
-			output_field=output_field, input_field=input_field, verbosity=verbosity)
+			output_field=output_field, input_field=input_field,
+            input_filter=input_filter, verbosity=verbosity)
 
 def _is_noun_ish(tok):
     return (tok['dep'] in NP_LABELS) or \

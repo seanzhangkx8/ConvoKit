@@ -63,16 +63,12 @@ class TextProcessor(Transformer):
     
     def transform_utterance(self, utt, override_input_filter=False):
         # this should either check if fields actually exist in utt, or return utt. which?
+        if isinstance(utt, str):
+            utt = Utterance(text=utt)
         if self.input_field is None:
-            if isinstance(utt, str):
-                text_entry = utt 
-                utt = Utterance(text=utt)
-            else:
-                text_entry = utt.text
+            text_entry = utt.text
             # treat utterance as a string
         else:
-            if isinstance(utt, str):
-                raise ValueError('expecting utterance, not string')
             if not override_input_filter:
                 if not self.input_filter(utt, self.aux_input): 
                     return utt 
@@ -82,6 +78,8 @@ class TextProcessor(Transformer):
                 text_entry = {field: utt.get_info(field) for field in self.input_field}
                 if sum(x is None for x in text_entry.values()) > 0:
                     return utt
+        if text_entry is None:
+            return utt
         if len(self.aux_input) == 0:
             result = self.proc_fn(text_entry)
         else:
