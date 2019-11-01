@@ -6,7 +6,7 @@ import sys
 
 VERBOSITY = 1000
 ROOT_DIR = '/kitchen/clean-corpora'
-INCREMENT_VERSION = False
+INCREMENT_VERSION = True
 
 if __name__ == '__main__':
 
