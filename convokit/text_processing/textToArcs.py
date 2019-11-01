@@ -32,7 +32,7 @@ def _get_arcs_at_root(root, sent, use_start=True, root_only=False, follow_deps=(
 		if kid['dep'] in ['cc']: continue
 		
 		if filter_fn(kid, sent):
-			if kid['dep'] not in follow_deps:
+			if (kid['dep'] not in follow_deps) and (root['tok'].lower() != kid['tok'].lower()):
 				arcs.add(root['tok'].lower() + '_' + kid['tok'].lower())
 			if (not root_only) or (kid['dep'] in follow_deps):
 				next_elems.append(kid)
@@ -43,7 +43,7 @@ def _get_arcs_at_root(root, sent, use_start=True, root_only=False, follow_deps=(
 			if (1 not in first_elem['dn']) and (len(sent['toks']) >= 2):
 				second_elem = sent['toks'][1]
 				if 0 not in second_elem['dn']:
-					if filter_fn(second_elem, sent): arcs.add(first_elem['tok'].lower() + '>' + second_elem['tok'].lower())
+					if filter_fn(second_elem, sent) and (first_elem['tok'].lower() != second_elem['tok'].lower()): arcs.add(first_elem['tok'].lower() + '>' + second_elem['tok'].lower())
 	for next_elem in next_elems:
 		arcs.update(_get_arcs_at_root(next_elem, sent, 
 				use_start=False, root_only=root_only, follow_deps=follow_deps, filter_fn=filter_fn))
