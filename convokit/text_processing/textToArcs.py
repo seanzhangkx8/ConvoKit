@@ -1,13 +1,32 @@
 from .textProcessor import TextProcessor
 
-def use_text(tok, sent):
+def _use_text(tok, sent):
 	return tok['tok'].isalpha() or tok['tok'][1:].isalpha()
 
 class TextToArcs(TextProcessor):
+	"""
+		Transformer that outputs a collection of arcs in the dependency parses of each sentence of an utterance. The returned collection is a list where each element corresponds to a sentence in the utterance. Each sentence is represented in terms of its arcs, in a space-separated string. 
+		
+		Each arc, in turn, can be read as follows:
+
+			* `x_y` means that `x` is the parent and `y` is the child token (e.g., `agree_does` = `agree --> does`)
+			* `x_*` means that `x` is a token with at least one descendant, which we do not resolve (this is analogous to bigrams backing off to unigrams)
+			* `x>y` means that `x` and `y` are the first two tokens in the sentence 
+			* `x>*` means that `x` is the first token in the sentence. 
+
+		:param output_field: name of attribute to write arcs to.
+		:param input_field: name of field to use as input. defaults to 'parsed', which stores dependency parses as returned by the TextParser transformer; otherwise expects similarly-formatted input.
+		:param use_start: whether to also return the first and first two tokens of the sentence. defaults to `True`.
+		:param root_only: whether to return only the arcs from the root of the dependency parse. defaults to `False`.
+		:param follow_deps: if root_only is set to `True`, will nonetheless examine subtrees coming out of a dependency listed in follow_deps; by default will follow 'conj' dependencies (hence examining the parts of a sentence following conjunctions like "and").
+		:param filter_fn: a boolean function determining which tokens to use. arcs will only be included if filter_fn returns True for all tokens in the arc. the function is of signature filter_fn(token, sent) where tokens and sents are formatted according to the output of TextParser. by default, will use tokens which only contain alphabet letters, or only contain letters after the first character (allowing for contractions like you 're): i.e.:  `tok['tok'].isalpha() or tok['tok'][1:].isalpha()`.
+		:param input_filter: a boolean function of signature `input_filter(utterance, aux_input)`. parses will only be computed for utterances where `input_filter` returns `True`. By default, will always return `True`, meaning that arcs will be computed for all utterances.
+		:param verbosity: frequency of status messages.
+	"""
 	
 	def __init__(self, output_field, input_field='parsed',
 				 use_start=True, root_only=False, follow_deps=('conj',),
-				 filter_fn=use_text,input_filter=None,
+				 filter_fn=_use_text,input_filter=None,
 				  verbosity=0):
 		aux_input = {'root_only': root_only, 'use_start': use_start, 'follow_deps': follow_deps, 'filter_fn': filter_fn}
 		TextProcessor.__init__(self, proc_fn=self._get_arcs_per_message_wrapper, output_field=output_field, input_field=input_field, aux_input=aux_input, input_filter=input_filter, verbosity=verbosity)
@@ -20,7 +39,7 @@ class TextToArcs(TextProcessor):
 
 
 
-def _get_arcs_at_root(root, sent, use_start=True, root_only=False, follow_deps=('conj',), filter_fn=use_text):
+def _get_arcs_at_root(root, sent, use_start=True, root_only=False, follow_deps=('conj',), filter_fn=_use_text):
 	
 	arcs = set()
 	if not filter_fn(root, sent): return arcs
@@ -50,6 +69,17 @@ def _get_arcs_at_root(root, sent, use_start=True, root_only=False, follow_deps=(
 	return arcs
 
 def get_arcs_per_message(message, use_start=True, root_only=False, follow_deps=('conj',), filter_fn=use_text):
+	"""
+		Stand-alone function that returns the arcs of parsed text.
+
+		:param message: parse to extract arcs from
+		:param use_start: whether to also return the first and first two tokens of the sentence. defaults to `True`.
+		:param root_only: whether to return only the arcs from the root of the dependency parse. defaults to `False`.
+		:param follow_deps: if root_only is set to `True`, will nonetheless examine subtrees coming out of a dependency listed in follow_deps; by default will follow 'conj' dependencies (hence examining the parts of a sentence following conjunctions like "and").
+		:param filter_fn: a boolean function determining which tokens to use. arcs will only be included if filter_fn returns True for all tokens in the arc. the function is of signature filter_fn(token, sent) where tokens and sents are formatted according to the output of TextParser. by default, will use tokens which only contain alphabet letters, or only contain letters after the first character (allowing for contractions like you 're): i.e.:  `tok['tok'].isalpha() or tok['tok'][1:].isalpha()`.
+		:return: a list where each element corresponds to a sentence in the input message. Each sentence is represented in terms of its arcs, in a space-separated string.
+	"""
+
 	return [' '.join(sorted(_get_arcs_at_root(sent['toks'][sent['rt']], sent, use_start=use_start, root_only=root_only, 
                                               follow_deps=follow_deps, filter_fn=filter_fn)))
 		for sent in message]

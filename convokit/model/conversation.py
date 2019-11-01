@@ -46,9 +46,24 @@ class Conversation:
         self.meta[key] = value
 
     def get_info(self, key):
+        """
+            Gets attribute <key> of the conversation. Returns None if the conversation does not have this attribute.
+            
+            :param key: name of attribute
+            :return: attribute <key>
+        """
+        
         return self.meta.get(key,None)
 
     def set_info(self, key, value):
+        """
+            Sets attribute <key> of the conversation to <value>.
+
+            :param key: name of attribute
+            :param value: value to set
+            :return: None
+        """
+
         self.meta[key] = value
 
     # Conversation.id property

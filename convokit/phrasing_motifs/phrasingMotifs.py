@@ -6,6 +6,22 @@ import os
 
 
 class PhrasingMotifs(TextProcessor):
+    """
+        A model that extracts a set of "phrasings" from a Corpus in the fit step, and that identifies which phrasings in this set are present in an utterance in the transform step. Phrasings are operationalized as frequently-occurring sets of dependency-parse arcs (though any other token-like input could work). Methodology described in http://www.cs.cornell.edu/~cristian/Asking_too_much_files/paper-questions.pdf .
+
+        The model expects as input utterances with a field consisting of either a string with space-separated tokens or arcs, or a list of such strings. As output in the transform step it produces a list, one per sentence, of space-separated phrasings contained in each sentence, where each phrasing is represented as a string where components (e.g., arcs) are separated by double underscores '__'. 
+
+        :param output_field: name of attribute to write phrasings to in transform step
+        :param fit_field: name of attribute to use as input in fit. 
+        :param min_support: the minimum frequency of phrasings to return
+        :param fit_filter:  a boolean function of signature `fit_filter(utterance, aux_input)`. during the fit step phrasings will only be computed over utterances where `fit_filter` returns `True`. By default, will always return `True`, meaning that all utterances will be used.
+        :param transform_field: name of attribute to use as input in transform; defaults to the same field used in fit.
+        :param transform_filter: a boolean function of signature `transform_filter(utterance, aux_input)`. during the transform step phrasings will only be computed over utterances where `transform_filter` returns `True`. defaults to filter used in fit step.
+        :param deduplication_threshold: merges phrasings into a single phrasing if phrasings co-occur above this frequency (i.e., pr(phrasing 1 | phrasing 2) and vice versa)
+        :param max_naive_itemset_size: maximum size of subsets to compute. above this size, a variant of the a-priori algorithm will be used in lieu of enumerating all possible subsets.
+        :param max_itemset_size: maximum size of subsets to consider as phrasings. setting lower will run faster but miss more complex phrasings.
+        :param verbosity: frequency of status messages.
+    """
 
     def __init__(self, output_field, fit_field, 
                  min_support, 
@@ -36,6 +52,13 @@ class PhrasingMotifs(TextProcessor):
                               verbosity=verbosity)
     
     def fit(self, corpus, y=None):
+        """
+            Fits a PhrasingMotifs model for a corpus -- that is, extracts all phrasings from the corpus.
+
+            :param corpus: Corpus
+            :return: None
+        """
+
         arcset_dict = self._get_sent_arcset_dict(corpus)
         self.phrasing_motif_info = extract_phrasing_motifs(arcset_dict, self.min_support, self.deduplication_threshold,
                        self.max_naive_itemset_size, self.max_itemset_size, self.verbosity)
@@ -52,16 +75,14 @@ class PhrasingMotifs(TextProcessor):
                     sent_dict['%s__%d' % (utterance.id, idx)] = sent.split()
         return sent_dict
     
-    # def _get_sent_arcset_dict(self, corpus):
-    #     sent_dict = {}
-    #     for utt_id in corpus.get_utterance_ids():
-    #         if self.fit_filter(utt_id, corpus, {}):
-    #             for idx, sent in enumerate(corpus.get_info(utt_id, self.input_field)):
-
-    #                 sent_dict['%s__%d' % (utt_id, idx)] = sent.split()
-    #     return sent_dict
-    
     def load_model(self, model_dir):
+        """
+            Loads a saved PhrasingMotifs model from disk.
+
+            :param model_dir: directory to read model from.
+            :return: None
+        """
+
         if self.verbosity > 0:
             print('reading itemset counts')
         with open(os.path.join(model_dir, 'itemset_counts.json')) as f:
@@ -82,6 +103,20 @@ class PhrasingMotifs(TextProcessor):
             self.phrasing_motif_info['min_support'] = json.load(f)['min_support']
     
     def dump_model(self, model_dir):
+        """
+            Writes the model to disk. 
+
+            Will output the following files:
+
+                * itemset_counts.json: a dictionary of phrasings to frequencies in the training dat a
+                * downlinks.json: stores the graph structure representing the relationship between phrasings
+                * itemset_to_ids.json: stores phrasings to their de-duplicated forms.
+                * meta.json: stores metadata about the model.
+
+            :param model_dir: directory to write to.
+            :return: None
+        """
+
         if self.verbosity > 0:
             print('writing itemset counts')
         if not os.path.exists(model_dir):
@@ -107,13 +142,20 @@ class PhrasingMotifs(TextProcessor):
             json.dump({'min_support': self.phrasing_motif_info['min_support']}, f)
     
     def print_top_phrasings(self, k):
+        """
+            prints the k most frequent phrasings.
+
+            :param k: number of phrasings to print
+            :return: None
+        """
+
         sorted_phrasings = sorted(self.phrasing_motif_info['itemset_counts'].items(),
                                  key=lambda x: (-x[1], len(x[0]), x[0]))[:k]
         for phrasing, count in sorted_phrasings:
             print(phrasing,count)
 
 
-def print_output(i, verbosity):
+def _print_output(i, verbosity):
     return (verbosity > 0) and (i > 0) and (i % verbosity == 0)
 
 
@@ -141,7 +183,7 @@ def _count_frequent_itemsets(set_dict, min_support,
     if verbosity > 0:
         print('\tfirst pass: counting itemsets up to and including %d items large' % max_naive_itemset_size)
     for idx, (key, set_) in enumerate(sorted(set_dict.items())):
-        if print_output(idx, verbosity):
+        if _print_output(idx, verbosity):
             print('\tfirst pass: %03d/%03d sets processed' % (idx, len(set_dict)))
         for itemset in _get_mini_powerset(set_, max_naive_itemset_size):
             itemset_counts[len(itemset)][itemset] += 1
@@ -164,7 +206,7 @@ def _count_frequent_itemsets(set_dict, min_support,
             print('\tsecond pass: checking %d sets for itemsets of length %d' 
                   % (len(remaining_sets), itemset_size))
         for idx, key in enumerate(remaining_sets):
-            if print_output(idx, verbosity):
+            if _print_output(idx, verbosity):
                 print('\tsecond pass: checked %03d/%03d sets for itemsets of length %d'
                      % (idx, len(remaining_sets), itemset_size))
             set_ = set_dict[key]
@@ -238,7 +280,7 @@ def _deduplicate_itemsets(itemset_counts, itemset_collections, threshold, verbos
         print('deduplicating itemsets')
     cooccurrence_counts = defaultdict(lambda: defaultdict(int))
     for idx, (key, itemsets) in enumerate(sorted(itemset_collections.items())):
-        if print_output(idx, verbosity):
+        if _print_output(idx, verbosity):
             print('\tcounting itemset cooccurrences for %03d/%03d collections' 
                   % (idx, len(itemset_collections)))
         itemset_list = list(itemsets)
@@ -252,7 +294,7 @@ def _deduplicate_itemsets(itemset_counts, itemset_collections, threshold, verbos
     supersets = defaultdict(set)
     itemset_to_superset = {}
     for idx, (itemset, count) in enumerate(sorted(itemset_counts.items())):
-        if print_output(idx, verbosity):
+        if _print_output(idx, verbosity):
             print('\tgetting supersets for %03d/%03d itemsets' % (idx, len(itemset_counts)))
         if itemset in itemset_to_superset: continue
         itemset_to_superset[itemset] = superset_idx
@@ -281,6 +323,11 @@ def _deduplicate_itemsets(itemset_counts, itemset_collections, threshold, verbos
 
 def extract_phrasing_motifs(set_dict, min_support, deduplication_threshold=.9, 
                            max_naive_itemset_size=5, max_itemset_size=100, verbosity=0):
+
+    """
+        standalone function to extract phrasings -- i.e., frequently-occurring collections.
+    """
+
     itemset_counts, itemset_collections = _count_frequent_itemsets(set_dict, min_support,
                              max_naive_itemset_size, max_itemset_size, verbosity)
     uplinks, downlinks = _make_itemset_tree(itemset_counts, verbosity)

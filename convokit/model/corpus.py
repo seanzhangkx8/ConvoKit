@@ -64,7 +64,6 @@ class Corpus:
         self.meta = {}
         self.meta_index = {}
 
-        self.aux_info = {}
         self.vector_reprs = {}
         
         convos_meta = defaultdict(dict)
@@ -291,6 +290,7 @@ class Corpus:
         :param name: name of corpus
         :param base_path: base directory to save corpus in (None to save to a default directory)
         :param save_to_existing_path: if True, save to the path you loaded the corpus from (supersedes base_path)
+        :param fields_to_skip: a dictionary of {object type: list of attributes to omit when writing to disk}. object types can be one of "user", "utterance", "conversation", "corpus".
         """
         dir_name = name
         if base_path is not None and save_to_existing_path:
@@ -790,18 +790,17 @@ class Corpus:
     #             num_posts = sum(utt.root == utt.id for utt in user.iter_utterances())
     #             user.add_meta("num_posts", num_posts)
     #             user.add_meta("num_comments", len(user.get_utterance_ids()) - num_posts)
-    
-    def get_info(self, id, field):
-        if field not in self.aux_info:
-            raise ValueError('field %s is not loaded' % field)
-        return self.aux_info[field].get(id,None)
 
-    def set_info(self, id, field, value):
-        if field not in self.aux_info:
-            self.aux_info[field] = {}
-        self.aux_info[field][id] = value
 
     def get_vect_repr(self, id, field):
+        """
+            gets a vector representation stored under the name field, for an individual object with a particular id.
+
+            :param id: id of object
+            :param field: the name of the particular representation
+            :return: a vector representation of object <id> 
+        """
+
         vect_obj = self.vector_reprs[field]
         try:
             idx = vect_obj['key_to_idx'][id]
@@ -810,6 +809,15 @@ class Corpus:
             return None
 
     def set_vect_reprs(self, field, keys, vects):
+        """
+            stores a matrix where each row is a vector representation of an object
+
+            :param field: name of representation
+            :param keys: list of object ids, where each entry corresponds to each row of the matrix
+            :param vects: matrix of vector representations
+            :return: None
+        """
+
         vect_obj = {'vects': vects, 'keys': keys}
         vect_obj['key_to_idx'] = {k: idx for idx, k in enumerate(vect_obj['keys'])}
         self.vector_reprs[field] = vect_obj
@@ -846,6 +854,18 @@ class Corpus:
         np.save(filename, vect_obj['vects'])
 
     def load_info(self, obj_type, fields=[], dir_name=None):
+        """
+            loads attributes of objects in a corpus from disk. 
+            This function, along with dump_info, supports cases where a particular attribute is to be stored separately from the other corpus files, for organization or efficiency. These attributes will not be read when the corpus is initialized; rather, they can be loaded on-demand using this function.
+
+            For each attribute with name <NAME>, will read from a file called info.<NAME>.jsonl, and load each attribute value into the respective object's .meta field.
+
+            :param obj_type: type of object the attribute is associated with. can be one of "utterance", "user", "conversation".
+            :param fields: a list of names of attributes to load. if empty, will load all attributes stored in the specified directory dir_name.
+            :param dir_name: the directory to read attributes from. by default, or if set to None, will read from the directory that the Corpus was loaded from.
+            :return: None
+        """
+
         if (self.original_corpus_path is None) and (dir_name is None):
             raise ValueError('must specify a directory to read from')
         if dir_name is None:
@@ -873,9 +893,19 @@ class Corpus:
                 except:
                     continue
 
-    def dump_info(self, obj_type, fields=[], dir_name=None):
+    def dump_info(self, obj_type, fields, dir_name=None):
+        """
+            writes attributes of objects in a corpus to disk. 
+            This function, along with load_info, supports cases where a particular attribute is to be stored separately from the other corpus files, for organization or efficiency. These attributes will not be read when the corpus is initialized; rather, they can be loaded on-demand using this function.
+    
+            For each attribute with name <NAME>, will write to a file called info.<NAME>.jsonl, where rows are json-serialized dictionaries structured as {"id": id of object, "value": value of attribute}.
 
-        # note presently this isn't order-preserving.
+            :param obj_type: type of object the attribute is associated with. can be one of "utterance", "user", "conversation".
+            :param fields: a list of names of attributes to write to disk. 
+            :param dir_name: the directory to write attributes to. by default, or if set to None, will read from the directory that the Corpus was loaded from.
+            :return: None
+        """
+
         if (self.original_corpus_path is None) and (dir_name is None):
             raise ValueError('must specify a directory to write to')
         
@@ -901,6 +931,16 @@ class Corpus:
             self._dump_jsonlist_from_dict(entries, os.path.join(dir_name, 'info.%s.jsonl' % field))
 
     def load_vector_reprs(self, field, dir_name=None):
+        """
+            reads vector representations of Corpus objects from disk.
+
+            Will read matrices from a file called vect_info.<field>.npy and corresponding object IDs from a file called vect_info.<field>.keys,
+
+            :param field: the name of the representation
+            :param dir_name: the directory to read from; by default, or if set to None, will read from the directory that the Corpus was loaded from.
+            :return: None
+        """
+
         if (self.original_corpus_path is None) and (dir_name is None):
             raise ValueError('must specify a directory to read from')
         if dir_name is None:
@@ -911,6 +951,16 @@ class Corpus:
             )
 
     def dump_vector_reprs(self, field, dir_name=None):
+        """
+            writes vector representations of Corpus objects to disk.
+
+            Will write matrices to a file called vect_info.<field>.npy and corresponding object IDs to a file called vect_info.<field>.keys,
+
+            :param field: the name of the representation to write to disk
+            :param dir_name: the directory to write to. by default, or if set to None, will read from the directory that the Corpus was loaded from.
+            :return: None
+        """
+
         if (self.original_corpus_path is None) and (dir_name is None):
             raise ValueError('must specify a directory to write to')
         
