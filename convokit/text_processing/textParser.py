@@ -28,6 +28,8 @@ class TextParser(TextProcessor):
 			* up: the index of the parent of the token in the sentence. does not exist for root tokens.
 			* dn: the indices of the children of the token in the sentence
 
+		Note that in principle, this data structure is readily extensible -- arbitrary fields could be added to sentences and tokens (e.g., to support NER).
+
 		:param output_field: name of attribute to write parse to, defaults to 'parsed'.
 		:param input_field: name of the field to use as input. the field must point to a string, and defaults to utterance.text.
 		:param mode: by default, is set to "parse", which indicates that the entire parsing pipeline is to be run. if set to "tag", only tokenizing and tagging will be run; if set to "tokenize", only tokenizing will be run.

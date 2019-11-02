@@ -7,11 +7,21 @@ import os
 
 class PhrasingMotifs(TextProcessor):
     """
-        A model that extracts a set of "phrasings" from a Corpus in the fit step, and that identifies which phrasings in this set are present in an utterance in the transform step. Phrasings are operationalized as frequently-occurring sets of dependency-parse arcs (though any other token-like input could work). Methodology described in http://www.cs.cornell.edu/~cristian/Asking_too_much_files/paper-questions.pdf .
+        A model that extracts a set of "phrasings" from a Corpus in the fit step, and that identifies which phrasings in this set are present in an utterance in the transform step. Phrasings intuitively correspond to frequently-occurring structures in the dependency trees of utterances, and are operationalized as frequently-occurring sets of dependency-parse arcs (though any other token-like input could work). 
 
-        The model expects as input utterances with a field consisting of either a string with space-separated tokens or arcs, or a list of such strings. As output in the transform step it produces a list, one per sentence, of space-separated phrasings contained in each sentence, where each phrasing is represented as a string where components (e.g., arcs) are separated by double underscores '__'. 
+        The model expects as input utterances with a field consisting of either a string with space-separated tokens or arcs, or a list of such strings. 
 
-        :param output_field: name of attribute to write phrasings to in transform step
+        As output in the transform step it produces:
+            * a list, one per sentence, of space-separated phrasings contained in each sentence, where each phrasing is represented as a string where components (e.g., arcs) are separated by double underscores '__'. 
+            * a list of sink phrasings in each sentence -- the most finely-specified phrasing encapsulated by the sentence. (e.g., "do you agree..." is more finely-specified than "...agree...")
+
+        Internally the model contains the following elements:
+            * itemset_counts: a dictionary of phrasings to frequencies in the training data
+            * downlinks: the graph structure representing the relationship between phrasings. used to later determine which phrasings are contained in a sentence in the transform step.
+            * itemset_to_ids: maps phrasings to their de-duplicated forms.
+            * min_support: the minimum frequency of a subset that is to be considered a phrasing
+
+        :param output_field: name of attribute to write phrasings to in transform step. sink phrasings will be written to field <output_field>__sink.
         :param fit_field: name of attribute to use as input in fit. 
         :param min_support: the minimum frequency of phrasings to return
         :param fit_filter:  a boolean function of signature `fit_filter(utterance, aux_input)`. during the fit step phrasings will only be computed over utterances where `fit_filter` returns `True`. By default, will always return `True`, meaning that all utterances will be used.
@@ -106,12 +116,7 @@ class PhrasingMotifs(TextProcessor):
         """
             Writes the model to disk. 
 
-            Will output the following files:
-
-                * itemset_counts.json: a dictionary of phrasings to frequencies in the training dat a
-                * downlinks.json: stores the graph structure representing the relationship between phrasings
-                * itemset_to_ids.json: stores phrasings to their de-duplicated forms.
-                * meta.json: stores metadata about the model.
+            Will output one json file per model component.
 
             :param model_dir: directory to write to.
             :return: None
@@ -257,7 +262,7 @@ def _make_itemset_tree(itemset_counts, verbosity=0):
         itemset_size = len(itemset)
         if itemset_size == 1:
             item = itemset[0]
-            # this is a key part  that's specific to dep arc sets. unclear how to generalize.
+            # note this is the only part that is sort of dep-parse specific.
             if item.endswith('*'):
                 parents.append(('*',))
             elif '_' in item:
@@ -322,15 +327,28 @@ def _deduplicate_itemsets(itemset_counts, itemset_collections, threshold, verbos
     return itemset_to_ids, supersets_by_id
 
 def extract_phrasing_motifs(set_dict, min_support, deduplication_threshold=.9, 
-                           max_naive_itemset_size=5, max_itemset_size=100, verbosity=0):
+                           max_naive_itemset_size=5, max_itemset_size=10, verbosity=0):
 
     """
-        standalone function to extract phrasings -- i.e., frequently-occurring collections.
+        standalone function to extract phrasings -- i.e., frequently-occurring collections of dependency-parse arcs (or other token-like objects).
+
+        :param set_dict: dictionary mapping an ID (e.g., an utterance-sentence ID) to the collection of arcs in the corresponding object.
+        :param min_support: minimum frequency of phrasings to return
+        :param deduplication_threshold: merges phrasings into a single phrasing if phrasings co-occur above this frequency 
+        :param max_naive_itemset_size: maximum size of subsets to compute. 
+        :param max_itemset_size: maximum size of subsets to consider as phrasings. 
+        :param verbosity: frequency of status messages.
+
+        :return: phrasing motifs model, as a dict containing each component.
+
     """
 
+    # counts frequently co-occurring subsets
     itemset_counts, itemset_collections = _count_frequent_itemsets(set_dict, min_support,
                              max_naive_itemset_size, max_itemset_size, verbosity)
+    # induces a graph that relates subsets to each other
     uplinks, downlinks = _make_itemset_tree(itemset_counts, verbosity)
+    # deduplicates frequently co-occurring subsets
     itemset_to_ids, supersets_by_id = _deduplicate_itemsets(itemset_counts, itemset_collections, 
                                                           deduplication_threshold, verbosity)
     return {'itemset_counts': itemset_counts, 'downlinks': downlinks,
@@ -367,6 +385,14 @@ def _get_itemset_collection(items, downlinks, itemset_counts, itemset_to_ids):
     return {k: min(v) for k, v in sorted(fit_supersets.items())}
 
 def get_phrasing_motifs(arcs_per_sent, phrasing_motif_info):
+    """
+        standalone function that returns phrasings and sink phrasings given an utterance (consisting of a list of space-separated arcs per each sentence) and a phrasing motif model. 
+
+        :param arcs_per_sent: input arcs per sentence
+        :param phrasing_motif_info: phrasing motif model
+        :return: phrasings and sink phrasings
+    """
+
     phrasings = []
     sink_phrasings = []
     for sent in arcs_per_sent:
