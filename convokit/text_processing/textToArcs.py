@@ -68,7 +68,7 @@ def _get_arcs_at_root(root, sent, use_start=True, root_only=False, follow_deps=(
 				use_start=False, root_only=root_only, follow_deps=follow_deps, filter_fn=filter_fn))
 	return arcs
 
-def get_arcs_per_message(message, use_start=True, root_only=False, follow_deps=('conj',), filter_fn=use_text):
+def get_arcs_per_message(message, use_start=True, root_only=False, follow_deps=('conj',), filter_fn=_use_text):
 	"""
 		Stand-alone function that returns the arcs of parsed text.
 
