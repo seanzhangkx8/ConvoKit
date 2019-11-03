@@ -67,7 +67,7 @@ class PolitenessStrategies(Transformer):
                         (tok['dep'], sent['toks'][tok.get('up',i)]['tok'], tok.get('up',i)+1,
                         tok['tok'], i+1)
                     sent_parses.append(ele)
-                doc['parses'].append(sent_parses)
+            doc['parses'].append(sent_parses)
         doc['unigrams'] = list(chain(*[[y['tok'] for y in sent['toks']] for sent in parsed]))
         return doc
 

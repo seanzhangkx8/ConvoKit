@@ -35,7 +35,7 @@ class PromptTypeWrapper(Transformer):
 		:param max_dist: the maximum distance between a vector representation of an utterance and the cluster centroid; a cluster whose distance to all centroids is above this cutoff will get assigned to a null type, denoted by -1. defaults to 0.9.
 		:param recompute_all: if `False` (the default), checks utterances to see if they already have an attribute computed, skipping over that utterance in the relevant step of the pipeline. if `True`, recomputes all attributes.
 		:param random_state: the random seed to use.
-        :param verbosity: frequency of status messages.
+		:param verbosity: frequency of status messages.
 
 	"""
 	
@@ -102,31 +102,31 @@ class PromptTypeWrapper(Transformer):
 		
 	def fit(self, corpus, y=None):
 		"""
-            Fits the model for a corpus -- that is, computes all necessary utterance attributes, and fits the underlying `PhrasingMotifs` and `PromptTypes` models.
+			Fits the model for a corpus -- that is, computes all necessary utterance attributes, and fits the underlying `PhrasingMotifs` and `PromptTypes` models.
 
-            :param corpus: Corpus
-            :return: None
-        """
+			:param corpus: Corpus
+			:return: None
+		"""
 
 		self.pipe.fit(corpus)
 	
 	def transform(self, corpus):
 		"""
-            Computes prompt type assignments for utterances in a corpus.
+			Computes prompt type assignments for utterances in a corpus.
 
-            :param corpus: Corpus
-            :return: the corpus, with per-utterance representations and type assignments.
-        """
+			:param corpus: Corpus
+			:return: the corpus, with per-utterance representations and type assignments.
+		"""
 
 		return self.pipe.transform(corpus)
 	
 	def transform_utterance(self, utterance):
 		"""
-            Computes prompt type assignments for individual utterances. can take as input ConvoKit Utterances or raw strings. will return assignments for *all* string input, even if the input is not a question.
+			Computes prompt type assignments for individual utterances. can take as input ConvoKit Utterances or raw strings. will return assignments for *all* string input, even if the input is not a question.
 
-            :param utterance: the utterance, as an Utterance or string.
-            :return: the utterance, annotated with type assignments.
-        """
+			:param utterance: the utterance, as an Utterance or string.
+			:return: the utterance, annotated with type assignments.
+		"""
 
 		if isinstance(utterance, str):
 			utterance = Utterance(text=utterance)
@@ -134,12 +134,12 @@ class PromptTypeWrapper(Transformer):
 		return self.pipe.transform_utterance(utterance)        
 	
 	def dump_models(self, model_dir, type_keys='default'):
-        """
-            Writes the `PhrasingMotifs` (if applicable) and `PromptTypes` models to disk. 
+		"""
+			Writes the `PhrasingMotifs` (if applicable) and `PromptTypes` models to disk. 
 
-            :param model_dir: directory to write to.
-            :return: None
-        """
+			:param model_dir: directory to write to.
+			:return: None
+		"""
 		try:
 			os.mkdir(model_dir)
 		except:
@@ -152,8 +152,8 @@ class PromptTypeWrapper(Transformer):
 		"""
 			Reads the `PhrasingMotifs` (if applicable) and `PromptTypes` models from disk. 
 
-            :param model_dir: directory to read from.
-            :return: None
+			:param model_dir: directory to read from.
+			:return: None
 		"""
 
 		if self.use_motifs:
@@ -161,12 +161,12 @@ class PromptTypeWrapper(Transformer):
 		self.pipe.named_steps['pt_model'].load_model(os.path.join(model_dir, 'pt_model'), type_keys=type_keys)
 	
 	def print_top_phrasings(self, k):
-        """
-            prints the k most frequent phrasings from the `PhrasingMotifs` component of the pipeline, if phrasings are used.
+		"""
+			prints the k most frequent phrasings from the `PhrasingMotifs` component of the pipeline, if phrasings are used.
 
-            :param k: number of phrasings to print
-            :return: None
-        """
+			:param k: number of phrasings to print
+			:return: None
+		"""
 
 		if self.use_motifs:
 			self.pipe.named_steps['pm_model'].print_top_phrasings(k)
@@ -175,26 +175,26 @@ class PromptTypeWrapper(Transformer):
 	
 	def display_type(self, type_id, corpus=None, type_key=None, k=10):
 		"""
-            for a particular prompt type, displays the representative prompt and response terms. can also display representative prompt and response utterances.
+			for a particular prompt type, displays the representative prompt and response terms. can also display representative prompt and response utterances.
 
-            :param type_id: ID of the prompt type to display.
-            :param corpus: pass in the training corpus to also display representative utterances.
-            :param type_key: the name of the prompt type clustering model to use. defaults to `n_types` that the model was initialized with, but if `refit_types` is called with different number of types, can be modified to display this updated model as well.
-            :param k: the number of sample terms (or utteranceS) to display.
-            :return: None
+			:param type_id: ID of the prompt type to display.
+			:param corpus: pass in the training corpus to also display representative utterances.
+			:param type_key: the name of the prompt type clustering model to use. defaults to `n_types` that the model was initialized with, but if `refit_types` is called with different number of types, can be modified to display this updated model as well.
+			:param k: the number of sample terms (or utteranceS) to display.
+			:return: None
 
-        """
+		"""
 		self.pipe.named_steps['pt_model'].display_type(type_id, corpus=corpus, type_key=type_key, k=k)
 	
 	def refit_types(self, n_types, random_state=None, name=None):
-        """
-            infers a different number of prompt types than was originally called.
+		"""
+			infers a different number of prompt types than was originally called.
 
-            :param n_types: number of types to learn
-            :param random_state: random seed
-            :param name: the name of the new type model. defaults to n_types.
-            :return: None
-        """
+			:param n_types: number of types to learn
+			:param random_state: random seed
+			:param name: the name of the new type model. defaults to n_types.
+			:return: None
+		"""
 		self.pipe.named_steps['pt_model'].refit_types(n_types, random_state, name)
 	
 	
