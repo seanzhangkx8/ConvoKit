@@ -2,6 +2,7 @@
 from typing import Dict, List, Collection, Hashable, Callable, Set, Generator, Tuple, Optional, ValuesView
 import pickle
 import numpy as np
+import pandas as pd
 from collections import defaultdict
 import json
 import os
@@ -968,3 +969,103 @@ class Corpus:
             dir_name = self.original_corpus_path
 
         self._dump_vectors(self.vector_reprs[field], os.path.join(dir_name, 'vect_info.' + field))
+
+    def get_attribute_table(self, obj_type, attrs):
+        """
+            returns a dataframe, indexed by the IDs of objects of `obj_type`, containing attributes of these objects.
+
+            :param obj_type: the type of object to get attributes for. can be `'utterance'`, `'user'` or `'conversation'`.
+            :param attrs: a list of names of attributes to get.
+            :return: a Pandas dataframe of attributes.
+        """
+        if obj_type == 'utterance':
+            iterator = self.iter_utterances()
+        elif obj_type == 'user':
+            iterator = self.iter_users()
+        elif obj_type == 'conversation':
+            iterator = self.iter_conversations() 
+
+        table_entries = []
+        for obj in iterator:
+            entry = {}
+            if obj_type == 'user':
+                entry['id'] = obj.name 
+            else:
+                entry['id'] = obj.id 
+            for attr in attrs:
+                entry[attr] = obj.get_info(attr)
+            table_entries.append(entry)
+        return pd.DataFrame(table_entries).set_index('id')
+
+    def set_user_convo_info(self, user_id, convo_id, key, value):
+        user = self.get_user(user_id)
+        if 'conversations' not in user.meta:
+            user.meta['conversations'] = {}
+        if convo_id not in user.meta['conversations']:
+            user.meta['conversations'][convo_id] = {}
+        user.meta['conversations'][convo_id][key] = value
+
+    def get_user_convo_info(self, user_id, convo_id, key=None):
+        user = self.get_user(user_id)
+        if 'conversations' not in user.meta: return None
+        if key is None:
+            return user.meta['conversations'].get(convo_id,{})
+        return user.meta['conversations'].get(convo_id,{}).get(key)
+
+
+    def organize_user_convo_history(self, utterance_filter=None):
+
+        if utterance_filter is None:
+            utterance_filter = lambda x: True
+        else:
+            utterance_filter = utterance_filter
+
+        user_to_convo_utts = defaultdict(lambda: defaultdict(list))
+        for utterance in self.iter_utterances():
+            if not utterance_filter(utterance): continue
+
+            user_to_convo_utts[utterance.user.name][utterance.root].append((utterance.id, utterance.timestamp))
+        for user, convo_utts in user_to_convo_utts.items():
+            for convo, utts in convo_utts.items():
+                sorted_utts = sorted(utts, key=lambda x: (x[1], x[0]))
+                self.set_user_convo_info(user, convo, 'utterance_ids', [x[0] for x in sorted_utts])
+                self.set_user_convo_info(user, convo, 'start_time', sorted_utts[0][1])
+                self.set_user_convo_info(user, convo, 'n_utterances', len(sorted_utts))
+        for user in self.iter_users():
+            try:
+                user.set_info('n_convos', len(user.get_info('conversations')))
+            except: 
+                continue
+
+            sorted_convos = sorted(user.get_info('conversations').items(), key=lambda x: (x[1]['start_time'], x[1]['utterance_ids'][0]))
+            user.set_info('start_time', sorted_convos[0][1]['start_time'])
+            for idx, (convo_id, _) in enumerate(sorted_convos):
+                self.set_user_convo_info(user.name, convo_id, 'idx', idx)
+
+
+
+    def get_user_convo_attribute_table(self, attrs):
+        table_entries = []
+        for user in self.iter_users():
+
+            if 'conversations' not in user.meta: continue
+            for convo_id, convo_dict in user.meta['conversations'].items():
+                entry = {'id': '%s__%s' % (user.name, convo_id),
+                'user': user.name, 'convo_id': convo_id,
+                'convo_idx': convo_dict['idx']}
+
+                for attr in attrs:
+                    entry[attr] = convo_dict.get(attr,None)
+                table_entries.append(entry)
+        return pd.DataFrame(table_entries).set_index('id')
+
+    def get_full_attribute_table(self, user_convo_attrs, user_attrs=[], convo_attrs=[], user_suffix='__user', convo_suffix='__convo'):
+
+        uc_df = self.get_user_convo_attribute_table(user_convo_attrs)
+        u_df = self.get_attribute_table('user', user_attrs)
+        u_df.columns = [x + user_suffix for x in u_df.columns]
+        c_df = self.get_attribute_table('conversation', convo_attrs)
+        c_df.columns = [x + convo_suffix for x in c_df.columns]
+        return uc_df.join(u_df, on='user').join(c_df, on='convo_id')
+
+

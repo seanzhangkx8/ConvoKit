@@ -4,9 +4,16 @@ import json
 import os
 import sys
 
+
+'''
+	some code to update datasets with new parse format.	
+'''
+
+
 VERBOSITY = 1000
 ROOT_DIR = '/kitchen/clean-corpora'
-INCREMENT_VERSION = True
+INCREMENT_VERSION = False
+PARSE = True
 
 if __name__ == '__main__':
 
@@ -50,13 +57,15 @@ if __name__ == '__main__':
 	if os.path.exists(os.path.join(filename, 'parsed-bin.p')):
 		os.remove(os.path.join(filename, 'parsed-bin.p'))
 
-	print('loading corpus')
-	corpus = Corpus(filename)
-
-	print('parsing corpus')
-	textparser = TextParser(verbosity=VERBOSITY)
-	corpus = textparser.transform(corpus)
 	
-	print('dumping parses')
-	corpus.dump_info('utterance', ['parsed'])
+
+	if PARSE:
+		print('loading corpus')
+		corpus = Corpus(filename)
+		print('parsing corpus')
+		textparser = TextParser(verbosity=VERBOSITY)
+		corpus = textparser.transform(corpus)
+	
+		print('dumping parses')
+		corpus.dump_info('utterance', ['parsed'])
 	os.remove(os.path.join(ROOT_DIR, corpus_name + '.zip'))
