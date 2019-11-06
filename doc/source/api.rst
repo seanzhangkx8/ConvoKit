@@ -34,7 +34,6 @@ These are the main offerings of ConvoKit: standalone modules implementing variou
 .. toctree::
    :maxdepth: 2
 
-   Basic <basic.rst>
    Parser <parser.rst>
    Coordination <coordination.rst>
    QuestionTypology <questionTypology.rst>

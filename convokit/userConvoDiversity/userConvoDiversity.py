@@ -57,7 +57,7 @@ def compute_divergences(cmp_tokens, ref_token_list,
 
 class UserConvoDiversity(Transformer):
 	'''
-		implements methodology to compute the linguistic divergence between a user's activity in each conversation in a corpus (i.e., the language of their utterances) and a reference language model trained over a different set of conversations/users. A generalization of the methodology from http://www.cs.cornell.edu/~cristian/Finding_your_voice__linguistic_development.html . See `UserConvoDiversityWrapper` for more specific implementation which compares language used by individuals within fixed lifestages, and see the implementation of this wrapper for examples of calls to this transformer. 
+		implements methodology to compute the linguistic divergence between a user's activity in each conversation in a corpus (i.e., the language of their utterances) and a reference language model trained over a different set of conversations/users.  See `UserConvoDiversityWrapper` for more specific implementation which compares language used by individuals within fixed lifestages, and see the implementation of this wrapper for examples of calls to this transformer. 
 
 		The transformer assumes that a corpus has already been tokenized (via a call to `TextParser`).
 
@@ -186,7 +186,7 @@ def compute_user_convo_divergence(input_table, cmp_select_fn=lambda df, aux: np.
 class UserConvoDiversityWrapper(Transformer):
 
 	'''
-		implements methodology for calculating linguistic diversity from http://www.cs.cornell.edu/~cristian/Finding_your_voice__linguistic_development.html . A wrapper around `UserConvoDiversity`.
+		implements methodology for calculating linguistic diversity per life-stage. A wrapper around `UserConvoDiversity`.
 
 		Outputs the following (user, conversation) attributes:
 			* `div__self` (within-diversity)
