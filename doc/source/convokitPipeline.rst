@@ -3,5 +3,5 @@ Pipeline
 
 Supports pipelining ConvoKit transformers.
 
-.. .. automodule:: convokit.convokitPipeline
+.. automodule:: convokit.convokitPipeline
 	:members:
