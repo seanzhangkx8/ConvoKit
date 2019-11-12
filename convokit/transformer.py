@@ -56,3 +56,7 @@ class Transformer(ABC):
 
     def analyze(self, corpus: Corpus):
         pass
+
+    def fit_analyze(self, corpus: Corpus):
+        self.fit(corpus)
+        return self.analyze(corpus)
