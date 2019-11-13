@@ -121,7 +121,7 @@ class FightingWords(Transformer):
         if self.ngram_zscores is None:
             raise ValueError("fit() must be run on a corpus first.")
         ngram_zscores_list = self.get_ngram_zscores()
-        top_k_l1 = reversed([x[0] for x in ngram_zscores_list[-self.top_k:]])
+        top_k_l1 = list(reversed([x[0] for x in ngram_zscores_list[-self.top_k:]]))
         top_k_l2 = [x[0] for x in ngram_zscores_list[:self.top_k]]
         return top_k_l1, top_k_l2
 
