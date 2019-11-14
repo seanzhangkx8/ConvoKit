@@ -142,7 +142,9 @@ class User:
         self._uid = "User(" + str(sorted(rep.items())) + ")"
 
     def __eq__(self, other):
-        return self._uid == other._uid
+        if isinstance(other, User):
+            return self._uid == other._uid
+        return False
 
     def __lt__(self, other):
         return self._uid < other._uid

@@ -91,7 +91,9 @@ class Utterance:
         self.meta[key] = value
 
     def __eq__(self, other):
-        return self.__dict__ == other.__dict__
+        if isinstance(other, Utterance):
+            return self.__dict__ == other.__dict__
+        return False
 
     def __repr__(self):
         return "Utterance(" + str(self.__dict__) + ")"

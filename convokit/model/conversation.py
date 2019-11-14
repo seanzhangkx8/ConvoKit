@@ -146,7 +146,9 @@ class Conversation:
             yield self._owner.get_user(username)
 
     def __eq__(self, other):
-        return self.__dict__ == other.__dict__
+        if isinstance(other, Conversation):
+            return self.__dict__ == other.__dict__
+        return False
 
     def __repr__(self):
         return "Conversation(" + str(self.__dict__) + ")"
