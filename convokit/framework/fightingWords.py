@@ -5,6 +5,7 @@ from convokit import Transformer
 from convokit.model import Corpus, Utterance
 from typing import List, Callable
 from matplotlib import pyplot as plt
+import pandas as pd
 
 exclude = set(string.punctuation)
 
@@ -12,8 +13,6 @@ class FightingWords(Transformer):
     """
     Adapted from: https://github.com/jmhessel/FightingWords
     
-    # DESIGN DECISION: restrict unit to utterance list #TODO
-
     - ngram; an int describing up to what n gram you want to consider (1 is unigrams,
         2 is bigrams + unigrams, etc). Ignored if a custom CountVectorizer is passed.
     - prior; either a float describing a uniform prior, or a vector describing a prior
@@ -26,7 +25,7 @@ class FightingWords(Transformer):
     """
     def __init__(self, l1_selector: Callable[[Utterance], bool],
                  l2_selector: Callable[[Utterance], bool],
-                 ngram=1, prior=0.1, threshold=1, top_k=10, annot_method="top_k", cv=None):
+                 ngram=None, prior=0.1, threshold=1, top_k=10, annot_method="top_k", cv=None):
         self.l1_selector = l1_selector
         self.l2_selector = l2_selector
         self.ngram = ngram
@@ -42,7 +41,9 @@ class FightingWords(Transformer):
             raise ValueError("If using a non-uniform prior, you must pass a count vectorizer with "
                              "the vocabulary parameter set.")
         if self.cv is None:
-            self.cv = CV(decode_error='ignore', min_df=10, max_df=.5, ngram_range=(1, 3),
+            if self.ngram is None:
+                self.ngram = (1, 3)
+            self.cv = CV(decode_error='ignore', min_df=10, max_df=.5, ngram_range=self.ngram,
                     binary=False,
                     max_features=15000)
     @staticmethod
@@ -115,17 +116,17 @@ class FightingWords(Transformer):
     def get_ngram_zscores(self):
         if self.ngram_zscores is None:
             raise ValueError("fit() must be run on a corpus first.")
-        return list(self.ngram_zscores.items())
+        return pd.DataFrame(list(self.ngram_zscores.items()), columns=['ngram', 'z-score']).set_index('ngram')
 
-    def top_k_ngrams(self):
+    def get_top_k_ngrams(self):
         if self.ngram_zscores is None:
             raise ValueError("fit() must be run on a corpus first.")
-        ngram_zscores_list = self.get_ngram_zscores()
+        ngram_zscores_list = list(zip(self.get_ngram_zscores().index, self.get_ngram_zscores()['z-score']))
         top_k_l1 = list(reversed([x[0] for x in ngram_zscores_list[-self.top_k:]]))
         top_k_l2 = [x[0] for x in ngram_zscores_list[:self.top_k]]
         return top_k_l1, top_k_l2
 
-    def ngrams_past_threshold(self):
+    def get_ngrams_past_threshold(self):
         if self.ngram_zscores is None:
             raise ValueError("fit() must be run on a corpus first.")
         l1_ngrams = []
@@ -138,7 +139,7 @@ class FightingWords(Transformer):
         return l1_ngrams, l2_ngrams
 
     def transform(self, corpus: Corpus) -> Corpus:
-        l1_ngrams, l2_ngrams = self.top_k_ngrams() if self.annot_method == "top_k" else self.ngrams_past_threshold()
+        l1_ngrams, l2_ngrams = self.get_top_k_ngrams() if self.annot_method == "top_k" else self.get_ngrams_past_threshold()
 
         for utt in corpus.iter_utterances(): # improve the efficiency of this; tricky because ngrams #TODO
             utt.meta['fighting_words_l1'] = [ngram for ngram in l1_ngrams if ngram in utt.text]
@@ -153,31 +154,36 @@ class FightingWords(Transformer):
     def analyze(self, corpus: Corpus):
         if self.ngram_zscores is None:
             self.fit(corpus)
-        self.plot_fighting_words()
+        return self.get_ngram_zscores()
 
-    def plot_fighting_words(self):
+    def plot_fighting_words(self, max_label_size=15):
         # Adapted from https://gist.github.com/xandaschofield/3c4070b2f232b185ce6a09e47b4e7473
         if self.ngram_zscores is None:
             raise ValueError("fit() must be run on a corpus first.")
 
         x_vals = self._count_matrix.sum(axis=0)
-        y_vals = [x[1] for x in self.get_ngram_zscores()]
-        sizes = abs(np.array(y_vals)) * 1.5
+        y_vals = list(self.get_ngram_zscores()['z-score'])
+        sizes = abs(np.array(y_vals))
+        scale_factor = max_label_size / max(sizes)
+        sizes *= scale_factor
         neg_color, pos_color, insig_color = ('orange', 'purple', 'grey')
         colors = []
         annots = []
 
-        l1_sig_ngrams, l2_sig_ngrams = self.top_k_ngrams() if self.annot_method == "top_k" else self.ngrams_past_threshold()
+        l1_sig_ngrams, l2_sig_ngrams = self.get_top_k_ngrams() if self.annot_method == "top_k" \
+                                        else self.get_ngrams_past_threshold()
         l1_sig_ngrams = set(l1_sig_ngrams)
         l2_sig_ngrams = set(l2_sig_ngrams)
 
-        for i, (term, y_val) in enumerate(self.get_ngram_zscores()):
-            if term in l1_sig_ngrams:
+        terms = list(self.get_ngram_zscores().index)
+
+        for i in range(len(terms)):
+            if terms[i] in l1_sig_ngrams:
                 colors.append(pos_color)
-                annots.append(term)
-            elif term in l2_sig_ngrams:
+                annots.append(terms[i])
+            elif terms[i] in l2_sig_ngrams:
                 colors.append(neg_color)
-                annots.append(term)
+                annots.append(terms[i])
             else:
                 colors.append(insig_color)
                 annots.append(None)
