@@ -45,6 +45,27 @@ class Conversation:
         """
         self.meta[key] = value
 
+    def get_info(self, key):
+        """
+            Gets attribute <key> of the conversation. Returns None if the conversation does not have this attribute.
+            
+            :param key: name of attribute
+            :return: attribute <key>
+        """
+        
+        return self.meta.get(key,None)
+
+    def set_info(self, key, value):
+        """
+            Sets attribute <key> of the conversation to <value>.
+
+            :param key: name of attribute
+            :param value: value to set
+            :return: None
+        """
+
+        self.meta[key] = value
+
     # Conversation.id property
     def _get_id(self):
         """The unique ID of this Conversation [read-only]"""
@@ -125,7 +146,9 @@ class Conversation:
             yield self._owner.get_user(username)
 
     def __eq__(self, other):
-        return self.__dict__ == other.__dict__
+        if isinstance(other, Conversation):
+            return self.__dict__ == other.__dict__
+        return False
 
     def __repr__(self):
         return "Conversation(" + str(self.__dict__) + ")"

@@ -139,7 +139,7 @@ def download(name: str, verbose: bool=True, data_dir: str=None, use_newest_versi
 
 def download_helper(dataset_path: str, url: str, verbose: bool, name: str, downloadeds_path: str) -> None:
 
-    if url.lower().endswith(".corpus") or url.lower().endswith(".corpus.zip"):
+    if url.lower().endswith(".corpus") or url.lower().endswith(".corpus.zip") or url.lower().endswith(".zip"):
         dataset_path += ".zip"
 
     with urllib.request.urlopen(url) as response, \
@@ -161,7 +161,7 @@ def download_helper(dataset_path: str, url: str, verbose: bool, name: str, downl
                 os.mkdir(corpus_dir)
             zipf.extractall(corpus_dir)
 
-    elif url.lower().endswith(".corpus"):
+    elif url.lower().endswith(".corpus") or url.lower().endswith(".zip"):
         #print(dataset_path)
         with zipfile.ZipFile(dataset_path, "r") as zipf:
             zipf.extractall(os.path.dirname(dataset_path))
