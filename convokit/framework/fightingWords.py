@@ -24,8 +24,8 @@ class FightingWords(Transformer):
     - cv; a sklearn.feature_extraction.text.CountVectorizer object, if desired.
     """
     def __init__(self, l1_selector: Callable[[Utterance], bool],
-                 l2_selector: Callable[[Utterance], bool],
-                 ngram=None, prior=0.1, threshold=1, top_k=10, annot_method="top_k", cv=None):
+                 l2_selector: Callable[[Utterance], bool], cv=None,
+                 ngram=None, prior=0.1, threshold=1, top_k=10, annot_method="top_k"):
         self.l1_selector = l1_selector
         self.l2_selector = l2_selector
         self.ngram = ngram
@@ -41,6 +41,7 @@ class FightingWords(Transformer):
             raise ValueError("If using a non-uniform prior, you must pass a count vectorizer with "
                              "the vocabulary parameter set.")
         if self.cv is None:
+            print("Initializing default CountVectorizer...")
             if self.ngram is None:
                 self.ngram = (1, 3)
             self.cv = CV(decode_error='ignore', min_df=10, max_df=.5, ngram_range=self.ngram,
@@ -197,6 +198,10 @@ class FightingWords(Transformer):
         ax.set_title("Weighted log-odds ratio against Frequency of word within topic")
         plt.show()
 
+    def get_model(self):
+        return self.cv
 
+    def set_model(self, cv):
+        self.cv = cv
 
 

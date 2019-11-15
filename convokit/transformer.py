@@ -64,5 +64,5 @@ class Transformer(ABC):
     def get_model(self):
         pass
 
-    def set_model(self):
+    def set_model(self, model):
         pass
