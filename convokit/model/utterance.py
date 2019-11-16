@@ -1,10 +1,11 @@
-from typing import Dict, List, Collection, Hashable, Callable, Set, Generator, Tuple, Optional, ValuesView
+from typing import Dict, List, Collection, Callable, Set, Generator, Tuple, Optional, ValuesView
 from .user import User
+
 
 class Utterance:
     """Represents a single utterance in the dataset.
 
-    :param id: the unique id of the utterance. Can be any hashable type.
+    :param id: the unique id of the utterance.
     :param user: the user giving the utterance.
     :param root: the id of the root utterance of the conversation.
     :param reply_to: id of the utterance this was a reply to.
@@ -21,8 +22,8 @@ class Utterance:
     :ivar text: text of the utterance.
     """
 
-    def __init__(self, id: Optional[Hashable]=None, user: Optional[User]=None,
-                 root: Optional[Hashable]=None, reply_to: Optional[Hashable]=None,
+    def __init__(self, id: Optional[str]=None, user: Optional[User]=None,
+                 root: Optional[str]=None, reply_to: Optional[str]=None,
                  timestamp: Optional[int]=None, text: Optional[str]=None,
                  meta: Optional[Dict]=None):
         self.id = id
@@ -61,7 +62,7 @@ class Utterance:
     #                      text=self.text,
     #                      meta=self.meta.copy())
 
-    def add_meta(self, key: Hashable, value) -> None:
+    def add_meta(self, key: str, value) -> None:
         """
         Add a key-value pair to the Utterance metadata
 

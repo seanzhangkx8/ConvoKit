@@ -119,28 +119,33 @@ class FightingWords(Transformer):
             raise ValueError("fit() must be run on a corpus first.")
         return pd.DataFrame(list(self.ngram_zscores.items()), columns=['ngram', 'z-score']).set_index('ngram')
 
-    def get_top_k_ngrams(self):
+    def get_top_k_ngrams(self, top_k=None):
         if self.ngram_zscores is None:
             raise ValueError("fit() must be run on a corpus first.")
+        if top_k is None:
+            top_k = self.top_k
         ngram_zscores_list = list(zip(self.get_ngram_zscores().index, self.get_ngram_zscores()['z-score']))
-        top_k_l1 = list(reversed([x[0] for x in ngram_zscores_list[-self.top_k:]]))
-        top_k_l2 = [x[0] for x in ngram_zscores_list[:self.top_k]]
+        top_k_l1 = list(reversed([x[0] for x in ngram_zscores_list[-top_k:]]))
+        top_k_l2 = [x[0] for x in ngram_zscores_list[:top_k]]
         return top_k_l1, top_k_l2
 
-    def get_ngrams_past_threshold(self):
+    def get_ngrams_past_threshold(self, threshold: float = None):
         if self.ngram_zscores is None:
             raise ValueError("fit() must be run on a corpus first.")
+        if threshold is None:
+            threshold = self.threshold
         l1_ngrams = []
         l2_ngrams = []
         for ngram, zscore in self.ngram_zscores.items():
-            if zscore > self.threshold:
+            if zscore > threshold:
                 l1_ngrams.append(ngram)
-            elif zscore < -self.threshold:
+            elif zscore < -threshold:
                 l2_ngrams.append(ngram)
         return l1_ngrams, l2_ngrams
 
     def transform(self, corpus: Corpus) -> Corpus:
-        l1_ngrams, l2_ngrams = self.get_top_k_ngrams() if self.annot_method == "top_k" else self.get_ngrams_past_threshold()
+        l1_ngrams, l2_ngrams = self.get_top_k_ngrams() if self.annot_method == "top_k" \
+                                else self.get_ngrams_past_threshold()
 
         for utt in corpus.iter_utterances(): # improve the efficiency of this; tricky because ngrams #TODO
             utt.meta['fighting_words_l1'] = [ngram for ngram in l1_ngrams if ngram in utt.text]

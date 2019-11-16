@@ -1,5 +1,5 @@
 
-from typing import Dict, List, Collection, Hashable, Callable, Set, Generator, Tuple, Optional, ValuesView
+from typing import Dict, List, Collection, Callable, Set, Generator, Tuple, Optional, ValuesView
 import pickle
 import numpy as np
 import pandas as pd
@@ -382,55 +382,28 @@ class Corpus:
 	def get_utterance_ids(self) -> List:
 		return list(self.utterances.keys())
 
-	def get_utterance(self, ut_id: Hashable) -> Utterance:
+	def get_utterance(self, ut_id: str) -> Utterance:
 		return self.utterances[ut_id]
 
-	def iter_utterances(self) -> Generator[Utterance, None, None]:
+	def iter_utterances(self, selector: Optional[Callable[[Utterance], bool]] = lambda utt: True) -> Generator[Utterance, None, None]:
 		for v in self.utterances.values():
-			yield v
+			if selector(v):
+				yield v
 
-	def get_conversation_ids(self) -> List[str]:
-		return list(self.conversations.keys())
+	def get_conversation_ids(self, selector: Optional[Callable[[Conversation], bool]] = lambda convo: True) -> List[str]:
+		return [convo.id for convo in self.iter_conversations(selector)]
 
-	def get_conversation(self, cid: Hashable) -> Conversation:
+	def get_conversation(self, cid: str) -> Conversation:
 		return self.conversations[cid]
 
-	def iter_conversations(self) -> Generator[Conversation, None, None]:
+	def iter_conversations(self, selector: Optional[Callable[[Conversation], bool]] = lambda convo: True) -> Generator[Conversation, None, None]:
 		for v in self.conversations.values():
-			yield v
-
-	def filter_utterances_by(self, regular_kv_pairs: Optional[Dict]=None,
-							 meta_kv_pairs: Optional[Dict]=None) -> None:
-		"""
-		Creates a subset of the utterances filtered by certain attributes. Irreversible.
-		If the method is run again, it will filter the already filtered subset.
-		Always takes the intersection of the specified key-pairs
-		"""
-		if regular_kv_pairs is None: regular_kv_pairs = dict()
-		if meta_kv_pairs is None: meta_kv_pairs = dict()
-		new_utterances = dict()
-
-		regular_keys = list(regular_kv_pairs.keys())
-		meta_keys = list(meta_kv_pairs.keys())
-		for uid, utterance in self.utterances.items():
-			meta_dict = utterance.meta
-			regular = all(utterance.get(key) == regular_kv_pairs[key] for key in regular_keys)
-			meta = all(meta_dict[key] == meta_kv_pairs[key] for key in meta_keys)
-			if regular and meta:
-				new_utterances[uid] = utterance
-
-		self.utterances = new_utterances
-
-	#    def earliest_n_utterances(self, n, uts=None):
-	#        """Returns the first n utterances (ordered by time)."""
-	#        if uts is None:
-	#            uts = self.utterances
-	#        uts = list(sorted(uts.values(), key=lambda u: u.timestamp))
-	#        return uts[:n]
+			if selector(v):
+				yield v
 
 	def utterance_threads(self, prefix_len: Optional[int]=None,
 						  suffix_len: int=0,
-						  include_root: bool=True) -> Dict[Hashable, Dict[Hashable, Utterance]]:
+						  include_root: bool=True) -> Dict[str, Dict[str, Utterance]]:
 		"""
 		Returns dict of threads, where a thread is all utterances with the
 		same root.
@@ -460,10 +433,10 @@ class Corpus:
 	def get_meta(self) -> Dict:
 		return self.meta
 
-	def add_meta(self, key: Hashable, value) -> None:
+	def add_meta(self, key: str, value) -> None:
 		self.meta[key] = value
 
-	def iter_users(self, selector: Optional[Callable[[User], bool]]=None) -> Generator[User, None, None]:
+	def iter_users(self, selector: Optional[Callable[[User], bool]] = lambda user: True) -> Generator[User, None, None]:
 		"""Get users in the dataset.
 
 		:param selector: optional function that takes in a
@@ -474,19 +447,18 @@ class Corpus:
 			or all users in the dataset if no selector function was
 			used.
 		"""
-		if selector is None:
-			for user in self.all_users.values():
+
+		for user in self.all_users.values():
+			if selector(user):
 				yield user
-		else:
-			for user in self.all_users.values():
-				if selector(user):
-					yield user
 
 	def get_user(self, name: str) -> User:
 		return self.all_users[name]
 
-	def get_usernames(self, selector: Optional[Callable[[User], bool]]=None) -> Set[str]:
+	def get_usernames(self, selector: Optional[Callable[[User], bool]] = None) -> Set[str]:
 		"""Get names of users in the dataset.
+
+		This function will be deprecated and replaced by get_user_ids()
 
 		:param selector: optional function that takes in a
 			`User` and returns True to include the user's name in the
@@ -495,8 +467,13 @@ class Corpus:
 		:return: Set containing all user names selected by the selector
 			function, or all user names in the dataset if no selector function
 			was used.
+
 		"""
 		return set([u.name for u in self.iter_users(selector)])
+
+
+	def get_user_ids(self, selector: Optional[Callable[[User], bool]] = None) -> Set[str]:
+		return set([u.id for u in self.iter_users(selector)])
 
 	def speaking_pairs(self, selector: Optional[Callable[[User, User], bool]]=None,
 					   user_names_only: bool=False) -> Set[Tuple]:
@@ -629,7 +606,7 @@ class Corpus:
 		return seen_utts.values()
 
 	@staticmethod
-	def _collect_user_data(utt_sets: Collection[Collection[Utterance]]) -> Tuple[Dict[str, Dict[Hashable, str]], Dict[str, Dict[Hashable, bool]]]:
+	def _collect_user_data(utt_sets: Collection[Collection[Utterance]]) -> Tuple[Dict[str, Dict[str, str]], Dict[str, Dict[str, bool]]]:
 		"""
 		Helper function for merge().
 

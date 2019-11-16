@@ -1,4 +1,4 @@
-from typing import Dict, List, Collection, Hashable, Callable, Set, Generator, Tuple, Optional, ValuesView
+from typing import Dict, List, Collection, Callable, Set, Generator, Tuple, Optional, ValuesView
 from .utterance import Utterance
 from .user import User
 
@@ -37,7 +37,7 @@ class Conversation:
 
     meta = property(_get_meta, _set_meta)
 
-    def add_meta(self, key: Hashable, value) -> None:
+    def add_meta(self, key: str, value) -> None:
         """
         Adds a key-value pair to the Conversation metadata
 
@@ -84,7 +84,7 @@ class Conversation:
         # ID list (since lists are mutable)
         return [ut_id for ut_id in self._utterance_ids]
 
-    def get_utterance(self, ut_id: Hashable) -> Utterance:
+    def get_utterance(self, ut_id: str) -> Utterance:
         """Looks up the Utterance associated with the given ID. Raises a
         KeyError if no utterance by that ID exists.
 
@@ -144,6 +144,50 @@ class Conversation:
                 self._usernames.add(ut.user.name)
         for username in self._usernames:
             yield self._owner.get_user(username)
+
+    def check_integrity(self, verbose=True):
+        if verbose: print("Checking reply-to chain of Conversation", self.id)
+        utt_reply_tos = {utt.id: utt.reply_to for utt in self.iter_utterances()}
+        target_utts = set(list(utt_reply_tos.values()))
+        speaker_utts = set(list(utt_reply_tos.keys()))
+        root_utt = target_utts - speaker_utts # There should only be 1 root_utt: None
+
+        if len(root_utt) != 1:
+            if verbose:
+                for utt_id in root_utt:
+                    if utt_id is not None:
+                        print("ERROR: Missing utterance", utt_id)
+            return False
+
+        # sanity check
+        utts_replying_to_none = 0
+        for utt in self.iter_utterances():
+            if utt.reply_to is None:
+                utts_replying_to_none += 1
+
+        if utts_replying_to_none > 1:
+            if verbose: print("ERROR: Found more than one Utterance replying to None.")
+            return False
+        if verbose: print("No issues found.\n")
+        return True
+
+    def _print_convo_helper(self, root: str, indent: int, reply_to_dict: Dict[str, str],
+                            utt_info_func: Callable[[Utterance], str]):
+        print(" "*indent + utt_info_func(self.get_utterance(root)))
+        children_utt_ids = [k for k, v in reply_to_dict.items() if v == root]
+        for child_utt_id in children_utt_ids:
+            self._print_convo_helper(root=child_utt_id, indent=indent+4,
+                                     reply_to_dict=reply_to_dict, utt_info_func=utt_info_func)
+
+    def print_conversation_structure(self, utt_info_func: Callable[[Utterance], str] = lambda utt: utt.user.id):
+        if not self.check_integrity(verbose=False):
+            raise ValueError("Could not print conversation structure: The utterance reply-to chain is broken. "
+                             "Try check_integrity() to diagnose the problem.")
+
+        root_utt_id = [utt for utt in self.iter_utterances() if utt.reply_to is None][0].id
+        reply_to_dict = {utt.id: utt.reply_to for utt in self.iter_utterances()}
+
+        self._print_convo_helper(root=root_utt_id, indent=0, reply_to_dict=reply_to_dict, utt_info_func=utt_info_func)
 
     def __eq__(self, other):
         if isinstance(other, Conversation):
