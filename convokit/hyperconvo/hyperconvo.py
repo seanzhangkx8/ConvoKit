@@ -3,7 +3,7 @@ import numpy as np
 import scipy.stats
 
 from convokit.transformer import Transformer
-from typing import Dict, Optional, Hashable
+from typing import Dict, Optional
 from convokit.model import Corpus, Utterance
 from .hypergraph import Hypergraph
 
@@ -91,8 +91,8 @@ class HyperConvo(Transformer):
 
     @staticmethod
     def _make_hypergraph(corpus: Optional[Corpus]=None,
-                         uts: Optional[Dict[Hashable, Utterance]]=None,
-                         exclude_id: Hashable=None) -> Hypergraph:
+                         uts: Optional[Dict[str, Utterance]]=None,
+                         exclude_id: str=None) -> Hypergraph:
         """
         Construct a Hypergraph from all the utterances of a Corpus, or a specified subset of utterances
 
@@ -152,10 +152,10 @@ class HyperConvo(Transformer):
         return "C" if b else "c"
 
     @staticmethod
-    def _degree_feats(uts: Optional[Dict[Hashable, Utterance]]=None,
+    def _degree_feats(uts: Optional[Dict[str, Utterance]]=None,
                       G: Optional[Hypergraph]=None,
                       name_ext: str="",
-                      exclude_id: Optional[Hashable]=None) -> Dict:
+                      exclude_id: Optional[str]=None) -> Dict:
         """
         Helper method for retrieve_feats().
         Generate statistics on degree-related features in a Hypergraph (G), or a Hypergraph
@@ -208,7 +208,7 @@ class HyperConvo(Transformer):
         return stats
 
     @staticmethod
-    def _motif_feats(uts: Optional[Dict[Hashable, Utterance]]=None,
+    def _motif_feats(uts: Optional[Dict[str, Utterance]]=None,
                      G: Hypergraph=None,
                      name_ext: str="",
                      exclude_id: str=None) -> Dict:
@@ -248,7 +248,7 @@ class HyperConvo(Transformer):
     @staticmethod
     def retrieve_feats(corpus: Corpus, prefix_len: int=10,
                        min_thread_len: int=10,
-                       include_root: bool=True) -> Dict[Hashable, Dict]:
+                       include_root: bool=True) -> Dict[str, Dict]:
         """
         Retrieve all hypergraph features for a given corpus (viewed as a set
         of conversation threads).
