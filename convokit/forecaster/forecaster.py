@@ -2,7 +2,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from convokit.model import Corpus, Conversation, User, Utterance
 from sklearn import svm
-from typing import List, Hashable, Callable, Union
+from typing import List, Hashable, Callable, Union, Optional
 from convokit import Transformer
 from sklearn.feature_extraction.text import CountVectorizer as CV
 from sklearn.pipeline import Pipeline
@@ -17,7 +17,9 @@ class Forecaster(Transformer):
     """
     def __init__(self, pred_feat: str, vectorizer=None, model=None,
                  use_tokens: bool = False, num_tokens: int = 80,
-                 text_feat: str = None):
+                 text_feat: str = None,
+                 utt_selector_func: Optional[Callable[[Utterance], bool]] = lambda utt: True,
+                 convo_selector_func: Optional[Callable[[Conversation], bool]] = lambda convo: True):
 
         if vectorizer is None:
             print("Initializing default unigram CountVectorizer...")
@@ -42,29 +44,51 @@ class Forecaster(Transformer):
 
         self.pred_feat = pred_feat
         self.text_feat = text_feat
+        self.use_tokens = use_tokens
         self.num_tokens = num_tokens
+        self.utt_selector_func = utt_selector_func
+        self.convo_selector_func = convo_selector_func
 
 
     def _get_pairs(self, convo_selector_func=None, utt_exclude=None):
 
         pass
 
-    def fit(self, corpus):
+    def fit(self, corpus, y=None):
         """
         Fit_transform on corpus using self.vectorizer then train a classifier based on it
         :param corpus:
+        :param y:
         :return:
         """
-        if self.text_feat is None: # use utterance text
-            pass
-        else: # use text stored 
-            if
-
-        docs =
+        docs = []
         for convo in corpus.iter_conversations():
+            if not self.convo_selector_func(convo): continue
             for utt in convo.iter_utterances():
-                pass
-        pass
+                if not self.utt_selector_func(utt): continue
+
+                if self.text_feat is None:
+                    docs.append(utt.text)
+                else: # use text stored in metadata feature
+                    utt_text = utt.get_info(self.text_feat)
+                    if self.use_tokens:
+                        docs.append(utt_text[:self.num_tokens])
+def loadPairs(voc, corpus, split=None):
+    pairs = []
+    for convo in corpus.iter_conversations():
+        # consider only conversations in the specified split of the data
+        # if split is None or convo.meta['split'] == split:
+        dialog = processDialog(voc, convo)
+        for idx in range(1, len(dialog)):
+            reply = dialog[idx]["tokens"][:(MAX_LENGTH-1)]
+            # label = dialog[idx]["is_attack"]
+            comment_id = dialog[idx]["id"]
+            # gather as context all utterances preceding the reply
+            context = [u["tokens"][:(MAX_LENGTH-1)] for u in dialog[:idx]]
+            pairs.append((context, reply, comment_id))
+            # pairs.append((context, reply, label, comment_id))
+    return pairs
+
 
     def get_model(self):
         return self.model
