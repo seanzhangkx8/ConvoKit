@@ -7,7 +7,7 @@ class Conversation:
     reply-to chain.
 
     :param owner: The Corpus that this Conversation belongs to
-    :param id: The unique ID of this Conversation
+    :param cid: The unique ID of this Conversation
     :param utterances: A list of the IDs of the Utterances in this Conversation
     :param meta: Table of initial values for conversation-level metadata
 
@@ -17,11 +17,11 @@ class Conversation:
         metadata, use Corpus.meta.
     """
 
-    def __init__(self, owner, id: Optional[str]=None,
+    def __init__(self, owner, cid: Optional[str]=None,
                  utterances: Optional[List[str]]=None,
                  meta: Optional[Dict]=None):
         self._owner = owner
-        self._id = id
+        self._id = cid
         self._utterance_ids = utterances
         self._usernames = None
         self._meta = {} if meta is None else meta
