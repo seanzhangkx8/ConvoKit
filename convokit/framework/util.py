@@ -1,12 +1,14 @@
 from convokit.model import Corpus, Conversation, Utterance, User
-from typing import List, Hashable, Union, Callable
+from typing import List, Union, Callable
 import pandas as pd
 from scipy.sparse import csr_matrix
 import numpy as np
 
-def extract_feats_from_obj(obj: Union[Utterance, Conversation, User], pred_feats: List[Hashable]):
+
+def extract_feats_from_obj(obj: Union[Utterance, Conversation, User], pred_feats: List[str]):
     """
-    DESIGN DECISION: how to extract values from nested dicts? consider flattening nested dict? # TODO
+    DESIGN DECISION: how to extract values from nested dicts?
+                    consider flattening nested dict? Allow only one level of nesting
     :param obj:
     :param pred_feats:
     :return:
@@ -21,41 +23,32 @@ def extract_feats_from_obj(obj: Union[Utterance, Conversation, User], pred_feats
     return retval
 
 
-def extract_feats_dict(corpus: Corpus, obj_type: str, pred_feats: List[Hashable],
-                       filter_func: Callable[[Union[User, Utterance, Conversation]], bool] = None):
-    obj_iters = {"conversation": corpus.iter_conversations,
-                 "user": corpus.iter_users,
-                 "utterance": corpus.iter_utterances}
-
-    obj_id_to_feats = {obj.id: extract_feats_from_obj(obj, pred_feats) for obj in obj_iters[obj_type]()
-                       if filter_func is None or filter_func(obj)}
+def extract_feats_dict(corpus: Corpus, obj_type: str, pred_feats: List[str],
+                       selector: Callable[[Union[User, Utterance, Conversation]], bool] = lambda x: True):
+    obj_id_to_feats = {obj.id: extract_feats_from_obj(obj, pred_feats) for obj in corpus.iter_objs(obj_type, selector)}
 
     return obj_id_to_feats
 
-def extract_feats(corpus: Corpus, obj_type: str, pred_feats: List[Hashable],
-                  filter_func: Callable[[Union[User, Utterance, Conversation]], bool] = None):
-    obj_id_to_feats = extract_feats_dict(corpus, obj_type, pred_feats, filter_func)
+def extract_feats(corpus: Corpus, obj_type: str, pred_feats: List[str],
+                  selector: Callable[[Union[User, Utterance, Conversation]], bool] = lambda x: True):
+    obj_id_to_feats = extract_feats_dict(corpus, obj_type, pred_feats, selector)
     feats_df = pd.DataFrame.from_dict(obj_id_to_feats, orient='index')
     return csr_matrix(feats_df.values)
 
-def extract_label_dict(corpus: Corpus, obj_type: str, y_func: Callable[[Union[User, Utterance, Conversation]], bool],
-                       filter_func: Callable[[Union[User, Utterance, Conversation]], bool] = None):
-    obj_iters = {"conversation": corpus.iter_conversations,
-                 "user": corpus.iter_users,
-                 "utterance": corpus.iter_utterances}
+def extract_label_dict(corpus: Corpus, obj_type: str, labeller: Callable[[Union[User, Utterance, Conversation]], bool],
+                       selector: Callable[[Union[User, Utterance, Conversation]], bool] = lambda x: True):
 
     obj_id_to_label = dict()
-    for obj in obj_iters[obj_type]():
-        if filter_func is None or filter_func(obj):
-            obj_id_to_label[obj.id] = {'y': 1} if y_func(obj) else {'y': 0}
+    for obj in corpus.iter_objs(obj_type, selector):
+        obj_id_to_label[obj.id] = {'y': 1} if labeller(obj) else {'y': 0}
 
     return obj_id_to_label
 
-def extract_feats_and_label(corpus: Corpus, obj_type: str, pred_feats: List[Hashable],
-                        y_func: Callable[[Union[User, Utterance, Conversation]], bool],
-                        filter_func: Callable[[Union[User, Utterance, Conversation]], bool] = None):
-    obj_id_to_feats = extract_feats_dict(corpus, obj_type, pred_feats, filter_func)
-    obj_id_to_label = extract_label_dict(corpus, obj_type, y_func, filter_func)
+def extract_feats_and_label(corpus: Corpus, obj_type: str, pred_feats: List[str],
+                        labeller: Callable[[Union[User, Utterance, Conversation]], bool],
+                        selector: Callable[[Union[User, Utterance, Conversation]], bool] = None):
+    obj_id_to_feats = extract_feats_dict(corpus, obj_type, pred_feats, selector)
+    obj_id_to_label = extract_label_dict(corpus, obj_type, labeller, selector)
 
     X_df = pd.DataFrame.from_dict(obj_id_to_feats, orient='index')
     y_df = pd.DataFrame.from_dict(obj_id_to_label, orient='index')

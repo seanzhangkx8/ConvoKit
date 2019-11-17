@@ -22,10 +22,10 @@ class Utterance:
     :ivar text: text of the utterance.
     """
 
-    def __init__(self, id: Optional[str]=None, user: Optional[User]=None,
-                 root: Optional[str]=None, reply_to: Optional[str]=None,
-                 timestamp: Optional[int]=None, text: Optional[str]=None,
-                 meta: Optional[Dict]=None):
+    def __init__(self, id: Optional[str] = None, user: Optional[User] = None,
+                 root: Optional[str] = None, reply_to: Optional[str] = None,
+                 timestamp: Optional[int] = None, text: Optional[str] = None,
+                 meta: Optional[Dict] = None):
         self.id = id
         self.user = user
         self.root = root

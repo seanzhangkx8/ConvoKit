@@ -1,5 +1,5 @@
 
-from typing import Dict, List, Collection, Callable, Set, Generator, Tuple, Optional, ValuesView
+from typing import Dict, List, Collection, Callable, Set, Generator, Tuple, Optional, ValuesView, Union
 import pickle
 import numpy as np
 import pandas as pd
@@ -400,6 +400,23 @@ class Corpus:
 		for v in self.conversations.values():
 			if selector(v):
 				yield v
+
+	def iter_objs(self, obj_type: str, selector: Callable[[Union[User, Utterance, Conversation]], bool] = lambda obj: True):
+		assert obj_type in ["user", "utterance", "conversation"]
+		obj_iters = {"conversation": self.iter_conversations,
+					 "user": self.iter_users,
+					 "utterance": self.iter_utterances}
+
+		return obj_iters[obj_type](selector)
+
+	def get_object(self, obj_type: str, oid: str):
+		assert obj_type in ["user", "utterance", "conversation"]
+		if obj_type == "user":
+			return self.get_user(oid)
+		elif obj_type == "utterance":
+			return self.get_utterance(oid)
+		else:
+			return self.get_conversation(oid)
 
 	def utterance_threads(self, prefix_len: Optional[int]=None,
 						  suffix_len: int=0,
