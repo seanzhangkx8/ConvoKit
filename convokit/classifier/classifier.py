@@ -45,12 +45,13 @@ class Classifier(Transformer):
             X = extract_feats(corpus, self.obj_type, self.pred_feats, self.selector)
             obj_ids = [obj.id for obj in corpus.iter_objs(self.obj_type, self.selector)]
         else:
+            assert objs is not None
             X = np.array([list(extract_feats_from_obj(obj, self.pred_feats).values()) for obj in objs])
             obj_ids = [obj.id for obj in objs]
 
         clfs, clfs_probs = self.clf.predict(X), self.clf.predict_proba(X)
 
-        return pd.DataFrame(list(zip([obj_ids, clfs, clfs_probs])),
+        return pd.DataFrame(list(zip(obj_ids, clfs, clfs_probs)),
                             columns=['id', self.clf_feat_name, self.clf_prob_feat_name]).set_index('id')
 
 
