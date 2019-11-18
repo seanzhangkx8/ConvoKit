@@ -17,11 +17,11 @@ class Conversation:
         metadata, use Corpus.meta.
     """
 
-    def __init__(self, owner, cid: Optional[str]=None,
+    def __init__(self, owner, id: Optional[str]=None,
                  utterances: Optional[List[str]]=None,
                  meta: Optional[Dict]=None):
         self._owner = owner
-        self._id = cid
+        self._id = id
         self._utterance_ids = utterances
         self._usernames = None
         self._meta = {} if meta is None else meta

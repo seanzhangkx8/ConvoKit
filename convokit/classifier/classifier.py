@@ -1,10 +1,7 @@
-import numpy as np
 from sklearn.model_selection import train_test_split, cross_val_score, KFold
 from sklearn.metrics import confusion_matrix
-from convokit.model import Corpus, Conversation, User, Utterance
 from sklearn import svm
-from typing import List, Callable, Union
-from .util import *
+from convokit.classifier.util import *
 from convokit import Transformer
 
 
@@ -88,7 +85,7 @@ class Classifier(Transformer):
         return accuracy, confusion_matrix(y_true=y, y_pred=preds)
 
     def evaluate_with_cv(self, corpus: Corpus = None,
-                         objs: List[Union[User, Utterance, Conversation]] = None, cv=KFold()):
+                         objs: List[Union[User, Utterance, Conversation]] = None, cv=KFold(n_splits=5)):
         """
 
         :param corpus:

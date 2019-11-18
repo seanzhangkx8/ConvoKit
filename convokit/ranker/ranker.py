@@ -7,7 +7,7 @@ class Ranker(Transformer):
     def __init__(self, obj_type: str,
                  score_func: Callable[[Union[User, Utterance, Conversation]], Union[int, float]],
                  selector: Callable[[Union[User, Utterance, Conversation]], bool] = lambda obj: True,
-                 score_feat_name: str = "score"):
+                 score_feat_name: str = "ranking_score"):
         self.obj_type = obj_type
         self.score_func = score_func
         self.score_feat_name = score_feat_name
@@ -40,4 +40,4 @@ class Ranker(Transformer):
         else:
             obj_scores = [(obj.id, self.score_func(obj)) for obj in objs]
 
-        return pd.DataFrame(obj_scores, columns=["id", "score"]).set_index('id').sort_values('score')
+        return pd.DataFrame(obj_scores, columns=["id", "score"]).set_index('id').sort_values('score', ascending=False)

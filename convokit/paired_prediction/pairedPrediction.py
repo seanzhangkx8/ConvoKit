@@ -1,4 +1,4 @@
-from .util import extract_feats_from_obj
+from convokit.classifier.util import extract_feats_from_obj
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
