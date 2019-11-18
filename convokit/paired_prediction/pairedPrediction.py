@@ -11,7 +11,7 @@ from collections import defaultdict
 from random import shuffle, choice
 from scipy.sparse import csr_matrix
 from convokit import Transformer
-
+import pandas as pd
 
 class PairedPrediction(Transformer):
     def __init__(self, obj_type: str,
@@ -35,7 +35,7 @@ class PairedPrediction(Transformer):
         """
         assert obj_type in ["user", "utterance", "conversation"]
         self.obj_type = obj_type
-        self.clf = Pipeline([("standardScaler", StandardScaler()),
+        self.clf = Pipeline([("standardScaler", StandardScaler(with_mean=False)),
                              ("logreg", LogisticRegression(solver='liblinear'))]) if clf is None else clf
         self.pairing_func = pairing_func
         self.pred_feats = pred_feats
@@ -74,7 +74,7 @@ class PairedPrediction(Transformer):
         for obj in neg_objects:
             pair_feat_to_neg_objs[self.pairing_func(obj)].append(obj)
 
-        valid_pairs = set(list(pair_feat_to_neg_objs)).intersection(set(list(pair_feat_to_pos_objs)))
+        valid_pairs = set(pair_feat_to_neg_objs).intersection(set(pair_feat_to_pos_objs))
 
         return {pair_id: (choice(pair_feat_to_pos_objs[pair_id]),
                              choice(pair_feat_to_neg_objs[pair_id]))
@@ -111,7 +111,8 @@ class PairedPrediction(Transformer):
 
 
     def _assign_pair_orientations(self, obj_pairs):
-        pair_ids = shuffle(list(obj_pairs))
+        pair_ids = list(obj_pairs)
+        shuffle(pair_ids)
         pair_orientations = dict()
         flip = True
         for pair_id in pair_ids:
@@ -130,22 +131,24 @@ class PairedPrediction(Transformer):
             pos_obj.add_meta(self.pair_id_feat_name, pair_id)
             neg_obj.add_meta(self.pair_id_feat_name, pair_id)
             pos_obj.add_meta(self.pair_orientation_feat_name, pair_orientations[pair_id])
-            pos_obj.add_meta(self.pair_orientation_feat_name, pair_orientations[pair_id])
+            neg_obj.add_meta(self.pair_orientation_feat_name, pair_orientations[pair_id])
 
         for obj in corpus.iter_objs(self.obj_type):
-            if not self.selector(obj):
+            # unlabelled objects include both objects that did not pass the selector
+            # and objects that were not selected in the pairing step
+            if self.label_feat_name not in obj.meta:
                 obj.add_meta(self.label_feat_name, None)
                 obj.add_meta(self.pair_id_feat_name, None)
                 obj.add_meta(self.pair_orientation_feat_name, None)
 
         return corpus
 
-    def fit(self, corpus: Corpus):
-        pos_convos, neg_convos = self._get_pos_neg_objects(corpus)
-        convo_pairs = self._pair_objs(pos_convos, neg_convos)
-        X, y = self._generate_paired_X_y(convo_pairs)
-        self.clf.fit(X, y)
-        return self
+    # def fit(self, corpus: Corpus):
+    #     pos_convos, neg_convos = self._get_pos_neg_objects(corpus)
+    #     convo_pairs = self._pair_objs(pos_convos, neg_convos)
+    #     X, y = self._generate_paired_X_y(convo_pairs)
+    #     self.clf.fit(X, y)
+    #     return self
 
     def analyze(self, corpus: Corpus, cv=LeaveOneOut()):
         # Check if transform() needs to be run first
@@ -159,17 +162,26 @@ class PairedPrediction(Transformer):
 
         pair_id_to_obj = {'pos': dict(), 'neg': dict()}
         for obj in corpus.iter_objs(self.obj_type, self.selector):
-            pair_id_to_obj[obj.meta[self.label_feat_name]][self.pair_id_feat_name] = obj
+            if obj.meta[self.pair_orientation_feat_name] is None: continue
+            pair_id_to_obj[obj.meta[self.label_feat_name]][obj.meta[self.pair_id_feat_name]] = obj
 
-        pair_ids = set(pair_id_to_obj['pos'].keys()).intersection(set(pair_id_to_obj['neg']))
+        pair_ids = set(pair_id_to_obj['pos'].keys()).intersection(set(pair_id_to_obj['neg'].keys()))
 
+        # print(set(pair_id_to_obj['pos'].keys()))
+        print("Found {} valid pairs.".format(len(pair_ids)))
         pair_id_to_objs = dict()
         for pair_id in pair_ids:
             pair_id_to_objs[pair_id] = (pair_id_to_obj['pos'][pair_id], pair_id_to_obj['neg'][pair_id])
 
         X, y = self._generate_paired_X_y(pair_id_to_objs)
+        self.clf.fit(X, y)
+        return np.mean(cross_val_score(self.clf, X, y, cv=cv, error_score='raise'))
 
-        return cross_val_score(self.clf, X, y, cv=cv)
+    def get_coefs(self, feature_names: List[str]):
+        coefs = self.clf.named_steps['logreg'].coef_[0].tolist()
+        assert len(feature_names) == len(coefs)
+        feats_coefs = sorted(list(zip(feature_names, coefs)), key=lambda x: x[1], reverse=True)
+        return pd.DataFrame(feats_coefs, columns=['feat_name', 'coef']).set_index('feat_name')
 
 
     def print_extreme_coefs(self, feature_names: List[str], num_features: int = 5):

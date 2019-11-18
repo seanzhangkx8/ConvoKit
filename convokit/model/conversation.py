@@ -94,14 +94,16 @@ class Conversation:
         # any Utterances
         return self._owner.get_utterance(ut_id)
 
-    def iter_utterances(self) -> Generator[Utterance, None, None]:
+    def iter_utterances(self, selector: Callable[[Utterance], bool] = lambda utt: True) -> Generator[Utterance, None, None]:
         """Generator allowing iteration over all utterances in the Conversation.
         Provides no ordering guarantees.
 
         :return: Generator that produces Users
         """
         for ut_id in self._utterance_ids:
-            yield self._owner.get_utterance(ut_id)
+            utt = self._owner.get_utterance(ut_id)
+            if selector(utt):
+                yield utt
 
     def get_usernames(self) -> List[str]:
         """Produces a list of names of all users in the Conversation, which can
@@ -141,7 +143,7 @@ class Conversation:
             self._usernames = set()
             for ut_id in self._utterance_ids:
                 ut = self._owner.get_utterance(ut_id)
-                self._usernames.add(ut.user.name)
+                self._usernames.add(ut.user.id)
         for username in self._usernames:
             yield self._owner.get_user(username)
 

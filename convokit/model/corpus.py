@@ -472,7 +472,7 @@ class Corpus:
 	def get_user(self, name: str) -> User:
 		return self.all_users[name]
 
-	def get_usernames(self, selector: Optional[Callable[[User], bool]] = None) -> Set[str]:
+	def get_usernames(self, selector: Optional[Callable[[User], bool]] = lambda user: True) -> Set[str]:
 		"""Get names of users in the dataset.
 
 		This function will be deprecated and replaced by get_user_ids()
@@ -489,7 +489,7 @@ class Corpus:
 		return set([u.name for u in self.iter_users(selector)])
 
 
-	def get_user_ids(self, selector: Optional[Callable[[User], bool]] = None) -> Set[str]:
+	def get_user_ids(self, selector: Optional[Callable[[User], bool]] = lambda user: True) -> Set[str]:
 		return set([u.id for u in self.iter_users(selector)])
 
 	def speaking_pairs(self, selector: Optional[Callable[[User, User], bool]]=None,
