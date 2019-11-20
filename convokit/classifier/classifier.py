@@ -9,7 +9,7 @@ class Classifier(Transformer):
     def __init__(self, obj_type: str, pred_feats: List[str],
                  labeller: Callable[[Union[User, Utterance, Conversation]], bool] = lambda x: True,
                  selector: Callable[[Union[User, Utterance, Conversation]], bool] = lambda x: True,
-                 clf=None, clf_feat_name: str = "prediction", clf_prob_feat_name: str = "confidence"):
+                 clf=None, clf_feat_name: str = "prediction", clf_prob_feat_name: str = "score"):
         self.pred_feats = pred_feats
         self.labeller = labeller
         self.selector = selector
@@ -49,7 +49,7 @@ class Classifier(Transformer):
             X = np.array([list(extract_feats_from_obj(obj, self.pred_feats).values()) for obj in objs])
             obj_ids = [obj.id for obj in objs]
 
-        clfs, clfs_probs = self.clf.predict(X), self.clf.predict_proba(X)
+        clfs, clfs_probs = self.clf.predict(X), self.clf.predict_proba(X)[:, 1]
 
         return pd.DataFrame(list(zip(obj_ids, clfs, clfs_probs)),
                             columns=['id', self.clf_feat_name, self.clf_prob_feat_name]).set_index('id')
