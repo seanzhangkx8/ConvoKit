@@ -28,9 +28,9 @@ Example: [hypergraph creation and feature extraction, visualization and interpre
 A method to compute the linguistic diversity of individuals within their own conversations, and between other individuals in a population.  
 Example: [user conversation attributes and diversity example on ChangeMyView](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/user-convo-attributes/user-convo-diversity-demo.ipynb)
 
-### [CRAFT: Online forecasting of conversational outcomes (Coming Soon!)](https://arxiv.org/abs/1909.01362)
+### [CRAFT: Online forecasting of conversational outcomes](https://arxiv.org/abs/1909.01362)
 A neural model for forecasting future outcomes of conversations (e.g., derailment into personal attacks) as they develop.  
-The ConvoKit CRAFT API is still under development, but in the meantime an ad-hoc implementation using ConvoKit data can be found [here](https://colab.research.google.com/drive/1GvICZN0VwZQSWw3pJaEVY-EQGoO-L5lH).
+Available as an interactive notebook: [full version (fine-tuning + inference)](https://colab.research.google.com/drive/1SH4iMEHdoH4IovN-b9QOSK4kG4DhAwmb) or [inference-only](https://colab.research.google.com/drive/1GvICZN0VwZQSWw3pJaEVY-EQGoO-L5lH).
 
 ## Datasets
 ConvoKit ships with several datasets ready for use "out-of-the-box".
@@ -72,12 +72,11 @@ Reddit conversations from over 900k subreddits, arranged by subreddit. A [small 
  
 Name for download: `subreddit-<name_of_subreddit>` for the by-subreddit data, `reddit-corpus-small` for the small subset. 
 
-### Wikiconv Corpus (WIP)
+### [WikiConv Corpus](https://zissou.infosci.cornell.edu/convokit/documentation/wikiconv.html)
 
 The full corpus of Wikipedia talk page conversations, based on the reconstruction described in [this paper](http://www.cs.cornell.edu/~cristian/index_files/wikiconv-conversation-corpus.pdf).
 Note that due to the large size of the data, it is split up by year.
-We are currently working on implementing, as part of the corpus metadata, block data retrieved directly from the Wikipedia block log, for reproducing the [Trajectories of Blocked Community Members](http://www.cs.cornell.edu/~cristian/Recidivism_online_files/recidivism_online.pdf) paper.
-In the meantime, raw block data can be downloaded [here](https://zissou.infosci.cornell.edu/convokit/datasets/wikiconv-corpus/blocks.json).
+We separately provide [block data retrieved directly from the Wikipedia block log](https://zissou.infosci.cornell.edu/convokit/datasets/wikiconv-corpus/blocks.json), for reproducing the [Trajectories of Blocked Community Members](http://www.cs.cornell.edu/~cristian/Recidivism_online_files/recidivism_online.pdf) paper.
 
 Name for download: `wikiconv-<year>` to download wikiconv data for the specified year.
 

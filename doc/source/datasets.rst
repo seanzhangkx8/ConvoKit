@@ -11,6 +11,7 @@ Datasets
    Tennis Interviews <tennis.rst>
    Reddit Corpus (all, by subreddit) <subreddit.rst>
    Reddit Corpus (small) <reddit-small.rst>
+   WikiConv Corpus <wikiconv.rst>
    Chromium Conversations Corpus <chromium.rst>
    Winning Arguments Corpus <winning.rst>
    Coarse Discourse Corpus <coarseDiscourse.rst>
