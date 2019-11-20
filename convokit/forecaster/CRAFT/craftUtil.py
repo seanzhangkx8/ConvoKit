@@ -5,6 +5,22 @@ import random
 import itertools
 import torch
 
+CONSTANTS = {'MAX_LENGTH': 80,
+             'PAD_token': 0,
+             'SOS_token': 1,
+             'EOS_token': 2,
+             'UNK_token': 3,
+             'WORD2INDEX_URL': "http://zissou.infosci.cornell.edu/convokit/models/craft_wikiconv/word2index.json",
+             'INDEX2WORD_URL': "http://zissou.infosci.cornell.edu/convokit/models/craft_wikiconv/index2word.json",
+             'MODEL_URL': "http://zissou.infosci.cornell.edu/convokit/models/craft_wikiconv/craft_full.tar",
+             'hidden_size': 500,
+             'encoder_n_layers': 2,
+             'context_encoder_n_layers': 2,
+             'decoder_n_layers': 2,
+             'dropout': 0.1,
+             'batch_size': 64
+             }
+
 MAX_LENGTH = 80  # Maximum sentence length (number of tokens) to consider
 # Default word tokens
 PAD_token = 0  # Used for padding short sentences
@@ -76,7 +92,6 @@ def loadPrecomputedVoc(corpus_name, word2index_url, index2word_url):
     index2word = r.json()
     return Voc(corpus_name, word2index, index2word)
 
-
 # Helper functions for preprocessing and tokenizing text
 
 # Turn a Unicode string to plain ASCII, thanks to
@@ -88,7 +103,7 @@ def unicodeToAscii(s):
     )
 
 # Tokenize the string using NLTK
-def tokenize(text):
+def craft_tokenize(voc, text):
     tokenizer = nltk.tokenize.RegexpTokenizer(pattern=r'\w+|[^\w\s]')
     # simplify the problem space by considering only ASCII data
     cleaned_text = unicodeToAscii(text.lower())
@@ -97,52 +112,11 @@ def tokenize(text):
     if not cleaned_text.strip():
         return []
 
-    return tokenizer.tokenize(cleaned_text)
-
-# Given a ConvoKit conversation, preprocess each utterance's text by tokenizing and truncating.
-# Returns the processed dialog entry where text has been replaced with a list of
-# tokens, each no longer than MAX_LENGTH - 1 (to leave space for the EOS token)
-def processDialog(voc, dialog):
-    processed = []
-    for utterance in dialog.iter_utterances():
-        # skip the section header, which does not contain conversational content
-        # TODO exclude specific utterances
-        # if utterance.meta['is_section_header']:
-        #     continue
-        tokens = tokenize(utterance.text)
-        # replace out-of-vocabulary tokens
-        for i in range(len(tokens)):
-            if tokens[i] not in voc.word2index:
-                tokens[i] = "UNK"
-        processed.append({"tokens": tokens, "id": utterance.id})
-        # processed.append({"tokens": tokens, "is_attack": int(utterance.meta['comment_has_personal_attack']), "id": utterance.id})
-    return processed
-
-# Load context-reply pairs from the Corpus, optionally filtering to only conversations
-# from the specified split (train, val, or test).
-# Each conversation, which has N comments (not including the section header) will
-# get converted into N-1 comment-reply pairs, one pair for each reply
-# (the first comment does not reply to anything).
-# Each comment-reply pair is a tuple consisting of the conversational context
-# (that is, all comments prior to the reply), the reply itself, the label (that
-# is, whether the reply contained a derailment event), and the comment ID of the
-# reply (for later use in re-joining with the ConvoKit corpus).
-# The function returns a list of such pairs.
-def loadPairs(voc, corpus, split=None):
-    pairs = []
-    for convo in corpus.iter_conversations():
-        # consider only conversations in the specified split of the data
-        # if split is None or convo.meta['split'] == split:
-        dialog = processDialog(voc, convo)
-        for idx in range(1, len(dialog)):
-            reply = dialog[idx]["tokens"][:(MAX_LENGTH-1)]
-            # label = dialog[idx]["is_attack"]
-            comment_id = dialog[idx]["id"]
-            # gather as context all utterances preceding the reply
-            context = [u["tokens"][:(MAX_LENGTH-1)] for u in dialog[:idx]]
-            pairs.append((context, reply, comment_id))
-            # pairs.append((context, reply, label, comment_id))
-    return pairs
+    tokens = tokenizer.tokenize(cleaned_text)
+    for i in range(len(tokens)):
+        if tokens[i] not in voc.word2index:
+            tokens[i] = "UNK"
+    return tokens
 
 # Helper functions for turning dialog and text sequences into tensors, and manipulating those tensors
 

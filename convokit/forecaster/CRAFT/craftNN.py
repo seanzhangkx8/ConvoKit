@@ -1,16 +1,24 @@
 import torch
 from torch import nn
 import os
-from .craftUtil import *
+# from .craftUtil import *
 from urllib.request import urlretrieve
+from .craftUtil import CONSTANTS
 
 # configure model
-hidden_size = 500
-encoder_n_layers = 2
-context_encoder_n_layers = 2
-decoder_n_layers = 2
-dropout = 0.1
-batch_size = 64
+hidden_size = 500 # CONSTANTS['hidden_size']
+encoder_n_layers = 2 # CONSTANTS['encoder_n_layers']
+context_encoder_n_layers = 2 # CONSTANTS['context_encoder_n_layers']
+decoder_n_layers = 2 #CONSTANTS['decoder_n_layers']
+dropout = 0.1 # CONSTANTS['dropout']
+batch_size = 64 # CONSTANTS['batch_size']
+
+# 'hidden_size': 500,
+# 'encoder_n_layers': 2,
+# 'context_encoder_n_layers': 2,
+# 'decoder_n_layers': 2,
+# 'dropout': 0.1,
+# 'batch_size': 64
 
 class EncoderRNN(nn.Module):
     """
@@ -148,7 +156,7 @@ def makeContextEncoderInput(utt_encoder_hidden, dialog_lengths, batch_size, batc
     # of shape [max_dialog_length, batch_size, hidden_size]
     return torch.nn.utils.rnn.pad_sequence(states_dialog_batched)
 
-def initialize_model(voc, device):
+def initialize_model(MODEL_URL, voc, device, device_type: str):
     print("Loading saved parameters...")
     if not os.path.isfile("model.tar"):
         print("\tDownloading trained CRAFT...")
@@ -156,7 +164,10 @@ def initialize_model(voc, device):
         print("\t...Done!")
     # If running in a non-GPU environment, you need to tell PyTorch to convert the parameters to CPU tensor format.
     # To do so, replace the previous line with the following:
-    checkpoint = torch.load("model.tar", map_location=torch.device('cpu')) if device == 'cpu' else torch.load('model.tar')
+    if device_type == 'cpu':
+        checkpoint = torch.load("model.tar", map_location=torch.device('cpu'))
+    elif device_type == 'cuda':
+        checkpoint = torch.load('model.tar')
     encoder_sd = checkpoint['en']
     context_sd = checkpoint['ctx']
     attack_clf_sd = checkpoint['atk_clf']
