@@ -7,10 +7,11 @@ class Ranker(Transformer):
     def __init__(self, obj_type: str,
                  score_func: Callable[[Union[User, Utterance, Conversation]], Union[int, float]],
                  selector: Callable[[Union[User, Utterance, Conversation]], bool] = lambda obj: True,
-                 score_feat_name: str = "ranking_score"):
+                 score_feat_name: str = "ranking_score", rank_feat_name: str = "rank"):
         self.obj_type = obj_type
         self.score_func = score_func
         self.score_feat_name = score_feat_name
+        self.rank_feat_name = rank_feat_name
         self.selector = selector
 
     def transform(self, corpus: Corpus) -> Corpus:
@@ -19,12 +20,15 @@ class Ranker(Transformer):
         :param corpus:
         :return:
         """
+        id_to_score_rank_df = self.analyze(corpus)
 
         for obj in corpus.iter_objs(obj_type=self.obj_type):
-            if self.selector(obj):
-                obj.add_meta(self.score_feat_name, self.score_func(obj))
+            if obj.id in id_to_score_rank_df.index:
+                obj.add_meta(self.score_feat_name, id_to_score_rank_df.loc[obj.id][self.score_feat_name])
+                obj.add_meta(self.rank_feat_name, id_to_score_rank_df.loc[obj.id][self.rank_feat_name])
             else:
                 obj.add_meta(self.score_feat_name, None)
+                obj.add_meta(self.rank_feat_name, None)
         return corpus
 
 
@@ -40,4 +44,8 @@ class Ranker(Transformer):
         else:
             obj_scores = [(obj.id, self.score_func(obj)) for obj in objs]
 
-        return pd.DataFrame(obj_scores, columns=["id", "score"]).set_index('id').sort_values('score', ascending=False)
+        df = pd.DataFrame(obj_scores, columns=["id", self.score_feat_name])\
+                        .set_index('id').sort_values(self.score_feat_name, ascending=False)
+        df[self.rank_feat_name] = [idx+1 for idx, _ in enumerate(df.index)]
+
+        return df
