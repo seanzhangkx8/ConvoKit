@@ -17,9 +17,9 @@ class Conversation:
         metadata, use Corpus.meta.
     """
 
-    def __init__(self, owner, id: Optional[str]=None,
-                 utterances: Optional[List[str]]=None,
-                 meta: Optional[Dict]=None):
+    def __init__(self, owner, id: Optional[str] = None,
+                 utterances: Optional[List[str]] = None,
+                 meta: Optional[Dict] = None):
         self._owner = owner
         self._id = id
         self._utterance_ids = utterances
@@ -32,6 +32,7 @@ class Conversation:
         utterance-level metadata, use Utterance.meta. For user-level metadata,
         use User.meta. For corpus-level metadata, use Corpus.meta."""
         return self._meta
+
     def _set_meta(self, new_meta):
         self._meta = new_meta
 
@@ -121,6 +122,22 @@ class Conversation:
                 self._usernames.add(ut.user.name)
         return list(self._usernames)
 
+    def get_user_ids(self) -> List[str]:
+        """Produces a list of names of all users in the Conversation, which can
+        be used in calls to get_user() to retrieve specific users. Provides no
+        ordering guarantees for the list.
+
+        :return: a list of usernames
+        """
+        if self._usernames is None:
+            # first call to get_usernames or iter_users; precompute cached list
+            # of usernames
+            self._usernames = set()
+            for ut_id in self._utterance_ids:
+                ut = self._owner.get_utterance(ut_id)
+                self._usernames.add(ut.user.name)
+        return list(self._usernames)
+
     def get_user(self, username: str) -> User:
         """Looks up the User with the given name. Raises a KeyError if no user
         with that name exists.
@@ -150,13 +167,13 @@ class Conversation:
     def check_integrity(self, verbose=True):
         if verbose: print("Checking reply-to chain of Conversation", self.id)
         utt_reply_tos = {utt.id: utt.reply_to for utt in self.iter_utterances()}
-        target_utts = set(list(utt_reply_tos.values()))
-        speaker_utts = set(list(utt_reply_tos.keys()))
-        root_utt = target_utts - speaker_utts # There should only be 1 root_utt: None
+        target_utt_ids = set(list(utt_reply_tos.values()))
+        speaker_utt_ids = set(list(utt_reply_tos.keys()))
+        root_utt_id = target_utt_ids - speaker_utt_ids # There should only be 1 root_utt_id: None
 
-        if len(root_utt) != 1:
+        if len(root_utt_id) != 1:
             if verbose:
-                for utt_id in root_utt:
+                for utt_id in root_utt_id:
                     if utt_id is not None:
                         print("ERROR: Missing utterance", utt_id)
             return False
@@ -170,6 +187,7 @@ class Conversation:
         if utts_replying_to_none > 1:
             if verbose: print("ERROR: Found more than one Utterance replying to None.")
             return False
+
         if verbose: print("No issues found.\n")
         return True
 
@@ -190,6 +208,38 @@ class Conversation:
         reply_to_dict = {utt.id: utt.reply_to for utt in self.iter_utterances()}
 
         self._print_convo_helper(root=root_utt_id, indent=0, reply_to_dict=reply_to_dict, utt_info_func=utt_info_func)
+
+    def get_chronological_utterance_list(self, selector: Callable[[Utterance], bool] = lambda utt: True):
+        return sorted([utt for utt in self.iter_utterances(selector)], key=lambda utt: utt.timestamp)
+
+    def _get_path_from_leaf_to_root(self, leaf_utt: Utterance, root_utt: Utterance):
+        if leaf_utt == root_utt:
+            return [leaf_utt]
+        path = [leaf_utt]
+        root_id = root_utt.id
+        while leaf_utt.reply_to != root_id:
+            path.append(self.get_utterance(leaf_utt.reply_to))
+            leaf_utt = path[-1]
+        path.append(root_utt)
+        return path[::-1]
+
+    def get_root_to_leaf_paths(self):
+        if not self.check_integrity(verbose=False):
+            raise ValueError("Conversation failed integrity check. "
+                             "It is either missing an utterance in the reply-to chain and/or has multiple root nodes. "
+                             "Run check_integrity() to diagnose issues.")
+
+        utt_reply_tos = {utt.id: utt.reply_to for utt in self.iter_utterances()}
+        target_utt_ids = set(list(utt_reply_tos.values()))
+        speaker_utt_ids = set(list(utt_reply_tos.keys()))
+        root_utt_id = target_utt_ids - speaker_utt_ids # There should only be 1 root_utt_id: None
+        assert len(root_utt_id) == 1
+        root_utt = [utt for utt in self.iter_utterances() if utt.reply_to is None][0]
+        leaf_utt_ids = speaker_utt_ids - target_utt_ids
+
+        paths = [self._get_path_from_leaf_to_root(self.get_utterance(leaf_utt_id), root_utt)
+                 for leaf_utt_id in leaf_utt_ids]
+        return paths
 
     def __eq__(self, other):
         if isinstance(other, Conversation):
