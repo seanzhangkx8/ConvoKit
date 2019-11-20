@@ -26,6 +26,7 @@ Utterance-level Information
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Each conversational turn on the talk page is viewed as an utterance. For each utterance, we provide:
+
 - id: A unique identifier assigned by the original WikiConv reconstruction pipeline
 - user: Wikipedia user name of the editor
 - root: ID of the conversation root of the utterance
