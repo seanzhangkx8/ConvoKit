@@ -30,3 +30,4 @@ venv/
 *.iml
 venv-triadmotif/
 .ipynb_checkpoints
+*.tar
