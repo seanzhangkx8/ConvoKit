@@ -4,7 +4,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import LeaveOneOut, cross_val_score
 import numpy as np
-from typing import List, Callable, Union
+from typing import List, Callable, Union, Optional
 from pandas import DataFrame
 from convokit.model import Corpus, Conversation, User, Utterance
 from collections import defaultdict
@@ -184,12 +184,15 @@ class PairedPrediction(Transformer):
         return pd.DataFrame(feats_coefs, columns=['feat_name', 'coef']).set_index('feat_name')
 
 
-    def print_extreme_coefs(self, feature_names: List[str], num_features: int = 5):
+    def print_extreme_coefs(self, feature_names: List[str], num_features: Optional[int] = None):
         coefs = self.clf.named_steps['logreg'].coef_[0].tolist()
 
         assert len(feature_names) == len(coefs)
 
         feats_coefs = sorted(list(zip(feature_names, coefs)), key=lambda x: x[1], reverse=True)
+
+        if num_features is None:
+            num_features = len(feature_names) // 4
 
         print()
         print("TOP {} FEATURES".format(num_features))
