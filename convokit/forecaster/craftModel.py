@@ -15,7 +15,6 @@ class CRAFTModel(ForecasterModel):
         self.device_type = device_type
         self.voc = loadPrecomputedVoc("wikiconv", CONSTANTS['WORD2INDEX_URL'], CONSTANTS['INDEX2WORD_URL'])
         self.predictor = initialize_model(CONSTANTS['MODEL_URL'], self.voc, self.device, device_type)
-        self.threshold = 0.570617
         self.batch_size = batch_size
         self.max_length = max_length
 
@@ -28,7 +27,7 @@ class CRAFTModel(ForecasterModel):
         # Predict future attack using predictor
         scores = predictor(input_batch, dialog_lengths, dialog_lengths_list, utt_lengths,
                            batch_indices, dialog_indices, batch_size, max_length)
-        predictions = (scores > self.threshold).float()
+        predictions = (scores > 0.5).float()
         return predictions, scores
 
     def evaluateDataset(self, dataset, predictor, voc, batch_size, device):
