@@ -5,7 +5,7 @@ from .CRAFT.craftNN import initialize_model
 from .forecasterModel import ForecasterModel
 
 
-class CraftModel(ForecasterModel):
+class CRAFTModel(ForecasterModel):
 
     def __init__(self, device_type: str = 'cpu', batch_size: int = 64, max_length: int = 80,
                  forecast_feat_name: str = "prediction", forecast_prob_feat_name: str = "score"):
