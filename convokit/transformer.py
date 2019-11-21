@@ -54,12 +54,8 @@ class Transformer(ABC):
         self.fit(corpus)
         return self.transform(corpus)
 
-    def analyze(self, corpus: Corpus):
+    def summarize(self, corpus: Corpus):
         pass
-
-    def fit_analyze(self, corpus: Corpus):
-        self.fit(corpus)
-        return self.analyze(corpus)
 
     def get_model(self):
         pass

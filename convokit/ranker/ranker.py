@@ -20,7 +20,7 @@ class Ranker(Transformer):
         :param corpus:
         :return:
         """
-        id_to_score_rank_df = self.analyze(corpus)
+        id_to_score_rank_df = self.summarize(corpus)
 
         for obj in corpus.iter_objs(obj_type=self.obj_type):
             if obj.id in id_to_score_rank_df.index:
@@ -31,10 +31,9 @@ class Ranker(Transformer):
                 obj.add_meta(self.rank_feat_name, None)
         return corpus
 
-
-    def analyze(self, corpus: Corpus = None, objs: List[Union[User, Utterance, Conversation]] = None):
+    def summarize(self, corpus: Corpus = None, objs: List[Union[User, Utterance, Conversation]] = None):
         if ((corpus is None) and (objs is None)) or ((corpus is not None) and (objs is not None)):
-            raise ValueError("analyze() takes in either a Corpus or a list of users / utterances / conversations")
+            raise ValueError("summarize() takes in either a Corpus or a list of users / utterances / conversations")
 
         if objs is None:
             obj_iters = {"conversation": corpus.iter_conversations,

@@ -150,7 +150,7 @@ class PairedPrediction(Transformer):
     #     self.clf.fit(X, y)
     #     return self
 
-    def analyze(self, corpus: Corpus, cv=LeaveOneOut()):
+    def summarize(self, corpus: Corpus, cv=LeaveOneOut()):
         # Check if transform() needs to be run first
         sample_obj = next(corpus.iter_objs(self.obj_type))
         meta_keys = set(sample_obj.meta)

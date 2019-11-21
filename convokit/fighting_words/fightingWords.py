@@ -11,7 +11,7 @@ exclude = set(string.punctuation)
 
 class FightingWords(Transformer):
     """
-    Adapted from: https://github.com/jmhessel/FightingWords
+    Adapted from Jack Hessel's https://github.com/jmhessel/FightingWords
     
     - ngram; an int describing up to what n gram you want to consider (1 is unigrams,
         2 is bigrams + unigrams, etc). Ignored if a custom CountVectorizer is passed.
@@ -23,11 +23,12 @@ class FightingWords(Transformer):
     - annot_method: "top_k" or "threshold" to specify which annotation method to use
     - cv; a sklearn.feature_extraction.text.CountVectorizer object, if desired.
     """
-    def __init__(self, l1_selector: Callable[[Utterance], bool],
-                 l2_selector: Callable[[Utterance], bool], cv=None,
-                 ngram=None, prior=0.1, threshold=1, top_k=10, annot_method="top_k"):
-        self.l1_selector = l1_selector
-        self.l2_selector = l2_selector
+    def __init__(self, class1_selector: Callable[[Utterance], bool],
+                 class2_selector: Callable[[Utterance], bool], cv=None,
+                 ngram=None, prior=0.1, threshold=1, top_k=10, annot_method="top_k",
+                 string_sanitizer=lambda str_: FightingWords._basic_sanitize(str_)):
+        self.class1_selector = class1_selector
+        self.class2_selector = class2_selector
         self.ngram = ngram
         self.prior = prior
         self.cv = cv
@@ -36,6 +37,7 @@ class FightingWords(Transformer):
         assert annot_method in ["top_k", "threshold"]
         self.annot_method = annot_method
         self.ngram_zscores = None
+        self.string_sanitizer = string_sanitizer
         self._count_matrix = None
         if self.cv is None and type(self.prior) is not float:
             raise ValueError("If using a non-uniform prior, you must pass a count vectorizer with "
@@ -56,17 +58,17 @@ class FightingWords(Transformer):
         return_string = ' '.join(return_string.split())
         return return_string
 
-    def _bayes_compare_language(self, l1: List[Utterance], l2: List[Utterance]):
+    def _bayes_compare_language(self, class1: List[Utterance], class2: List[Utterance]):
         '''
         Arguments:
-        - l1, l2; a list of strings from each language sample
+        - class1, class2; a list of strings from each language sample
 
         Returns:
         - A dict of length |Vocab| with (n-gram, zscore) pairs.'''
-        l1 = [FightingWords._basic_sanitize(utt.text) for utt in l1]
-        l2 = [FightingWords._basic_sanitize(utt.text) for utt in l2]
+        class1 = [self.string_sanitizer(utt.text) for utt in class1]
+        class2 = [self.string_sanitizer(utt.text) for utt in class2]
 
-        counts_mat = self.cv.fit_transform(l1+l2).toarray()
+        counts_mat = self.cv.fit_transform(class1+class2).toarray()
         # Now sum over languages...
         vocab_size = len(self.cv.vocabulary_)
         print("Vocab size is {}".format(vocab_size))
@@ -76,8 +78,8 @@ class FightingWords(Transformer):
             priors = self.prior
         z_scores = np.empty(priors.shape[0])
         count_matrix = np.empty([2, vocab_size], dtype=np.float32)
-        count_matrix[0, :] = np.sum(counts_mat[:len(l1), :], axis=0)
-        count_matrix[1, :] = np.sum(counts_mat[len(l1):, :], axis=0)
+        count_matrix[0, :] = np.sum(counts_mat[:len(class1), :], axis=0)
+        count_matrix[1, :] = np.sum(counts_mat[len(class1):, :], axis=0)
         self._count_matrix = count_matrix
         a0 = np.sum(priors)
         n1 = 1.*np.sum(count_matrix[0, :])
@@ -96,22 +98,22 @@ class FightingWords(Transformer):
         sorted_indices = np.argsort(z_scores)
         return {index_to_term[i]: z_scores[i] for i in sorted_indices}
 
-    def fit(self, corpus: Corpus):
-        l1, l2 = [], []
+    def fit(self, corpus: Corpus, y=None):
+        class1, class2 = [], []
         for utt in corpus.iter_utterances():
-            if self.l1_selector(utt):
-                l1.append(utt)
-            elif self.l2_selector(utt):
-                l2.append(utt)
+            if self.class1_selector(utt):
+                class1.append(utt)
+            elif self.class2_selector(utt):
+                class2.append(utt)
 
-        if len(l1) == 0:
-            raise ValueError("l1_func returned 0 valid utterances.")
-        if len(l2) == 0:
-            raise ValueError("l2_func returned 0 valid utterances.")
+        if len(class1) == 0:
+            raise ValueError("class1_func returned 0 valid utterances.")
+        if len(class2) == 0:
+            raise ValueError("class2_func returned 0 valid utterances.")
 
-        print("l1_func returned {} valid utterances. l2_func returned {} valid utterances.".format(len(l1), len(l2)))
+        print("class1_func returned {} valid utterances. class2_func returned {} valid utterances.".format(len(class1), len(class2)))
 
-        self.ngram_zscores = self._bayes_compare_language(l1, l2)
+        self.ngram_zscores = self._bayes_compare_language(class1, class2)
         print("ngram zscores computed.")
 
     def get_ngram_zscores(self):
@@ -125,31 +127,31 @@ class FightingWords(Transformer):
         if top_k is None:
             top_k = self.top_k
         ngram_zscores_list = list(zip(self.get_ngram_zscores().index, self.get_ngram_zscores()['z-score']))
-        top_k_l1 = list(reversed([x[0] for x in ngram_zscores_list[-top_k:]]))
-        top_k_l2 = [x[0] for x in ngram_zscores_list[:top_k]]
-        return top_k_l1, top_k_l2
+        top_k_class1 = list(reversed([x[0] for x in ngram_zscores_list[-top_k:]]))
+        top_k_class2 = [x[0] for x in ngram_zscores_list[:top_k]]
+        return top_k_class1, top_k_class2
 
     def get_ngrams_past_threshold(self, threshold: float = None):
         if self.ngram_zscores is None:
             raise ValueError("fit() must be run on a corpus first.")
         if threshold is None:
             threshold = self.threshold
-        l1_ngrams = []
-        l2_ngrams = []
+        class1_ngrams = []
+        class2_ngrams = []
         for ngram, zscore in self.ngram_zscores.items():
             if zscore > threshold:
-                l1_ngrams.append(ngram)
+                class1_ngrams.append(ngram)
             elif zscore < -threshold:
-                l2_ngrams.append(ngram)
-        return l1_ngrams, l2_ngrams
+                class2_ngrams.append(ngram)
+        return class1_ngrams, class2_ngrams
 
     def transform(self, corpus: Corpus) -> Corpus:
-        l1_ngrams, l2_ngrams = self.get_top_k_ngrams() if self.annot_method == "top_k" \
+        class1_ngrams, class2_ngrams = self.get_top_k_ngrams() if self.annot_method == "top_k" \
                                 else self.get_ngrams_past_threshold()
 
         for utt in corpus.iter_utterances(): # improve the efficiency of this; tricky because ngrams #TODO
-            utt.meta['fighting_words_l1'] = [ngram for ngram in l1_ngrams if ngram in utt.text]
-            utt.meta['fighting_words_l2'] = [ngram for ngram in l2_ngrams if ngram in utt.text]
+            utt.meta['fighting_words_class1'] = [ngram for ngram in class1_ngrams if ngram in utt.text]
+            utt.meta['fighting_words_class2'] = [ngram for ngram in class2_ngrams if ngram in utt.text]
         return corpus
 
     def get_zscore(self, ngram):
@@ -157,13 +159,13 @@ class FightingWords(Transformer):
             raise ValueError("fit() must be run on a corpus first.")
         return self.ngram_zscores.get(ngram, None)
 
-    def analyze(self, corpus: Corpus):
+    def summarize(self, corpus: Corpus):
         if self.ngram_zscores is None:
             self.fit(corpus)
         return self.get_ngram_zscores()
 
     def plot_fighting_words(self, max_label_size=15):
-        # Adapted from https://gist.github.com/xandaschofield/3c4070b2f232b185ce6a09e47b4e7473
+        # Adapted from Xanda Schofield's https://gist.github.com/xandaschofield/3c4070b2f232b185ce6a09e47b4e7473
         if self.ngram_zscores is None:
             raise ValueError("fit() must be run on a corpus first.")
 
@@ -176,18 +178,18 @@ class FightingWords(Transformer):
         colors = []
         annots = []
 
-        l1_sig_ngrams, l2_sig_ngrams = self.get_top_k_ngrams() if self.annot_method == "top_k" \
+        class1_sig_ngrams, class2_sig_ngrams = self.get_top_k_ngrams() if self.annot_method == "top_k" \
                                         else self.get_ngrams_past_threshold()
-        l1_sig_ngrams = set(l1_sig_ngrams)
-        l2_sig_ngrams = set(l2_sig_ngrams)
+        class1_sig_ngrams = set(class1_sig_ngrams)
+        class2_sig_ngrams = set(class2_sig_ngrams)
 
         terms = list(self.get_ngram_zscores().index)
 
         for i in range(len(terms)):
-            if terms[i] in l1_sig_ngrams:
+            if terms[i] in class1_sig_ngrams:
                 colors.append(pos_color)
                 annots.append(terms[i])
-            elif terms[i] in l2_sig_ngrams:
+            elif terms[i] in class2_sig_ngrams:
                 colors.append(neg_color)
                 annots.append(terms[i])
             else:

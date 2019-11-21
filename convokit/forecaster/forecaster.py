@@ -68,7 +68,6 @@ class Forecaster(Transformer):
 
     def fit(self, corpus: Corpus, y=None):
         """
-        Fit_transform on corpus using self.vectorizer then train a classifier based on it
         :param corpus:
         :param y:
         :return:
@@ -90,7 +89,7 @@ class Forecaster(Transformer):
 
         return corpus
 
-    def analyze(self, corpus: Corpus):
+    def summarize(self, corpus: Corpus):
         id_to_context_reply = self._get_context_reply_label_dict(corpus, include_label=False)
         forecast_df = self.forecaster_model.forecast(id_to_context_reply)
         return forecast_df.sort_values(self.forecast_feat_name, ascending=False)

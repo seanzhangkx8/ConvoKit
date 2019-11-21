@@ -29,11 +29,13 @@ def extract_feats_dict(corpus: Corpus, obj_type: str, pred_feats: List[str],
 
     return obj_id_to_feats
 
+
 def extract_feats(corpus: Corpus, obj_type: str, pred_feats: List[str],
                   selector: Callable[[Union[User, Utterance, Conversation]], bool] = lambda x: True):
     obj_id_to_feats = extract_feats_dict(corpus, obj_type, pred_feats, selector)
     feats_df = pd.DataFrame.from_dict(obj_id_to_feats, orient='index')
     return csr_matrix(feats_df.values)
+
 
 def extract_label_dict(corpus: Corpus, obj_type: str, labeller: Callable[[Union[User, Utterance, Conversation]], bool],
                        selector: Callable[[Union[User, Utterance, Conversation]], bool] = lambda x: True):
@@ -44,9 +46,10 @@ def extract_label_dict(corpus: Corpus, obj_type: str, labeller: Callable[[Union[
 
     return obj_id_to_label
 
+
 def extract_feats_and_label(corpus: Corpus, obj_type: str, pred_feats: List[str],
-                        labeller: Callable[[Union[User, Utterance, Conversation]], bool],
-                        selector: Callable[[Union[User, Utterance, Conversation]], bool] = None):
+                            labeller: Callable[[Union[User, Utterance, Conversation]], bool],
+                            selector: Callable[[Union[User, Utterance, Conversation]], bool] = None):
     obj_id_to_feats = extract_feats_dict(corpus, obj_type, pred_feats, selector)
     obj_id_to_label = extract_label_dict(corpus, obj_type, labeller, selector)
 

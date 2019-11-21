@@ -18,8 +18,7 @@ class Classifier(Transformer):
         self.clf_feat_name = clf_feat_name
         self.clf_prob_feat_name = clf_prob_feat_name
 
-
-    def fit(self, corpus: Corpus):
+    def fit(self, corpus: Corpus, y=None):
         X, y = extract_feats_and_label(corpus, self.obj_type, self.pred_feats, self.labeller, self.selector)
         self.clf.fit(X, y)
 
@@ -37,23 +36,25 @@ class Classifier(Transformer):
 
         return corpus
 
-    def analyze(self, corpus: Corpus = None, objs: List[Union[User, Utterance, Conversation]] = None):
-        if ((corpus is None) and (objs is None)) or ((corpus is not None) and (objs is not None)):
-            raise ValueError("analyze() takes in either a Corpus or a list of users / utterances / conversations")
+    def transform_objs(self, objs: List[Union[User, Utterance, Conversation]]) -> List[Union[User, Utterance, Conversation]]:
+        X = np.array([list(extract_feats_from_obj(obj, self.pred_feats).values()) for obj in objs])
+        # obj_ids = [obj.id for obj in objs]
+        clfs, clfs_probs = self.clf.predict(X), self.clf.predict_proba(X)
 
-        if corpus:
-            X = extract_feats(corpus, self.obj_type, self.pred_feats, self.selector)
-            obj_ids = [obj.id for obj in corpus.iter_objs(self.obj_type, self.selector)]
-        else:
-            assert objs is not None
-            X = np.array([list(extract_feats_from_obj(obj, self.pred_feats).values()) for obj in objs])
-            obj_ids = [obj.id for obj in objs]
+        for idx, (clf, clf_prob) in enumerate(list(zip(clfs, clfs_probs))):
+            obj = objs[idx]
+            obj.add_meta(self.clf_feat_name, clf)
+            obj.add_meta(self.clf_prob_feat_name, clf_prob)
 
-        clfs, clfs_probs = self.clf.predict(X), self.clf.predict_proba(X)[:, 1]
+        return objs
 
-        return pd.DataFrame(list(zip(obj_ids, clfs, clfs_probs)),
+    def summarize(self, corpus: Corpus = None, use_selector=True):
+        objId_clf_prob = []
+        for obj in corpus.iter_objs(self.obj_type, self.selector if use_selector else lambda _: True):
+            objId_clf_prob.append((obj.id, obj.meta[self.clf_feat_name], obj.meta[self.clf_prob_feat_name]))
+
+        return pd.DataFrame(list(objId_clf_prob),
                             columns=['id', self.clf_feat_name, self.clf_prob_feat_name]).set_index('id')
-
 
     def evaluate_with_train_test_split(self, corpus: Corpus = None,
                  objs: List[Union[User, Utterance, Conversation]] = None,
@@ -66,17 +67,17 @@ class Classifier(Transformer):
         :return: accuracy and confusion matrix
         """
         if ((corpus is None) and (objs is None)) or ((corpus is not None) and (objs is not None)):
-            raise ValueError("analyze() takes in either a Corpus or a list of users / utterances / conversations")
+            raise ValueError("This function takes in either a Corpus or a list of users / utterances / conversations")
 
         if corpus:
             print("Using corpus objects...")
             X, y = extract_feats_and_label(corpus, self.obj_type, self.pred_feats, self.labeller, self.selector)
-            obj_ids = [obj.id for obj in corpus.iter_objs(self.obj_type, self.selector)]
-        else:
+            # obj_ids = [obj.id for obj in corpus.iter_objs(self.obj_type, self.selector)]
+        elif objs:
             print("Using input list of corpus objects...")
             X = np.array([list(extract_feats_from_obj(obj, self.pred_feats).values()) for obj in objs])
             y = np.array([self.labeller(obj) for obj in objs])
-            obj_ids = [obj.id for obj in objs]
+            # obj_ids = [obj.id for obj in objs]
 
         print("Running a train-test-split evaluation...")
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size)
@@ -95,17 +96,17 @@ class Classifier(Transformer):
         :return:
         """
         if ((corpus is None) and (objs is None)) or ((corpus is not None) and (objs is not None)):
-            raise ValueError("analyze() takes in either a Corpus or a list of users / utterances / conversations")
+            raise ValueError("This function takes in either a Corpus or a list of users / utterances / conversations")
 
         if corpus:
             print("Using corpus objects...")
             X, y = extract_feats_and_label(corpus, self.obj_type, self.pred_feats, self.labeller, self.selector)
-            obj_ids = [obj.id for obj in corpus.iter_objs(self.obj_type, self.selector)]
-        else:
+            # obj_ids = [obj.id for obj in corpus.iter_objs(self.obj_type, self.selector)]
+        elif objs:
             print("Using input list of corpus objects...")
             X = np.array([list(extract_feats_from_obj(obj, self.pred_feats).values()) for obj in objs])
             y = np.array([self.labeller(obj) for obj in objs])
-            obj_ids = [obj.id for obj in objs]
+            # obj_ids = [obj.id for obj in objs]
 
         print("Running a cross-validated evaluation...")
         return cross_val_score(self.clf, X, y, cv=cv)
