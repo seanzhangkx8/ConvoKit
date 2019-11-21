@@ -1,4 +1,8 @@
-import torch
+try:
+    import torch
+except ImportError:
+    raise ImportError("Could not find torch >= 0.12, which is a required dependency for using the CRAFT model. "
+                      "Run 'pip install convokit[neuralnetwork]' to fix this.")
 import pandas as pd
 from convokit.forecaster.CRAFT.craftUtil import loadPrecomputedVoc, batchIterator, CONSTANTS
 from .CRAFT.craftNN import initialize_model
@@ -9,6 +13,7 @@ class CRAFTModel(ForecasterModel):
 
     def __init__(self, device_type: str = 'cpu', batch_size: int = 64, max_length: int = 80,
                  forecast_feat_name: str = "prediction", forecast_prob_feat_name: str = "score"):
+
         super().__init__(forecast_feat_name=forecast_feat_name, forecast_prob_feat_name=forecast_prob_feat_name)
         assert device_type in ['cuda', 'cpu']
         self.device = torch.device(device_type)
