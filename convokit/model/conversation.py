@@ -1,6 +1,7 @@
 from typing import Dict, List, Collection, Callable, Set, Generator, Tuple, Optional, ValuesView
 from .utterance import Utterance
 from .user import User
+from warnings import warn
 
 class Conversation:
     """Represents a discrete subset of utterances in the dataset, connected by a
@@ -113,6 +114,7 @@ class Conversation:
 
         :return: a list of usernames
         """
+        warn("This function is deprecated and will be removed in a future release. Use get_user_ids() instead.")
         if self._usernames is None:
             # first call to get_usernames or iter_users; precompute cached list
             # of usernames

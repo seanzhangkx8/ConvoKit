@@ -1,5 +1,6 @@
 from functools import total_ordering
 from typing import Dict, List, Collection, Callable, Set, Generator, Tuple, Optional, ValuesView
+from warnings import warn
 
 @total_ordering
 class User:
@@ -45,6 +46,7 @@ class User:
     def _get_name(self): return self._name
 
     def _set_name(self, value: str):
+        warn("This attribute will be removed in a future release. Use User.id instead.")
         self._name = value
         self._update_uid()
 
