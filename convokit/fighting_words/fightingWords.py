@@ -3,7 +3,7 @@ from sklearn.feature_extraction.text import CountVectorizer as CV
 import string
 from convokit import Transformer
 from convokit.model import Corpus, Utterance
-from typing import List, Callable
+from typing import List, Callable, Tuple
 from matplotlib import pyplot as plt
 import pandas as pd
 
@@ -11,7 +11,9 @@ exclude = set(string.punctuation)
 
 class FightingWords(Transformer):
     """
-    Adapted from Jack Hessel's https://github.com/jmhessel/FightingWords
+    Based on Monroe et al.'s "Fightin’ Words: Lexical Feature Selection and Evaluation for Identifying the Content of Political Conflict"
+
+    Implementation adapted from Jack Hessel's https://github.com/jmhessel/FightingWords
     
     - ngram; an int describing up to what n gram you want to consider (1 is unigrams,
         2 is bigrams + unigrams, etc). Ignored if a custom CountVectorizer is passed.
@@ -117,11 +119,23 @@ class FightingWords(Transformer):
         print("ngram zscores computed.")
 
     def get_ngram_zscores(self):
+        """
+        :return: a DataFrame of ngrams with zscores and classes, indexed by the ngrams
+        """
+
         if self.ngram_zscores is None:
             raise ValueError("fit() must be run on a corpus first.")
-        return pd.DataFrame(list(self.ngram_zscores.items()), columns=['ngram', 'z-score']).set_index('ngram')
+        df = pd.DataFrame(list(self.ngram_zscores.items()), columns=['ngram', 'z-score']).set_index('ngram')
+        df['class'] = (df['z-score'] >= 0).apply(lambda x: ["class2", "class1"][int(x)])
+        return df
 
-    def get_top_k_ngrams(self, top_k=None):
+    def get_top_k_ngrams(self, top_k=None) -> Tuple[List[str], List[str]]:
+        """
+        Returns the (ordered) top k ngrams for both classes
+        :param top_k: if left as default None, FightingWords.top_k will be used.
+        :return: two ordered lists of ngrams (with descending z-score):
+                first list is for class 1, second list is for class 2
+        """
         if self.ngram_zscores is None:
             raise ValueError("fit() must be run on a corpus first.")
         if top_k is None:
@@ -131,7 +145,13 @@ class FightingWords(Transformer):
         top_k_class2 = [x[0] for x in ngram_zscores_list[:top_k]]
         return top_k_class1, top_k_class2
 
-    def get_ngrams_past_threshold(self, threshold: float = None):
+    def get_ngrams_past_threshold(self, threshold: float = None) -> Tuple[List[str], List[str]]:
+        """
+        Returns the (ordered) ngrams that have absolute z-scores that exceed a specified threshold, for both classes
+        :param threshold: if left as default None, FightingWords.threshold will be used.
+        :return: two ordered lists of ngrams (with descending z-score):
+                first list is for class 1, second list is for class 2
+        """
         if self.ngram_zscores is None:
             raise ValueError("fit() must be run on a corpus first.")
         if threshold is None:
@@ -143,9 +163,18 @@ class FightingWords(Transformer):
                 class1_ngrams.append(ngram)
             elif zscore < -threshold:
                 class2_ngrams.append(ngram)
-        return class1_ngrams, class2_ngrams
+        return class1_ngrams[::-1], class2_ngrams
 
     def transform(self, corpus: Corpus) -> Corpus:
+        """
+        Annotates the corpus utterances with the lists of fighting words that the utterance contains
+        The relevant fighting words to use are specified by FightingWords.top_k or FightingWords.threshold,
+        with FightingWords.annot_method indicating which criterion to use.
+
+        Lists are stored under metadata keys 'fighting_words_class1', 'fighting_words_class2'
+        :param corpus: corpus to annotate
+        :return: annotated corpus
+        """
         class1_ngrams, class2_ngrams = self.get_top_k_ngrams() if self.annot_method == "top_k" \
                                 else self.get_ngrams_past_threshold()
 
@@ -155,17 +184,58 @@ class FightingWords(Transformer):
         return corpus
 
     def get_zscore(self, ngram):
+        """
+        Get z-score of a given ngram
+        :param ngram: ngram of interest
+        :return: z-score value, None if zgram not in vocabulary
+        """
         if self.ngram_zscores is None:
             raise ValueError("fit() must be run on a corpus first.")
         return self.ngram_zscores.get(ngram, None)
 
-    def summarize(self, corpus: Corpus):
+    def get_class(self, ngram):
+        """
+        Get the class that ngram more belongs to
+        :param ngram: ngram of interest
+        :return: "class1" if the ngram has non-negative z-score, "class2" if ngram has positive z-score, None if
+                 ngram not in vocabulary
+        """
+        if self.ngram_zscores is None:
+            raise ValueError("fit() must be run on a corpus first.")
+        zscore = self.ngram_zscores.get(ngram, None)
+        if zscore is None: return zscore
+        if zscore >= 0:
+            return "class1"
+        else:
+            return "class2"
+
+    def summarize(self, corpus: Corpus, plot: bool = False):
+        """
+        Returns a DataFrame of ngram with zscores and classes, and optionally plots the fighting words distribution
+        :param corpus: corpus to learn fighting words from if not already fitted
+        :param plot: if True, generates a plot for the fighting words distribution
+        :return: DataFrame of ngrams with zscores and classes, indexed by the ngrams (plot is optionally generated)
+        """
         if self.ngram_zscores is None:
             self.fit(corpus)
+
+        if plot:
+            self.plot_fighting_words()
         return self.get_ngram_zscores()
 
     def plot_fighting_words(self, max_label_size=15):
-        # Adapted from Xanda Schofield's https://gist.github.com/xandaschofield/3c4070b2f232b185ce6a09e47b4e7473
+        """
+        Plots the distribution of fighting words
+        Adapted from Xanda Schofield's https://gist.github.com/xandaschofield/3c4070b2f232b185ce6a09e47b4e7473
+
+        Specifically, the weighted log-odds ratio is plotted against frequency of word within topic
+
+        Only the most significant ngrams will have text labels. The most significant ngrams are specified by
+        FightingWords.annot_method and (FightingWords.top_k or FightingWords.threshold)
+        :param max_label_size: For the text labels, set the largest possible size for any text label
+                                (the rest will be scaled accordingly)
+        :return: None (plot is generated)
+        """
         if self.ngram_zscores is None:
             raise ValueError("fit() must be run on a corpus first.")
 
