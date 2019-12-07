@@ -7,8 +7,7 @@ import numpy as np
 
 def extract_feats_from_obj(obj: Union[Utterance, Conversation, User], pred_feats: List[str]):
     """
-    DESIGN DECISION: how to extract values from nested dicts?
-                    consider flattening nested dict? Allow only one level of nesting
+    DESIGN DECISION: Allow only one level of nesting
     :param obj:
     :param pred_feats:
     :return:

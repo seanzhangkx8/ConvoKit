@@ -9,10 +9,17 @@ class ForecasterModel(ABC):
 
     @abstractmethod
     def train(self, id_to_context_reply_label):
+        """
+        Train the Forecaster Model with the context-reply-label tuples
+        """
         pass
 
     @abstractmethod
     def forecast(self, id_to_context_reply_label):
+        """
+        Use the Forecaster Model to compute forecasts and scores
+        for given context-reply pairs and return a results dataframe
+        """
         pass
 
 

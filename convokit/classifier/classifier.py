@@ -10,19 +10,40 @@ class Classifier(Transformer):
                  labeller: Callable[[Union[User, Utterance, Conversation]], bool] = lambda x: True,
                  selector: Callable[[Union[User, Utterance, Conversation]], bool] = lambda x: True,
                  clf=None, clf_feat_name: str = "prediction", clf_prob_feat_name: str = "score"):
+        """
+
+        :param obj_type: type of Corpus object to classify: 'conversation', 'user', or 'utterance'
+        :param pred_feats: list of metadata keys containing the features to be used in prediction
+        :param labeller: function to get the y label of the Corpus object, e.g. lambda utt: utt.meta['y']
+        :param selector: function to select for Corpus objects to transform
+        :param clf: optional classifier model, an SVM with linear kernel will be initialized by default
+        :param clf_feat_name: metadata feature name to use in annotation for classification, default: "prediction"
+        :param clf_prob_feat_name: metadata feature name to use in annotation for classification probability, default: "score"
+        """
         self.pred_feats = pred_feats
         self.labeller = labeller
         self.selector = selector
         self.obj_type = obj_type
+
         self.clf = svm.SVC(C=0.02, kernel='linear', probability=True) if clf is None else clf
         self.clf_feat_name = clf_feat_name
         self.clf_prob_feat_name = clf_prob_feat_name
 
     def fit(self, corpus: Corpus, y=None):
+        """
+        Trains the Transformer's classifier model
+        :param corpus: target Corpus
+        """
         X, y = extract_feats_and_label(corpus, self.obj_type, self.pred_feats, self.labeller, self.selector)
         self.clf.fit(X, y)
+        return self
 
     def transform(self, corpus: Corpus) -> Corpus:
+        """
+        Run classifier on given corpus's objects and annotate them with the predictions and prediction scores
+        :param corpus: target Corpus
+        :return:
+        """
         obj_id_to_feats = extract_feats_dict(corpus, self.obj_type, self.pred_feats, self.selector)
         feats_df = pd.DataFrame.from_dict(obj_id_to_feats, orient='index')
         X = csr_matrix(feats_df.values)
@@ -49,6 +70,12 @@ class Classifier(Transformer):
         return objs
 
     def summarize(self, corpus: Corpus = None, use_selector=True):
+        """
+
+        :param corpus:
+        :param use_selector:
+        :return:
+        """
         objId_clf_prob = []
         for obj in corpus.iter_objs(self.obj_type, self.selector if use_selector else lambda _: True):
             objId_clf_prob.append((obj.id, obj.meta[self.clf_feat_name], obj.meta[self.clf_prob_feat_name]))
@@ -90,7 +117,7 @@ class Classifier(Transformer):
                          objs: List[Union[User, Utterance, Conversation]] = None, cv=KFold(n_splits=5)):
         """
 
-        :param corpus:
+        :param corpus: target Corpus
         :param objs:
         :param cv:
         :return:

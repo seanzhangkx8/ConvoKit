@@ -13,6 +13,14 @@ class CRAFTModel(ForecasterModel):
 
     def __init__(self, device_type: str = 'cpu', batch_size: int = 64, max_length: int = 80,
                  forecast_feat_name: str = "prediction", forecast_prob_feat_name: str = "score"):
+        """
+
+        :param device_type: 'cpu' or 'cuda', default: 'cpu'
+        :param batch_size: batch size for computation, default: 64
+        :param max_length: no. of tokens to use, defau;t: 80
+        :param forecast_feat_name: name of DataFrame column containing predictions, default: "prediction"
+        :param forecast_prob_feat_name: name of DataFrame column containing prediction scores, default: "score"
+        """
 
         super().__init__(forecast_feat_name=forecast_feat_name, forecast_prob_feat_name=forecast_prob_feat_name)
         assert device_type in ['cuda', 'cpu']
@@ -75,6 +83,12 @@ class CRAFTModel(ForecasterModel):
         pass
 
     def forecast(self, id_to_context_reply_label):
+        """
+        Compute forecasts and forecast scores for the given dictionary of utterance id to (context, reply) pairs
+        Return the values in a DataFrame
+        :param id_to_context_reply_label:
+        :return:
+        """
         dataset = [(context, reply, id_) for id_, (context, reply, label) in id_to_context_reply_label.items()]
         return self.evaluateDataset(dataset=dataset, predictor=self.predictor, voc=self.voc,
                                     batch_size=self.batch_size, device=self.device)

@@ -14,24 +14,31 @@ class FightingWords(Transformer):
     Based on Monroe et al.'s "Fightin’ Words: Lexical Feature Selection and Evaluation for Identifying the Content of Political Conflict"
 
     Implementation adapted from Jack Hessel's https://github.com/jmhessel/FightingWords
-    
-    - ngram; an int describing up to what n gram you want to consider (1 is unigrams,
-        2 is bigrams + unigrams, etc). Ignored if a custom CountVectorizer is passed.
-    - prior; either a float describing a uniform prior, or a vector describing a prior
-        over vocabulary items. If you're using a predefined vocabulary, make sure to specify that
-        when you make your CountVectorizer object.
-    - threshold: the z-score threshold for annotating utterances with identified ngrams
-    - top_k: use the top k ngrams when annotating utterances
-    - annot_method: "top_k" or "threshold" to specify which annotation method to use
-    - cv; a sklearn.feature_extraction.text.CountVectorizer object, if desired.
+
+    Identifies the fighting words of two groups of utterances, which we label as class1 and class2
+
     """
     def __init__(self, class1_selector: Callable[[Utterance], bool],
                  class2_selector: Callable[[Utterance], bool], cv=None,
-                 ngram=None, prior=0.1, threshold=1, top_k=10, annot_method="top_k",
+                 ngram_range=None, prior=0.1, threshold=1, top_k=10, annot_method="top_k",
                  string_sanitizer=lambda str_: FightingWords._basic_sanitize(str_)):
+        """
+
+        :param class1_selector: selector function for identifying utterances that belong to class 1
+        :param class2_selector: selector function for identifying utterances that belong to class 2
+        :param cv: optional CountVectorizer. default: an sklearn CV with min_df=10, max_df=.5, and ngram_range=(1,3) with max 15000 features
+        :param ngram_range: range of ngrams to use if using default cv
+        :param prior: either a float describing a uniform prior, or a vector describing a prior
+        over vocabulary items. If you're using a predefined vocabulary, make sure to specify that
+        when you make your CountVectorizer object.
+        :param threshold: the z-score threshold for annotating utterances with identified ngrams
+        :param top_k: the top_k threshold for which ngrams to annotate utterances with
+        :param annot_method: "top_k" or "threshold" to specify which annotation method to use
+        :param string_sanitizer: optional function for cleaning strings prior to fighting words analysis
+        """
         self.class1_selector = class1_selector
         self.class2_selector = class2_selector
-        self.ngram = ngram
+        self.ngram_range = ngram_range
         self.prior = prior
         self.cv = cv
         self.threshold = threshold
@@ -46,11 +53,10 @@ class FightingWords(Transformer):
                              "the vocabulary parameter set.")
         if self.cv is None:
             print("Initializing default CountVectorizer...")
-            if self.ngram is None:
-                self.ngram = (1, 3)
-            self.cv = CV(decode_error='ignore', min_df=10, max_df=.5, ngram_range=self.ngram,
-                    binary=False,
-                    max_features=15000)
+            if self.ngram_range is None:
+                self.ngram_range = (1, 3)
+            self.cv = CV(decode_error='ignore', min_df=10, max_df=.5, ngram_range=self.ngram_range,
+                         binary=False, max_features=15000)
     @staticmethod
     def _basic_sanitize(in_string):
         '''Returns a very roughly sanitized version of the input string.'''
@@ -101,6 +107,11 @@ class FightingWords(Transformer):
         return {index_to_term[i]: z_scores[i] for i in sorted_indices}
 
     def fit(self, corpus: Corpus, y=None):
+        """
+        Learn the fighting words from a corpus
+        :param corpus: target Corpus
+        :return: fitted Transformer
+        """
         class1, class2 = [], []
         for utt in corpus.iter_utterances():
             if self.class1_selector(utt):
@@ -117,6 +128,7 @@ class FightingWords(Transformer):
 
         self.ngram_zscores = self._bayes_compare_language(class1, class2)
         print("ngram zscores computed.")
+        return self
 
     def get_ngram_zscores(self):
         """
@@ -276,9 +288,15 @@ class FightingWords(Transformer):
         plt.show()
 
     def get_model(self):
+        """
+        Get the FightingWords CountVectorizer model
+        """
         return self.cv
 
     def set_model(self, cv):
+        """
+        Set the FightingWords CountVectorizer model
+        """
         self.cv = cv
 
 

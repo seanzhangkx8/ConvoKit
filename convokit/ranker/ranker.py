@@ -8,6 +8,14 @@ class Ranker(Transformer):
                  score_func: Callable[[Union[User, Utterance, Conversation]], Union[int, float]],
                  selector: Callable[[Union[User, Utterance, Conversation]], bool] = lambda obj: True,
                  score_feat_name: str = "ranking_score", rank_feat_name: str = "rank"):
+        """
+
+        :param obj_type: type of Corpus object to rank: 'conversation', 'user', or 'utterance'
+        :param score_func: function for computing the score of a given object
+        :param selector: function to select for Corpus objects to transform
+        :param score_feat_name: metadata feature name to use in annotation for score value, default: "ranking_score"
+        :param rank_feat_name: metadata feature name to use in annotation for the rank value, default: "rank"
+        """
         self.obj_type = obj_type
         self.score_func = score_func
         self.score_feat_name = score_feat_name
@@ -16,7 +24,7 @@ class Ranker(Transformer):
 
     def transform(self, corpus: Corpus) -> Corpus:
         """
-        Annotate ranking on corpus objects
+        Annotate scores and rankings on corpus objects
         :param corpus:
         :return:
         """
@@ -32,6 +40,12 @@ class Ranker(Transformer):
         return corpus
 
     def summarize(self, corpus: Corpus = None, objs: List[Union[User, Utterance, Conversation]] = None):
+        """
+
+        :param corpus:
+        :param objs:
+        :return:
+        """
         if ((corpus is None) and (objs is None)) or ((corpus is not None) and (objs is not None)):
             raise ValueError("summarize() takes in either a Corpus or a list of users / utterances / conversations")
 

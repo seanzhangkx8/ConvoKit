@@ -95,7 +95,14 @@ class Forecaster(Transformer):
         return forecast_df.sort_values(self.forecast_feat_name, ascending=False)
 
     def get_model(self):
+        """
+        Get the forecaster model object
+        """
         return self.forecaster_model
 
     def set_model(self, forecaster_model):
+        """
+        Set the forecaster model
+        :return:
+        """
         self.forecaster_model = forecaster_model
