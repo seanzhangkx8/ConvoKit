@@ -17,7 +17,7 @@ class Classifier(Transformer):
         :param labeller: function to get the y label of the Corpus object, e.g. lambda utt: utt.meta['y']
         :param selector: function to select for Corpus objects to transform
         :param clf: optional classifier model, an SVM with linear kernel will be initialized by default
-        :param clf_feat_name: metadata feature name to use in annotation for classification, default: "prediction"
+        :param clf_feat_name: metadata feature name to use in annotation for classification result, default: "prediction"
         :param clf_prob_feat_name: metadata feature name to use in annotation for classification probability, default: "score"
         """
         self.pred_feats = pred_feats

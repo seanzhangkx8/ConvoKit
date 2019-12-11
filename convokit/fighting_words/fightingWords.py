@@ -33,7 +33,7 @@ class FightingWords(Transformer):
         when you make your CountVectorizer object.
         :param threshold: the z-score threshold for annotating utterances with identified ngrams
         :param top_k: the top_k threshold for which ngrams to annotate utterances with
-        :param annot_method: "top_k" or "threshold" to specify which annotation method to use
+        :param annot_method: "top_k" or "threshold" to specify which annotation method to use in transform() and
         :param string_sanitizer: optional function for cleaning strings prior to fighting words analysis
         """
         self.class1_selector = class1_selector

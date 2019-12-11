@@ -11,11 +11,23 @@ class Forecaster(Transformer):
     def __init__(self, forecaster_model: ForecasterModel = None,
                  convo_structure: str = "branched",
                  text_func=lambda utt: utt.text,
-                 utt_selector_func: Callable[[Utterance], bool] = lambda utt: True,
                  convo_selector_func: Callable[[Conversation], bool] = lambda convo: True,
-                 pred_feat: Optional[str] = None,
+                 utt_selector_func: Callable[[Utterance], bool] = lambda utt: True,
+                 label_feat: Optional[str] = None,
                  forecast_feat_name: str = "forecast", forecast_prob_feat_name: str = "forecast_prob",
                  skip_broken_convos: bool = False):
+        """
+
+        :param forecaster_model: ForecasterModel to use, e.g. cumulativeBoW or CRAFT
+        :param convo_structure: conversations in expected corpus are 'branched' or 'linear', default: "branched"
+        :param text_func: optional function for extracting the text of the utterance, default: use utterance text
+        :param convo_selector_func: function for selecting the conversations to analyze, default: use all conversations
+        :param utt_selector_func: function for selecting for the utterances in selected conversations to analyze, default: use all utterances
+        :param label_feat: optional name of utterance metadata feature containing the utterance's forecast label; only used in training
+        :param forecast_feat_name: metadata feature name to use in annotation for forecast result, default: "forecast"
+        :param forecast_prob_feat_name: metadata feature name to use in annotation for forecast result probability, default: "forecast_prob"
+        :param skip_broken_convos: if True, exclude all conversations that have broken reply-to structures
+        """
 
         assert convo_structure in ["branched", "linear"]
         self.convo_structure = convo_structure
@@ -27,7 +39,7 @@ class Forecaster(Transformer):
         else:
             self.forecaster_model = forecaster_model
 
-        self.pred_feat = pred_feat
+        self.label_feat = label_feat
         self.text_func = text_func
         self.utt_selector_func = utt_selector_func
         self.convo_selector_func = convo_selector_func
@@ -59,7 +71,7 @@ class Forecaster(Transformer):
         for dialog in dialogs:
             for idx in range(1, len(dialog)):
                 reply = self.text_func(dialog[idx])
-                label = dialog[idx].meta[self.pred_feat] if include_label else None
+                label = dialog[idx].meta[self.label_feat] if include_label else None
                 reply_id = dialog[idx].id
                 context = [self.text_func(utt) for utt in dialog[:idx]]
                 id_to_context_reply_label[reply_id] = (context, reply, label) if include_label else (context, reply, None)
@@ -68,14 +80,17 @@ class Forecaster(Transformer):
 
     def fit(self, corpus: Corpus, y=None):
         """
-        :param corpus:
-        :param y:
-        :return:
+        Train the ForecasterModel on the given corpus
         """
         id_to_context_reply_label = self._get_context_reply_label_dict(corpus, include_label=True)
         self.forecaster_model.train(id_to_context_reply_label)
 
     def transform(self, corpus: Corpus) -> Corpus:
+        """
+        Annotate the corpus utterances with forecast and forecast probability information
+        :param corpus:
+        :return:
+        """
         id_to_context_reply_label = self._get_context_reply_label_dict(corpus, include_label=False)
         forecast_df = self.forecaster_model.forecast(id_to_context_reply_label)
 

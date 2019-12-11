@@ -23,15 +23,22 @@ class PairedPrediction(Transformer):
                  clf=None, pair_id_feat_name: str = "pair_id",
                  label_feat_name: str = "label",
                  pair_orientation_feat_name: str = "pair_orientation"):
+
+
         """
-        DESIGN DECISION: assume that features live in metadata, not data # TODO
+        DESIGN DECISION: assume that features live in metadata
         :param pairing_func: the Corpus object characteristic to pair on,
                 e.g. to pair on the first 10 characters of a well-structured id, use lambda obj: obj.id[:10]
-        :param pred_feats: List of features to be used in prediction
+        :param pred_feats: List of metadata features to be used in prediction. Features can either be values or a
+                        dictionary of key-value pairs, but not a nested dictionary
         :param pos_label_func: The function to check if the object is a positive instance
         :param neg_label_func: The function to check if the object is a negative instance
         :param selector: optional function to filter object for
         :param clf: optional classifier to be used in the paired prediction
+        :param pair_id_feat_name: metadata feature name to use in annotating object with pair id, default: "pair_id"
+        :param label_feat_name: metadata feature name to use in annotating object with predicted label, default: "label"
+        :param pair_orientation_feat_name: metadata feature name to use in annotating object with pair orientation, default: "pair_orientation"
+
         """
         assert obj_type in ["user", "utterance", "conversation"]
         self.obj_type = obj_type
@@ -121,6 +128,11 @@ class PairedPrediction(Transformer):
         return pair_orientations
 
     def transform(self, corpus: Corpus) -> Corpus:
+        """
+        Annotate corpus objects with pair information (label, pair_id, pair_orientation)
+        :param corpus:
+        :return:
+        """
         pos_objs, neg_objs = self._get_pos_neg_objects(corpus)
         obj_pairs = self._pair_objs(pos_objs, neg_objs)
         pair_orientations = self._assign_pair_orientations(obj_pairs)
@@ -151,6 +163,12 @@ class PairedPrediction(Transformer):
     #     return self
 
     def summarize(self, corpus: Corpus, cv=LeaveOneOut()):
+        """
+        Run
+        :param corpus:
+        :param cv:
+        :return:
+        """
         # Check if transform() needs to be run first
         sample_obj = next(corpus.iter_objs(self.obj_type))
         meta_keys = set(sample_obj.meta)
@@ -178,6 +196,11 @@ class PairedPrediction(Transformer):
         return np.mean(cross_val_score(self.clf, X, y, cv=cv, error_score='raise'))
 
     def get_coefs(self, feature_names: List[str]):
+        """
+        Get dataframe of classifier coefficients, assuming it is a pipeline with a logistic regression component
+        :param feature_names: list of feature names to get coefficients for
+        :return: DataFrame of features and coefficients, indexed by feature names
+        """
         coefs = self.clf.named_steps['logreg'].coef_[0].tolist()
         assert len(feature_names) == len(coefs)
         feats_coefs = sorted(list(zip(feature_names, coefs)), key=lambda x: x[1], reverse=True)
@@ -185,6 +208,14 @@ class PairedPrediction(Transformer):
 
 
     def print_extreme_coefs(self, feature_names: List[str], num_features: Optional[int] = None):
+        """
+        Must be run after summarize()
+        Prints the extreme coefficients of the trained classifier model for visual inspection, assuming
+        it is a pipeline with a logistic regression component
+        :param feature_names: list of feature names to inspect
+        :param num_features: optional number of extreme coefficients to print
+        :return: None (prints features)
+        """
         coefs = self.clf.named_steps['logreg'].coef_[0].tolist()
 
         assert len(feature_names) == len(coefs)
