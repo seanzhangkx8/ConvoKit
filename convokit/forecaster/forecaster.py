@@ -3,6 +3,7 @@ from typing import Callable, Optional
 from convokit import Transformer
 from .cumulativeBoW import CumulativeBoW
 from .forecasterModel import ForecasterModel
+import pandas as pd
 
 class Forecaster(Transformer):
     """
@@ -104,10 +105,27 @@ class Forecaster(Transformer):
 
         return corpus
 
-    def summarize(self, corpus: Corpus):
-        id_to_context_reply = self._get_context_reply_label_dict(corpus, include_label=False)
-        forecast_df = self.forecaster_model.forecast(id_to_context_reply)
-        return forecast_df.sort_values(self.forecast_feat_name, ascending=False)
+    def summarize(self, corpus: Corpus, use_selector=True, exclude_na=True):
+        """
+        Returns a DataFrame of utterances and their forecasts (and forecast probabilities)
+        :param corpus:
+        :param use_selector:
+        :param exclude_na:
+        :return:
+        """
+        utt_forecast_prob = []
+        if use_selector:
+            for convo in corpus.iter_conversations(self.convo_selector_func):
+                for utt in convo.iter_utterances(self.utt_selector_func):
+                    utt_forecast_prob.append((utt.id, utt.meta[self.forecast_feat_name], utt.meta[self.forecast_prob_feat_name]))
+        else:
+            for utt in corpus.iter_utterances():
+                utt_forecast_prob.append((utt.id, utt.meta[self.forecast_feat_name], utt.meta[self.forecast_prob_feat_name]))
+        forecast_df = pd.DataFrame(utt_forecast_prob, columns=["utt_id", self.forecast_feat_name, self.forecast_prob_feat_name]) \
+            .set_index('utt_id').sort_values(self.forecast_prob_feat_name, ascending=False)
+        if exclude_na:
+            forecast_df = forecast_df.dropna()
+        return forecast_df
 
     def get_model(self):
         """
