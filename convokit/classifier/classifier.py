@@ -1,5 +1,5 @@
 from sklearn.model_selection import train_test_split, cross_val_score, KFold
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import confusion_matrix, classification_report
 from sklearn import svm
 from convokit.classifier.util import *
 from convokit import Transformer
@@ -48,7 +48,7 @@ class Classifier(Transformer):
         feats_df = pd.DataFrame.from_dict(obj_id_to_feats, orient='index')
         X = csr_matrix(feats_df.values)
         idx_to_id = {idx: obj_id for idx, obj_id in enumerate(list(obj_id_to_feats))}
-        clfs, clfs_probs = self.clf.predict(X), self.clf.predict_proba(X)
+        clfs, clfs_probs = self.clf.predict(X), self.clf.predict_proba(X)[:, 1]
 
         for idx, (clf, clf_prob) in enumerate(list(zip(clfs, clfs_probs))):
             corpus_obj = corpus.get_object(self.obj_type, idx_to_id[idx])
@@ -60,7 +60,7 @@ class Classifier(Transformer):
     def transform_objs(self, objs: List[Union[User, Utterance, Conversation]]) -> List[Union[User, Utterance, Conversation]]:
         X = np.array([list(extract_feats_from_obj(obj, self.pred_feats).values()) for obj in objs])
         # obj_ids = [obj.id for obj in objs]
-        clfs, clfs_probs = self.clf.predict(X), self.clf.predict_proba(X)
+        clfs, clfs_probs = self.clf.predict(X), self.clf.predict_proba(X)[:, 1]
 
         for idx, (clf, clf_prob) in enumerate(list(zip(clfs, clfs_probs))):
             obj = objs[idx]
@@ -69,16 +69,24 @@ class Classifier(Transformer):
 
         return objs
 
-    def summarize(self, corpus: Corpus = None, use_selector=True):
+    def summarize(self, corpus: Corpus = None, objs: List[Union[User, Utterance, Conversation]] = None, use_selector=True):
         """
 
         :param corpus:
         :param use_selector:
         :return:
         """
+        if ((corpus is None) and (objs is None)) or ((corpus is not None) and (objs is not None)):
+            raise ValueError("summarize() takes in either a Corpus or a list of users / utterances / conversations")
+
         objId_clf_prob = []
-        for obj in corpus.iter_objs(self.obj_type, self.selector if use_selector else lambda _: True):
-            objId_clf_prob.append((obj.id, obj.meta[self.clf_feat_name], obj.meta[self.clf_prob_feat_name]))
+
+        if objs is None:
+            for obj in corpus.iter_objs(self.obj_type, self.selector if use_selector else lambda _: True):
+                objId_clf_prob.append((obj.id, obj.meta[self.clf_feat_name], obj.meta[self.clf_prob_feat_name]))
+        else:
+            for obj in objs:
+                objId_clf_prob.append((obj.id, obj.meta[self.clf_feat_name], obj.meta[self.clf_prob_feat_name]))
 
         return pd.DataFrame(list(objId_clf_prob),
                             columns=['id', self.clf_feat_name, self.clf_prob_feat_name]).set_index('id')
@@ -111,7 +119,8 @@ class Classifier(Transformer):
         self.clf.fit(X_train, y_train)
         preds = self.clf.predict(X_test)
         accuracy = np.mean(preds == y_test)
-        return accuracy, confusion_matrix(y_true=y, y_pred=preds)
+        print("Done.")
+        return accuracy, confusion_matrix(y_true=y_test, y_pred=preds)
 
     def evaluate_with_cv(self, corpus: Corpus = None,
                          objs: List[Union[User, Utterance, Conversation]] = None, cv=KFold(n_splits=5)):
@@ -137,3 +146,33 @@ class Classifier(Transformer):
 
         print("Running a cross-validated evaluation...")
         return cross_val_score(self.clf, X, y, cv=cv)
+
+    def confusion_matrix(self, corpus, use_selector=True):
+        """
+        Generate confusion matrix for transformed corpus using labeller for y_true and clf_feat_name as y_pred
+        :param corpus:
+        :param use_selector
+        :return:
+        """
+        y_true = []
+        y_pred = []
+        for obj in corpus.iter_objs(self.obj_type, self.selector if use_selector else lambda _: True):
+            y_true.append(self.labeller(obj))
+            y_pred.append(obj.meta[self.clf_feat_name])
+
+        return confusion_matrix(y_true=y_true, y_pred=y_pred)
+
+    def classification_report(self, corpus, use_selector=True):
+        """
+        Generate classification report for transformed corpus using labeller for y_true and clf_feat_name as y_pred
+        :param corpus:
+        :param use_selector:
+        :return:
+        """
+        y_true = []
+        y_pred = []
+        for obj in corpus.iter_objs(self.obj_type, self.selector if use_selector else lambda _: True):
+            y_true.append(self.labeller(obj))
+            y_pred.append(obj.meta[self.clf_feat_name])
+
+        return classification_report(y_true=y_true, y_pred=y_pred)
