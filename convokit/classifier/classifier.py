@@ -145,7 +145,9 @@ class Classifier(Transformer):
             # obj_ids = [obj.id for obj in objs]
 
         print("Running a cross-validated evaluation...")
-        return cross_val_score(self.clf, X, y, cv=cv)
+        score = cross_val_score(self.clf, X, y, cv=cv)
+        print("Done.")
+        return score
 
     def confusion_matrix(self, corpus, use_selector=True):
         """
