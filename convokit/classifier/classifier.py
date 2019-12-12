@@ -45,12 +45,12 @@ class Classifier(Transformer):
         :return:
         """
         obj_id_to_feats = extract_feats_dict(corpus, self.obj_type, self.pred_feats, self.selector)
-        feats_df = pd.DataFrame.from_dict(obj_id_to_feats, orient='index')
+        feats_df = pd.DataFrame.from_dict(obj_id_to_feats, orient='index').reindex(index = list(obj_id_to_feats))
         X = csr_matrix(feats_df.values)
         idx_to_id = {idx: obj_id for idx, obj_id in enumerate(list(obj_id_to_feats))}
         clfs, clfs_probs = self.clf.predict(X), self.clf.predict_proba(X)[:, 1]
-
         for idx, (clf, clf_prob) in enumerate(list(zip(clfs, clfs_probs))):
+
             corpus_obj = corpus.get_object(self.obj_type, idx_to_id[idx])
             corpus_obj.add_meta(self.clf_feat_name, clf)
             corpus_obj.add_meta(self.clf_prob_feat_name, clf_prob)
@@ -163,6 +163,15 @@ class Classifier(Transformer):
             y_pred.append(obj.meta[self.clf_feat_name])
 
         return confusion_matrix(y_true=y_true, y_pred=y_pred)
+
+    def get_y_true_pred(self, corpus, use_selector=True):
+        y_true = []
+        y_pred = []
+        for obj in corpus.iter_objs(self.obj_type, self.selector if use_selector else lambda _: True):
+            y_true.append(self.labeller(obj))
+            y_pred.append(obj.meta[self.clf_feat_name])
+
+        return y_true, y_pred
 
     def classification_report(self, corpus, use_selector=True):
         """
