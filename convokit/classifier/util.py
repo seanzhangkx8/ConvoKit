@@ -55,7 +55,7 @@ def extract_feats_and_label(corpus: Corpus, obj_type: str, pred_feats: List[str]
     X_df = pd.DataFrame.from_dict(obj_id_to_feats, orient='index')
     y_df = pd.DataFrame.from_dict(obj_id_to_label, orient='index')
 
-    X_y_df = pd.concat([X_df, y_df], axis=1)
+    X_y_df = pd.concat([X_df, y_df], axis=1, sort=False)
 
     y = X_y_df['y']
     X = X_y_df.drop(columns='y')
