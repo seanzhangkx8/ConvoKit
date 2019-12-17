@@ -22,9 +22,7 @@ Additional metadata include:
 * sex: user sex, 'MALE' or 'FEMALE'
 * education: the user's level of education. Options are 0 (less than high school), 1 (less than college), 2 (college), 3 (more than college), and 9 (unknown).
 * birth_year: the user's birth year (4-digit year)
-* dialect_area: one of the following dialect areas: MIXED, NEW ENGLAND, NORTH MIDLAND, NORTHERN, NYC, SOUTH MIDLAND, SOUTHERN, UNK, WESTERN
-    * The UNK tag is used for users of unknown dialect area
-    * The MIXED tag is used for users who are of multiple dialect areas
+* dialect_area: one of the following dialect areas: MIXED, NEW ENGLAND, NORTH MIDLAND, NORTHERN, NYC, SOUTH MIDLAND, SOUTHERN, UNK, WESTERN (where UNK tag is used for users of unknown dialect area, and MIXED tag is used for users who are of multiple dialect areas). 
 
 
 Utterance-level information
