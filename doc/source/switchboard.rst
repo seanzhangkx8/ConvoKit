@@ -1,9 +1,9 @@
 Switchboard Dialog Act Corpus 
 ===============================
 
-The Switchboard Dialog Act Corpus (SwDA) contains 1,155 five-minute telephone conversations between two participants. Callers question receivers on provided topics, such as child care, recycling, and news media. 440 users participate in these 1,155 conversations, producing 221,616 utterances (we combine consecutive utterances by the same person into one utterance, so our corpus has 122,646 utterances). 
+A collection of 1,155 five-minute telephone conversations between two participants, annotated with speech act tags. In these conversations, callers question receivers on provided topics, such as child care, recycling, and news media. 440 users participate in these 1,155 conversations, producing 221,616 utterances (we combine consecutive utterances by the same person into one utterance, so our corpus has 122,646 utterances). 
 
-Distributed together with: Andreas Stolcke, Klaus Ries, Noah Coccaro, Elizabeth Shriberg, Rebecca Bates, Daniel Jurafsky, Paul Taylor, Rachel Martin, Carol Van Ess-Dykema, and Marie Meteer. `Dialogue act modeling for automatic tagging and recognition of conversational speech <https://www.aclweb.org/anthology/J00-3003.pdf>`_. Computational Linguistics, Volume 26, Number 3, September 2000.
+This is a Convokit-formatted version of the Switchboard Dialog Act Corpus (SwDA), originally distributed together with the following paper: Andreas Stolcke, Klaus Ries, Noah Coccaro, Elizabeth Shriberg, Rebecca Bates, Daniel Jurafsky, Paul Taylor, Rachel Martin, Carol Van Ess-Dykema, and Marie Meteer. `Dialogue act modeling for automatic tagging and recognition of conversational speech <https://www.aclweb.org/anthology/J00-3003.pdf>`_. Computational Linguistics, Volume 26, Number 3, September 2000.
 
 
 The original dataset and additional information can be found `here <http://compprag.christopherpotts.net/swda.html>`_. 
