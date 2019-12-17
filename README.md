@@ -116,6 +116,12 @@ A collection of all the conversations that occurred over 10 seasons of Friends, 
 
 Name for download: `friends-corpus`
 
+### [Switchboard Dialog Act Corpus](https://zissou.infosci.cornell.edu/convokit/documentation/switchboard.html)
+
+A collection of 1,155 five-minute telephone conversations between two participants, annotated with speech act tags.
+
+Name for download: `switchboard-corpus`
+
 ### ...And your own corpus!
 
 In addition to the provided datasets, you may also use ConvoKit with your own custom datasets by loading them into a `convokit.Corpus` object. [This example script](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/converting_movie_corpus.ipynb) shows how to construct a Corpus from custom data.
