@@ -42,15 +42,15 @@ class Classifier(Transformer):
         """
         Run classifier on given corpus's objects and annotate them with the predictions and prediction scores
         :param corpus: target Corpus
-        :return:
+        :return: annotated Corpus
         """
         obj_id_to_feats = extract_feats_dict(corpus, self.obj_type, self.pred_feats, self.selector)
         feats_df = pd.DataFrame.from_dict(obj_id_to_feats, orient='index').reindex(index = list(obj_id_to_feats))
         X = csr_matrix(feats_df.values)
         idx_to_id = {idx: obj_id for idx, obj_id in enumerate(list(obj_id_to_feats))}
         clfs, clfs_probs = self.clf.predict(X), self.clf.predict_proba(X)[:, 1]
-        for idx, (clf, clf_prob) in enumerate(list(zip(clfs, clfs_probs))):
 
+        for idx, (clf, clf_prob) in enumerate(list(zip(clfs, clfs_probs))):
             corpus_obj = corpus.get_object(self.obj_type, idx_to_id[idx])
             corpus_obj.add_meta(self.clf_feat_name, clf)
             corpus_obj.add_meta(self.clf_prob_feat_name, clf_prob)
@@ -58,6 +58,12 @@ class Classifier(Transformer):
         return corpus
 
     def transform_objs(self, objs: List[Union[User, Utterance, Conversation]]) -> List[Union[User, Utterance, Conversation]]:
+        """
+        Run classifier on list of Corpus objects and annotate them with the predictions and prediction scores
+
+        :param objs: list of Corpus objects
+        :return: list of annotated Corpus objects
+        """
         X = np.array([list(extract_feats_from_obj(obj, self.pred_feats).values()) for obj in objs])
         # obj_ids = [obj.id for obj in objs]
         clfs, clfs_probs = self.clf.predict(X), self.clf.predict_proba(X)[:, 1]
@@ -71,10 +77,12 @@ class Classifier(Transformer):
 
     def summarize(self, corpus: Corpus = None, objs: List[Union[User, Utterance, Conversation]] = None, use_selector=True):
         """
-
-        :param corpus:
-        :param use_selector:
-        :return:
+        Generate a pandas DataFrame (indexed by object id, with prediction and prediction score columns) of classification results.
+        Run either on a target Corpus or a list of Corpus objects
+        :param corpus: target Corpus
+        :param objs: list of Corpus objects
+        :param use_selector: whether to use Classifier.selector for selecting Corpus objects
+        :return: pandas DataFrame indexed by Corpus object id
         """
         if ((corpus is None) and (objs is None)) or ((corpus is not None) and (objs is not None)):
             raise ValueError("summarize() takes in either a Corpus or a list of users / utterances / conversations")
@@ -95,10 +103,13 @@ class Classifier(Transformer):
                  objs: List[Union[User, Utterance, Conversation]] = None,
                  test_size: float = 0.2):
         """
+        Evaluate the performance of predictive features (Classifier.pred_feats) in predicting for the label, using a
+        train-test split.
 
-        :param corpus:
-        :param objs:
-        :param test_size:
+        Run either on a Corpus (with Classifier labeller, selector, obj_type settings) or a list of Corpus objects
+        :param corpus: target Corpus
+        :param objs: target list of Corpus objects
+        :param test_size: size of test set
         :return: accuracy and confusion matrix
         """
         if ((corpus is None) and (objs is None)) or ((corpus is not None) and (objs is not None)):
@@ -125,11 +136,15 @@ class Classifier(Transformer):
     def evaluate_with_cv(self, corpus: Corpus = None,
                          objs: List[Union[User, Utterance, Conversation]] = None, cv=KFold(n_splits=5)):
         """
+        Evaluate the performance of predictive features (Classifier.pred_feats) in predicting for the label, using cross-validation
+        for data splitting.
+
+        Run either on a Corpus (with Classifier labeller, selector, obj_type settings) or a list of Corpus objects
 
         :param corpus: target Corpus
-        :param objs:
-        :param cv:
-        :return:
+        :param objs: target list of Corpus objects
+        :param cv: cross-validation model to use: KFold(n_splits=5) by default.
+        :return: cross-validated accuracy score
         """
         if ((corpus is None) and (objs is None)) or ((corpus is not None) and (objs is not None)):
             raise ValueError("This function takes in either a Corpus or a list of users / utterances / conversations")
@@ -152,9 +167,9 @@ class Classifier(Transformer):
     def confusion_matrix(self, corpus, use_selector=True):
         """
         Generate confusion matrix for transformed corpus using labeller for y_true and clf_feat_name as y_pred
-        :param corpus:
-        :param use_selector
-        :return:
+        :param corpus: target Corpus
+        :param use_selector: whether to use Classifier.selector for selecting Corpus objects
+        :return: sklearn confusion matrix
         """
         y_true = []
         y_pred = []
@@ -165,6 +180,12 @@ class Classifier(Transformer):
         return confusion_matrix(y_true=y_true, y_pred=y_pred)
 
     def get_y_true_pred(self, corpus, use_selector=True):
+        """
+        Get lists of true and predicted labels
+        :param corpus: target Corpus
+        :param use_selector: whether to use Classifier.selector for selecting Corpus objects
+        :return: list of true labels, and list of predicted labels
+        """
         y_true = []
         y_pred = []
         for obj in corpus.iter_objs(self.obj_type, self.selector if use_selector else lambda _: True):
@@ -176,9 +197,9 @@ class Classifier(Transformer):
     def classification_report(self, corpus, use_selector=True):
         """
         Generate classification report for transformed corpus using labeller for y_true and clf_feat_name as y_pred
-        :param corpus:
-        :param use_selector:
-        :return:
+        :param corpus: target Corpus
+        :param use_selector: whether to use Classifier.selector for selecting Corpus objects
+        :return: classification report
         """
         y_true = []
         y_pred = []
