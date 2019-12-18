@@ -142,6 +142,11 @@ def download(name: str, verbose: bool = True, data_dir: str = None, use_newest_v
     return dataset_path
 
 def download_local(name: str, data_dir: str):
+    """
+    Get path to local version of the Corpus (which may be an older version)
+    :param name of Corpus
+    :return: string path to local Corpus
+    """
     custom_data_dir = data_dir
     data_dir = os.path.expanduser("~/.convokit/")
 
