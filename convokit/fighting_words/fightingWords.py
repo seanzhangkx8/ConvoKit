@@ -6,8 +6,29 @@ from convokit.model import Corpus, Utterance
 from typing import List, Callable, Tuple
 from matplotlib import pyplot as plt
 import pandas as pd
+from cleantext import clean
 
-exclude = set(string.punctuation)
+clean_str = lambda s: clean(s,
+                            fix_unicode=True,               # fix various unicode errors
+                            to_ascii=True,                  # transliterate to closest ASCII representation
+                            lower=True,                     # lowercase text
+                            no_line_breaks=True,           # fully strip line breaks as opposed to only normalizing them
+                            no_urls=True,                  # replace all URLs with a special token
+                            no_emails=True,                # replace all email addresses with a special token
+                            no_phone_numbers=True,         # replace all phone numbers with a special token
+                            no_numbers=True,               # replace all numbers with a special token
+                            no_digits=False,                # replace all digits with a special token
+                            no_currency_symbols=True,      # replace all currency symbols with a special token
+                            no_punct=False,                 # fully remove punctuation
+                            replace_with_url="<URL>",
+                            replace_with_email="<EMAIL>",
+                            replace_with_phone_number="<PHONE>",
+                            replace_with_number="<NUMBER>",
+                            replace_with_digit="0",
+                            replace_with_currency_symbol="<CUR>",
+                            lang="en"
+                            )
+
 
 class FightingWords(Transformer):
     """
@@ -21,7 +42,7 @@ class FightingWords(Transformer):
     def __init__(self, class1_selector: Callable[[Utterance], bool],
                  class2_selector: Callable[[Utterance], bool], cv=None,
                  ngram_range=None, prior=0.1, threshold=1, top_k=10, annot_method="top_k",
-                 string_sanitizer=lambda str_: FightingWords._basic_sanitize(str_)):
+                 string_sanitizer=lambda str_: FightingWords.clean_text(str_)):
         """
 
         :param class1_selector: selector function for identifying utterances that belong to class 1
@@ -34,7 +55,8 @@ class FightingWords(Transformer):
         :param threshold: the z-score threshold for annotating utterances with identified ngrams
         :param top_k: the top_k threshold for which ngrams to annotate utterances with
         :param annot_method: "top_k" or "threshold" to specify which annotation method to use in transform() and
-        :param string_sanitizer: optional function for cleaning strings prior to fighting words analysis
+        :param string_sanitizer: optional function for cleaning strings prior to fighting words analysis: uses default
+        string sanitizer otherwise
         """
         self.class1_selector = class1_selector
         self.class2_selector = class2_selector
@@ -57,14 +79,19 @@ class FightingWords(Transformer):
                 self.ngram_range = (1, 3)
             self.cv = CV(decode_error='ignore', min_df=10, max_df=.5, ngram_range=self.ngram_range,
                          binary=False, max_features=15000)
+
+
     @staticmethod
-    def _basic_sanitize(in_string):
-        '''Returns a very roughly sanitized version of the input string.'''
-        return_string = (b' '.join(in_string.encode('ascii', 'ignore').strip().split())).decode('ascii')
-        return_string = ''.join(ch for ch in return_string if ch not in exclude)
-        return_string = return_string.lower()
-        return_string = ' '.join(return_string.split())
-        return return_string
+    def clean_text(in_string):
+        """
+        Cleans the text using Python clean-text package: fixes unicode, transliterates all characters to closest ASCII,
+        lowercases text, removes line breaks and punctuation, replaces (urls, emails, phone numbers, numbers, currency)
+        with corresponding <TOKEN>
+
+        :param in_string: input string
+        :return: cleaned string
+        """
+        return clean_str(in_string)
 
     def _bayes_compare_language(self, class1: List[Utterance], class2: List[Utterance]):
         '''
