@@ -1,5 +1,6 @@
 from functools import total_ordering
-from typing import Dict, List, Collection, Hashable, Callable, Set, Generator, Tuple, Optional, ValuesView
+from typing import Dict, List, Collection, Callable, Set, Generator, Tuple, Optional, ValuesView
+from warnings import warn
 
 @total_ordering
 class User:
@@ -24,6 +25,7 @@ class User:
         self._meta = meta if meta is not None else {}
         self._split_attribs = set()
         self._update_uid()
+        self.id = self._name
 
     def identify_by_attribs(self, attribs: Collection) -> None:
         """Identify a user by a list of attributes. Sets which user info
@@ -44,19 +46,13 @@ class User:
     def _get_name(self): return self._name
 
     def _set_name(self, value: str):
+        warn("This attribute will be removed in a future release. Use User.id instead.")
         self._name = value
         self._update_uid()
 
     name = property(_get_name, _set_name)
 
-    def get_utterance_ids(self) -> List[Hashable]:
-        """
-
-        :return: a List of the ids of Utterances made by the User
-        """
-        return list(self.utterances.keys())
-
-    def get_utterance(self, ut_id: Hashable): #-> Utterance:
+    def get_utterance(self, ut_id: str): #-> Utterance:
         """
         Get the Utterance with the specified Utterance id
 
@@ -65,22 +61,23 @@ class User:
         """
         return self.utterances[ut_id]
 
-    def iter_utterances(self): #-> Generator[Utterance, None, None]:
+    def iter_utterances(self, selector=lambda utt: True): #-> Generator[Utterance, None, None]:
         """
 
         :return: An iterator of the Utterances made by the User
         """
         for v in self.utterances.values():
-            yield v
+            if selector(v):
+                yield v
 
-    def get_conversation_ids(self) -> List[str]:
+    def get_utterance_ids(self, selector=lambda utt: True) -> List[str]:
         """
 
-        :return: a List of the ids of Conversations started by the User
+        :return: a List of the ids of Utterances made by the User
         """
-        return list(self.conversations.keys())
+        return list([utt.id for utt in self.iter_utterances(selector)])
 
-    def get_conversation(self, cid: Hashable): # -> Conversation:
+    def get_conversation(self, cid: str): # -> Conversation:
         """
         Get the Conversation with the specified Conversation id
 
@@ -89,13 +86,21 @@ class User:
         """
         return self.conversations[cid]
 
-    def iter_conversations(self): # -> Generator[Conversation, None, None]:
+    def iter_conversations(self, selector=lambda convo: True): # -> Generator[Conversation, None, None]:
         """
 
         :return: An iterator of the Conversations started by the User
         """
         for v in self.conversations.values():
-            yield v
+            if selector(v):
+                yield v
+
+    def get_conversation_ids(self, selector=lambda convo: True) -> List[str]:
+        """
+
+        :return: a List of the ids of Conversations started by the User
+        """
+        return [convo.id for convo in self.iter_conversations(selector)]
 
     def _get_meta(self): return self._meta
 
@@ -104,7 +109,7 @@ class User:
         self._update_uid()
     meta = property(_get_meta, _set_meta)
 
-    def add_meta(self, key: Hashable, value) -> None:
+    def add_meta(self, key: str, value) -> None:
         """
         Adds a key-value pair to the metadata of the User
 
@@ -120,7 +125,7 @@ class User:
             :return: attribute <key>
         """
 
-        return self.meta.get(key,None)
+        return self.meta.get(key, None)
 
     def set_info(self, key, value):
         """

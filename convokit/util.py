@@ -9,7 +9,8 @@ import requests
 
 
 # returns a path to the dataset file
-def download(name: str, verbose: bool=True, data_dir: str=None, use_newest_version: bool=True) -> str:
+def download(name: str, verbose: bool = True, data_dir: str = None, use_newest_version: bool = True,
+             use_local: bool = False) -> str:
     """Use this to download (or use saved) convokit data by name.
 
     :param name: Which item to download. Currently supported:
@@ -46,9 +47,12 @@ def download(name: str, verbose: bool=True, data_dir: str=None, use_newest_versi
     :param verbose: Print checkpoint statements for download
     :param data_dir: Output path of downloaded file (default: ~/.convokit)
     :param use_newest_version: Redownload if new version is found
+    :param use_local: if True, use the local version of corpus if it exists (regardless of whether a newer version exists)
 
     :return: The path to the downloaded item.
     """
+    if use_local:
+        return download_local(name, data_dir)
 
     dataset_config = requests.get('https://zissou.infosci.cornell.edu/convokit/datasets/download_config.json').json()
 
@@ -131,6 +135,57 @@ def download(name: str, verbose: bool=True, data_dir: str=None, use_newest_versi
             url = DatasetURLs[name]
             download_helper(dataset_path, url, verbose, name, downloadeds_path)
     else:
+
+        print("Dataset already exists at {}".format(dataset_path))
+        dataset_path = os.path.join(downloaded_paths[name], name)
+
+    return dataset_path
+
+def download_local(name: str, data_dir: str):
+    """
+    Get path to local version of the Corpus (which may be an older version)
+    :param name of Corpus
+    :return: string path to local Corpus
+    """
+    custom_data_dir = data_dir
+    data_dir = os.path.expanduser("~/.convokit/")
+
+    #pkg_resources.resource_filename("convokit", "")
+    if not os.path.exists(data_dir):
+        raise FileNotFoundError("No convokit data directory found. No local corpus version available.")
+
+    if not os.path.exists(os.path.join(data_dir, "downloads")):
+        raise FileNotFoundError("Local convokit data directory found, but no downloads folder exists. No local corpus version available.")
+
+    dataset_path = os.path.join(data_dir, "downloads", name)
+
+    if custom_data_dir is not None:
+        dataset_path = os.path.join(custom_data_dir, name)
+
+    if not os.path.exists(os.path.dirname(dataset_path)):
+        os.makedirs(os.path.dirname(dataset_path))
+
+    dataset_path = os.path.realpath(dataset_path)
+
+    downloadeds_path = os.path.join(data_dir, "downloads", "downloaded.txt")
+    if not os.path.isfile(downloadeds_path):
+        raise FileNotFoundError("downloaded.txt is missing.")
+    with open(downloadeds_path, "r") as f:
+        downloaded_lines = f.read().splitlines()
+        downloaded = {}
+        downloaded_paths = {}
+        for l in downloaded_lines:
+            dname, path, version = l.split("$#$")
+            version = int(version)
+            if dname not in downloaded or downloaded[dname] < version:
+                downloaded[dname, path] = version
+                downloaded_paths[dname] = path
+                if custom_data_dir is None and name == dname:
+                    dataset_path = os.path.join(path, name)
+
+        # print(list(downloaded.keys()))
+        if (name, os.path.dirname(dataset_path)) not in downloaded:
+            raise FileNotFoundError("Could not find corpus in local directory.")
 
         print("Dataset already exists at {}".format(dataset_path))
         dataset_path = os.path.join(downloaded_paths[name], name)

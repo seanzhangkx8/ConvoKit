@@ -1,5 +1,5 @@
 
-from typing import Dict, List, Collection, Hashable, Callable, Set, Generator, Tuple, Optional, ValuesView
+from typing import Dict, List, Collection, Callable, Set, Generator, Tuple, Optional, ValuesView, Union
 import pickle
 import numpy as np
 import pandas as pd
@@ -66,7 +66,7 @@ class Corpus:
 		self.meta_index = {}
 
 		self.vector_reprs = {}
-		
+
 		convos_meta = defaultdict(dict)
 		if exclude_utterance_meta is None: exclude_utterance_meta = []
 		if exclude_conversation_meta is None: exclude_conversation_meta = []
@@ -113,7 +113,7 @@ class Corpus:
 				with open(os.path.join(filename, "index.json"), "r") as f:
 					self.meta_index = json.load(f)
 
-				# load all processed text information, but don't load actual text. 
+				# load all processed text information, but don't load actual text.
 				# also checks if the index file exists.
 				# try:
 				#     with open(os.path.join(filename, "processed_text.index.json"), "r") as f:
@@ -160,7 +160,7 @@ class Corpus:
 					if field_type == "bin" and field not in exclude_utterance_meta:
 						with open(os.path.join(filename, field + "-convo-bin.p"), "rb") as f:
 							l_bin = pickle.load(f)
-							
+
 						for convo_id, convo_meta in convos_meta.items():
 							for k, v in convo_meta.items():
 								if k == field and type(v) == str and str(v).startswith(BIN_DELIM_L) and \
@@ -382,55 +382,45 @@ class Corpus:
 	def get_utterance_ids(self) -> List:
 		return list(self.utterances.keys())
 
-	def get_utterance(self, ut_id: Hashable) -> Utterance:
+	def get_utterance(self, ut_id: str) -> Utterance:
 		return self.utterances[ut_id]
 
-	def iter_utterances(self) -> Generator[Utterance, None, None]:
+	def iter_utterances(self, selector: Optional[Callable[[Utterance], bool]] = lambda utt: True) -> Generator[Utterance, None, None]:
 		for v in self.utterances.values():
-			yield v
+			if selector(v):
+				yield v
 
-	def get_conversation_ids(self) -> List[str]:
-		return list(self.conversations.keys())
+	def get_conversation_ids(self, selector: Optional[Callable[[Conversation], bool]] = lambda convo: True) -> List[str]:
+		return [convo.id for convo in self.iter_conversations(selector)]
 
-	def get_conversation(self, cid: Hashable) -> Conversation:
+	def get_conversation(self, cid: str) -> Conversation:
 		return self.conversations[cid]
 
-	def iter_conversations(self) -> Generator[Conversation, None, None]:
+	def iter_conversations(self, selector: Optional[Callable[[Conversation], bool]] = lambda convo: True) -> Generator[Conversation, None, None]:
 		for v in self.conversations.values():
-			yield v
+			if selector(v):
+				yield v
 
-	def filter_utterances_by(self, regular_kv_pairs: Optional[Dict]=None,
-							 meta_kv_pairs: Optional[Dict]=None) -> None:
-		"""
-		Creates a subset of the utterances filtered by certain attributes. Irreversible.
-		If the method is run again, it will filter the already filtered subset.
-		Always takes the intersection of the specified key-pairs
-		"""
-		if regular_kv_pairs is None: regular_kv_pairs = dict()
-		if meta_kv_pairs is None: meta_kv_pairs = dict()
-		new_utterances = dict()
+	def iter_objs(self, obj_type: str, selector: Callable[[Union[User, Utterance, Conversation]], bool] = lambda obj: True):
+		assert obj_type in ["user", "utterance", "conversation"]
+		obj_iters = {"conversation": self.iter_conversations,
+					 "user": self.iter_users,
+					 "utterance": self.iter_utterances}
 
-		regular_keys = list(regular_kv_pairs.keys())
-		meta_keys = list(meta_kv_pairs.keys())
-		for uid, utterance in self.utterances.items():
-			meta_dict = utterance.meta
-			regular = all(utterance.get(key) == regular_kv_pairs[key] for key in regular_keys)
-			meta = all(meta_dict[key] == meta_kv_pairs[key] for key in meta_keys)
-			if regular and meta:
-				new_utterances[uid] = utterance
+		return obj_iters[obj_type](selector)
 
-		self.utterances = new_utterances
-
-	#    def earliest_n_utterances(self, n, uts=None):
-	#        """Returns the first n utterances (ordered by time)."""
-	#        if uts is None:
-	#            uts = self.utterances
-	#        uts = list(sorted(uts.values(), key=lambda u: u.timestamp))
-	#        return uts[:n]
+	def get_object(self, obj_type: str, oid: str):
+		assert obj_type in ["user", "utterance", "conversation"]
+		if obj_type == "user":
+			return self.get_user(oid)
+		elif obj_type == "utterance":
+			return self.get_utterance(oid)
+		else:
+			return self.get_conversation(oid)
 
 	def utterance_threads(self, prefix_len: Optional[int]=None,
 						  suffix_len: int=0,
-						  include_root: bool=True) -> Dict[Hashable, Dict[Hashable, Utterance]]:
+						  include_root: bool=True) -> Dict[str, Dict[str, Utterance]]:
 		"""
 		Returns dict of threads, where a thread is all utterances with the
 		same root.
@@ -460,10 +450,10 @@ class Corpus:
 	def get_meta(self) -> Dict:
 		return self.meta
 
-	def add_meta(self, key: Hashable, value) -> None:
+	def add_meta(self, key: str, value) -> None:
 		self.meta[key] = value
 
-	def iter_users(self, selector: Optional[Callable[[User], bool]]=None) -> Generator[User, None, None]:
+	def iter_users(self, selector: Optional[Callable[[User], bool]] = lambda user: True) -> Generator[User, None, None]:
 		"""Get users in the dataset.
 
 		:param selector: optional function that takes in a
@@ -474,19 +464,18 @@ class Corpus:
 			or all users in the dataset if no selector function was
 			used.
 		"""
-		if selector is None:
-			for user in self.all_users.values():
+
+		for user in self.all_users.values():
+			if selector(user):
 				yield user
-		else:
-			for user in self.all_users.values():
-				if selector(user):
-					yield user
 
 	def get_user(self, name: str) -> User:
 		return self.all_users[name]
 
-	def get_usernames(self, selector: Optional[Callable[[User], bool]]=None) -> Set[str]:
+	def get_usernames(self, selector: Optional[Callable[[User], bool]] = lambda user: True) -> Set[str]:
 		"""Get names of users in the dataset.
+
+		This function will be deprecated and replaced by get_user_ids()
 
 		:param selector: optional function that takes in a
 			`User` and returns True to include the user's name in the
@@ -495,8 +484,13 @@ class Corpus:
 		:return: Set containing all user names selected by the selector
 			function, or all user names in the dataset if no selector function
 			was used.
+
 		"""
 		return set([u.name for u in self.iter_users(selector)])
+
+
+	def get_user_ids(self, selector: Optional[Callable[[User], bool]] = lambda user: True) -> Set[str]:
+		return set([u.id for u in self.iter_users(selector)])
 
 	def speaking_pairs(self, selector: Optional[Callable[[User, User], bool]]=None,
 					   user_names_only: bool=False) -> Set[Tuple]:
@@ -629,7 +623,7 @@ class Corpus:
 		return seen_utts.values()
 
 	@staticmethod
-	def _collect_user_data(utt_sets: Collection[Collection[Utterance]]) -> Tuple[Dict[str, Dict[Hashable, str]], Dict[str, Dict[Hashable, bool]]]:
+	def _collect_user_data(utt_sets: Collection[Collection[Utterance]]) -> Tuple[Dict[str, Dict[str, str]], Dict[str, Dict[str, bool]]]:
 		"""
 		Helper function for merge().
 
@@ -799,7 +793,7 @@ class Corpus:
 
 			:param id: id of object
 			:param field: the name of the particular representation
-			:return: a vector representation of object <id> 
+			:return: a vector representation of object <id>
 		"""
 
 		vect_obj = self.vector_reprs[field]
@@ -856,7 +850,7 @@ class Corpus:
 
 	def load_info(self, obj_type, fields=[], dir_name=None):
 		"""
-			loads attributes of objects in a corpus from disk. 
+			loads attributes of objects in a corpus from disk.
 			This function, along with dump_info, supports cases where a particular attribute is to be stored separately from the other corpus files, for organization or efficiency. These attributes will not be read when the corpus is initialized; rather, they can be loaded on-demand using this function.
 
 			For each attribute with name <NAME>, will read from a file called info.<NAME>.jsonl, and load each attribute value into the respective object's .meta field.
@@ -871,7 +865,7 @@ class Corpus:
 			raise ValueError('must specify a directory to read from')
 		if dir_name is None:
 			dir_name = self.original_corpus_path
-		
+
 		if len(fields) == 0:
 			fields = [x.replace('info.','').replace('.jsonl', '') for x in os.listdir(dir_name)
 				if x.startswith('info')]
@@ -896,20 +890,20 @@ class Corpus:
 
 	def dump_info(self, obj_type, fields, dir_name=None):
 		"""
-			writes attributes of objects in a corpus to disk. 
+			writes attributes of objects in a corpus to disk.
 			This function, along with load_info, supports cases where a particular attribute is to be stored separately from the other corpus files, for organization or efficiency. These attributes will not be read when the corpus is initialized; rather, they can be loaded on-demand using this function.
-	
+
 			For each attribute with name <NAME>, will write to a file called info.<NAME>.jsonl, where rows are json-serialized dictionaries structured as {"id": id of object, "value": value of attribute}.
 
 			:param obj_type: type of object the attribute is associated with. can be one of "utterance", "user", "conversation".
-			:param fields: a list of names of attributes to write to disk. 
+			:param fields: a list of names of attributes to write to disk.
 			:param dir_name: the directory to write attributes to. by default, or if set to None, will read from the directory that the Corpus was loaded from.
 			:return: None
 		"""
 
 		if (self.original_corpus_path is None) and (dir_name is None):
 			raise ValueError('must specify a directory to write to')
-		
+
 		if dir_name is None:
 			dir_name = self.original_corpus_path
 		# if len(fields) == 0:
@@ -964,7 +958,7 @@ class Corpus:
 
 		if (self.original_corpus_path is None) and (dir_name is None):
 			raise ValueError('must specify a directory to write to')
-		
+
 		if dir_name is None:
 			dir_name = self.original_corpus_path
 
@@ -984,15 +978,15 @@ class Corpus:
 		elif obj_type == 'user':
 			iterator = self.iter_users()
 		elif obj_type == 'conversation':
-			iterator = self.iter_conversations() 
+			iterator = self.iter_conversations()
 
 		table_entries = []
 		for obj in iterator:
 			entry = {}
 			if obj_type == 'user':
-				entry['id'] = obj.name 
+				entry['id'] = obj.name
 			else:
-				entry['id'] = obj.id 
+				entry['id'] = obj.id
 			for attr in attrs:
 				entry[attr] = obj.get_info(attr)
 			table_entries.append(entry)
@@ -1043,8 +1037,8 @@ class Corpus:
 					* `n_utterances`: the number of utterances the user contributed in the conversation
 					* `start_time`: the timestamp of the user's first utterance in the conversation
 					* `utterance_ids`: a list of ids of utterances contributed by the user, ordered by timestamp.
-			In case timestamps are not provided with utterances, the present behavior is to sort just by utterance id. 
-			
+			In case timestamps are not provided with utterances, the present behavior is to sort just by utterance id.
+
 			:param utterance_filter: function that returns True for an utterance that counts towards a user having participated in that conversation. (e.g., one could filter out conversations where the user contributed less than k words per utterance)
 		'''
 
@@ -1067,7 +1061,7 @@ class Corpus:
 		for user in self.iter_users():
 			try:
 				user.set_info('n_convos', len(user.get_info('conversations')))
-			except: 
+			except:
 				continue
 
 			sorted_convos = sorted(user.get_info('conversations').items(), key=lambda x: (x[1]['start_time'], x[1]['utterance_ids'][0]))
@@ -1079,7 +1073,7 @@ class Corpus:
 
 	def get_user_convo_attribute_table(self, attrs):
 		'''
-			returns a table where each row lists a (user, convo) level aggregate for each attribute in attrs. 
+			returns a table where each row lists a (user, convo) level aggregate for each attribute in attrs.
 
 			:param attrs: list of (user, convo) attribute names
 			:return: dataframe containing all user,convo attributes.
@@ -1101,7 +1095,7 @@ class Corpus:
 
 	def get_full_attribute_table(self, user_convo_attrs, user_attrs=[], convo_attrs=[], user_suffix='__user', convo_suffix='__convo'):
 		'''
-			returns a table where each row lists a (user, convo) level aggregate for each attribute in attrs, along with user-level and conversation-level attributes; by default these attributes are suffixed with '__user' and '__convo' respectively. 
+			returns a table where each row lists a (user, convo) level aggregate for each attribute in attrs, along with user-level and conversation-level attributes; by default these attributes are suffixed with '__user' and '__convo' respectively.
 
 			:param user_convo_attrs: list of (user, convo) attribute names
 			:param user_attrs: list of user attribute names
@@ -1117,5 +1111,3 @@ class Corpus:
 		c_df = self.get_attribute_table('conversation', convo_attrs)
 		c_df.columns = [x + convo_suffix for x in c_df.columns]
 		return uc_df.join(u_df, on='user').join(c_df, on='convo_id')
-
-

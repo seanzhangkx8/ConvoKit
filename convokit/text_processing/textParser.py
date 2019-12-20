@@ -39,7 +39,8 @@ class TextParser(TextProcessor):
 		:param verbosity: frequency of status messages.
 	"""
 
-	def __init__(self, output_field='parsed', input_field=None, mode='parse', input_filter=None, spacy_nlp=None, sent_tokenizer=None, verbosity=0):
+	def __init__(self, output_field='parsed', input_field=None, mode='parse',
+				 input_filter=None, spacy_nlp=None, sent_tokenizer=None, verbosity=0):
 
 		self.mode = mode
 		aux_input = {'mode': mode}

@@ -9,4 +9,10 @@ from .userConvoDiversity import *
 from .text_processing import *
 from .phrasing_motifs import *
 from .prompt_types import *
+from .classifier import *
+from .ranker import *
+from .forecaster import *
+from .fighting_words import *
+from .paired_prediction import *
+
 #__path__ = __import__('pkgutil').extend_path(__path__, __name__)

@@ -53,3 +53,12 @@ class Transformer(ABC):
         """
         self.fit(corpus)
         return self.transform(corpus)
+
+    def summarize(self, corpus: Corpus):
+        pass
+
+    def get_model(self):
+        pass
+
+    def set_model(self, model):
+        pass
