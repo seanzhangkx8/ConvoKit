@@ -7,10 +7,11 @@ import numpy as np
 
 def extract_feats_from_obj(obj: Union[Utterance, Conversation, User], pred_feats: List[str]):
     """
-    DESIGN DECISION: Allow only one level of nesting
-    :param obj:
-    :param pred_feats:
-    :return:
+    Assuming feature data has at most one level of nesting, i.e. meta['height'] = 1, and meta['grades'] = {'prelim1': 99,
+    'prelim2': 75, 'final': 100}
+    :param obj: Corpus object
+    :param pred_feats: list of features to extract metadata from
+    :return: dictionary of predictive feature names to values
     """
     retval = dict()
     for feat_name in pred_feats:

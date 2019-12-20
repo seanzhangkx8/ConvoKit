@@ -24,9 +24,7 @@ class PairedPrediction(Transformer):
                  label_feat_name: str = "label",
                  pair_orientation_feat_name: str = "pair_orientation"):
 
-
         """
-        DESIGN DECISION: assume that features live in metadata
         :param pairing_func: the Corpus object characteristic to pair on,
                 e.g. to pair on the first 10 characters of a well-structured id, use lambda obj: obj.id[:10]
         :param pred_feats: List of metadata features to be used in prediction. Features can either be values or a
@@ -37,7 +35,8 @@ class PairedPrediction(Transformer):
         :param clf: optional classifier to be used in the paired prediction
         :param pair_id_feat_name: metadata feature name to use in annotating object with pair id, default: "pair_id"
         :param label_feat_name: metadata feature name to use in annotating object with predicted label, default: "label"
-        :param pair_orientation_feat_name: metadata feature name to use in annotating object with pair orientation, default: "pair_orientation"
+        :param pair_orientation_feat_name: metadata feature name to use in annotating object with pair orientation,
+        default: "pair_orientation"
 
         """
         assert obj_type in ["user", "utterance", "conversation"]
@@ -54,6 +53,11 @@ class PairedPrediction(Transformer):
         self.pair_orientation_feat_name = pair_orientation_feat_name
 
     def _get_pos_neg_objects(self, corpus: Corpus):
+        """
+        Get positively-labelled and negatively-labelled lists of objects
+        :param corpus: target Corpus
+        :return: list of positive objects, list of negative objects
+        """
         pos_objects = []
         neg_objects = []
         for obj in corpus.iter_objs(self.obj_type, self.selector):
@@ -66,9 +70,10 @@ class PairedPrediction(Transformer):
 
     def _pair_objs(self, pos_objects, neg_objects):
         """
-
-        :param pos_objects:
-        :param neg_objects:
+        Generate a dictionary mapping the Corpus object characteristic value (i.e. self.pairing_func's output) to
+        one positively and negatively labelled object.
+        :param pos_objects: list of positively labelled objects
+        :param neg_objects: list of negatively labelled objects
         :return: dictionary indexed by the paired feature instance value,
                  with the value being a tuple (pos_obj, neg_obj)
         """
@@ -89,6 +94,12 @@ class PairedPrediction(Transformer):
 
 
     def _generate_paired_X_y(self, pair_id_to_objs):
+        """
+        Generate the X, y matrix for paired prediction
+        :param pair_id_to_objs: dictionary indexed by the paired feature instance value, with the value
+        being a tuple (pos_obj, neg_obj)
+        :return: X, y matrix representing the predictive features and labels respectively
+        """
         pos_obj_dict = dict()
         neg_obj_dict = dict()
         for pair_id, (pos_obj, neg_obj) in pair_id_to_objs.items():
@@ -118,6 +129,11 @@ class PairedPrediction(Transformer):
 
 
     def _assign_pair_orientations(self, obj_pairs):
+        """
+        Assigns the pair orientation (i.e. whether this pair will have a positive or negative label)
+        :param obj_pairs: dictionary indexed by the paired feature instance value
+        :return: dictionary of paired feature instance values to pair orientation value ('pos' or 'neg')
+        """
         pair_ids = list(obj_pairs)
         shuffle(pair_ids)
         pair_orientations = dict()
@@ -130,8 +146,8 @@ class PairedPrediction(Transformer):
     def transform(self, corpus: Corpus) -> Corpus:
         """
         Annotate corpus objects with pair information (label, pair_id, pair_orientation)
-        :param corpus:
-        :return:
+        :param corpus: target Corpus
+        :return: annotated Corpus
         """
         pos_objs, neg_objs = self._get_pos_neg_objects(corpus)
         obj_pairs = self._pair_objs(pos_objs, neg_objs)
@@ -155,19 +171,12 @@ class PairedPrediction(Transformer):
 
         return corpus
 
-    # def fit(self, corpus: Corpus):
-    #     pos_convos, neg_convos = self._get_pos_neg_objects(corpus)
-    #     convo_pairs = self._pair_objs(pos_convos, neg_convos)
-    #     X, y = self._generate_paired_X_y(convo_pairs)
-    #     self.clf.fit(X, y)
-    #     return self
-
     def summarize(self, corpus: Corpus, cv=LeaveOneOut()):
         """
-        Run
-        :param corpus:
-        :param cv:
-        :return:
+        Run PairedPrediction on the corpus with cross-validation
+        :param corpus: target Corpus (must be annotated with pair information using PairedPrediction.transform())
+        :param cv: optional CV model: default is LOOCV
+        :return: cross-validation accuracy score
         """
         # Check if transform() needs to be run first
         sample_obj = next(corpus.iter_objs(self.obj_type))

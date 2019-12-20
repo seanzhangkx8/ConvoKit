@@ -46,6 +46,11 @@ class Ranker(Transformer):
         return corpus
 
     def transform_objs(self, objs: List[Union[User, Utterance, Conversation]]):
+        """
+        Annotate list of Corpus objects with scores and rankings
+        :param objs: target list of Corpus objects
+        :return: list of annotated COrpus objects
+        """
         obj_scores = [(obj.id, self.score_func(obj)) for obj in objs]
         df = pd.DataFrame(obj_scores, columns=["id", self.score_feat_name]) \
             .set_index('id').sort_values(self.score_feat_name, ascending=False)
@@ -57,11 +62,11 @@ class Ranker(Transformer):
 
     def summarize(self, corpus: Corpus = None, objs: List[Union[User, Utterance, Conversation]] = None):
         """
-        Generate a sorted dataframe by rank (in ascending order) of the objects in an annotated corpus, or a list
-        of corpus objects
+        Generate a dataframe indexed by object id, containing score + rank, and sorted by rank (in ascending order)
+        of the objects in an annotated corpus, or a list of corpus objects
         :param corpus: annotated target corpus
         :param objs: list of annotated corpus objects
-        :return: dataframe of objects indexed by object id and containing object rank and scores, sorted by increasing rank
+        :return: a pandas DataFrame
         """
         if ((corpus is None) and (objs is None)) or ((corpus is not None) and (objs is not None)):
             raise ValueError("summarize() takes in either a Corpus or a list of users / utterances / conversations")

@@ -22,7 +22,7 @@ class Forecaster(Transformer):
         :param forecaster_model: ForecasterModel to use, e.g. cumulativeBoW or CRAFT
         :param convo_structure: conversations in expected corpus are 'branched' or 'linear', default: "branched"
         :param text_func: optional function for extracting the text of the utterance, default: use utterance text
-        :param convo_selector_func: function for selecting the conversations to analyze, default: use all conversations
+        :param convo_selector_func: function for selecting for the conversations to analyze, default: use all conversations
         :param utt_selector_func: function for selecting for the utterances in selected conversations to analyze, default: use all utterances
         :param label_feat: optional name of utterance metadata feature containing the utterance's forecast label; only used in training
         :param forecast_feat_name: metadata feature name to use in annotation for forecast result, default: "forecast"
@@ -89,8 +89,8 @@ class Forecaster(Transformer):
     def transform(self, corpus: Corpus) -> Corpus:
         """
         Annotate the corpus utterances with forecast and forecast probability information
-        :param corpus:
-        :return:
+        :param corpus: target Corpus
+        :return: annotated Corpus
         """
         id_to_context_reply_label = self._get_context_reply_label_dict(corpus, include_label=False)
         forecast_df = self.forecaster_model.forecast(id_to_context_reply_label)
@@ -108,10 +108,10 @@ class Forecaster(Transformer):
     def summarize(self, corpus: Corpus, use_selector=True, exclude_na=True):
         """
         Returns a DataFrame of utterances and their forecasts (and forecast probabilities)
-        :param corpus:
-        :param use_selector:
-        :param exclude_na:
-        :return:
+        :param corpus: target Corpus
+        :param use_selector: whether to use Forecaster's convo and utterance selector functions
+        :param exclude_na: whether to drop NaN results
+        :return: a pandas DataFrame
         """
         utt_forecast_prob = []
         if use_selector:
