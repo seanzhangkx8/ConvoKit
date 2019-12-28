@@ -1,29 +1,10 @@
-
 from typing import Dict, List, Collection, Callable, Set, Generator, Tuple, Optional, ValuesView, Union
-import pickle
 import numpy as np
 import pandas as pd
-from collections import defaultdict
-import json
-import os
-from .user import User
-from .utterance import Utterance
-from .conversation import Conversation
 from warnings import warn
 from .corpusUtil import *
-
+from .convoKitIndex import ConvoKitIndex
 pair_delim = '-q-a-'
-
-KeyId = "id"
-KeyUser = "user"
-KeyConvoRoot = "root"
-KeyReplyTo = "reply-to"
-KeyTimestamp = "timestamp"
-KeyText = "text"
-DefinedKeys = {KeyId, KeyUser, KeyConvoRoot, KeyReplyTo, KeyTimestamp, KeyText}
-KeyMeta = "meta"
-
-BIN_DELIM_L, BIN_DELIM_R = "<##bin{", "}&&@**>"
 
 class Corpus:
 	"""Represents a dataset, which can be loaded from a folder or a
@@ -59,7 +40,7 @@ class Corpus:
 			self.original_corpus_path = os.path.dirname(filename)
 
 		self.meta = {}
-		self.meta_index = {}
+		self.meta_index = ConvoKitIndex()
 		self.vector_reprs = {}
 
 		convos_meta = defaultdict(dict)
@@ -68,20 +49,19 @@ class Corpus:
 		if exclude_user_meta is None: exclude_user_meta = []
 		if exclude_overall_meta is None: exclude_overall_meta = []
 
-		self.version = version if version is not None else 0
-
 		# Construct corpus from file or directory
 		if filename is not None:
 			if os.path.isdir(filename):
-				utterances = load_utterances_from_dir(filename, utterance_start_index,
-													  utterance_end_index, exclude_utterance_meta)
+				utterances = load_uttinfo_from_dir(filename, utterance_start_index,
+												   utterance_end_index, exclude_utterance_meta)
 
 				users_meta = load_users_meta_from_dir(filename, exclude_user_meta)
 				convos_meta = load_convos_meta_from_dir(filename, exclude_conversation_meta)
 				load_corpus_meta_from_dir(filename, self.meta, exclude_overall_meta)
 
 				with open(os.path.join(filename, "index.json"), "r") as f:
-					self.meta_index = json.load(f)
+					idx_dict = json.load(f)
+					self.meta_index.update_from_dict(idx_dict)
 
 				# load all processed text information, but don't load actual text.
 				# also checks if the index file exists.
@@ -92,25 +72,24 @@ class Corpus:
 				#     pass
 
 				if version is not None:
-					if "version" in self.meta_index:
-						if self.meta_index["version"] != version:
-							warn("Requested version does not match file version")
-						self.version = self.meta_index["version"]
+					if self.meta_index.version != version:
+						warn("Requested version does not match file version, "
+							 "using file version: {}".format(self.meta_index.version))
 
 				# unpack binary data for utterances
-				unpack_binary_data_for_utts(utterances, filename, self.meta_index["utterances-index"],
-											exclude_utterance_meta, BIN_DELIM_L, BIN_DELIM_R, KeyMeta)
+				unpack_binary_data_for_utts(utterances, filename, self.meta_index.utterances_index,
+											exclude_utterance_meta, KeyMeta)
 				# unpack binary data for users
-				unpack_binary_data(filename, users_meta, self.meta_index['users-index'], "user",
-								   exclude_user_meta, BIN_DELIM_L, BIN_DELIM_R)
+				unpack_binary_data(filename, users_meta, self.meta_index.users_index, "user",
+								   exclude_user_meta)
 
 				# unpack binary data for conversations
-				unpack_binary_data(filename, convos_meta, self.meta_index['conversations-index'], "convo",
-								   exclude_conversation_meta, BIN_DELIM_L, BIN_DELIM_R)
+				unpack_binary_data(filename, convos_meta, self.meta_index.conversations_index, "convo",
+								   exclude_conversation_meta)
 
 				# unpack binary data for overall corpus
-				unpack_binary_data(filename, self.meta, self.meta_index["overall-index"], "overall",
-								   exclude_overall_meta, BIN_DELIM_L, BIN_DELIM_R)
+				unpack_binary_data(filename, self.meta, self.meta_index.overall_index, "overall",
+								   exclude_overall_meta)
 
 			else:
 				users_meta = defaultdict(dict)
@@ -120,12 +99,15 @@ class Corpus:
 			self.utterances = dict()
 			self.users = dict()
 
-			initialize_users_and_utterances_objects(self.utterances, utterances, self.users, users_meta, KeyUser,
-													KeyReplyTo, KeyId, KeyConvoRoot, KeyTimestamp, KeyText, KeyMeta)
+			initialize_users_and_utterances_objects(self, self.utterances, utterances, self.users, users_meta)
 
 		elif utterances is not None: # Construct corpus from utterances list
-			self.users = {u.user.name: u.user for u in utterances}
+			self.users = {u.user.id: u.user for u in utterances}
 			self.utterances = {u.id: u for u in utterances}
+			for _, user in self.users.items():
+				user.owner = self
+			for _, utt in self.utterances.items():
+				utt.owner = self
 
 		if merge_lines:
 			self.utterances = merge_utterance_lines(self.utterances)
@@ -134,12 +116,12 @@ class Corpus:
 		self.update_users_data()
 
 	@staticmethod
-	def dump_helper_bin(d: Dict, d_bin: Dict, utterances_idx: Dict, fields_to_skip=None) -> Dict:
+	def dump_helper_bin(d: Dict, d_bin: Dict, object_idx: Dict, fields_to_skip=None) -> Dict:
 		"""
 
 		:param d: The dict to encode
 		:param d_bin: The dict of accumulated lists of binary attribs
-		:param utterances_idx:
+		:param object_idx:
 		:return:
 		"""
 		if fields_to_skip is None:
@@ -151,22 +133,28 @@ class Corpus:
 			try:   # try saving the field
 				json.dumps(v)
 				d_out[k] = v
-				if k not in utterances_idx:
-					utterances_idx[k] = str(type(v))
+				if k not in object_idx:
+					object_idx[k] = str(type(v))
 			except (TypeError, OverflowError):   # unserializable
 				d_out[k] = "{}{}{}".format(BIN_DELIM_L, len(d_bin[k]), BIN_DELIM_R)
 				d_bin[k].append(v)
-				utterances_idx[k] = "bin"   # overwrite non-bin type annotation if necessary
+				object_idx[k] = "bin"   # overwrite non-bin type annotation if necessary
 		return d_out
 
-	def dump(self, name: str, base_path: Optional[str]=None, save_to_existing_path: bool=False, fields_to_skip={}) -> None:
+	def dump(self, name: str, base_path: Optional[str] = None,
+			 increment_version: bool = True,
+			 save_to_existing_path: bool = False,
+			 fields_to_skip = None) -> None:
 		"""Dumps the corpus and its metadata to disk.
-
+		Automatically increments the version number.
 		:param name: name of corpus
 		:param base_path: base directory to save corpus in (None to save to a default directory)
+		:param increment_version: whether to increment the Corpus version number when dumping
 		:param save_to_existing_path: if True, save to the path you loaded the corpus from (supersedes base_path)
 		:param fields_to_skip: a dictionary of {object type: list of attributes to omit when writing to disk}. object types can be one of "user", "utterance", "conversation", "corpus".
 		"""
+		if fields_to_skip is None:
+			fields_to_skip = dict()
 		dir_name = name
 		if base_path is not None and save_to_existing_path:
 			raise ValueError("Not allowed to specify both base_path and save_to_existing_path!")
@@ -187,47 +175,12 @@ class Corpus:
 		if not os.path.exists(dir_name):
 			os.mkdir(dir_name)
 
-		utterances_idx, users_idx, convos_idx, overall_idx = {}, {}, {}, {}
+		utterances_idx, users_idx, convos_idx, overall_idx = {}, {}, {}, {} # TODO get rid of this
 
-		with open(os.path.join(dir_name, "users.json"), "w") as f:
-			d_bin = defaultdict(list)
-			users = {u: Corpus.dump_helper_bin(self.get_user(u).meta, d_bin,
-											   users_idx, fields_to_skip.get('user',[])) for u in self.get_usernames()}
-			json.dump(users, f)
+		dump_corpus_object(self, dir_name, "users.json", "user", "user", fields_to_skip)
+		dump_corpus_object(self, dir_name, "conversations.json", "conversation", "convo", fields_to_skip)
+		dump_utterances(self, dir_name, fields_to_skip)
 
-			for name, l_bin in d_bin.items():
-				with open(os.path.join(dir_name, name + "-user-bin.p"), "wb") as f_pk:
-					pickle.dump(l_bin, f_pk)
-
-		with open(os.path.join(dir_name, "conversations.json"), "w") as f:
-			d_bin = defaultdict(list)
-			convos = {c: Corpus.dump_helper_bin(self.get_conversation(c).meta,
-												d_bin, convos_idx, fields_to_skip.get('conversation', [])) for c in self.get_conversation_ids()}
-			json.dump(convos, f)
-
-			for name, l_bin in d_bin.items():
-				with open(os.path.join(dir_name, name + "-convo-bin.p"), "wb") as f_pk:
-					pickle.dump(l_bin, f_pk)
-
-		with open(os.path.join(dir_name, "utterances.jsonl"), "w") as f:
-			d_bin = defaultdict(list)
-
-			for ut in self.iter_utterances():
-				ut_obj = {
-					KeyId: ut.id,
-					KeyConvoRoot: ut.root,
-					KeyText: ut.text,
-					KeyUser: ut.user.name,
-					KeyMeta: self.dump_helper_bin(ut.meta, d_bin, utterances_idx, fields_to_skip.get('utterance', [])),
-					KeyReplyTo: ut.reply_to,
-					KeyTimestamp: ut.timestamp
-				}
-				json.dump(ut_obj, f)
-				f.write("\n")
-
-			for name, l_bin in d_bin.items():
-				with open(os.path.join(dir_name, name + "-bin.p"), "wb") as f_pk:
-					pickle.dump(l_bin, f_pk)
 
 		with open(os.path.join(dir_name, "corpus.json"), "w") as f:
 			d_bin = defaultdict(list)
@@ -241,20 +194,11 @@ class Corpus:
 				with open(os.path.join(dir_name, name + "-overall-bin.p"), "wb") as f_pk:
 					pickle.dump(l_bin, f_pk)
 
-		self.meta_index["utterances-index"] = utterances_idx
-		self.meta_index["users-index"] = users_idx
-		self.meta_index["conversations-index"] = convos_idx
-		self.meta_index["overall-index"] = overall_idx
-		self.meta_index["version"] = self.version
-
 		with open(os.path.join(dir_name, "index.json"), "w") as f:
-			json.dump(self.meta_index, f)
+			json.dump(self.meta_index.to_dict(increment_version=increment_version), f)
 
 	# with open(os.path.join(dir_name, "processed_text.index.json"), "w") as f:
 	#     json.dump(list(self.processed_text.keys()), f)
-
-	def get_utterance_ids(self) -> List:
-		return list(self.utterances.keys())
 
 	def get_utterance(self, ut_id: str) -> Utterance:
 		return self.utterances[ut_id]
@@ -263,6 +207,9 @@ class Corpus:
 		for v in self.utterances.values():
 			if selector(v):
 				yield v
+
+	def get_utterance_ids(self, selector: Optional[Callable[[Utterance], bool]] = lambda utt: True) -> List[str]:
+		return [utt.id for utt in self.iter_utterances(selector)]
 
 	def get_conversation_ids(self, selector: Optional[Callable[[Conversation], bool]] = lambda convo: True) -> List[str]:
 		return [convo.id for convo in self.iter_conversations(selector)]
@@ -284,8 +231,8 @@ class Corpus:
 		self.conversations = {convo_id: convo for convo_id, convo in self.conversations.items() if selector(convo)}
 		utt_ids = set([utt for convo in self.conversations.values() for utt in convo.get_utterance_ids()])
 		self.utterances = {utt.id: utt for utt in self.utterances.values() if utt.id in utt_ids}
-		usernames = set([utt.user.name for utt in self.utterances.values()])
-		self.users = {user.name: user for user in self.all_users.values() if user.name in usernames}
+		usernames = set([utt.user.id for utt in self.utterances.values()])
+		self.users = {user.id: user for user in self.users.values() if user.id in usernames}
 		self.update_users_data()
 
 	def iter_objs(self, obj_type: str, selector: Callable[[Union[User, Utterance, Conversation]], bool] = lambda obj: True):
@@ -295,6 +242,10 @@ class Corpus:
 					 "utterance": self.iter_utterances}
 
 		return obj_iters[obj_type](selector)
+
+	def get_object_ids(self, obj_type: str, selector: Callable[[Union[User, Utterance, Conversation]], bool] = lambda obj: True):
+		assert obj_type in ["user", "utterance", "conversation"]
+		return [obj.id for obj in self.iter_objs(obj_type, selector)]
 
 	def get_object(self, obj_type: str, oid: str):
 		assert obj_type in ["user", "utterance", "conversation"]
@@ -372,6 +323,7 @@ class Corpus:
 			was used.
 
 		"""
+		warn("This function is deprecated. Use get_user_ids() instead.")
 		return set([u.name for u in self.iter_users(selector)])
 
 
@@ -400,7 +352,7 @@ class Corpus:
 				u1 = self.utterances[u2.reply_to]
 				if u1.user is not None:
 					if selector is None or selector(u2.user, u1.user):
-						pairs.add((u2.user.name, u1.user.name) if
+						pairs.add((u2.user.id, u1.user.id) if
 								  user_names_only else (u2.user, u1.user))
 		return pairs
 
@@ -424,7 +376,7 @@ class Corpus:
 				u1 = self.utterances[u2.reply_to]
 				if u1.user is not None:
 					if selector is None or selector(u2.user, u1.user):
-						key = (u2.user.name, u1.user.name) if user_names_only else (u2.user, u1.user)
+						key = (u2.user.id, u1.user.id) if user_names_only else (u2.user, u1.user)
 						pairs[key].append(u2)
 		return pairs
 
@@ -525,22 +477,22 @@ class Corpus:
 		:return: user metadata and the corresponding tracker
 		"""
 		# Collect USER data and metadata
-		# all_users_data = defaultdict(lambda: defaultdict(set))
-		all_users_meta = defaultdict(lambda: defaultdict(str))
-		all_users_meta_conflict = defaultdict(lambda: defaultdict(bool))
+		# users_data = defaultdict(lambda: defaultdict(set))
+		users_meta = defaultdict(lambda: defaultdict(str))
+		users_meta_conflict = defaultdict(lambda: defaultdict(bool))
 		for utt_set in utt_sets:
 			for utt in utt_set:
 				for meta_key, meta_val in utt.user.meta.items():
-					curr = all_users_meta[utt.user][meta_key]
+					curr = users_meta[utt.user][meta_key]
 					if curr != meta_val:
 						if curr != "":
-							all_users_meta_conflict[utt.user][meta_key] = True
-						all_users_meta[utt.user][meta_key] = meta_val
+							users_meta_conflict[utt.user][meta_key] = True
+						users_meta[utt.user][meta_key] = meta_val
 
-		return all_users_meta, all_users_meta_conflict
+		return users_meta, users_meta_conflict
 
 	@staticmethod
-	def _update_corpus_user_data(new_corpus, all_users_meta: Dict, all_users_meta_conflict: Dict, warnings: bool) -> None:
+	def _update_corpus_user_data(new_corpus, users_meta: Dict, users_meta_conflict: Dict, warnings: bool) -> None:
 		"""
 		Helper function for merge().
 
@@ -548,14 +500,14 @@ class Corpus:
 
 		Prints a warning if multiple values are found for any user's metadata key; latest user metadata is used
 
-		:param all_users_meta: Dictionary indexed by User ID, containing the collected User metadata
-		:param all_users_meta_conflict: Dictionary indexed by User ID, indicating if there were value conflicts for the associated meta keys
+		:param users_meta: Dictionary indexed by User ID, containing the collected User metadata
+		:param users_meta_conflict: Dictionary indexed by User ID, indicating if there were value conflicts for the associated meta keys
 		:return: None (mutates the new_corpus's Users)
 		"""
 		# Update USER data and metadata with merged versions
 		for user in new_corpus.iter_users():
-			for meta_key, meta_val in all_users_meta[user].items():
-				if all_users_meta_conflict[user][meta_key]:
+			for meta_key, meta_val in users_meta[user].items():
+				if users_meta_conflict[user][meta_key]:
 					if warnings:
 						warn("Multiple values found for {} for meta key: {}. "
 							 "Taking the latest one found".format(user, meta_key))
@@ -587,15 +539,15 @@ class Corpus:
 		# Note that we collect Users from the utt sets directly instead of the combined utts, otherwise
 		# differences in User meta will not be registered for duplicate Utterances (because utts would be discarded
 		# during merging)
-		all_users_meta, all_users_meta_conflict = self._collect_user_data([utts1, utts2])
-		Corpus._update_corpus_user_data(new_corpus, all_users_meta, all_users_meta_conflict, warnings=warnings)
+		users_meta, users_meta_conflict = self._collect_user_data([utts1, utts2])
+		Corpus._update_corpus_user_data(new_corpus, users_meta, users_meta_conflict, warnings=warnings)
 
 		# Merge CORPUS metadata
 		new_corpus.meta = self.meta
 		for key, val in other_corpus.meta.items():
 			if key in new_corpus.meta and new_corpus.meta[key] != val:
 				if warnings:
-					warn("Found conflicting values for corpus metadata: {}. "
+					warn("Found conflicting values for corpus metadata: {}. " +
 						 "Overwriting with other corpus's metadata.".format(key))
 			new_corpus.meta[key] = val
 
@@ -611,7 +563,7 @@ class Corpus:
 				curr_meta = new_corpus.get_conversation(convo.id).meta
 				if key in curr_meta and curr_meta[key] != val:
 					if warnings:
-						warn("Found conflicting values for conversation: {} for meta key: {}. "
+						warn("Found conflicting values for conversation: {} for meta key: {}. " +
 							 "Overwriting with other corpus's conversation metadata".format(convo.id, key))
 				curr_meta[key] = val
 
@@ -906,7 +858,7 @@ class Corpus:
 		for utterance in self.iter_utterances():
 			if not utterance_filter(utterance): continue
 
-			user_to_convo_utts[utterance.user.name][utterance.root].append((utterance.id, utterance.timestamp))
+			user_to_convo_utts[utterance.user.id][utterance.root].append((utterance.id, utterance.timestamp))
 		for user, convo_utts in user_to_convo_utts.items():
 			for convo, utts in convo_utts.items():
 				sorted_utts = sorted(utts, key=lambda x: (x[1], x[0]))
@@ -922,8 +874,7 @@ class Corpus:
 			sorted_convos = sorted(user.get_info('conversations').items(), key=lambda x: (x[1]['start_time'], x[1]['utterance_ids'][0]))
 			user.set_info('start_time', sorted_convos[0][1]['start_time'])
 			for idx, (convo_id, _) in enumerate(sorted_convos):
-				self.set_user_convo_info(user.name, convo_id, 'idx', idx)
-
+				self.set_user_convo_info(user.id, convo_id, 'idx', idx)
 
 
 	def get_user_convo_attribute_table(self, attrs):
@@ -939,8 +890,8 @@ class Corpus:
 
 			if 'conversations' not in user.meta: continue
 			for convo_id, convo_dict in user.meta['conversations'].items():
-				entry = {'id': '%s__%s' % (user.name, convo_id),
-						 'user': user.name, 'convo_id': convo_id,
+				entry = {'id': '%s__%s' % (user.id, convo_id),
+						 'user': user.id, 'convo_id': convo_id,
 						 'convo_idx': convo_dict['idx']}
 
 				for attr in attrs:
@@ -966,3 +917,6 @@ class Corpus:
 		c_df = self.get_attribute_table('conversation', convo_attrs)
 		c_df.columns = [x + convo_suffix for x in c_df.columns]
 		return uc_df.join(u_df, on='user').join(c_df, on='convo_id')
+
+	# def __eq__(self, other):
+	# 	return True

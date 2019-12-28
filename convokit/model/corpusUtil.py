@@ -5,8 +5,19 @@ import pickle
 from .user import User
 from .utterance import Utterance
 from .conversation import Conversation
+from typing import Dict
 
-def load_utterances_from_dir(dirname, utterance_start_index, utterance_end_index, exclude_utterance_meta):
+BIN_DELIM_L, BIN_DELIM_R = "<##bin{", "}&&@**>"
+KeyId = "id"
+KeyUser = "user"
+KeyConvoRoot = "root"
+KeyReplyTo = "reply-to"
+KeyTimestamp = "timestamp"
+KeyText = "text"
+DefinedKeys = {KeyId, KeyUser, KeyConvoRoot, KeyReplyTo, KeyTimestamp, KeyText}
+KeyMeta = "meta"
+
+def load_uttinfo_from_dir(dirname, utterance_start_index, utterance_end_index, exclude_utterance_meta):
     assert dirname is not None
     assert os.path.isdir(dirname)
 
@@ -61,7 +72,7 @@ def load_corpus_meta_from_dir(filename, corpus_meta, exclude_overall_meta):
             corpus_meta[k] = v
 
 
-def unpack_binary_data_for_utts(utterances, filename, utterance_index, exclude_meta, BIN_DELIM_L, BIN_DELIM_R, KeyMeta):
+def unpack_binary_data_for_utts(utterances, filename, utterance_index, exclude_meta, KeyMeta):
     for field, field_type in utterance_index.items():
         if field_type == "bin" and field not in exclude_meta:
             with open(os.path.join(filename, field + "-bin.p"), "rb") as f:
@@ -76,7 +87,7 @@ def unpack_binary_data_for_utts(utterances, filename, utterance_index, exclude_m
         del utterance_index[field]
 
 
-def unpack_binary_data(filename, obj_meta, object_index, obj_type, exclude_meta, BIN_DELIM_L, BIN_DELIM_R):
+def unpack_binary_data(filename, obj_meta, object_index, obj_type, exclude_meta):
     """
     Unpack binary data for Users or Conversations
     """
@@ -117,13 +128,15 @@ def load_from_utterance_file(filename, utterance_start_index, utterance_end_inde
             raise Exception("Could not load corpus. Expected json file, encountered error: \n" + str(e))
     return utterances
 
-def initialize_users_and_utterances_objects(utt_dict, utterances, users_dict, users_meta, KeyUser, KeyReplyTo, KeyId,
-                                            KeyConvoRoot, KeyTimestamp, KeyText, KeyMeta):
+def initialize_users_and_utterances_objects(corpus, utt_dict, utterances, users_dict, users_meta):
+    """
+    Initialize User and Utterance objects
+    """
     for i, u in enumerate(utterances):
         u = defaultdict(lambda: None, u)
         user_key = u[KeyUser]
         if user_key not in users_dict:
-            users_dict[user_key] = User(name=u[KeyUser], meta=users_meta[u[KeyUser]])
+            users_dict[user_key] = User(owner=corpus, name=u[KeyUser], meta=users_meta[u[KeyUser]])
 
         user = users_dict[user_key]
 
@@ -133,7 +146,7 @@ def initialize_users_and_utterances_objects(utt_dict, utterances, users_dict, us
         else:
             reply_to_data = u[KeyReplyTo]
 
-        utt = Utterance(id=u[KeyId], user=user,
+        utt = Utterance(owner=corpus, id=u[KeyId], user=user,
                        root=u[KeyConvoRoot],
                        reply_to=reply_to_data, timestamp=u[KeyTimestamp],
                        text=u[KeyText], meta=u[KeyMeta])
@@ -141,6 +154,9 @@ def initialize_users_and_utterances_objects(utt_dict, utterances, users_dict, us
         utt_dict[utt.id] = utt
 
 def merge_utterance_lines(utt_dict):
+    """
+    For merging adjacent utterances by the same user
+    """
     new_utterances = {}
     for uid, utt in utt_dict.items():
         merged = False
@@ -154,6 +170,9 @@ def merge_utterance_lines(utt_dict):
     return new_utterances
 
 def initialize_conversations(corpus, utt_dict, convos_meta):
+    """
+    Initialize Conversation objects from utterances and conversations metadata
+    """
     # organize utterances by conversation
     convo_to_utts = defaultdict(list) # temp container identifying utterances by conversation
     for u in utt_dict.values():
@@ -168,3 +187,61 @@ def initialize_conversations(corpus, utt_dict, convos_meta):
                              meta=convo_meta)
         conversations[convo_id] = convo
     return conversations
+
+def dump_helper_bin(d: Dict, d_bin: Dict, fields_to_skip=None) -> Dict: # object_idx
+    """
+
+    :param d: The dict to encode
+    :param d_bin: The dict of accumulated lists of binary attribs
+    :param object_idx:
+    :return:
+    """
+    if fields_to_skip is None:
+        fields_to_skip = []
+
+    d_out = {}
+    for k, v in d.items():
+        if k in fields_to_skip: continue
+        try:   # try saving the field
+            json.dumps(v)
+            d_out[k] = v
+            # if k not in object_idx:
+            #     object_idx[k] = str(type(v))
+        except (TypeError, OverflowError):   # unserializable
+            d_out[k] = "{}{}{}".format(BIN_DELIM_L, len(d_bin[k]), BIN_DELIM_R)
+            d_bin[k].append(v)
+            # object_idx[k] = "bin"   # overwrite non-bin type annotation if necessary
+    return d_out
+
+
+def dump_corpus_object(corpus, dir_name, filename, obj_type, bin_name, fields_to_skip):
+    with open(os.path.join(dir_name, filename), "w") as f:
+        d_bin = defaultdict(list)
+        objs = {u: dump_helper_bin(corpus.get_object(obj_type, u).meta, d_bin,
+                                    fields_to_skip.get(obj_type, [])) for u in corpus.get_object_ids(obj_type)}
+        json.dump(objs, f)
+
+        for name, l_bin in d_bin.items():
+            with open(os.path.join(dir_name, name + "-{}-bin.p".format(bin_name)), "wb") as f_pk:
+                pickle.dump(l_bin, f_pk)
+
+def dump_utterances(corpus, dir_name, fields_to_skip):
+    with open(os.path.join(dir_name, "utterances.jsonl"), "w") as f:
+        d_bin = defaultdict(list)
+
+        for ut in corpus.iter_utterances():
+            ut_obj = {
+                KeyId: ut.id,
+                KeyConvoRoot: ut.root,
+                KeyText: ut.text,
+                KeyUser: ut.user.id,
+                KeyMeta: dump_helper_bin(ut.meta, d_bin, fields_to_skip.get('utterance', [])),
+                KeyReplyTo: ut.reply_to,
+                KeyTimestamp: ut.timestamp
+            }
+            json.dump(ut_obj, f)
+            f.write("\n")
+
+        for name, l_bin in d_bin.items():
+            with open(os.path.join(dir_name, name + "-bin.p"), "wb") as f_pk:
+                pickle.dump(l_bin, f_pk)
