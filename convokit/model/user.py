@@ -1,9 +1,10 @@
 from functools import total_ordering
 from typing import Dict, List, Collection, Callable, Set, Generator, Tuple, Optional, ValuesView
 from warnings import warn
+from .corpusObject import CorpusObject
 
 @total_ordering
-class User:
+class User(CorpusObject):
     """Represents a single user in a dataset.
 
     :param name: name of the user.
@@ -18,14 +19,14 @@ class User:
     :ivar meta: dictionary of attributes associated with the user.
     """
 
-    def __init__(self, name: str=None, utts=None, convos=None, meta: Optional[Dict]=None):
+    def __init__(self, owner=None, name: str = None, utts = None, convos = None, meta: Optional[Dict] = None):
+        super().__init__(obj_type="user", owner=owner, id=id, meta=meta)
         self._name = name
+        self.id = self._name
         self.utterances = utts if utts is not None else dict()
         self.conversations = convos if convos is not None else dict()
-        self._meta = meta if meta is not None else {}
         self._split_attribs = set()
         self._update_uid()
-        self.id = self._name
 
     def identify_by_attribs(self, attribs: Collection) -> None:
         """Identify a user by a list of attributes. Sets which user info
@@ -102,13 +103,6 @@ class User:
         """
         return [convo.id for convo in self.iter_conversations(selector)]
 
-    def _get_meta(self): return self._meta
-
-    def _set_meta(self, value: Dict):
-        self._meta = value
-        self._update_uid()
-    meta = property(_get_meta, _set_meta)
-
     def add_meta(self, key: str, value) -> None:
         """
         Adds a key-value pair to the metadata of the User
@@ -144,21 +138,16 @@ class User:
         if self._split_attribs:
             rep["attribs"] = {k: self._meta[k] for k in self._split_attribs
                               if k in self._meta}
-        self._uid = "User(" + str(sorted(rep.items())) + ")"
-
-    def __eq__(self, other):
-        if isinstance(other, User):
-            return self._uid == other._uid
-        return False
+        # self.meta["uid"] = "User(" + str(sorted(rep.items())) + ")"
 
     def __lt__(self, other):
-        return self._uid < other._uid
+        return self.id < other.id
 
     def __hash__(self):
-        return hash(self._uid)
+        return hash(self.id)
 
     def __repr__(self):
-        return self._uid
+        return self.id
 
     # def copy(self):
     #     """

@@ -1,8 +1,9 @@
 from typing import Dict, List, Collection, Callable, Set, Generator, Tuple, Optional, ValuesView
 from .user import User
+from .corpusObject import CorpusObject
 
 
-class Utterance:
+class Utterance(CorpusObject):
     """Represents a single utterance in the dataset.
 
     :param id: the unique id of the utterance.
@@ -22,17 +23,16 @@ class Utterance:
     :ivar text: text of the utterance.
     """
 
-    def __init__(self, id: Optional[str] = None, user: Optional[User] = None,
+    def __init__(self, owner=None, id: Optional[str] = None, user: Optional[User] = None,
                  root: Optional[str] = None, reply_to: Optional[str] = None,
                  timestamp: Optional[int] = None, text: Optional[str] = None,
                  meta: Optional[Dict] = None):
-        self.id = id
+        super().__init__(obj_type="utterance", owner=owner, id=id, meta=meta)
         self.user = user
         self.root = root
         self.reply_to = reply_to
         self.timestamp = timestamp
         self.text = text
-        self.meta = meta if meta is not None else {}
 
     def get(self, key: str):
         if key == "id":
@@ -62,13 +62,6 @@ class Utterance:
     #                      text=self.text,
     #                      meta=self.meta.copy())
 
-    def add_meta(self, key: str, value) -> None:
-        """
-        Add a key-value pair to the Utterance metadata
-
-        :return: None
-        """
-        self.meta[key] = value
 
     def get_info(self, key):
         """
@@ -78,7 +71,7 @@ class Utterance:
             :return: attribute <key>
         """
         
-        return self.meta.get(key,None)
+        return super().meta.get(key, None)
 
     def set_info(self, key, value):
         """
@@ -88,13 +81,7 @@ class Utterance:
             :param value: value to set
             :return: None
         """
-
-        self.meta[key] = value
-
-    def __eq__(self, other):
-        if isinstance(other, Utterance):
-            return self.__dict__ == other.__dict__
-        return False
+        super().meta[key] = value
 
     def __repr__(self):
         return "Utterance(" + str(self.__dict__) + ")"

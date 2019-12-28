@@ -2,8 +2,10 @@ from typing import Dict, List, Collection, Callable, Set, Generator, Tuple, Opti
 from .utterance import Utterance
 from .user import User
 from warnings import warn
+from .corpusObject import CorpusObject
 
-class Conversation:
+
+class Conversation(CorpusObject):
     """Represents a discrete subset of utterances in the dataset, connected by a
     reply-to chain.
 
@@ -21,23 +23,11 @@ class Conversation:
     def __init__(self, owner, id: Optional[str] = None,
                  utterances: Optional[List[str]] = None,
                  meta: Optional[Dict] = None):
+        super().__init__(obj_type="conversation", owner=owner, id=id, meta=meta)
         self._owner = owner
         self._id = id
         self._utterance_ids = utterances
         self._usernames = None
-        self._meta = {} if meta is None else meta
-
-    # Conversation.meta property
-    def _get_meta(self):
-        """Provides read-write access to conversation-level metadata. For
-        utterance-level metadata, use Utterance.meta. For user-level metadata,
-        use User.meta. For corpus-level metadata, use Corpus.meta."""
-        return self._meta
-
-    def _set_meta(self, new_meta):
-        self._meta = new_meta
-
-    meta = property(_get_meta, _set_meta)
 
     def add_meta(self, key: str, value) -> None:
         """
@@ -125,7 +115,7 @@ class Conversation:
         return list(self._usernames)
 
     def get_user_ids(self) -> List[str]:
-        """Produces a list of names of all users in the Conversation, which can
+        """Produces a list of ids of all users in the Conversation, which can
         be used in calls to get_user() to retrieve specific users. Provides no
         ordering guarantees for the list.
 
@@ -242,11 +232,6 @@ class Conversation:
         paths = [self._get_path_from_leaf_to_root(self.get_utterance(leaf_utt_id), root_utt)
                  for leaf_utt_id in leaf_utt_ids]
         return paths
-
-    def __eq__(self, other):
-        if isinstance(other, Conversation):
-            return self.__dict__ == other.__dict__
-        return False
 
     def __repr__(self):
         return "Conversation(" + str(self.__dict__) + ")"
