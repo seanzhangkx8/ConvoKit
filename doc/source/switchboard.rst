@@ -79,12 +79,14 @@ Additional note
 
 * In the original SwDa dataset, utterances are not separated by user, but rather by tags. This means that consecutive utterances could have been said by the same user. In the ConvoKit Corpus, we changed this so that each utterance in our corpus is a collection of the consecutive sub-utterances said by one person. The metadata on each utterance is combined from the sub-utterances of the original dataset, so that it is clear which DAMSL tags correspond with which parts of each utterance. The original dataset also offers POS and parse tree information for utterances, which are not currently included. 
 
-* You should pull the repo at [https://github.com/cgpotts/swda](https://github.com/cgpotts/swda) in order to download the dataset and helper functions necessary to create the corpus.
+* You should pull the repo at `its original github page <https://github.com/cgpotts/swda>`_ in order to download the dataset and helper functions necessary to create the corpus.
 
 Licensing Information
 ^^^^^^^^^^^^^^^^^^^^^
 
-The SWDA Switchboard work is licensed under a Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License (see source [here](http://compprag.christopherpotts.net/swda.html))
+The SWDA Switchboard work is licensed under a Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License (see source `here <http://compprag.christopherpotts.net/swda.html>`_)
+
+
 
 
 Contact
