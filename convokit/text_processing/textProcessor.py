@@ -13,14 +13,11 @@ class TextProcessor(Transformer):
         :param verbosity: frequency at which to print status messages when computing attributes.
     """
     
-    def __init__(self, proc_fn, output_field, input_field=None, aux_input={}, input_filter=None, verbosity=0):
+    def __init__(self, proc_fn, output_field, input_field=lambda utt, aux: True, aux_input=None, input_filter=None, verbosity=0):
         
         self.proc_fn = proc_fn
-        self.aux_input = aux_input
-        if input_filter is None:
-            self.input_filter = lambda utt, aux: True
-        else:
-            self.input_filter = input_filter
+        self.aux_input = aux_input if aux_input is not None else {}
+        self.input_filter = input_filter
         self.input_field = input_field
         self.output_field = output_field
         self.verbosity = verbosity
