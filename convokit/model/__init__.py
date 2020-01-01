@@ -3,5 +3,5 @@ from .corpus import Corpus
 from .user import User
 from .utterance import Utterance
 from .corpusObject import CorpusObject
-from .corpusUtil import *
+from .corpusHelper import *
 from .convoKitIndex import ConvoKitIndex

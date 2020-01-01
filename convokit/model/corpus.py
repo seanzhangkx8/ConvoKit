@@ -1,8 +1,8 @@
-from typing import Dict, List, Collection, Callable, Set, Generator, Tuple, Optional, ValuesView, Union
+from typing import List, Collection, Callable, Set, Generator, Tuple, Optional, ValuesView, Union
 import numpy as np
 import pandas as pd
-from warnings import warn
-from .corpusUtil import *
+from .corpusHelper import *
+from .corpusUtil import warn
 from .convoKitIndex import ConvoKitIndex
 pair_delim = '-q-a-'
 
@@ -40,7 +40,7 @@ class Corpus:
 			self.original_corpus_path = os.path.dirname(filename)
 
 		self.meta = {}
-		self.meta_index = ConvoKitIndex()
+		self.meta_index = ConvoKitIndex(self)
 		self.vector_reprs = {}
 
 		convos_meta = defaultdict(dict)
@@ -84,12 +84,10 @@ class Corpus:
 								   exclude_user_meta)
 
 				# unpack binary data for conversations
-				unpack_binary_data(filename, convos_meta, self.meta_index.conversations_index, "convo",
-								   exclude_conversation_meta)
+				unpack_binary_data(filename, convos_meta, self.meta_index.conversations_index, "convo", exclude_conversation_meta)
 
 				# unpack binary data for overall corpus
-				unpack_binary_data(filename, self.meta, self.meta_index.overall_index, "overall",
-								   exclude_overall_meta)
+				unpack_binary_data(filename, self.meta, self.meta_index.overall_index, "overall", exclude_overall_meta)
 
 			else:
 				users_meta = defaultdict(dict)
@@ -114,6 +112,7 @@ class Corpus:
 
 		self.conversations = initialize_conversations(self, self.utterances, convos_meta)
 		self.update_users_data()
+
 
 	@staticmethod
 	def dump_helper_bin(d: Dict, d_bin: Dict, object_idx: Dict, fields_to_skip=None) -> Dict:
@@ -435,22 +434,15 @@ class Corpus:
 		for utt in utts2:
 			if utt.id in seen_utts:
 				prev_utt = seen_utts[utt.id]
-				try:
-					assert prev_utt.root == utt.root
-					assert prev_utt.reply_to == utt.reply_to
-					assert prev_utt.user == utt.user
-					assert prev_utt.timestamp == utt.timestamp
-					assert prev_utt.text == utt.text
-
+				if prev_utt == utt:
 					# other utterance metadata is ignored if data is not matched
 					for key, val in utt.meta.items():
 						if key in prev_utt.meta and prev_utt.meta[key] != val:
 							if warnings:
 								warn("Found conflicting values for Utterance {} for metadata key: {}. "
-									 "Overwriting with other corpus's Utterance metadata.".format(utt.id, key))
+									 "Overwriting with other corpus's Utterance metadata.".format(repr(utt.id), repr(key)))
 						prev_utt.meta[key] = val
-
-				except AssertionError:
+				else:
 					if warnings:
 						warn("Utterances with same id do not share the same data:\n" +
 							 str(prev_utt) + "\n" +
@@ -509,9 +501,53 @@ class Corpus:
 			for meta_key, meta_val in users_meta[user].items():
 				if users_meta_conflict[user][meta_key]:
 					if warnings:
-						warn("Multiple values found for {} for meta key: {}. "
-							 "Taking the latest one found".format(user, meta_key))
+						warn("Multiple values found for {} for metadata key: {}. "
+							 "Taking the latest one found".format(user, repr(meta_key)))
 				user.meta[meta_key] = meta_val
+
+	def _reinitialize_index_helper(self, new_index, old_index, obj_type):
+		"""
+		Helper for reinitializing the index of the different Corpus object types
+		:param new_index: new ConvoKitIndex object
+		:param old_index: original ConvoKitIndex object
+		:param obj_type: utterance, user, or conversation
+		:return: None (mutates new_index)
+		"""
+		new_obj_index = new_index.indices[obj_type]
+		old_obj_index = old_index.indices[obj_type]
+
+		for obj in self.iter_objs(obj_type):
+			for key, value in obj.meta.items():
+				if key in new_obj_index:
+					if new_obj_index[key] is None and value is not None:
+						new_obj_index[key] = str(type(value))
+				else:
+					if key in old_obj_index:
+						new_obj_index[key] = old_obj_index[key]
+					else:
+						new_obj_index[key] = str(type(value))
+
+	def reinitialize_index(self):
+		"""
+		Reinitialize the Corpus Index. Called during merge().
+		Re-uses original Index values where possible, and avoids having NoneType as the class-type for any key.
+		Checks metadata of all Corpus objects of each type to ensure that all keys are accounted for.
+
+		Uses the
+		:return: None (sets the .meta_index of Corpus)
+		"""
+		old_index = self.meta_index
+		new_index = ConvoKitIndex(self)
+
+		self._reinitialize_index_helper(new_index, old_index, "utterance")
+		self._reinitialize_index_helper(new_index, old_index, "user")
+		self._reinitialize_index_helper(new_index, old_index, "conversation")
+
+		for key, value in self.meta.items(): # overall
+			new_index.overall_index[key] = str(type(value))
+
+		new_index.version = old_index.version
+		self.meta_index = new_index
 
 	def merge(self, other_corpus, warnings: bool = True):
 		"""
@@ -524,7 +560,9 @@ class Corpus:
 		other corpus, the other corpus's metadata (or its conversations / utterances) values will be used. A warning
 		is printed when this happens.
 
-		May mutate original and other corpus.
+		May mutate original and other corpus in the process.
+
+		(Updates internal ConvoKit Index to match post-merge state and uses this Corpus's version number.)
 
 		:param other_corpus: Corpus
 		:param warnings: print warnings when data conflicts are encountered
@@ -532,10 +570,8 @@ class Corpus:
 		"""
 		utts1 = list(self.iter_utterances())
 		utts2 = list(other_corpus.iter_utterances())
-
 		combined_utts = self._merge_utterances(utts1, utts2, warnings=warnings)
 		new_corpus = Corpus(utterances=list(combined_utts))
-
 		# Note that we collect Users from the utt sets directly instead of the combined utts, otherwise
 		# differences in User meta will not be registered for duplicate Utterances (because utts would be discarded
 		# during merging)
@@ -547,8 +583,8 @@ class Corpus:
 		for key, val in other_corpus.meta.items():
 			if key in new_corpus.meta and new_corpus.meta[key] != val:
 				if warnings:
-					warn("Found conflicting values for corpus metadata: {}. " +
-						 "Overwriting with other corpus's metadata.".format(key))
+					warn("Found conflicting values for Corpus metadata key: {}. "
+						 "Overwriting with other Corpus's metadata.".format(repr(key)))
 			new_corpus.meta[key] = val
 
 		# Merge CONVERSATION metadata
@@ -563,11 +599,12 @@ class Corpus:
 				curr_meta = new_corpus.get_conversation(convo.id).meta
 				if key in curr_meta and curr_meta[key] != val:
 					if warnings:
-						warn("Found conflicting values for conversation: {} for meta key: {}. " +
-							 "Overwriting with other corpus's conversation metadata".format(convo.id, key))
+						warn("Found conflicting values for Conversation {} for metadata key: {}. "
+							 "Overwriting with other corpus's Conversation metadata.".format(repr(convo.id), repr(key)))
 				curr_meta[key] = val
 
 		new_corpus.update_users_data()
+		new_corpus.reinitialize_index()
 
 		return new_corpus
 
@@ -677,7 +714,7 @@ class Corpus:
 			f.write('\n'.join(vect_obj['keys']))
 		np.save(filename, vect_obj['vects'])
 
-	def load_info(self, obj_type, fields=[], dir_name=None):
+	def load_info(self, obj_type, fields=None, dir_name=None):
 		"""
 			loads attributes of objects in a corpus from disk.
 			This function, along with dump_info, supports cases where a particular attribute is to be stored separately from the other corpus files, for organization or efficiency. These attributes will not be read when the corpus is initialized; rather, they can be loaded on-demand using this function.
@@ -689,6 +726,8 @@ class Corpus:
 			:param dir_name: the directory to read attributes from. by default, or if set to None, will read from the directory that the Corpus was loaded from.
 			:return: None
 		"""
+		if fields is None:
+			fields = []
 
 		if (self.original_corpus_path is None) and (dir_name is None):
 			raise ValueError('must specify a directory to read from')
@@ -702,7 +741,7 @@ class Corpus:
 		for field in fields:
 			# self.aux_info[field] = self._load_jsonlist_to_dict(
 			#     os.path.join(dir_name, 'feat.%s.jsonl' % field))
-			getter = self.get_object(obj_type)
+			getter = lambda oid: self.get_object(obj_type, oid)
 			entries = self._load_jsonlist_to_dict(
 				os.path.join(dir_name, 'info.%s.jsonl' % field))
 			for k, v in entries.items():
@@ -918,5 +957,6 @@ class Corpus:
 		c_df.columns = [x + convo_suffix for x in c_df.columns]
 		return uc_df.join(u_df, on='user').join(c_df, on='convo_id')
 
+	# def __repr__(self):
 	# def __eq__(self, other):
 	# 	return True

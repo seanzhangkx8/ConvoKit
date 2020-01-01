@@ -1,6 +1,6 @@
 from functools import total_ordering
 from typing import Dict, List, Collection, Callable, Set, Generator, Tuple, Optional, ValuesView
-from warnings import warn
+from .corpusUtil import warn
 from .corpusObject import CorpusObject
 
 @total_ordering
@@ -20,36 +20,35 @@ class User(CorpusObject):
     """
 
     def __init__(self, owner=None, name: str = None, utts = None, convos = None, meta: Optional[Dict] = None):
-        super().__init__(obj_type="user", owner=owner, id=id, meta=meta)
+        super().__init__(obj_type="user", owner=owner, id=name, meta=meta)
         self._name = name
-        self.id = self._name
         self.utterances = utts if utts is not None else dict()
         self.conversations = convos if convos is not None else dict()
-        self._split_attribs = set()
-        self._update_uid()
+        # self._split_attribs = set()
+        # self._update_uid()
 
-    def identify_by_attribs(self, attribs: Collection) -> None:
-        """Identify a user by a list of attributes. Sets which user info
-        attributes should distinguish users of the same name in equality tests.
-        For example, in the Supreme Court dataset, users are labeled with the
-        current case id. Call this method with attribs = ["case"] to count
-        the same person across different cases as different users.
-
-        By default, if this function is not called, Users are identified by name only.
-
-        :param attribs: Collection of attribute names.
-        :type attribs: Collection
-        """
-
-        self._split_attribs = set(attribs)
-        self._update_uid()
+    # def identify_by_attribs(self, attribs: Collection) -> None:
+    #     """Identify a user by a list of attributes. Sets which user info
+    #     attributes should distinguish users of the same name in equality tests.
+    #     For example, in the Supreme Court dataset, users are labeled with the
+    #     current case id. Call this method with attribs = ["case"] to count
+    #     the same person across different cases as different users.
+    #
+    #     By default, if this function is not called, Users are identified by name only.
+    #
+    #     :param attribs: Collection of attribute names.
+    #     :type attribs: Collection
+    #     """
+    #
+    #     self._split_attribs = set(attribs)
+    #     # self._update_uid()
 
     def _get_name(self): return self._name
 
     def _set_name(self, value: str):
         warn("This attribute will be removed in a future release. Use User.id instead.")
         self._name = value
-        self._update_uid()
+        # self._update_uid()
 
     name = property(_get_name, _set_name)
 
@@ -132,13 +131,13 @@ class User(CorpusObject):
 
         self.meta[key] = value
 
-    def _update_uid(self):
-        rep = dict()
-        rep["name"] = self._name
-        if self._split_attribs:
-            rep["attribs"] = {k: self._meta[k] for k in self._split_attribs
-                              if k in self._meta}
-        # self.meta["uid"] = "User(" + str(sorted(rep.items())) + ")"
+    # def _update_uid(self):
+    #     rep = dict()
+    #     rep["name"] = self._name
+    #     if self._split_attribs:
+    #         rep["attribs"] = {k: self._meta[k] for k in self._split_attribs
+    #                           if k in self._meta}
+    #     # self.meta["uid"] = "User(" + str(sorted(rep.items())) + ")"
 
     def __lt__(self, other):
         return self.id < other.id
@@ -146,9 +145,22 @@ class User(CorpusObject):
     def __hash__(self):
         return hash(self.id)
 
-    def __repr__(self):
-        return self.id
+    def __eq__(self, other):
+        if not isinstance(other, User):
+            return False
+        try:
+            return self.id == other.id
+        except AttributeError:
+            return self.__dict__['_name'] == other.__dict__['_name']
 
+    def print_user_stats(self):
+        """
+        Helper function for printing the number of Utterances and Conversations by the User
+
+        :return: None
+        """
+        print("Number of Utterances: {}".format(len(list(self.iter_utterances()))))
+        print("Number of Conversations: {}".format(len(list(self.iter_conversations()))))
     # def copy(self):
     #     """
     #     :return: A duplicate of the User with the same data and metadata

@@ -1,5 +1,5 @@
 from collections import MutableMapping
-from warnings import warn
+from .corpusUtil import warn
 from .convoKitIndex import ConvoKitIndex
 import json
 
@@ -12,7 +12,10 @@ class ConvoKitMeta(MutableMapping, dict):
         self.obj_type = obj_type
 
     def __getitem__(self, key):
-        return dict.__getitem__(self, key)
+        try:
+            return dict.__getitem__(self, key)
+        except KeyError:
+            return None
 
     def __setitem__(self, key, value):
         if not isinstance(key, str):
@@ -29,6 +32,7 @@ class ConvoKitMeta(MutableMapping, dict):
 
     def __delitem__(self, key):
         dict.__delitem__(self, key)
+        self.index.del_from_index(self.obj_type, key)
 
     def __iter__(self):
         return dict.__iter__(self)

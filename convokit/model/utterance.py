@@ -31,7 +31,7 @@ class Utterance(CorpusObject):
         self.user = user
         self.root = root
         self.reply_to = reply_to
-        self.timestamp = timestamp
+        self.timestamp = int(timestamp) if timestamp is not None else timestamp
         self.text = text
 
     def get(self, key: str):
@@ -71,7 +71,7 @@ class Utterance(CorpusObject):
             :return: attribute <key>
         """
         
-        return super().meta.get(key, None)
+        return self.meta.get(key, None)
 
     def set_info(self, key, value):
         """
@@ -81,7 +81,25 @@ class Utterance(CorpusObject):
             :param value: value to set
             :return: None
         """
-        super().meta[key] = value
+        self.meta[key] = value
 
-    def __repr__(self):
-        return "Utterance(" + str(self.__dict__) + ")"
+    def __eq__(self, other):
+        if not isinstance(other, Utterance):
+            return False
+        try:
+            return self.id == other.id and self.root == other.root and self.reply_to == other.reply_to and \
+                   self.user == other.user and self.timestamp == other.timestamp and self.text == other.text
+        except AttributeError: # for backwards compatibility with wikiconv
+            return self.__dict__ == other.__dict__
+
+    def __str__(self):
+        return "Utterance('id': {}, 'root': {}, 'reply-to': {}, " \
+               "'user': {}, 'timestamp': {}, 'text': {}, 'meta': {})".format(repr(self.id),
+                                                                             self.root,
+                                                                             self.reply_to,
+                                                                             self.user,
+                                                                             self.timestamp,
+                                                                             repr(self.text),
+                                                                             self.meta)
+
+

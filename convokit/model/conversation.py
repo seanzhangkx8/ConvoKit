@@ -1,7 +1,7 @@
 from typing import Dict, List, Collection, Callable, Set, Generator, Tuple, Optional, ValuesView
 from .utterance import Utterance
 from .user import User
-from warnings import warn
+from .corpusUtil import warn
 from .corpusObject import CorpusObject
 
 
@@ -25,7 +25,6 @@ class Conversation(CorpusObject):
                  meta: Optional[Dict] = None):
         super().__init__(obj_type="conversation", owner=owner, id=id, meta=meta)
         self._owner = owner
-        self._id = id
         self._utterance_ids = utterances
         self._usernames = None
 
@@ -57,12 +56,6 @@ class Conversation(CorpusObject):
         """
 
         self.meta[key] = value
-
-    # Conversation.id property
-    def _get_id(self):
-        """The unique ID of this Conversation [read-only]"""
-        return self._id
-    id = property(_get_id)
 
     def get_utterance_ids(self) -> List[str]:
         """Produces a list of the unique IDs of all utterances in the
@@ -233,5 +226,10 @@ class Conversation(CorpusObject):
                  for leaf_utt_id in leaf_utt_ids]
         return paths
 
-    def __repr__(self):
-        return "Conversation(" + str(self.__dict__) + ")"
+    def __eq__(self, other):
+        if not isinstance(other, Conversation):
+            return False
+        return self.id == other.id and set(self._utterance_ids) == set(other._utterance_ids)
+
+    def __str__(self):
+        return "Conversation('id': {}, 'utterances': {}, 'meta': {})".format(repr(self.id), self._utterance_ids, self.meta)
