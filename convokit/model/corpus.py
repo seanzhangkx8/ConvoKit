@@ -285,8 +285,9 @@ class Corpus:
 
 		if verbose:
 			missing_convo_roots = list(set(new_convo_roots) - set(new_corpus.get_conversation_ids()))
-			warn("Failed to find some of the specified new convo roots:\n")
-			print(missing_convo_roots)
+			if len(missing_convo_roots) > 0:
+				warn("Failed to find some of the specified new convo roots:\n")
+				print(missing_convo_roots)
 
 		return new_corpus
 
