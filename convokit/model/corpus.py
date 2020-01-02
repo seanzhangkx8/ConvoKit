@@ -4,7 +4,7 @@ import pandas as pd
 from .corpusHelper import *
 from .corpusUtil import warn
 from .convoKitIndex import ConvoKitIndex
-pair_delim = '-q-a-'
+
 
 class Corpus:
 	"""Represents a dataset, which can be loaded from a folder or a
@@ -84,7 +84,8 @@ class Corpus:
 								   exclude_user_meta)
 
 				# unpack binary data for conversations
-				unpack_binary_data(filename, convos_meta, self.meta_index.conversations_index, "convo", exclude_conversation_meta)
+				unpack_binary_data(filename, convos_meta, self.meta_index.conversations_index, "convo",
+								   exclude_conversation_meta)
 
 				# unpack binary data for overall corpus
 				unpack_binary_data(filename, self.meta, self.meta_index.overall_index, "overall", exclude_overall_meta)
@@ -99,7 +100,7 @@ class Corpus:
 
 			initialize_users_and_utterances_objects(self, self.utterances, utterances, self.users, users_meta)
 
-		elif utterances is not None: # Construct corpus from utterances list
+		elif utterances is not None:  # Construct corpus from utterances list
 			self.users = {u.user.id: u.user for u in utterances}
 			self.utterances = {u.id: u for u in utterances}
 			for _, user in self.users.items():
@@ -112,7 +113,6 @@ class Corpus:
 
 		self.conversations = initialize_conversations(self, self.utterances, convos_meta)
 		self.update_users_data()
-
 
 	@staticmethod
 	def dump_helper_bin(d: Dict, d_bin: Dict, object_idx: Dict, fields_to_skip=None) -> Dict:
@@ -129,21 +129,21 @@ class Corpus:
 		d_out = {}
 		for k, v in d.items():
 			if k in fields_to_skip: continue
-			try:   # try saving the field
+			try:  # try saving the field
 				json.dumps(v)
 				d_out[k] = v
 				if k not in object_idx:
 					object_idx[k] = str(type(v))
-			except (TypeError, OverflowError):   # unserializable
+			except (TypeError, OverflowError):  # unserializable
 				d_out[k] = "{}{}{}".format(BIN_DELIM_L, len(d_bin[k]), BIN_DELIM_R)
 				d_bin[k].append(v)
-				object_idx[k] = "bin"   # overwrite non-bin type annotation if necessary
+				object_idx[k] = "bin"  # overwrite non-bin type annotation if necessary
 		return d_out
 
 	def dump(self, name: str, base_path: Optional[str] = None,
 			 increment_version: bool = True,
 			 save_to_existing_path: bool = False,
-			 fields_to_skip = None) -> None:
+			 fields_to_skip=None) -> None:
 		"""Dumps the corpus and its metadata to disk.
 		Automatically increments the version number.
 		:param name: name of corpus
@@ -174,12 +174,11 @@ class Corpus:
 		if not os.path.exists(dir_name):
 			os.mkdir(dir_name)
 
-		utterances_idx, users_idx, convos_idx, overall_idx = {}, {}, {}, {} # TODO get rid of this
+		utterances_idx, users_idx, convos_idx, overall_idx = {}, {}, {}, {}  # TODO get rid of this
 
 		dump_corpus_object(self, dir_name, "users.json", "user", "user", fields_to_skip)
 		dump_corpus_object(self, dir_name, "conversations.json", "conversation", "convo", fields_to_skip)
 		dump_utterances(self, dir_name, fields_to_skip)
-
 
 		with open(os.path.join(dir_name, "corpus.json"), "w") as f:
 			d_bin = defaultdict(list)
@@ -202,7 +201,8 @@ class Corpus:
 	def get_utterance(self, ut_id: str) -> Utterance:
 		return self.utterances[ut_id]
 
-	def iter_utterances(self, selector: Optional[Callable[[Utterance], bool]] = lambda utt: True) -> Generator[Utterance, None, None]:
+	def iter_utterances(self, selector: Optional[Callable[[Utterance], bool]] = lambda utt: True) -> Generator[
+		Utterance, None, None]:
 		for v in self.utterances.values():
 			if selector(v):
 				yield v
@@ -210,13 +210,15 @@ class Corpus:
 	def get_utterance_ids(self, selector: Optional[Callable[[Utterance], bool]] = lambda utt: True) -> List[str]:
 		return [utt.id for utt in self.iter_utterances(selector)]
 
-	def get_conversation_ids(self, selector: Optional[Callable[[Conversation], bool]] = lambda convo: True) -> List[str]:
+	def get_conversation_ids(self, selector: Optional[Callable[[Conversation], bool]] = lambda convo: True) -> List[
+		str]:
 		return [convo.id for convo in self.iter_conversations(selector)]
 
 	def get_conversation(self, cid: str) -> Conversation:
 		return self.conversations[cid]
 
-	def iter_conversations(self, selector: Optional[Callable[[Conversation], bool]] = lambda convo: True) -> Generator[Conversation, None, None]:
+	def iter_conversations(self, selector: Optional[Callable[[Conversation], bool]] = lambda convo: True) -> Generator[
+		Conversation, None, None]:
 		for v in self.conversations.values():
 			if selector(v):
 				yield v
@@ -227,14 +229,60 @@ class Corpus:
 		:param selector: function for selecting which functions to keep
 		:return: None (mutates the corpus)
 		"""
+
 		self.conversations = {convo_id: convo for convo_id, convo in self.conversations.items() if selector(convo)}
 		utt_ids = set([utt for convo in self.conversations.values() for utt in convo.get_utterance_ids()])
 		self.utterances = {utt.id: utt for utt in self.utterances.values() if utt.id in utt_ids}
 		usernames = set([utt.user.id for utt in self.utterances.values()])
 		self.users = {user.id: user for user in self.users.values() if user.id in usernames}
 		self.update_users_data()
+		self.reinitialize_index()
 
-	def iter_objs(self, obj_type: str, selector: Callable[[Union[User, Utterance, Conversation]], bool] = lambda obj: True):
+	def reindex_conversations(self, new_convo_roots: List[str], preserve_corpus_meta: bool = True,
+							  preserve_convo_meta: bool = True) -> 'Corpus':
+		"""
+		Generates a new Corpus from current Corpus with specified list of utterance ids to use as conversation roots.
+		
+		The subtrees denoted by these utterance ids should be distinct and should not overlap, otherwise there 
+		may be unexpected behavior.
+		
+		:param new_convo_roots: List of utterance ids to use as roots
+		:param preserve_corpus_meta: set as True to copy original Corpus metadata to new Corpus
+		:param preserve_convo_meta: set as True to copy original Conversation metadata to new Conversation metadata 
+		(For each new convo root, use the metadata of the conversation that convo root belonged to.)
+		:return: 
+		"""""
+		new_convo_roots = set(new_convo_roots)
+		for convo in self.iter_conversations():
+			convo.initialize_tree_structure()
+
+		new_corpus_utts = []
+		original_utt_to_convo_id = dict()
+
+		for utt_id in new_convo_roots:
+			orig_convo = self.get_conversation(self.get_utterance(utt_id).root)
+			original_utt_to_convo_id[utt_id] = orig_convo.id
+			subtree = orig_convo.get_subtree(utt_id)
+			new_root_utt = subtree.utt
+			new_root_utt.reply_to = None
+			subtree_utts = [node.utt for node in subtree.bfs_traversal()]
+			for utt in subtree_utts:
+				utt.root = utt_id
+			new_corpus_utts.extend(subtree_utts)
+
+		new_corpus = Corpus(utterances=new_corpus_utts)
+
+		if preserve_corpus_meta:
+			new_corpus.meta.update(self.meta)
+
+		if preserve_convo_meta:
+			for convo in new_corpus.iter_conversations():
+				convo.meta.update(self.get_conversation(original_utt_to_convo_id[convo.id]).meta)
+
+		return new_corpus
+
+	def iter_objs(self, obj_type: str,
+				  selector: Callable[[Union[User, Utterance, Conversation]], bool] = lambda obj: True):
 		assert obj_type in ["user", "utterance", "conversation"]
 		obj_iters = {"conversation": self.iter_conversations,
 					 "user": self.iter_users,
@@ -242,7 +290,8 @@ class Corpus:
 
 		return obj_iters[obj_type](selector)
 
-	def get_object_ids(self, obj_type: str, selector: Callable[[Union[User, Utterance, Conversation]], bool] = lambda obj: True):
+	def get_object_ids(self, obj_type: str,
+					   selector: Callable[[Union[User, Utterance, Conversation]], bool] = lambda obj: True):
 		assert obj_type in ["user", "utterance", "conversation"]
 		return [obj.id for obj in self.iter_objs(obj_type, selector)]
 
@@ -278,7 +327,7 @@ class Corpus:
 				threads[ut.root].append(ut)
 			else:
 				top_level_comment = ut.get("meta")["top_level_comment"]
-				if top_level_comment is None: continue # i.e. this is a post (root) utterance
+				if top_level_comment is None: continue  # i.e. this is a post (root) utterance
 				threads[top_level_comment].append(ut)
 		return {root: {utt.id: utt for utt in list(sorted(l, key=lambda x: x.timestamp))[-suffix_len:prefix_len]}
 				for root, l in threads.items()}
@@ -325,12 +374,11 @@ class Corpus:
 		warn("This function is deprecated. Use get_user_ids() instead.")
 		return set([u.name for u in self.iter_users(selector)])
 
-
 	def get_user_ids(self, selector: Optional[Callable[[User], bool]] = lambda user: True) -> Set[str]:
 		return set([u.id for u in self.iter_users(selector)])
 
-	def speaking_pairs(self, selector: Optional[Callable[[User, User], bool]]=None,
-					   user_names_only: bool=False) -> Set[Tuple]:
+	def speaking_pairs(self, selector: Optional[Callable[[User, User], bool]] = None,
+					   user_names_only: bool = False) -> Set[Tuple]:
 		"""Get all directed speaking pairs (a, b) of users such that a replies
 			to b at least once in the dataset.
 
@@ -355,8 +403,8 @@ class Corpus:
 								  user_names_only else (u2.user, u1.user))
 		return pairs
 
-	def pairwise_exchanges(self, selector: Optional[Callable[[User, User], bool]]=None,
-						   user_names_only: bool=False) -> Dict[Tuple, List[Utterance]]:
+	def pairwise_exchanges(self, selector: Optional[Callable[[User, User], bool]] = None,
+						   user_names_only: bool = False) -> Dict[Tuple, List[Utterance]]:
 		"""Get all directed pairwise exchanges in the dataset.
 
 		:param selector: optional function that takes in a
@@ -385,6 +433,8 @@ class Corpus:
 
 		Can give just questions, just answers or questions followed by their answers
 		"""
+
+		pair_delim = '-q-a-'
 		i = -1
 		for utterance in self.utterances.values():
 			if utterance.reply_to is not None:
@@ -440,7 +490,8 @@ class Corpus:
 						if key in prev_utt.meta and prev_utt.meta[key] != val:
 							if warnings:
 								warn("Found conflicting values for Utterance {} for metadata key: {}. "
-									 "Overwriting with other corpus's Utterance metadata.".format(repr(utt.id), repr(key)))
+									 "Overwriting with other corpus's Utterance metadata.".format(repr(utt.id),
+																								  repr(key)))
 						prev_utt.meta[key] = val
 				else:
 					if warnings:
@@ -455,7 +506,8 @@ class Corpus:
 		return seen_utts.values()
 
 	@staticmethod
-	def _collect_user_data(utt_sets: Collection[Collection[Utterance]]) -> Tuple[Dict[str, Dict[str, str]], Dict[str, Dict[str, bool]]]:
+	def _collect_user_data(utt_sets: Collection[Collection[Utterance]]) -> Tuple[
+		Dict[str, Dict[str, str]], Dict[str, Dict[str, bool]]]:
 		"""
 		Helper function for merge().
 
@@ -543,7 +595,7 @@ class Corpus:
 		self._reinitialize_index_helper(new_index, old_index, "user")
 		self._reinitialize_index_helper(new_index, old_index, "conversation")
 
-		for key, value in self.meta.items(): # overall
+		for key, value in self.meta.items():  # overall
 			new_index.overall_index[key] = str(type(value))
 
 		new_index.version = old_index.version
@@ -608,7 +660,7 @@ class Corpus:
 
 		return new_corpus
 
-	def add_utterances(self, utterances=List[Utterance]):
+	def add_utterances(self, utterances=List[Utterance], warnings: bool = False):
 		"""
 		Add utterances to the Corpus
 
@@ -622,7 +674,7 @@ class Corpus:
 		:return: a new Corpus with the utterances from this Corpus and the input utterances combined
 		"""
 		helper_corpus = Corpus(utterances=utterances)
-		return self.merge(helper_corpus)
+		return self.merge(helper_corpus, warnings=warnings)
 
 	def update_users_data(self) -> None:
 		"""
@@ -735,7 +787,7 @@ class Corpus:
 			dir_name = self.original_corpus_path
 
 		if len(fields) == 0:
-			fields = [x.replace('info.','').replace('.jsonl', '') for x in os.listdir(dir_name)
+			fields = [x.replace('info.', '').replace('.jsonl', '') for x in os.listdir(dir_name)
 					  if x.startswith('info')]
 
 		for field in fields:
@@ -872,7 +924,6 @@ class Corpus:
 			return user.meta['conversations'].get(convo_id, {})
 		return user.meta['conversations'].get(convo_id, {}).get(key)
 
-
 	def organize_user_convo_history(self, utterance_filter=None):
 		'''
 			For each user, pre-computes a list of all of their utterances, organized by the conversation they participated in. Annotates user with the following:
@@ -910,11 +961,11 @@ class Corpus:
 			except:
 				continue
 
-			sorted_convos = sorted(user.get_info('conversations').items(), key=lambda x: (x[1]['start_time'], x[1]['utterance_ids'][0]))
+			sorted_convos = sorted(user.get_info('conversations').items(),
+								   key=lambda x: (x[1]['start_time'], x[1]['utterance_ids'][0]))
 			user.set_info('start_time', sorted_convos[0][1]['start_time'])
 			for idx, (convo_id, _) in enumerate(sorted_convos):
 				self.set_user_convo_info(user.id, convo_id, 'idx', idx)
-
 
 	def get_user_convo_attribute_table(self, attrs):
 		'''
@@ -934,11 +985,12 @@ class Corpus:
 						 'convo_idx': convo_dict['idx']}
 
 				for attr in attrs:
-					entry[attr] = convo_dict.get(attr,None)
+					entry[attr] = convo_dict.get(attr, None)
 				table_entries.append(entry)
 		return pd.DataFrame(table_entries).set_index('id')
 
-	def get_full_attribute_table(self, user_convo_attrs, user_attrs=[], convo_attrs=[], user_suffix='__user', convo_suffix='__convo'):
+	def get_full_attribute_table(self, user_convo_attrs, user_attrs=None, convo_attrs=None, user_suffix='__user',
+								 convo_suffix='__convo'):
 		'''
 			returns a table where each row lists a (user, convo) level aggregate for each attribute in attrs, along with user-level and conversation-level attributes; by default these attributes are suffixed with '__user' and '__convo' respectively.
 
@@ -949,6 +1001,10 @@ class Corpus:
 			:param convo_suffix: suffix to append to names of conversation-level attributes.
 			:return: dataframe containing all attributes.
 		'''
+		if user_attrs is None:
+			user_attrs = []
+		if convo_attrs is None:
+			convo_attrs = []
 
 		uc_df = self.get_user_convo_attribute_table(user_convo_attrs)
 		u_df = self.get_attribute_table('user', user_attrs)
@@ -957,6 +1013,6 @@ class Corpus:
 		c_df.columns = [x + convo_suffix for x in c_df.columns]
 		return uc_df.join(u_df, on='user').join(c_df, on='convo_id')
 
-	# def __repr__(self):
-	# def __eq__(self, other):
-	# 	return True
+# def __repr__(self):
+# def __eq__(self, other):
+# 	return True

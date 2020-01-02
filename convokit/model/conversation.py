@@ -1,9 +1,10 @@
-from typing import Dict, List, Collection, Callable, Set, Generator, Tuple, Optional, ValuesView
+from typing import Dict, List, Callable, Generator, Optional
 from .utterance import Utterance
 from .user import User
 from .corpusUtil import warn
 from .corpusObject import CorpusObject
-
+from collections import defaultdict
+from .utteranceNodeWrapper import UtteranceNodeWrapper
 
 class Conversation(CorpusObject):
     """Represents a discrete subset of utterances in the dataset, connected by a
@@ -26,36 +27,8 @@ class Conversation(CorpusObject):
         super().__init__(obj_type="conversation", owner=owner, id=id, meta=meta)
         self._owner = owner
         self._utterance_ids = utterances
-        self._usernames = None
-
-    def add_meta(self, key: str, value) -> None:
-        """
-        Adds a key-value pair to the Conversation metadata
-
-        :return: None
-        """
-        self.meta[key] = value
-
-    def get_info(self, key):
-        """
-            Gets attribute <key> of the conversation. Returns None if the conversation does not have this attribute.
-            
-            :param key: name of attribute
-            :return: attribute <key>
-        """
-        
-        return self.meta.get(key,None)
-
-    def set_info(self, key, value):
-        """
-            Sets attribute <key> of the conversation to <value>.
-
-            :param key: name of attribute
-            :param value: value to set
-            :return: None
-        """
-
-        self.meta[key] = value
+        self._user_ids = None
+        self.tree: Optional[UtteranceNodeWrapper] = None
 
     def get_utterance_ids(self) -> List[str]:
         """Produces a list of the unique IDs of all utterances in the
@@ -98,14 +71,14 @@ class Conversation(CorpusObject):
         :return: a list of usernames
         """
         warn("This function is deprecated and will be removed in a future release. Use get_user_ids() instead.")
-        if self._usernames is None:
+        if self._user_ids is None:
             # first call to get_usernames or iter_users; precompute cached list
             # of usernames
-            self._usernames = set()
+            self._user_ids = set()
             for ut_id in self._utterance_ids:
                 ut = self._owner.get_utterance(ut_id)
-                self._usernames.add(ut.user.name)
-        return list(self._usernames)
+                self._user_ids.add(ut.user.name)
+        return list(self._user_ids)
 
     def get_user_ids(self) -> List[str]:
         """Produces a list of ids of all users in the Conversation, which can
@@ -114,14 +87,14 @@ class Conversation(CorpusObject):
 
         :return: a list of usernames
         """
-        if self._usernames is None:
+        if self._user_ids is None:
             # first call to get_usernames or iter_users; precompute cached list
             # of usernames
-            self._usernames = set()
+            self._user_ids = set()
             for ut_id in self._utterance_ids:
                 ut = self._owner.get_utterance(ut_id)
-                self._usernames.add(ut.user.name)
-        return list(self._usernames)
+                self._user_ids.add(ut.user.name)
+        return list(self._user_ids)
 
     def get_user(self, username: str) -> User:
         """Looks up the User with the given name. Raises a KeyError if no user
@@ -139,15 +112,14 @@ class Conversation(CorpusObject):
 
         :return: Generator that produces Users.
         """
-        if self._usernames is None:
-            # first call to get_usernames or iter_users; precompute cached list
-            # of usernames
-            self._usernames = set()
+        if self._user_ids is None:
+            # first call to get_ids or iter_users; precompute cached list of usernames
+            self._user_ids = set()
             for ut_id in self._utterance_ids:
                 ut = self._owner.get_utterance(ut_id)
-                self._usernames.add(ut.user.id)
-        for username in self._usernames:
-            yield self._owner.get_user(username)
+                self._user_ids.add(ut.user.id)
+        for user_id in self._user_ids:
+            yield self._owner.get_user(user_id)
 
     def check_integrity(self, verbose=True):
         if verbose: print("Checking reply-to chain of Conversation", self.id)
@@ -160,7 +132,7 @@ class Conversation(CorpusObject):
             if verbose:
                 for utt_id in root_utt_id:
                     if utt_id is not None:
-                        print("ERROR: Missing utterance", utt_id)
+                        warn("ERROR: Missing utterance {}".format(utt_id))
             return False
 
         # sanity check
@@ -170,11 +142,69 @@ class Conversation(CorpusObject):
                 utts_replying_to_none += 1
 
         if utts_replying_to_none > 1:
-            if verbose: print("ERROR: Found more than one Utterance replying to None.")
+            if verbose: warn("ERROR: Found more than one Utterance replying to None.")
             return False
 
         if verbose: print("No issues found.\n")
         return True
+
+    def initialize_tree_structure(self):
+        if not self.check_integrity(verbose=False):
+            return
+
+        root_node_id = None
+        # Find root node
+        for utt in self.iter_utterances():
+            if utt.reply_to is None:
+                root_node_id = utt.id
+        assert root_node_id is not None
+
+        parent_to_children_ids = defaultdict(list)
+        for utt in self.iter_utterances():
+            parent_to_children_ids[utt.reply_to].append(utt.id)
+
+        wrapped_utts = {utt.id: UtteranceNodeWrapper(utt) for utt in self.iter_utterances()}
+
+        for parent_id, wrapped_utt in wrapped_utts.items():
+            wrapped_utt.set_children([wrapped_utts[child_id] for child_id in parent_to_children_ids[parent_id]])
+
+        self.tree = wrapped_utts[root_node_id]
+
+    def traverse(self, traversal_type: str, as_utterance: bool = True):
+        """
+        Traverse through the Conversation tree structure in a breadth-first search ('bfs'), depth-first search (dfs),
+        pre-order ('preorder'), or post-order ('postorder') way.
+        :param traversal_type: dfs, bfs, preorder, or postorder
+        :param as_utterance: whether the iterator should yield the utterance (True) or the utterance node (False)
+        :return: an iterator of the utterances or utterance nodes
+        """
+        if self.tree is None:
+            self.initialize_tree_structure()
+            if self.tree is None:
+                raise ValueError("Failed to traverse because Conversation reply-to chain does not form a valid tree.")
+
+        traversals = {'bfs': self.tree.bfs_traversal,
+                      'dfs': self.tree.dfs_traversal,
+                      'preorder': self.tree.pre_order,
+                      'postorder': self.tree.post_order}
+
+        for utt_node in traversals[traversal_type]():
+            yield utt_node.utt if as_utterance else utt_node
+
+    def get_subtree(self, root_utt_id):
+        """
+        Get the utterance node of the specified input id
+        :param root_utt_id: id of the root node that the subtree starts from
+        :return: UtteranceNodeWrapper object
+        """
+        if self.tree is None:
+            self.initialize_tree_structure()
+            if self.tree is None:
+                raise ValueError("Failed to traverse because Conversation reply-to chain does not form a valid tree.")
+
+        for utt_node in self.tree.bfs_traversal():
+            if utt_node.utt.id == root_utt_id:
+                return utt_node
 
     def _print_convo_helper(self, root: str, indent: int, reply_to_dict: Dict[str, str],
                             utt_info_func: Callable[[Utterance], str]):
