@@ -18,7 +18,8 @@ Contents
    High-level Tutorial <tutorial.rst>
    Model <model.rst>
    Data Format <data_format.rst>
-   API Reference <api.rst>
+   Transformers <transformers.rst>
+   Utilities <utilities.rst>
    Datasets <datasets.rst>
    Examples <examples.rst>
    Troubleshooting <troubleshooting.rst>
