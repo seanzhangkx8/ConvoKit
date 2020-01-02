@@ -291,8 +291,7 @@ class Corpus:
 
 		return new_corpus
 
-	def iter_objs(self, obj_type: str,
-				  selector: Callable[[Union[User, Utterance, Conversation]], bool] = lambda obj: True):
+	def iter_objs(self, obj_type: str, selector: Callable[[Union[User, Utterance, Conversation]], bool] = lambda obj: True):
 		assert obj_type in ["user", "utterance", "conversation"]
 		obj_iters = {"conversation": self.iter_conversations,
 					 "user": self.iter_users,
@@ -336,7 +335,7 @@ class Corpus:
 			if include_root:
 				threads[ut.root].append(ut)
 			else:
-				top_level_comment = ut.get("meta")["top_level_comment"]
+				top_level_comment = ut.meta["top_level_comment"]
 				if top_level_comment is None: continue  # i.e. this is a post (root) utterance
 				threads[top_level_comment].append(ut)
 		return {root: {utt.id: utt for utt in list(sorted(l, key=lambda x: x.timestamp))[-suffix_len:prefix_len]}

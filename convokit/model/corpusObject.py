@@ -94,7 +94,6 @@ class CorpusObject:
         if 'conversations' in copy:
             del copy['conversations']
         try:
-
             return self.obj_type.capitalize() + "(" + str(copy) + ")"
         except AttributeError: # for backwards compatibility when corpus objects are saved as binary data, e.g. wikiconv
             return "(" + str(copy) + ")"
