@@ -34,55 +34,6 @@ class Utterance(CorpusObject):
         self.timestamp = int(timestamp) if timestamp is not None else timestamp
         self.text = text
 
-    def get(self, key: str):
-        if key == "id":
-            return self.id
-        elif key == "user":
-            return self.user
-        elif key == "root":
-            return self.root
-        elif key == "reply_to":
-            return self.reply_to
-        elif key == "timestamp":
-            return self.timestamp
-        elif key == "text":
-            return self.text
-        elif key == "meta":
-            return self.meta
-
-    # def copy(self):
-    #     """
-    #     :return: A duplicate of this Utterance with the same data and metadata
-    #     """
-    #     return Utterance(id=self.id,
-    #                      user=self.user,
-    #                      root=self.root,
-    #                      reply_to=self.reply_to,
-    #                      timestamp=self.timestamp,
-    #                      text=self.text,
-    #                      meta=self.meta.copy())
-
-
-    def get_info(self, key):
-        """
-            Gets attribute <key> of the utterance. Returns None if the user does not have this attribute.
-            
-            :param key: name of attribute
-            :return: attribute <key>
-        """
-        
-        return self.meta.get(key, None)
-
-    def set_info(self, key, value):
-        """
-            Sets attribute <key> of the utterance to <value>.
-
-            :param key: name of attribute
-            :param value: value to set
-            :return: None
-        """
-        self.meta[key] = value
-
     def __eq__(self, other):
         if not isinstance(other, Utterance):
             return False

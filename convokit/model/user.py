@@ -1,5 +1,5 @@
 from functools import total_ordering
-from typing import Dict, List, Collection, Callable, Set, Generator, Tuple, Optional, ValuesView
+from typing import Dict, List, Optional
 from .corpusUtil import warn
 from .corpusObject import CorpusObject
 
@@ -102,34 +102,7 @@ class User(CorpusObject):
         """
         return [convo.id for convo in self.iter_conversations(selector)]
 
-    def add_meta(self, key: str, value) -> None:
-        """
-        Adds a key-value pair to the metadata of the User
 
-        :return: None
-        """
-        self.meta[key] = value
-
-    def get_info(self, key):
-        """
-            Gets attribute <key> of the user. Returns None if the user does not have this attribute.
-            
-            :param key: name of attribute
-            :return: attribute <key>
-        """
-
-        return self.meta.get(key, None)
-
-    def set_info(self, key, value):
-        """
-            Sets attribute <key> of the user to <value>.
-
-            :param key: name of attribute
-            :param value: value to set
-            :return: None
-        """
-
-        self.meta[key] = value
 
     # def _update_uid(self):
     #     rep = dict()

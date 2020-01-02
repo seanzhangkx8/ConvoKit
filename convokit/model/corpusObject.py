@@ -50,6 +50,38 @@ class CorpusObject:
     #     other_keys = set(other.__dict__).difference(['_owner', 'meta', 'utterances', 'conversations'])
     #     return self_keys == other_keys and all([self.__dict__[k] == other.__dict__[k] for k in self_keys])
 
+    def retrieve_meta(self, key: str):
+        return self.meta[key]
+
+    def add_meta(self, key: str, value) -> None:
+        """
+        Adds a key-value pair to the metadata of the User
+
+        :return: None
+        """
+        self.meta[key] = value
+
+    def get_info(self, key):
+        """
+            Gets attribute <key> of the user. Returns None if the user does not have this attribute.
+
+            :param key: name of attribute
+            :return: attribute <key>
+        """
+
+        return self.meta[key]
+
+    def set_info(self, key, value):
+        """
+            Sets attribute <key> of the user to <value>.
+
+            :param key: name of attribute
+            :param value: value to set
+            :return: None
+        """
+
+        self.meta[key] = value
+
     def __str__(self):
         return "{}('id': {}, 'meta': {})".format(self.obj_type.capitalize(),
                                                  self.id,
