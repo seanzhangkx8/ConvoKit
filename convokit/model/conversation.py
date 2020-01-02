@@ -150,14 +150,13 @@ class Conversation(CorpusObject):
 
     def initialize_tree_structure(self):
         if not self.check_integrity(verbose=False):
-            return
+            raise ValueError("Conversation reply-to chain does not form a valid tree.")
 
         root_node_id = None
         # Find root node
         for utt in self.iter_utterances():
             if utt.reply_to is None:
                 root_node_id = utt.id
-        assert root_node_id is not None
 
         parent_to_children_ids = defaultdict(list)
         for utt in self.iter_utterances():

@@ -53,7 +53,7 @@ class HyperConvo(Transformer):
         """
         return self.fit_transform(corpus)
 
-    def fit_transform(self, corpus: Corpus) -> Corpus:
+    def fit_transform(self, corpus: Corpus, y=None) -> Corpus:
         """
         fit_transform() retrieves features from the corpus conversational
         threads using retrieve_feats()
@@ -72,7 +72,6 @@ class HyperConvo(Transformer):
                 convo.add_meta("hyperconvo", {root_id: feats[root_id]})
         else: # threads start at top-level-comment
             # Construct top-level-comment to root mapping
-            tlc_to_root_mapping = dict() # tlc = top level comment
             threads = corpus.utterance_threads(prefix_len=self.prefix_len, include_root=False)
             root_to_tlc = dict()
             for tlc_id, utts in threads.items():
@@ -114,17 +113,17 @@ class HyperConvo(Transformer):
         speaker_to_reply_tos = defaultdict(list)
         speaker_target_pairs = set()
         # nodes
-        for ut in sorted(uts.values(), key=lambda h: h.get("timestamp")):
-            if ut.get("id") != exclude_id:
-                if ut.get("user") not in username_to_utt_ids:
-                    username_to_utt_ids[ut.get("user")] = set()
-                username_to_utt_ids[ut.get("user")].add(ut.get("id"))
-                if ut.get("reply_to") is not None and ut.get("reply_to") in uts \
-                        and ut.get("reply_to") != exclude_id:
-                    reply_edges.append((ut.get("id"), ut.get("reply_to")))
-                    speaker_to_reply_tos[ut.user].append(ut.get("reply_to"))
-                    speaker_target_pairs.add((ut.user, uts[ut.get("reply_to")].user, ut.get("timestamp")))
-                G.add_node(ut.get("id"), info=ut.__dict__)
+        for ut in sorted(uts.values(), key=lambda h: h.timestamp):
+            if ut.id != exclude_id:
+                if ut.user not in username_to_utt_ids:
+                    username_to_utt_ids[ut.user] = set()
+                username_to_utt_ids[ut.user].add(ut.id)
+                if ut.reply_to is not None and ut.reply_to in uts \
+                        and ut.reply_to != exclude_id:
+                    reply_edges.append((ut.id, ut.reply_to))
+                    speaker_to_reply_tos[ut.user].append(ut.reply_to)
+                    speaker_target_pairs.add((ut.user, uts[ut.reply_to].user, ut.timestamp))
+                G.add_node(ut.id, info=ut.__dict__)
         # hypernodes
         for u, ids in username_to_utt_ids.items():
             G.add_hypernode(u, ids, info=u.meta)
@@ -270,10 +269,8 @@ class HyperConvo(Transformer):
             G_mid = HyperConvo._make_hypergraph(uts=thread, exclude_id=root)
             for k, v in HyperConvo._degree_feats(G=G).items(): stats[k] = v
             for k, v in HyperConvo._motif_feats(G=G).items(): stats[k] = v
-            for k, v in HyperConvo._degree_feats(G=G_mid,
-                                           name_ext="mid-thread ").items(): stats[k] = v
-            for k, v in HyperConvo._motif_feats(G=G_mid,
-                                          name_ext=" over mid-thread").items(): stats[k] = v
+            for k, v in HyperConvo._degree_feats(G=G_mid, name_ext="mid-thread ").items(): stats[k] = v
+            for k, v in HyperConvo._motif_feats(G=G_mid, name_ext=" over mid-thread").items(): stats[k] = v
             threads_stats[root] = stats
         return threads_stats
 

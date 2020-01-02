@@ -239,22 +239,26 @@ class Corpus:
 		self.reinitialize_index()
 
 	def reindex_conversations(self, new_convo_roots: List[str], preserve_corpus_meta: bool = True,
-							  preserve_convo_meta: bool = True) -> 'Corpus':
+							  preserve_convo_meta: bool = True, verbose = True) -> 'Corpus':
 		"""
 		Generates a new Corpus from current Corpus with specified list of utterance ids to use as conversation roots.
 		
-		The subtrees denoted by these utterance ids should be distinct and should not overlap, otherwise there 
-		may be unexpected behavior.
+		The subtrees denoted by these utterance ids should be distinct and should not overlap, otherwise there may be unexpected behavior.
 		
 		:param new_convo_roots: List of utterance ids to use as roots
 		:param preserve_corpus_meta: set as True to copy original Corpus metadata to new Corpus
 		:param preserve_convo_meta: set as True to copy original Conversation metadata to new Conversation metadata 
 		(For each new convo root, use the metadata of the conversation that convo root belonged to.)
-		:return: 
+		:param verbose: whether to print a warning when 
+		:return: new Corpus with reindexed Conversations
 		"""""
 		new_convo_roots = set(new_convo_roots)
 		for convo in self.iter_conversations():
-			convo.initialize_tree_structure()
+			try:
+				convo.initialize_tree_structure()
+			except ValueError as e:
+				if verbose:
+					warn(str(e))
 
 		new_corpus_utts = []
 		original_utt_to_convo_id = dict()
@@ -278,6 +282,11 @@ class Corpus:
 		if preserve_convo_meta:
 			for convo in new_corpus.iter_conversations():
 				convo.meta.update(self.get_conversation(original_utt_to_convo_id[convo.id]).meta)
+
+		if verbose:
+			missing_convo_roots = list(set(new_convo_roots) - set(new_corpus.get_conversation_ids()))
+			warn("Failed to find some of the specified new convo roots:\n")
+			print(missing_convo_roots)
 
 		return new_corpus
 
@@ -969,10 +978,10 @@ class Corpus:
 
 	def get_user_convo_attribute_table(self, attrs):
 		'''
-			returns a table where each row lists a (user, convo) level aggregate for each attribute in attrs.
+		returns a table where each row lists a (user, convo) level aggregate for each attribute in attrs.
 
-			:param attrs: list of (user, convo) attribute names
-			:return: dataframe containing all user,convo attributes.
+		:param attrs: list of (user, convo) attribute names
+		:return: dataframe containing all user,convo attributes.
 		'''
 
 		table_entries = []
