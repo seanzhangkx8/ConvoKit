@@ -39,7 +39,7 @@ class ConvoKitIndex:
         self.overall_index = meta_index["overall-index"]
         self.version = meta_index["version"]
 
-    def to_dict(self, increment_version=True):
+    def to_dict(self, increment_version=False):
         retval = dict()
         retval["utterances-index"] = self.utterances_index
         retval["users-index"] = self.users_index
@@ -50,7 +50,3 @@ class ConvoKitIndex:
 
     def __str__(self):
         return str(self.to_dict(increment_version=False))
-
-    # def __eq__(self, other):
-    #     # always true if other object is a ConvoKitIndex
-    #     return isinstance(other, ConvoKitIndex)
