@@ -11,11 +11,8 @@ class ConvoKitMeta(MutableMapping, dict):
         self.index: ConvoKitIndex = convokit_index
         self.obj_type = obj_type
 
-    def __getitem__(self, key):
-        try:
-            return dict.__getitem__(self, key)
-        except KeyError:
-            return None
+    def __getitem__(self, item):
+        return dict.__getitem__(self, item)
 
     def __setitem__(self, key, value):
         if not isinstance(key, str):

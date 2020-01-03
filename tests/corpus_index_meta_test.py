@@ -20,7 +20,10 @@ class CorpusIndexMeta(unittest.TestCase):
         self.assertEqual(corpus1.meta_index.utterances_index['hey'], repr(type(9)))
 
         # keyErrors result in None output
-        self.assertEqual(first_utt.meta['nonexistent_key'], None)
+        self.assertRaises(KeyError, lambda: first_utt.meta['nonexistent key'])
+
+        # test that setting a custom get still works
+        self.assertEqual(first_utt.meta.get('nonexistent_key', {}), {})
 
     def test_key_insertion_deletion(self):
         corpus1 = Corpus(utterances = [
@@ -48,7 +51,7 @@ class CorpusIndexMeta(unittest.TestCase):
         # test that deleting a key from an utterance removes it from the index and from all other objects of same type
         del corpus1.get_utterance("1").meta['foo']
         self.assertRaises(KeyError, lambda: corpus1.meta_index.utterances_index['foo'])
-        self.assertEqual(corpus1.get_utterance("0").meta["foo"], None)
+        self.assertRaises(KeyError, lambda: corpus1.get_utterance("0").meta["foo"])
 
     def test_corpus_merge_add(self):
         corpus1 = Corpus(utterances = [
