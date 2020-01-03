@@ -5,4 +5,4 @@ from .utterance import Utterance
 from .corpusObject import CorpusObject
 from .corpusHelper import *
 from .convoKitIndex import ConvoKitIndex
-from .utteranceNodeWrapper import UtteranceNodeWrapper
+from .utteranceNode import UtteranceNode

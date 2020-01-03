@@ -4,7 +4,7 @@ from .user import User
 from .corpusUtil import warn
 from .corpusObject import CorpusObject
 from collections import defaultdict
-from .utteranceNodeWrapper import UtteranceNodeWrapper
+from .utteranceNode import UtteranceNode
 
 class Conversation(CorpusObject):
     """Represents a discrete subset of utterances in the dataset, connected by a
@@ -28,7 +28,7 @@ class Conversation(CorpusObject):
         self._owner = owner
         self._utterance_ids = utterances
         self._user_ids = None
-        self.tree: Optional[UtteranceNodeWrapper] = None
+        self.tree: Optional[UtteranceNode] = None
 
     def get_utterance_ids(self) -> List[str]:
         """Produces a list of the unique IDs of all utterances in the
@@ -162,7 +162,7 @@ class Conversation(CorpusObject):
         for utt in self.iter_utterances():
             parent_to_children_ids[utt.reply_to].append(utt.id)
 
-        wrapped_utts = {utt.id: UtteranceNodeWrapper(utt) for utt in self.iter_utterances()}
+        wrapped_utts = {utt.id: UtteranceNode(utt) for utt in self.iter_utterances()}
 
         for parent_id, wrapped_utt in wrapped_utts.items():
             wrapped_utt.set_children([wrapped_utts[child_id] for child_id in parent_to_children_ids[parent_id]])
@@ -194,7 +194,7 @@ class Conversation(CorpusObject):
         """
         Get the utterance node of the specified input id
         :param root_utt_id: id of the root node that the subtree starts from
-        :return: UtteranceNodeWrapper object
+        :return: UtteranceNode object
         """
         if self.tree is None:
             self.initialize_tree_structure()

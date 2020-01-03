@@ -3,7 +3,7 @@ from typing import List
 from itertools import chain
 
 
-class UtteranceNodeWrapper:
+class UtteranceNode:
     """
     Wrapper class around Utterances to facilitiate tree traversal operations
     """
@@ -11,7 +11,7 @@ class UtteranceNodeWrapper:
         self.utt = utt
         self.children = []
 
-    def set_children(self, children: List['UtteranceNodeWrapper']):
+    def set_children(self, children: List['UtteranceNode']):
         self.children = sorted(children, key=lambda w: w.utt.timestamp) # earliest to latest utt
 
     def pre_order(self):
