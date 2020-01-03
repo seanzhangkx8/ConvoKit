@@ -160,10 +160,10 @@ class Coordination(Transformer):
         pair_scores = self.pairwise_scores(corpus, self.corpus.speaking_pairs(),
             **self.thresh)
         for (s, t), score in pair_scores.items():
-            if "coord-score" not in self.corpus.get_user(s.name).meta:
-                self.corpus.get_user(s.name).meta["coord-score"] = {}
-            else:
-                self.corpus.get_user(s.name).meta["coord-score"][t] = score
+            if "coord-score" not in self.corpus.get_user(s.id).meta:
+                self.corpus.get_user(s.id).meta["coord-score"] = {}
+            else: # TODO is this a code error?
+                self.corpus.get_user(s.id).meta["coord-score"][t] = score
 
         return self.corpus
 
