@@ -31,7 +31,7 @@ setup(
         "dill==0.2.9"
     ],
     extras_require={
-        'neuralnetwork': ["torch >= 0.12"],
+        'neuralnetwork': ["torch>=0.12"],
         'fightingwords': ["clean-text>=0.1.1"]
     }
 )

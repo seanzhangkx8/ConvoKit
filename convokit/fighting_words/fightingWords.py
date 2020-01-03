@@ -6,6 +6,12 @@ from convokit.model import Corpus, Utterance
 from typing import List, Callable, Tuple
 from matplotlib import pyplot as plt
 import pandas as pd
+try:
+    from cleantext import clean
+except ImportError:
+    raise ImportError("Could not find clean-text >= 0.1.1, which is a required dependency for using the FightingWords Transformer. "
+                      "Run 'pip install convokit[fightingwords]' to fix this.")
+
 from cleantext import clean
 
 clean_str = lambda s: clean(s,
