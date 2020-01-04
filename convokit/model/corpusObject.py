@@ -69,7 +69,7 @@ class CorpusObject:
             :return: attribute <key>
         """
 
-        return self.meta[key]
+        return self.meta.get(key, None)
 
     def set_info(self, key, value):
         """
