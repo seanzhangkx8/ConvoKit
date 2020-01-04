@@ -77,24 +77,11 @@ class PromptTypes(Transformer):
 		self.prompt_filter = prompt_filter
 		self.ref_filter = ref_filter
 		
-		if prompt_transform_field is None:
-			self.prompt_transform_field = self.prompt_field
-		else:
-			self.prompt_transform_field = prompt_transform_field
-		if prompt_transform_filter is None:
-			self.prompt_transform_filter = self.prompt_filter
-		else:
-			self.prompt_transform_filter = prompt_transform_filter
-		
-		if ref_transform_field is None:
-			self.ref_transform_field = self.ref_field
-		else:
-			self.ref_transform_field = ref_transform_field
-		if ref_transform_filter is None:
-			self.ref_transform_filter = self.ref_filter
-		else:
-			self.ref_transform_filter = ref_transform_filter
-			
+		self.prompt_transform_field = self.prompt_field if prompt_transform_field is None else prompt_transform_field
+		self.prompt_transform_filter = self.prompt_filter if prompt_transform_field is None else prompt_transform_filter
+		self.ref_transform_field = self.ref_field if ref_transform_field is None else ref_transform_field
+		self.ref_transform_filter = self.ref_filter if ref_transform_filter is None else ref_transform_filter
+
 		self.output_field = output_field
 		
 		self.prompt__tfidf_min_df = prompt__tfidf_min_df
