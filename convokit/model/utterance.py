@@ -31,7 +31,7 @@ class Utterance(CorpusObject):
         self.user = user
         self.root = root
         self.reply_to = reply_to
-        self.timestamp = int(timestamp) if timestamp is not None else timestamp
+        self.timestamp = timestamp # int(timestamp) if timestamp is not None else timestamp
         self.text = text
 
     def __eq__(self, other):
