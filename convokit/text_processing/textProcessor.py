@@ -13,7 +13,7 @@ class TextProcessor(Transformer):
         :param verbosity: frequency at which to print status messages when computing attributes.
     """
     
-    def __init__(self, proc_fn, output_field, input_field=lambda utt, aux: True, aux_input=None, input_filter=None, verbosity=0):
+    def __init__(self, proc_fn, output_field, input_field=None, aux_input=None, input_filter=lambda utt, aux: True, verbosity=0):
         
         self.proc_fn = proc_fn
         self.aux_input = aux_input if aux_input is not None else {}
@@ -61,7 +61,7 @@ class TextProcessor(Transformer):
                     utterance.set_info(out, res)
             else:
                 utterance.set_info(self.output_field, result)
- 
+        if self.verbosity > 0: print('%03d/%03d utterances processed' % (total_utts, total_utts))
         return corpus
     
     def transform_utterance(self, utt, override_input_filter=False):

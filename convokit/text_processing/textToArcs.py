@@ -26,8 +26,8 @@ class TextToArcs(TextProcessor):
 	
 	def __init__(self, output_field, input_field='parsed',
 				 use_start=True, root_only=False, follow_deps=('conj',),
-				 filter_fn=_use_text,input_filter=None,
-				  verbosity=0):
+				 filter_fn=_use_text, input_filter=lambda utt, aux: True,
+				 verbosity=0):
 		aux_input = {'root_only': root_only, 'use_start': use_start, 'follow_deps': follow_deps, 'filter_fn': filter_fn}
 		TextProcessor.__init__(self, proc_fn=self._get_arcs_per_message_wrapper, output_field=output_field, input_field=input_field, aux_input=aux_input, input_filter=input_filter, verbosity=verbosity)
 	
