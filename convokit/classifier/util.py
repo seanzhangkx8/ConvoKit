@@ -1,11 +1,11 @@
-from convokit.model import Corpus, Conversation, Utterance, User
+from convokit.model import Corpus, Conversation, Utterance, User, CorpusObject
 from typing import List, Union, Callable
 import pandas as pd
 from scipy.sparse import csr_matrix
 import numpy as np
 
 
-def extract_feats_from_obj(obj: Union[Utterance, Conversation, User], pred_feats: List[str]):
+def extract_feats_from_obj(obj: CorpusObject, pred_feats: List[str]):
     """
     Assuming feature data has at most one level of nesting, i.e. meta['height'] = 1, and meta['grades'] = {'prelim1': 99,
     'prelim2': 75, 'final': 100}
@@ -25,7 +25,7 @@ def extract_feats_from_obj(obj: Union[Utterance, Conversation, User], pred_feats
 
 
 def extract_feats_dict(corpus: Corpus, obj_type: str, pred_feats: List[str],
-                       selector: Callable[[Union[User, Utterance, Conversation]], bool] = lambda x: True):
+                       selector: Callable[[CorpusObject], bool] = lambda x: True):
     """
     Extract features dictionary from a corpus
     :param corpus: target corpus
@@ -40,7 +40,7 @@ def extract_feats_dict(corpus: Corpus, obj_type: str, pred_feats: List[str],
 
 
 def extract_feats(corpus: Corpus, obj_type: str, pred_feats: List[str],
-                  selector: Callable[[Union[User, Utterance, Conversation]], bool] = lambda x: True):
+                  selector: Callable[[CorpusObject], bool] = lambda x: True):
     """
     Extract a matrix representation of Corpus objects' features from corpus
     :param corpus: target corpus
@@ -54,8 +54,8 @@ def extract_feats(corpus: Corpus, obj_type: str, pred_feats: List[str],
     return csr_matrix(feats_df.values)
 
 
-def extract_label_dict(corpus: Corpus, obj_type: str, labeller: Callable[[Union[User, Utterance, Conversation]], bool],
-                       selector: Callable[[Union[User, Utterance, Conversation]], bool] = lambda x: True):
+def extract_label_dict(corpus: Corpus, obj_type: str, labeller: Callable[[CorpusObject], bool],
+                       selector: Callable[[CorpusObject], bool] = lambda x: True):
     """
     Generate dictionary mapping Corpus object id to label from corpus
     :param corpus: target corpus
@@ -72,8 +72,8 @@ def extract_label_dict(corpus: Corpus, obj_type: str, labeller: Callable[[Union[
 
 
 def extract_feats_and_label(corpus: Corpus, obj_type: str, pred_feats: List[str],
-                            labeller: Callable[[Union[User, Utterance, Conversation]], bool],
-                            selector: Callable[[Union[User, Utterance, Conversation]], bool] = None):
+                            labeller: Callable[[CorpusObject], bool],
+                            selector: Callable[[CorpusObject], bool] = None):
     """
     Extract matrix of predictive features and numpy array of labels from corpus
     :param corpus: target Corpus

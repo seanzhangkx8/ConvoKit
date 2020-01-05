@@ -10,16 +10,16 @@ from convokit.model import Corpus, Conversation, User, Utterance
 from collections import defaultdict
 from random import shuffle, choice
 from scipy.sparse import csr_matrix
-from convokit import Transformer
+from convokit import Transformer, CorpusObject
 import pandas as pd
 
 class PairedPrediction(Transformer):
     def __init__(self, obj_type: str,
-                 pairing_func: Callable[[Union[User, Utterance, Conversation]], str],
+                 pairing_func: Callable[[CorpusObject], str],
                  pred_feats: List[str],
-                 pos_label_func: Callable[[Union[User, Utterance, Conversation]], bool],
-                 neg_label_func: Callable[[Union[User, Utterance, Conversation]], bool],
-                 selector: Callable[[Union[User, Utterance, Conversation]], bool] = lambda x: True,
+                 pos_label_func: Callable[[CorpusObject], bool],
+                 neg_label_func: Callable[[CorpusObject], bool],
+                 selector: Callable[[CorpusObject], bool] = lambda x: True,
                  clf=None, pair_id_feat_name: str = "pair_id",
                  label_feat_name: str = "label",
                  pair_orientation_feat_name: str = "pair_orientation"):
@@ -204,44 +204,49 @@ class PairedPrediction(Transformer):
         self.clf.fit(X, y)
         return np.mean(cross_val_score(self.clf, X, y, cv=cv, error_score='raise'))
 
-    def get_coefs(self, feature_names: List[str]):
+    def get_coefs(self, feature_names: List[str], coef_func=None):
         """
-        Get dataframe of classifier coefficients, assuming it is a pipeline with a logistic regression component
+        Get dataframe of classifier coefficients. By default, assumes it is a pipeline with a logistic regression component
         :param feature_names: list of feature names to get coefficients for
+        :param coef_func: function for accessing the list of coefficients from the classifier model
         :return: DataFrame of features and coefficients, indexed by feature names
         """
-        coefs = self.clf.named_steps['logreg'].coef_[0].tolist()
+        if coef_func is None:
+            coefs = self.clf.named_steps['logreg'].coef_[0].tolist()
+        else:
+            coefs = coef_func(self.clf)
+
         assert len(feature_names) == len(coefs)
         feats_coefs = sorted(list(zip(feature_names, coefs)), key=lambda x: x[1], reverse=True)
         return pd.DataFrame(feats_coefs, columns=['feat_name', 'coef']).set_index('feat_name')
 
-
-    def print_extreme_coefs(self, feature_names: List[str], num_features: Optional[int] = None):
-        """
-        Must be run after summarize()
-        Prints the extreme coefficients of the trained classifier model for visual inspection, assuming
-        it is a pipeline with a logistic regression component
-        :param feature_names: list of feature names to inspect
-        :param num_features: optional number of extreme coefficients to print
-        :return: None (prints features)
-        """
-        coefs = self.clf.named_steps['logreg'].coef_[0].tolist()
-
-        assert len(feature_names) == len(coefs)
-
-        feats_coefs = sorted(list(zip(feature_names, coefs)), key=lambda x: x[1], reverse=True)
-
-        if num_features is None:
-            num_features = len(feature_names) // 4
-
-        print()
-        print("TOP {} FEATURES".format(num_features))
-        for ft, coef in feats_coefs[:num_features]:
-            print("{}: {:.3f}".format(ft, coef))
-        print()
-        print("BOTTOM {} FEATURES".format(num_features))
-        for ft, coef in feats_coefs[-num_features:]:
-            print("{}: {:.3f}".format(ft, coef))
-        print()
-
-
+    #
+    # def print_extreme_coefs(self, feature_names: List[str], num_features: Optional[int] = None):
+    #     """
+    #     Must be run after summarize()
+    #     Prints the extreme coefficients of the trained classifier model for visual inspection, assuming
+    #     it is a pipeline with a logistic regression component
+    #     :param feature_names: list of feature names to inspect
+    #     :param num_features: optional number of extreme coefficients to print
+    #     :return: None (prints features)
+    #     """
+    #     coefs = self.clf.named_steps['logreg'].coef_[0].tolist()
+    #
+    #     assert len(feature_names) == len(coefs)
+    #
+    #     feats_coefs = sorted(list(zip(feature_names, coefs)), key=lambda x: x[1], reverse=True)
+    #
+    #     if num_features is None:
+    #         num_features = len(feature_names) // 4
+    #
+    #     print()
+    #     print("TOP {} FEATURES".format(num_features))
+    #     for ft, coef in feats_coefs[:num_features]:
+    #         print("{}: {:.3f}".format(ft, coef))
+    #     print()
+    #     print("BOTTOM {} FEATURES".format(num_features))
+    #     for ft, coef in feats_coefs[-num_features:]:
+    #         print("{}: {:.3f}".format(ft, coef))
+    #     print()
+    #
+    #

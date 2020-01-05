@@ -2,13 +2,13 @@ from sklearn.model_selection import train_test_split, cross_val_score, KFold
 from sklearn.metrics import confusion_matrix, classification_report
 from sklearn import svm
 from convokit.classifier.util import *
-from convokit import Transformer
+from convokit import Transformer, CorpusObject
 
 
 class Classifier(Transformer):
     def __init__(self, obj_type: str, pred_feats: List[str],
-                 labeller: Callable[[Union[User, Utterance, Conversation]], bool] = lambda x: True,
-                 selector: Callable[[Union[User, Utterance, Conversation]], bool] = lambda x: True,
+                 labeller: Callable[[CorpusObject], bool] = lambda x: True,
+                 selector: Callable[[CorpusObject], bool] = lambda x: True,
                  clf=None, clf_feat_name: str = "prediction", clf_prob_feat_name: str = "score"):
         """
 
@@ -55,9 +55,14 @@ class Classifier(Transformer):
             corpus_obj.add_meta(self.clf_feat_name, clf)
             corpus_obj.add_meta(self.clf_prob_feat_name, clf_prob)
 
+        for obj in corpus.iter_objs(self.obj_type, self.selector):
+            if self.clf_feat_name not in obj.meta:
+                obj.meta[self.clf_feat_name] = None
+                obj.meta[self.clf_prob_feat_name] = None
+
         return corpus
 
-    def transform_objs(self, objs: List[Union[User, Utterance, Conversation]]) -> List[Union[User, Utterance, Conversation]]:
+    def transform_objs(self, objs: List[CorpusObject]) -> List[CorpusObject]:
         """
         Run classifier on list of Corpus objects and annotate them with the predictions and prediction scores
 
@@ -75,7 +80,7 @@ class Classifier(Transformer):
 
         return objs
 
-    def summarize(self, corpus: Corpus = None, objs: List[Union[User, Utterance, Conversation]] = None, use_selector=True):
+    def summarize(self, corpus: Corpus = None, objs: List[CorpusObject] = None, use_selector=True):
         """
         Generate a pandas DataFrame (indexed by object id, with prediction and prediction score columns) of classification results.
         Run either on a target Corpus or a list of Corpus objects
@@ -100,7 +105,7 @@ class Classifier(Transformer):
                             columns=['id', self.clf_feat_name, self.clf_prob_feat_name]).set_index('id')
 
     def evaluate_with_train_test_split(self, corpus: Corpus = None,
-                 objs: List[Union[User, Utterance, Conversation]] = None,
+                 objs: List[CorpusObject] = None,
                  test_size: float = 0.2):
         """
         Evaluate the performance of predictive features (Classifier.pred_feats) in predicting for the label, using a
@@ -134,7 +139,7 @@ class Classifier(Transformer):
         return accuracy, confusion_matrix(y_true=y_test, y_pred=preds)
 
     def evaluate_with_cv(self, corpus: Corpus = None,
-                         objs: List[Union[User, Utterance, Conversation]] = None, cv=KFold(n_splits=5)):
+                         objs: List[CorpusObject] = None, cv=KFold(n_splits=5)):
         """
         Evaluate the performance of predictive features (Classifier.pred_feats) in predicting for the label, using cross-validation
         for data splitting.
@@ -208,3 +213,4 @@ class Classifier(Transformer):
             y_pred.append(obj.meta[self.clf_feat_name])
 
         return classification_report(y_true=y_true, y_pred=y_pred)
+
