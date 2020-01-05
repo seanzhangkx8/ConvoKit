@@ -1,12 +1,12 @@
 from convokit.model import Corpus, Conversation, User, Utterance
 from typing import List, Callable, Union
-from convokit import Transformer
+from convokit import Transformer, CorpusObject
 import pandas as pd
 
 class Ranker(Transformer):
     def __init__(self, obj_type: str,
-                 score_func: Callable[[Union[User, Utterance, Conversation]], Union[int, float]],
-                 selector: Callable[[Union[User, Utterance, Conversation]], bool] = lambda obj: True,
+                 score_func: Callable[[CorpusObject], Union[int, float]],
+                 selector: Callable[[CorpusObject], bool] = lambda obj: True,
                  score_feat_name: str = "ranking_score", rank_feat_name: str = "rank"):
         """
 
@@ -45,7 +45,7 @@ class Ranker(Transformer):
                 obj.add_meta(self.rank_feat_name, None)
         return corpus
 
-    def transform_objs(self, objs: List[Union[User, Utterance, Conversation]]):
+    def transform_objs(self, objs: List[CorpusObject]):
         """
         Annotate list of Corpus objects with scores and rankings
         :param objs: target list of Corpus objects
@@ -60,7 +60,7 @@ class Ranker(Transformer):
             obj.add_meta(self.rank_feat_name, df.loc[obj.id][self.rank_feat_name])
         return objs
 
-    def summarize(self, corpus: Corpus = None, objs: List[Union[User, Utterance, Conversation]] = None):
+    def summarize(self, corpus: Corpus = None, objs: List[CorpusObject] = None):
         """
         Generate a dataframe indexed by object id, containing score + rank, and sorted by rank (in ascending order)
         of the objects in an annotated corpus, or a list of corpus objects
