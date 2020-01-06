@@ -73,7 +73,7 @@ class BoWClassifier(Transformer):
             objId_clf_prob.append((obj.id, obj.meta[self.clf_feat_name], obj.meta[self.clf_prob_feat_name]))
 
         return pd.DataFrame(list(objId_clf_prob),
-                           columns=['id', self.clf_feat_name, self.clf_prob_feat_name]).set_index('id').sort_index(self.clf_prob_feat_name)
+                           columns=['id', self.clf_feat_name, self.clf_prob_feat_name]).set_index('id').sort_values(self.clf_prob_feat_name)
 
     def get_vocabulary(self):
         return self.vectorizer.vocabulary_

@@ -82,6 +82,10 @@ class CorpusObject:
 
         self.meta[key] = value
 
+    def del_info(self, key):
+        if key in self.meta:
+            del self.meta[key]
+
     def __str__(self):
         return "{}('id': {}, 'meta': {})".format(self.obj_type.capitalize(),
                                                  self.id,
