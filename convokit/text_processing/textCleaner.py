@@ -48,7 +48,8 @@ class TextCleaner(TextProcessor):
                 cleaned_text = utt.get_info(self.output_field)
                 if self.save_original:
                     utt.set_info(self.output_field, utt.text)
-                else:
-                    utt.del_info(self.output_field)
                 utt.text = cleaned_text
+
+            if not self.save_original:
+                next(corpus.iter_utterances(selector)).del_info(self.output_field) # deletes for all
         return corpus
