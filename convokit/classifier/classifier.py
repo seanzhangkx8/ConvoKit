@@ -9,7 +9,7 @@ class Classifier(Transformer):
     def __init__(self, obj_type: str, pred_feats: List[str],
                  labeller: Callable[[CorpusObject], bool] = lambda x: True,
                  selector: Callable[[CorpusObject], bool] = lambda x: True,
-                 clf=None, clf_feat_name: str = "prediction", clf_prob_feat_name: str = "score"):
+                 clf=None, clf_feat_name: str = "prediction", clf_prob_feat_name: str = "pred_score"):
         """
 
         :param obj_type: type of Corpus object to classify: 'conversation', 'user', or 'utterance'
@@ -102,7 +102,7 @@ class Classifier(Transformer):
                 objId_clf_prob.append((obj.id, obj.meta[self.clf_feat_name], obj.meta[self.clf_prob_feat_name]))
 
         return pd.DataFrame(list(objId_clf_prob),
-                            columns=['id', self.clf_feat_name, self.clf_prob_feat_name]).set_index('id')
+                            columns=['id', self.clf_feat_name, self.clf_prob_feat_name]).set_index('id').sort_index(self.clf_prob_feat_name)
 
     def evaluate_with_train_test_split(self, corpus: Corpus = None,
                  objs: List[CorpusObject] = None,
@@ -183,6 +183,14 @@ class Classifier(Transformer):
             y_pred.append(obj.meta[self.clf_feat_name])
 
         return confusion_matrix(y_true=y_true, y_pred=y_pred)
+
+    def base_accuracy(self, corpus, use_selector=True):
+        y_true, y_pred = self.get_y_true_pred(corpus, use_selector=use_selector)
+        return np.array(y_true).mean()
+
+    def accuracy(self, corpus, use_selector=True):
+        y_true, y_pred = self.get_y_true_pred(corpus, use_selector=use_selector)
+        return (np.array(y_true) == np.array(y_pred)).mean()
 
     def get_y_true_pred(self, corpus, use_selector=True):
         """
