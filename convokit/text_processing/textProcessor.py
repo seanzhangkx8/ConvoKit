@@ -26,7 +26,7 @@ class TextProcessor(Transformer):
     def _print_output(self, i):
         return (self.verbosity > 0) and (i > 0) and (i % self.verbosity == 0)
 
-    def transform(self, corpus: Corpus):
+    def transform(self, corpus: Corpus) -> Corpus:
         """
             Computes per-utterance attributes for each utterance in the Corpus, storing these values in the `output_field` of each utterance as specified in the constructor. For utterances which do not contain all of the `input_field` attributes as specified in the constructor, or for utterances which return `False` on `input_filter`, this call will not annotate the utterance. 
 
