@@ -150,7 +150,7 @@ class Conversation(CorpusObject):
 
     def initialize_tree_structure(self):
         if not self.check_integrity(verbose=False):
-            raise ValueError("Conversation reply-to chain does not form a valid tree.")
+            raise ValueError("Conversation {} reply-to chain does not form a valid tree.".format(self.id))
 
         root_node_id = None
         # Find root node

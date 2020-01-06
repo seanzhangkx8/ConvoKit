@@ -39,3 +39,6 @@ class ConvoKitMeta(MutableMapping, dict):
 
     def __contains__(self, x):
         return dict.__contains__(self, x)
+
+    def to_dict(self):
+        return self.__dict__

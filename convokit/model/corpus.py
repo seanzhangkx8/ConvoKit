@@ -266,13 +266,16 @@ class Corpus:
 		for utt_id in new_convo_roots:
 			orig_convo = self.get_conversation(self.get_utterance(utt_id).root)
 			original_utt_to_convo_id[utt_id] = orig_convo.id
-			subtree = orig_convo.get_subtree(utt_id)
-			new_root_utt = subtree.utt
-			new_root_utt.reply_to = None
-			subtree_utts = [node.utt for node in subtree.bfs_traversal()]
-			for utt in subtree_utts:
-				utt.root = utt_id
-			new_corpus_utts.extend(subtree_utts)
+			try:
+				subtree = orig_convo.get_subtree(utt_id)
+				new_root_utt = subtree.utt
+				new_root_utt.reply_to = None
+				subtree_utts = [node.utt for node in subtree.bfs_traversal()]
+				for utt in subtree_utts:
+					utt.root = utt_id
+				new_corpus_utts.extend(subtree_utts)
+			except ValueError:
+				continue
 
 		new_corpus = Corpus(utterances=new_corpus_utts)
 
@@ -281,7 +284,7 @@ class Corpus:
 
 		if preserve_convo_meta:
 			for convo in new_corpus.iter_conversations():
-				convo.meta.update(self.get_conversation(original_utt_to_convo_id[convo.id]).meta)
+				convo.meta['original_convo_meta'] = self.get_conversation(original_utt_to_convo_id[convo.id]).meta
 
 		if verbose:
 			missing_convo_roots = list(set(new_convo_roots) - set(new_corpus.get_conversation_ids()))
