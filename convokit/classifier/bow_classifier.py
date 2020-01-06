@@ -1,5 +1,4 @@
-from convokit import User, Utterance, Conversation, Corpus, CorpusObject, Transformer
-from .classifier import Classifier
+from convokit import Corpus, CorpusObject, Transformer
 from typing import Callable, List
 from sklearn.feature_extraction.text import CountVectorizer as CV
 from sklearn.pipeline import Pipeline
@@ -9,10 +8,10 @@ import pandas as pd
 
 class BoWClassifier(Transformer):
     def __init__(self, obj_type: str, vectorizer=None, vector_name="bow_vector",
-                 text_func: Callable[[CorpusObject], str] =lambda obj: obj.text,
+                 text_func: Callable[[CorpusObject], str] = lambda utt: utt.text,
                  labeller: Callable[[CorpusObject], bool] = lambda x: True,
                  selector: Callable[[CorpusObject], bool] = lambda x: True,
-                 clf=None, clf_feat_name: str = "prediction", clf_prob_feat_name: str = "score"):
+                 clf=None, clf_feat_name: str = "prediction", clf_prob_feat_name: str = "pred_score"):
 
         if vectorizer is None:
             print("Initializing default unigram CountVectorizer...")
@@ -52,8 +51,8 @@ class BoWClassifier(Transformer):
         for obj in corpus.iter_objs(self.obj_type):
             if self.selector(obj):
                 objs.append(obj)
-                obj.meta[self.vector_name] = self.vectorizer.transform(self.text_func(obj))
-                docs.append(self.text_func)
+                obj.meta[self.vector_name] = self.vectorizer.transform([self.text_func(obj)])
+                docs.append(self.text_func(obj))
             else:
                 obj.meta[self.vector_name] = None
 
@@ -74,18 +73,21 @@ class BoWClassifier(Transformer):
             objId_clf_prob.append((obj.id, obj.meta[self.clf_feat_name], obj.meta[self.clf_prob_feat_name]))
 
         return pd.DataFrame(list(objId_clf_prob),
-                           columns=['id', self.clf_feat_name, self.clf_prob_feat_name]).set_index('id')
+                           columns=['id', self.clf_feat_name, self.clf_prob_feat_name]).set_index('id').sort_index(self.clf_prob_feat_name)
 
     def get_vocabulary(self):
         return self.vectorizer.vocabulary_
 
-    def get_coefs(self, feature_names: List[str], coef_func=None):
+    def get_coefs(self, feature_names: List[str] = None, coef_func=None):
         """
         Get dataframe of classifier coefficients. By default, assumes it is a pipeline with a logistic regression component
         :param feature_names: list of feature names to get coefficients for
         :param coef_func: function for accessing the list of coefficients from the classifier model
         :return: DataFrame of features and coefficients, indexed by feature names
         """
+        if feature_names is None:
+            feature_names = self.vectorizer.vocabulary_
+
         if coef_func is None:
             coefs = self.clf.named_steps['logreg'].coef_[0].tolist()
         else:
