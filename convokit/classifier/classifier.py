@@ -102,7 +102,7 @@ class Classifier(Transformer):
                 objId_clf_prob.append((obj.id, obj.meta[self.clf_feat_name], obj.meta[self.clf_prob_feat_name]))
 
         return pd.DataFrame(list(objId_clf_prob),
-                            columns=['id', self.clf_feat_name, self.clf_prob_feat_name]).set_index('id').sort_values(self.clf_prob_feat_name)
+                            columns=['id', self.clf_feat_name, self.clf_prob_feat_name]).set_index('id').sort_index(self.clf_prob_feat_name)
 
     def evaluate_with_train_test_split(self, corpus: Corpus = None,
                  objs: List[CorpusObject] = None,
@@ -222,18 +222,3 @@ class Classifier(Transformer):
 
         return classification_report(y_true=y_true, y_pred=y_pred)
 
-    def get_coefs(self, feature_names: List[str], coef_func=None):
-        """
-        Get dataframe of classifier coefficients. By default, assumes it is a pipeline with a logistic regression component
-        :param feature_names: list of feature names to get coefficients for
-        :param coef_func: function for accessing the list of coefficients from the classifier model
-        :return: DataFrame of features and coefficients, indexed by feature names
-        """
-        if coef_func is None:
-            coefs = self.clf.named_steps['logreg'].coef_[0].tolist()
-        else:
-            coefs = coef_func(self.clf)
-
-        assert len(feature_names) == len(coefs)
-        feats_coefs = sorted(list(zip(feature_names, coefs)), key=lambda x: x[1], reverse=True)
-        return pd.DataFrame(feats_coefs, columns=['feat_name', 'coef']).set_index('feat_name')
