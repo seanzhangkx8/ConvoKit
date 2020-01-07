@@ -186,7 +186,8 @@ class Classifier(Transformer):
 
     def base_accuracy(self, corpus, use_selector=True):
         y_true, y_pred = self.get_y_true_pred(corpus, use_selector=use_selector)
-        return np.array(y_true).mean()
+        all_true_accuracy = np.array(y_true).mean()
+        return max(all_true_accuracy, 1-all_true_accuracy)
 
     def accuracy(self, corpus, use_selector=True):
         y_true, y_pred = self.get_y_true_pred(corpus, use_selector=use_selector)
@@ -224,16 +225,10 @@ class Classifier(Transformer):
 
     def get_coefs(self, feature_names: List[str], coef_func=None):
         """
-        Get dataframe of classifier coefficients. By default, assumes it is a pipeline with a logistic regression component
+        Get dataframe of classifier coefficients
         :param feature_names: list of feature names to get coefficients for
-        :param coef_func: function for accessing the list of coefficients from the classifier model
+        :param coef_func: function for accessing the list of coefficients from the classifier model; by default,
+                            assumes it is a pipeline with a logistic regression component
         :return: DataFrame of features and coefficients, indexed by feature names
         """
-        if coef_func is None:
-            coefs = self.clf.named_steps['logreg'].coef_[0].tolist()
-        else:
-            coefs = coef_func(self.clf)
-
-        assert len(feature_names) == len(coefs)
-        feats_coefs = sorted(list(zip(feature_names, coefs)), key=lambda x: x[1], reverse=True)
-        return pd.DataFrame(feats_coefs, columns=['feat_name', 'coef']).set_index('feat_name')
+        return get_coefs_helper(self.clf, feature_names, coef_func)

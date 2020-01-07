@@ -97,6 +97,24 @@ def extract_feats_and_label(corpus: Corpus, obj_type: str, pred_feats: List[str]
     return csr_matrix(X.values), np.array(y)
 
 
+def get_coefs_helper(clf, feature_names: List[str] = None, coef_func=None):
+    """
+    Get dataframe of classifier coefficients. By default, assumes it is a pipeline with a logistic regression component
+    :param clf: classifier model
+    :param feature_names: list of feature names to get coefficients for
+    :param coef_func: function for accessing the list of coefficients from the classifier model
+    :return: DataFrame of features and coefficients, indexed by feature names
+    """
+    if coef_func is None:
+        coefs = clf.named_steps['logreg'].coef_[0].tolist()
+    else:
+        coefs = coef_func(clf)
+
+    assert len(feature_names) == len(coefs)
+    feats_coefs = sorted(list(zip(feature_names, coefs)), key=lambda x: x[1], reverse=True)
+    return pd.DataFrame(feats_coefs, columns=['feat_name', 'coef'])\
+                        .set_index('feat_name').sort_values('coef', ascending=False)
+
 
 
 
