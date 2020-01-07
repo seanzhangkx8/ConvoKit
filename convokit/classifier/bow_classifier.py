@@ -4,6 +4,7 @@ from sklearn.feature_extraction.text import CountVectorizer as CV
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import KFold
 import pandas as pd
 from .util import get_coefs_helper
 from scipy.sparse import vstack
@@ -66,6 +67,15 @@ class BoWClassifier(Classifier):
         return pd.DataFrame(list(objId_clf_prob),
                            columns=['id', self.clf_feat_name, self.clf_prob_feat_name])\
                         .set_index('id').sort_values(self.clf_prob_feat_name, ascending=False)
+
+    def evaluate_with_cv(self, corpus: Corpus = None,
+                         objs: List[CorpusObject] = None, cv=KFold(n_splits=5)):
+        raise NotImplementedError
+
+    def evaluate_with_train_test_split(self, corpus: Corpus = None,
+                 objs: List[CorpusObject] = None,
+                 test_size: float = 0.2):
+        raise NotImplementedError
 
 
 
