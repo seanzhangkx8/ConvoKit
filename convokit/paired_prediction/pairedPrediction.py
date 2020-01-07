@@ -4,14 +4,12 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import LeaveOneOut, cross_val_score
 from typing import List, Callable
 from convokit import Transformer, CorpusObject, Corpus
-import pandas as pd
 from .util import *
-from .pairer import Pairer
 from convokit.classifier.util import get_coefs_helper
+
 
 class PairedPrediction(Transformer):
     def __init__(self, obj_type: str,
-                 pairing_func: Callable[[CorpusObject], str],
                  pred_feats: List[str],
                  selector: Callable[[CorpusObject], bool] = lambda x: True,
                  clf=None, # annotate_pairs: bool = True,
@@ -20,8 +18,6 @@ class PairedPrediction(Transformer):
                  pair_orientation_feat_name: str = "pair_orientation"):
 
         """
-        :param pairing_func: the Corpus object characteristic to pair on,
-                e.g. to pair on the first 10 characters of a well-structured id, use lambda obj: obj.id[:10]
         :param pred_feats: List of metadata features to be used in prediction. Features can either be values or a
                         dictionary of key-value pairs, but not a nested dictionary
         :param selector: optional function to filter object for
@@ -38,7 +34,6 @@ class PairedPrediction(Transformer):
         self.obj_type = obj_type
         self.clf = Pipeline([("standardScaler", StandardScaler(with_mean=False)),
                              ("logreg", LogisticRegression(solver='liblinear'))]) if clf is None else clf
-        self.pairing_func = pairing_func
         self.pred_feats = pred_feats
         self.selector = selector
         self.pair_id_feat_name = pair_id_feat_name
@@ -53,6 +48,9 @@ class PairedPrediction(Transformer):
 
         X, y = generate_paired_X_y(self.pred_feats, self.pair_orientation_feat_name, pair_id_to_objs)
         self.clf.fit(X, y)
+
+    def transform(self, corpus: Corpus) -> Corpus:
+        pass
 
     def _check_for_pair_information(self, corpus):
         # Check if transform() needs to be run first
