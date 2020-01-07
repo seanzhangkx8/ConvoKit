@@ -32,6 +32,6 @@ setup(
     ],
     extras_require={
         'neuralnetwork': ["torch>=0.12"],
-        'fightingwords': ["clean-text>=0.1.1"]
+        'cleantext': ["clean-text>=0.1.1"]
     }
 )

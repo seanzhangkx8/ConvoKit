@@ -1,7 +1,12 @@
 from convokit.model import Corpus
 from .textProcessor import TextProcessor
 
-from cleantext import clean
+try:
+    from cleantext import clean
+except ImportError:
+    raise ImportError("Could not find clean-text >= 0.1.1, which is a required dependency for using the FightingWords Transformer. "
+                      "Run 'pip install convokit[cleantext]' to fix this.")
+
 
 clean_str = lambda s: clean(s,
                             fix_unicode=True,               # fix various unicode errors

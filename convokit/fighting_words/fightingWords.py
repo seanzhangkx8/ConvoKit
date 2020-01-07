@@ -10,7 +10,7 @@ try:
     from cleantext import clean
 except ImportError:
     raise ImportError("Could not find clean-text >= 0.1.1, which is a required dependency for using the FightingWords Transformer. "
-                      "Run 'pip install convokit[fightingwords]' to fix this.")
+                      "Run 'pip install convokit[cleantext]' to fix this.")
 
 from cleantext import clean
 
