@@ -285,7 +285,7 @@ class Corpus:
 		if preserve_convo_meta:
 			for convo in new_corpus.iter_conversations():
 				convo.meta['original_convo_meta'] = self.get_conversation(original_utt_to_convo_id[convo.id]).meta
-
+				convo.meta['original_convo_id'] = original_utt_to_convo_id[convo.id]
 		if verbose:
 			missing_convo_roots = list(set(new_convo_roots) - set(new_corpus.get_conversation_ids()))
 			if len(missing_convo_roots) > 0:
