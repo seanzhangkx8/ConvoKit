@@ -201,6 +201,9 @@ class Corpus:
 	def get_utterance(self, ut_id: str) -> Utterance:
 		return self.utterances[ut_id]
 
+	def has_utterance(self, utt_id: str) -> bool:
+		return utt_id in self.utterances
+
 	def iter_utterances(self, selector: Optional[Callable[[Utterance], bool]] = lambda utt: True) -> Generator[
 		Utterance, None, None]:
 		for v in self.utterances.values():
@@ -216,6 +219,9 @@ class Corpus:
 
 	def get_conversation(self, cid: str) -> Conversation:
 		return self.conversations[cid]
+
+	def has_conversation(self, cid: str) -> bool:
+		return cid in self.conversations
 
 	def iter_conversations(self, selector: Optional[Callable[[Conversation], bool]] = lambda convo: True) -> Generator[
 		Conversation, None, None]:
@@ -389,7 +395,10 @@ class Corpus:
 	def get_user_ids(self, selector: Optional[Callable[[User], bool]] = lambda user: True) -> Set[str]:
 		return set([u.id for u in self.iter_users(selector)])
 
-	def speaking_pairs(self, selector: Optional[Callable[[User, User], bool]] = None,
+	def has_user(self, user_id: str) -> bool:
+		return user_id in self.users
+
+	def speaking_pairs(self, selector: Optional[Callable[[User, User], bool]] = lambda user1, user2: True,
 					   user_names_only: bool = False) -> Set[Tuple]:
 		"""Get all directed speaking pairs (a, b) of users such that a replies
 			to b at least once in the dataset.
@@ -406,13 +415,13 @@ class Corpus:
 			function was used.
 		"""
 		pairs = set()
-		for u2 in self.utterances.values():
-			if u2.user is not None and u2.reply_to is not None and u2.reply_to in self.utterances:
-				u1 = self.utterances[u2.reply_to]
-				if u1.user is not None:
-					if selector is None or selector(u2.user, u1.user):
-						pairs.add((u2.user.id, u1.user.id) if
-								  user_names_only else (u2.user, u1.user))
+		for utt2 in self.iter_utterances():
+			if utt2.user is not None and utt2.reply_to is not None and utt2.reply_to in self.utterances:
+				utt1 = self.get_utterance(utt2.reply_to)
+				if utt1.user is not None:
+					if selector(utt2.user, utt1.user):
+						pairs.add((utt2.user.id, utt1.user.id) if
+								  user_names_only else (utt2.user, utt1.user))
 		return pairs
 
 	def pairwise_exchanges(self, selector: Optional[Callable[[User, User], bool]] = None,
