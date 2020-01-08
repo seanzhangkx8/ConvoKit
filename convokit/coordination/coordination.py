@@ -161,7 +161,8 @@ class Coordination(Transformer):
             scores = self.scores_over_utterances(corpus, [speaker], utterances, speaker_thresh, target_thresh,
                                                  utterances_thresh, speaker_thresh_indiv, target_thresh_indiv,
                                                  utterances_thresh_indiv, utterance_thresh_func)
-            all_scores[speaker, target] = list(scores.values())[0]
+            if len(scores) > 0: # scores.values() will be length 0 or 1
+                all_scores[speaker, target] = list(scores.values())[0]
         return all_scores
 
     def score_report(self, corpus: Corpus, scores: CoordinationScore):
