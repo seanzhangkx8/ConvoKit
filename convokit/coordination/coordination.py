@@ -25,7 +25,7 @@ class Coordination(Transformer):
     def fit(self, corpus: Corpus, y=None):
         """Learn coordination information for the given corpus."""
         self.corpus = corpus
-        self.precompute()
+        self.precompute(corpus)
 
     def transform(self, corpus: Corpus) -> Corpus:
         """Generate coordination scores for the corpus you called fit on."""
@@ -34,22 +34,22 @@ class Coordination(Transformer):
         if not self.precomputed:
             raise Exception("Must fit before calling transform")
 
-        pair_scores = self.pairwise_scores(corpus, self.corpus.speaking_pairs(), **self.thresh)
+        pair_scores = self.pairwise_scores(corpus, corpus.speaking_pairs(), **self.thresh)
         for (speaker, target), score in pair_scores.items():
-            if "coord-score" not in self.corpus.get_user(speaker.id).meta:
-                self.corpus.get_user(speaker.id).meta["coord-score"] = {}
-            self.corpus.get_user(speaker.id).meta["coord-score"][target.id] = score
+            if "coord-score" not in corpus.get_user(speaker.id).meta:
+                corpus.get_user(speaker.id).meta["coord-score"] = {}
+            corpus.get_user(speaker.id).meta["coord-score"][target.id] = score
 
-        return self.corpus
+        return corpus
 
-    def precompute(self) -> None:
+    def precompute(self, corpus) -> None:
         """Call this to run the time-consuming annotation process explicitly.
         For example, this lets you save the annotated coordination object as a
         pickle to cache the precomputation results."""
 
         if not self.precomputed:
             self._compute_liwc_reverse_dict()
-            self._annot_liwc_cats()
+            self._annot_liwc_cats(corpus)
             self.precomputed = True
 
     def score(self, corpus: Corpus, speakers: Collection[Union[User, str]],
@@ -136,7 +136,7 @@ class Coordination(Transformer):
         (speaker, target) pairs.
         
         :param corpus: Corpus to compute scores on
-        :param pairs: collection of (speaker id, target id) pairs 
+        :param pairs: collection of (speaker id, target id) pairs
         :type pairs: Collection
         
         Also accepted: all threshold arguments accepted by :func:`score()`.
@@ -152,19 +152,17 @@ class Coordination(Transformer):
         pairs = set(pairs)
         any_speaker = next(iter(pairs))[0]
         if isinstance(any_speaker, str):
-            pairs_utts = self.corpus.pairwise_exchanges(lambda x, y:
+            pairs_utts = corpus.pairwise_exchanges(lambda x, y:
                 (x.name, y.name) in pairs, user_names_only=True)
         else:
-            pairs_utts = self.corpus.pairwise_exchanges(lambda x, y:
+            pairs_utts = corpus.pairwise_exchanges(lambda x, y:
                 (x, y) in pairs, user_names_only=False)
         all_scores = CoordinationScore()
         for (speaker, target), utterances in pairs_utts.items():
             scores = self.scores_over_utterances(corpus, [speaker], utterances, speaker_thresh, target_thresh,
                                                  utterances_thresh, speaker_thresh_indiv, target_thresh_indiv,
                                                  utterances_thresh_indiv, utterance_thresh_func)
-            # print(list(scores.values()))
-            for m in scores.values():
-                all_scores[speaker, target] = m
+            all_scores[speaker, target] = list(scores.values())[0]
         return all_scores
 
     def score_report(self, corpus: Corpus, scores: CoordinationScore):
@@ -233,14 +231,14 @@ class Coordination(Transformer):
                 cur["$"].add(cat)
         return root
 
-    def _annot_liwc_cats(self) -> None:
+    def _annot_liwc_cats(self, corpus) -> None:
         # add liwc_categories field to each utterance
         word_chars = set("abcdefghijklmnopqrstuvwxyz0123456789_")
-        for k, u in self.corpus.utterances.items():
+        for utt in corpus.iter_utterances():
             cats = set()
             last = None
             cur = None
-            text = u.text.lower() + " "
+            text = utt.text.lower() + " "
             #if "'" in text: print(text)
             for i, c in enumerate(text):
                 # slightly different from regex: won't match word after an
@@ -263,26 +261,7 @@ class Coordination(Transformer):
                 if cur and "$" in cur:
                     cats |= cur["$"]
                 last = c
-            self.corpus.utterances[k].meta["liwc-categories"] = cats
-
-    def _compute_liwc_reverse_dict_old(self) -> None:
-        self.liwc_patterns = {}
-        with open(pkg_resources.resource_filename("convokit",
-            "data/coord-liwc-patterns.txt"), "r") as f:
-            for line in f:
-                cat, pat = line.strip().split("\t")
-                self.liwc_patterns[cat] = re.compile(pat, re.IGNORECASE)
-
-    def _annot_liwc_cats_old(self) -> None:
-        # add liwc_categories field to each utterance
-        for k in self.corpus.utterances:
-            self.corpus.utterances[k].liwc_categories_old = set()
-        for cat in CoordinationWordCategories:
-            pattern = self.liwc_patterns[cat]
-            for k, u in self.corpus.utterances.items():
-                s = re.search(pattern, u.text)
-                if s is not None:
-                    self.corpus.utterances[k].liwc_categories_old.add(cat)
+            utt.meta["liwc-categories"] = cats
 
     @staticmethod
     def _annot_user(user: User, utt: Utterance, split_by_attribs):
