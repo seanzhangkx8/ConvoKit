@@ -1,5 +1,6 @@
 from convokit.model import Corpus
 from .textProcessor import TextProcessor
+from typing import Callable, Optional
 
 try:
     from cleantext import clean
@@ -30,9 +31,9 @@ clean_str = lambda s: clean(s,
                             )
 
 class TextCleaner(TextProcessor):
-    def __init__(self, input_field=None,
-                 input_filter=lambda utt, aux: True, verbosity: int = 100,
-                 replace_text: bool = True, save_original: bool = True):
+    def __init__(self, text_cleaner: Optional[Callable[[str], str]]=None,
+                 input_field=None, input_filter=lambda utt, aux: True,
+                 verbosity: int = 100, replace_text: bool = True, save_original: bool = True):
         if replace_text:
             if save_original:
                 output_field = 'original'
@@ -42,7 +43,8 @@ class TextCleaner(TextProcessor):
             output_field = 'cleaned'
         self.replace_text = replace_text
         self.save_original = save_original
-        super().__init__(proc_fn=clean_str, input_field=input_field, input_filter=input_filter,
+        proc_fn = text_cleaner if text_cleaner is not None else clean_str
+        super().__init__(proc_fn=proc_fn, input_field=input_field, input_filter=input_filter,
                          verbosity=verbosity, output_field=output_field)
 
     def transform(self, corpus: Corpus) -> Corpus:
