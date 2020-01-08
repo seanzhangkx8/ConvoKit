@@ -1,5 +1,4 @@
 import pkg_resources
-import re
 from convokit.model import Corpus, User, Utterance
 from collections import defaultdict
 from typing import Callable, Tuple, List, Dict, Optional, Collection, Union
@@ -36,9 +35,9 @@ class Coordination(Transformer):
 
         pair_scores = self.pairwise_scores(corpus, corpus.speaking_pairs(), **self.thresh)
         for (speaker, target), score in pair_scores.items():
-            if "coord-score" not in corpus.get_user(speaker.id).meta:
-                corpus.get_user(speaker.id).meta["coord-score"] = {}
-            corpus.get_user(speaker.id).meta["coord-score"][target.id] = score
+            if "coord-score" not in speaker.meta:
+                speaker.meta["coord-score"] = {}
+            speaker.meta["coord-score"][target.id] = score
 
         return corpus
 
