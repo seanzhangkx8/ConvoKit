@@ -48,9 +48,10 @@ class PairedPrediction(Transformer):
 
         X, y = generate_paired_X_y(self.pred_feats, self.pair_orientation_feat_name, pair_id_to_objs)
         self.clf.fit(X, y)
+        return self
 
     def transform(self, corpus: Corpus) -> Corpus:
-        pass
+        return corpus
 
     def _check_for_pair_information(self, corpus):
         # Check if transform() needs to be run first

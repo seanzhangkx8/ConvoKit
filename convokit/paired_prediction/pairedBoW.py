@@ -48,6 +48,7 @@ class PairedBoW(PairedPrediction):
 
         X, y = generate_bow_paired_X_y(self.pair_orientation_feat_name, pair_id_to_objs, self.vector_name)
         self.clf.fit(X, y)
+        return self
 
     def summarize(self, corpus: Corpus, cv=LeaveOneOut()):
         """

@@ -39,6 +39,7 @@ class BoWClassifier(Classifier):
             y.append(self.labeller(obj))
         X = vstack(X)
         self.clf.fit(X, y)
+        return self
 
     def transform(self, corpus: Corpus) -> Corpus:
         objs = []
