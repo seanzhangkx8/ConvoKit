@@ -35,12 +35,8 @@ class Hypergraph:
             if utt.user not in user_to_utt_ids:
                 user_to_utt_ids[utt.user] = set()
             user_to_utt_ids[utt.user].add(utt.id)
-            # if utt.reply_to is not None:
-            #     print("utt.reply_to is not None!")
-            # if utt.reply_to in utterances:
 
             if utt.reply_to is not None and utt.reply_to in utt_dict:
-                # print("YES REGISTERED")
                 reply_edges.append((utt.id, utt.reply_to))
                 speaker_to_reply_tos[utt.user.id].append(utt.reply_to)
                 speaker_target_pairs.add((utt.user.id, utt_dict[utt.reply_to].user.id, utt))
