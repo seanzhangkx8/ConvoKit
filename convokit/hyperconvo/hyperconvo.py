@@ -1,10 +1,9 @@
-from collections import defaultdict
 import numpy as np
 import scipy.stats
 
 from convokit.transformer import Transformer
 from typing import Dict, Optional
-from convokit.model import Corpus, Utterance
+from convokit.model import Corpus
 from .hypergraph import Hypergraph
 
 degree_stat_funcs = {
@@ -67,14 +66,8 @@ class HyperConvo(Transformer):
 
     def transform(self, corpus: Corpus) -> Corpus:
         """
-        Same as fit_transform()
-        """
-        return self.fit_transform(corpus)
-
-    def fit_transform(self, corpus: Corpus, y=None) -> Corpus:
-        """
-        fit_transform() retrieves features from the corpus conversational
-        threads using retrieve_feats()
+        transform() retrieves features from the corpus conversational
+        threads using retrieve_feats() and annotates Conversations with this data
 
         :param corpus: Corpus object to retrieve feature information from
 
@@ -84,7 +77,6 @@ class HyperConvo(Transformer):
         for convo_id, feats in convo_id_to_feats.items():
             convo = corpus.get_conversation(convo_id)
             convo.add_meta("hyperconvo", feats)
-
         return corpus
 
     @staticmethod
