@@ -206,14 +206,24 @@ class Conversation(CorpusObject):
                 return utt_node
 
     def _print_convo_helper(self, root: str, indent: int, reply_to_dict: Dict[str, str],
-                            utt_info_func: Callable[[Utterance], str]):
+                            utt_info_func: Callable[[Utterance], str]) -> None:
+        """
+        Helper function for print_conversation_structure()
+        """
         print(" "*indent + utt_info_func(self.get_utterance(root)))
         children_utt_ids = [k for k, v in reply_to_dict.items() if v == root]
         for child_utt_id in children_utt_ids:
             self._print_convo_helper(root=child_utt_id, indent=indent+4,
                                      reply_to_dict=reply_to_dict, utt_info_func=utt_info_func)
 
-    def print_conversation_structure(self, utt_info_func: Callable[[Utterance], str] = lambda utt: utt.user.id):
+    def print_conversation_structure(self, utt_info_func: Callable[[Utterance], str] = lambda utt: utt.user.id) -> None:
+        """
+        Prints an indented representation of utterances in the Conversation with conversation reply-to structure
+        determining the indented level. The details of each utterance to be printed can be configured.
+        :param utt_info_func: callable function taking an utterance as input and returning a string of the desired
+        utterance information. By default, this is a lambda function returning the utterance's user's id
+        :return: None. Prints to stdout.
+        """
         if not self.check_integrity(verbose=False):
             raise ValueError("Could not print conversation structure: The utterance reply-to chain is broken. "
                              "Try check_integrity() to diagnose the problem.")
@@ -224,9 +234,17 @@ class Conversation(CorpusObject):
         self._print_convo_helper(root=root_utt_id, indent=0, reply_to_dict=reply_to_dict, utt_info_func=utt_info_func)
 
     def get_chronological_utterance_list(self, selector: Callable[[Utterance], bool] = lambda utt: True):
+        """
+        Get the utterances in the conversation sorted in increasing order of timestamp
+        :param selector: function for which utterances should be included; all utterances are included by default
+        :return: list of utterances, sorted by timestamp
+        """
         return sorted([utt for utt in self.iter_utterances(selector)], key=lambda utt: utt.timestamp)
 
-    def _get_path_from_leaf_to_root(self, leaf_utt: Utterance, root_utt: Utterance):
+    def _get_path_from_leaf_to_root(self, leaf_utt: Utterance, root_utt: Utterance) -> List[Utterance]:
+        """
+        Helper function for get_root_to_leaf_paths, which returns the path for a given leaf_utt and root_utt
+        """
         if leaf_utt == root_utt:
             return [leaf_utt]
         path = [leaf_utt]
@@ -237,7 +255,12 @@ class Conversation(CorpusObject):
         path.append(root_utt)
         return path[::-1]
 
-    def get_root_to_leaf_paths(self):
+    def get_root_to_leaf_paths(self) -> List[List[Utterance]]:
+        """
+        Get the paths (stored as a list of lists of utterances) from the root to each of the leaves
+        in the conversational tree
+        :return:
+        """
         if not self.check_integrity(verbose=False):
             raise ValueError("Conversation failed integrity check. "
                              "It is either missing an utterance in the reply-to chain and/or has multiple root nodes. "
