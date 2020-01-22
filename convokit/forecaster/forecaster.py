@@ -10,24 +10,36 @@ class Forecaster(Transformer):
     Implements basic Forecaster behavior
     """
     def __init__(self, forecaster_model: ForecasterModel = None,
+                 forecast_mode: str = "future",
                  convo_structure: str = "branched",
                  text_func=lambda utt: utt.text,
                  convo_selector_func: Callable[[Conversation], bool] = lambda convo: True,
                  utt_selector_func: Callable[[Utterance], bool] = lambda utt: True,
-                 label_feat: Optional[str] = None,
-                 forecast_feat_name: str = "forecast", forecast_prob_feat_name: str = "forecast_prob",
-                 skip_broken_convos: bool = False):
+                 label_func: Callable[[Utterance], bool] = lambda utt: True,
+                 use_last_only: bool = False,
+                 skip_broken_convos: bool = True,
+                 forecast_feat_name: str = "forecast",
+                 forecast_prob_feat_name: str = "forecast_prob"
+                 ):
         """
 
         :param forecaster_model: ForecasterModel to use, e.g. cumulativeBoW or CRAFT
+        :param forecast_mode: 'future' to annotate leaf utterances with forecasts for the next future utterance
+        (that has not occurred yet), 'past' for annotating all non-root utterances with the forecasts for all
+        existing utterances based on prior utterances
         :param convo_structure: conversations in expected corpus are 'branched' or 'linear', default: "branched"
         :param text_func: optional function for extracting the text of the utterance, default: use utterance text
         :param convo_selector_func: function for selecting for the conversations to analyze, default: use all conversations
-        :param utt_selector_func: function for selecting for the utterances in selected conversations to analyze, default: use all utterances
-        :param label_feat: optional name of utterance metadata feature containing the utterance's forecast label; only used in training
+        :param utt_selector_func: function for selecting for the utterances in selected conversations to analyze,
+        default: use all utterances
+        :param label_func: callable function for getting the utterance's forecast label (True or False); only used in training
+        :param use_last_only: if forecast_mode is 'past' and use_last_only is True, for each dialog, use only the
+        context-reply pair where the reply is the last utterance in the dialog
+        :param skip_broken_convos: if True and convo_structure is 'branched', exclude all conversations that
+        have broken reply-to structures, default: True
         :param forecast_feat_name: metadata feature name to use in annotation for forecast result, default: "forecast"
-        :param forecast_prob_feat_name: metadata feature name to use in annotation for forecast result probability, default: "forecast_prob"
-        :param skip_broken_convos: if True, exclude all conversations that have broken reply-to structures
+        :param forecast_prob_feat_name: metadata feature name to use in annotation for forecast result probability,
+        default: "forecast_prob"
         """
 
         assert convo_structure in ["branched", "linear"]
@@ -39,16 +51,22 @@ class Forecaster(Transformer):
                                                   forecast_prob_feat_name=forecast_prob_feat_name)
         else:
             self.forecaster_model = forecaster_model
-
-        self.label_feat = label_feat
+        self.forecast_mode = forecast_mode
+        self.label_func = label_func
         self.text_func = text_func
         self.utt_selector_func = utt_selector_func
         self.convo_selector_func = convo_selector_func
+        self.use_last_only = use_last_only
+        self.skip_broken_convos = skip_broken_convos
         self.forecast_feat_name = forecast_feat_name
         self.forecast_prob_feat_name = forecast_prob_feat_name
-        self.skip_broken_convos = skip_broken_convos
 
     def _get_context_reply_label_dict(self, corpus: Corpus, include_label=True):
+        """
+        Returns a dict mapping reply id to (context, reply, label).
+
+        If self.forecast_mode == 'future': return a dict mapping the leaf utt id to the path from root utt to leaf utt
+        """
         dialogs = []
         if self.convo_structure == "branched":
             for convo in corpus.iter_conversations(self.convo_selector_func):
@@ -69,13 +87,23 @@ class Forecaster(Transformer):
 
         id_to_context_reply_label = dict()
 
+        if self.forecast_mode == 'future':
+            for dialog in dialogs:
+                id_to_context_reply_label[dialog[-1].id] = (dialog, dialog[-1], None)
+
         for dialog in dialogs:
-            for idx in range(1, len(dialog)):
-                reply = self.text_func(dialog[idx])
-                label = dialog[idx].meta[self.label_feat] if include_label else None
-                reply_id = dialog[idx].id
-                context = [self.text_func(utt) for utt in dialog[:idx]]
-                id_to_context_reply_label[reply_id] = (context, reply, label) if include_label else (context, reply, None)
+            if self.use_last_only:
+                reply = self.text_func(dialog[-1])
+                context = [self.text_func(utt) for utt in dialog[:-1]]
+                label = self.label_func(dialog[-1]) if include_label else None
+                id_to_context_reply_label[dialog[-1].id] = (context, reply, label)
+            else:
+                for idx in range(1, len(dialog)):
+                    reply = self.text_func(dialog[idx])
+                    label = self.label_func(dialog[idx]) if include_label else None
+                    reply_id = dialog[idx].id
+                    context = [self.text_func(utt) for utt in dialog[:idx]]
+                    id_to_context_reply_label[reply_id] = (context, reply, label) if include_label else (context, reply, None)
 
         return id_to_context_reply_label
 
