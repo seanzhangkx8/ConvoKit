@@ -115,7 +115,7 @@ class CorpusTraversal(unittest.TestCase):
 
         # checking that corpus and conversation metadata was preserved
         for convo in new_corpus.iter_conversations():
-            self.assertEqual(convo.meta, self.corpus.get_conversation("0").meta)
+            self.assertEqual(convo.meta['original_convo_meta'], self.corpus.get_conversation("0").meta)
 
         self.assertEqual(self.corpus.meta, new_corpus.meta)
 

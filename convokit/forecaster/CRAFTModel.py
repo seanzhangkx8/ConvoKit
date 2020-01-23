@@ -75,14 +75,14 @@ class CRAFTModel(ForecasterModel):
         self.voc = loadPrecomputedVoc("wikiconv", CONSTANTS['WORD2INDEX_URL'], CONSTANTS['INDEX2WORD_URL'])
 
         if options is None:
-            print("Initializing CRAFT model with default options.")
-            print(default_options)
             self.options = default_options
         else:
             for k, v in default_options.items():
                 if k not in options:
                     options[k] = v
             self.options = options
+        print("Initializing CRAFT model with options:")
+        print(self.options)
 
         if model_path is not None:
             if not os.path.isfile(model_path) or model_path.endswith(".tar"):
