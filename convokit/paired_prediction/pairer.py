@@ -1,6 +1,3 @@
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler
-from sklearn.linear_model import LogisticRegression
 from typing import Callable
 from convokit import Transformer, CorpusObject, Corpus
 from .util import *
@@ -8,6 +5,45 @@ from collections import defaultdict
 from random import shuffle, seed
 
 class Pairer(Transformer):
+    """
+    The Pairer Transformer annotates the Corpus with the pairing information that is needed to run
+    some paired prediction analysis (e.g. see the PairedPrediction and Paired BoW modules.)
+
+    Paired Prediction is a quasi-experimental method that controls for certain priors,
+    see Cheng et al. 2014 for an illustrated example of PairedPrediction in research.
+    (https://cs.stanford.edu/people/jure/pubs/disqus-icwsm14.pdf)
+
+    As an illustrative example, consider the Friends TV series, where we might want to examine how Rachel talks to
+    Monica and Chandler differently. At one level, we might just look at the differences in the utterances where
+    Rachel speaks to Monica and Rachel speaks to Chandler. But this inadvertently surfaces differences that might arise
+    from Rachel interacting with Monica and Chandler separately in different settings and scenarios, and thus highlight
+    only uninteresting differences in topics discussed.
+
+    Instead, we might want to look for subtler differences in speech, controlling for topic perhaps. One way we might to
+    do this to look only at Conversations where Rachel, Monica, and Chandler are all present. We would then compare
+    utterances where Rachel speaks to Monica and Rachel speaks to Chandler *within* that Conversation and look
+    for differences between these paired sets of utterances.
+
+    Pairer sets this pairing up. For this example:
+    - the obj_type is 'utterance' (since we compare utterances)
+    - the pairing_func is supposed to extract the identifier that would identify the object as part of the pair.
+    In this case, that would be the Utterance's conversation id since we want utterances from the same conversation.
+    - we need to distinguish between utterances where Rachel speaks to Monica vs. Chandler. the pos_label_func and
+    neg_label_func is how we can specify this (e.g. lambda utt: utt.meta['target']), where positive instances might
+    be arbitrarily refer to targetting Monica, and negative for targetting Chandler.
+    - pair_mode denotes how many pairs to use per context. For example, a Conversation will likely have Rachel address
+    Monica and Chandler each multiple times. This means that there are multiple positive and negative instances that
+    can be used to form pairs. We could randomly pick one pair of instances ('random'), or the first pair of instances
+    ('first') or the maximum pairs of instances ('maximize').
+
+    Pairer saves this pairing information into the object metadata.
+    - pair_id is the 'id' that uniquely identifies a pair of positive and negative instances, and is the output from
+    the pairing_func.
+    - label (or pair_obj_label) denotes whether the object is the positive or negative instance of the pair
+    - pair_orientation denotes whether to use the pair itself as a positive or negative data point in a predictive
+    classifier. 'pos' means the difference between the objects in the pair should be computed as [+ve obj features] - [-ve obj features],
+    and 'neg' means it should be computed as [-ve obj features] - [+ve obj features].
+    """
     def __init__(self, obj_type: str,
                  pairing_func: Callable[[CorpusObject], str],
                  pos_label_func: Callable[[CorpusObject], bool],
@@ -28,7 +64,9 @@ class Pairer(Transformer):
                        or 'first': pick the first positive and negative object pair found.
         :param selector: optional function to filter object for
         :param clf: optional classifier to be used in the paired prediction
-        :param pair_id_feat_name: metadata feature name to use in annotating object with pair id, default: "pair_id"
+        :param pair_id_feat_name: metadata feature name to use in annotating object with pair id, default: "pair_id".
+        The value is determined by the output of pairing_func. If pair_mode is 'maximize', the value is the output of
+        pairing_func + "_[i]", where i is the ith pair extracted from a given context.
         :param label_feat_name: metadata feature name to use in annotating object with whether it is positive
         or negative, default: "pair_obj_label"
         :param pair_orientation_feat_name: metadata feature name to use in annotating object with pair orientation,

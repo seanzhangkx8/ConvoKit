@@ -9,6 +9,13 @@ from convokit.classifier.util import get_coefs_helper
 
 
 class PairedPrediction(Transformer):
+    """
+    At a high level, Paired Prediction is a quasi-experimental method that controls for certain priors,
+    see Cheng et al. 2014 for an illustrated example of PairedPrediction in research.
+    (https://cs.stanford.edu/people/jure/pubs/disqus-icwsm14.pdf)
+
+    See Pairer's documentation for more information about pairing.
+    """
     def __init__(self, obj_type: str,
                  pred_feats: List[str],
                  selector: Callable[[CorpusObject], bool] = lambda x: True,
