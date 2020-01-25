@@ -14,7 +14,7 @@ class Pairer(Transformer):
                  neg_label_func: Callable[[CorpusObject], bool],
                  selector: Callable[[CorpusObject], bool] = lambda x: True,
                  clf=None, pair_id_feat_name: str = "pair_id",
-                 label_feat_name: str = "label",
+                 label_feat_name: str = "pair_obj_label",
                  pair_orientation_feat_name: str = "pair_orientation"):
 
         """
@@ -25,7 +25,8 @@ class Pairer(Transformer):
         :param selector: optional function to filter object for
         :param clf: optional classifier to be used in the paired prediction
         :param pair_id_feat_name: metadata feature name to use in annotating object with pair id, default: "pair_id"
-        :param label_feat_name: metadata feature name to use in annotating object with predicted label, default: "label"
+        :param label_feat_name: metadata feature name to use in annotating object with whether it is positive
+        or negative, default: "pair_obj_label"
         :param pair_orientation_feat_name: metadata feature name to use in annotating object with pair orientation,
         default: "pair_orientation"
 

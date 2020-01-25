@@ -1,10 +1,6 @@
 from convokit import Corpus, CorpusObject, Transformer
 from typing import Callable, List
 from sklearn.feature_extraction.text import CountVectorizer as CV
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler
-from sklearn.linear_model import LogisticRegression
-import pandas as pd
 
 class BoWTransformer(Transformer):
     def __init__(self, obj_type: str, vectorizer=None, vector_name="bow_vector",
@@ -40,4 +36,4 @@ class BoWTransformer(Transformer):
         return corpus
 
     def get_vocabulary(self):
-        return self.vectorizer.vocabulary_
+        return self.vectorizer.get_feature_names()

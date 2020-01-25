@@ -7,19 +7,19 @@ class Ranker(Transformer):
     def __init__(self, obj_type: str,
                  score_func: Callable[[CorpusObject], Union[int, float]],
                  selector: Callable[[CorpusObject], bool] = lambda obj: True,
-                 score_feat_name: str = "ranking_score", rank_feat_name: str = "rank"):
+                 score_feat_name: str = "score", rank_feat_name: str = None):
         """
 
         :param obj_type: type of Corpus object to rank: 'conversation', 'user', or 'utterance'
         :param score_func: function for computing the score of a given object
         :param selector: function to select for Corpus objects to transform
-        :param score_feat_name: metadata feature name to use in annotation for score value, default: "ranking_score"
-        :param rank_feat_name: metadata feature name to use in annotation for the rank value, default: "rank"
+        :param score_feat_name: metadata feature name to use in annotation for score value, default: "score"
+        :param rank_feat_name: metadata feature name to use in annotation for the rank value, default: "[score_feat_name]_rank"
         """
         self.obj_type = obj_type
         self.score_func = score_func
         self.score_feat_name = score_feat_name
-        self.rank_feat_name = rank_feat_name
+        self.rank_feat_name = score_feat_name + "_rank" if rank_feat_name is None else rank_feat_name
         self.selector = selector
 
     def transform(self, corpus: Corpus) -> Corpus:
