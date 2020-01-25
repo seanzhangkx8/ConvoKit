@@ -1,19 +1,20 @@
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import LeaveOneOut, cross_val_score
-from typing import List, Callable
+from typing import Callable
 from convokit import Transformer, CorpusObject, Corpus
 from .util import *
-from convokit.classifier.util import get_coefs_helper
+from collections import defaultdict
+from random import shuffle, seed
 
 class Pairer(Transformer):
     def __init__(self, obj_type: str,
                  pairing_func: Callable[[CorpusObject], str],
                  pos_label_func: Callable[[CorpusObject], bool],
                  neg_label_func: Callable[[CorpusObject], bool],
+                 pair_mode: str = "random",
                  selector: Callable[[CorpusObject], bool] = lambda x: True,
-                 clf=None, pair_id_feat_name: str = "pair_id",
+                 pair_id_feat_name: str = "pair_id",
                  label_feat_name: str = "pair_obj_label",
                  pair_orientation_feat_name: str = "pair_orientation"):
 
@@ -22,6 +23,9 @@ class Pairer(Transformer):
                 e.g. to pair on the first 10 characters of a well-structured id, use lambda obj: obj.id[:10]
         :param pos_label_func: The function to check if the object is a positive instance
         :param neg_label_func: The function to check if the object is a negative instance
+        :param pair_mode: 'random': pick a single positive and negative object pair randomly (default),
+                          'maximize': pick the maximum number of positive and negative object pairs possible randomly,
+                       or 'first': pick the first positive and negative object pair found.
         :param selector: optional function to filter object for
         :param clf: optional classifier to be used in the paired prediction
         :param pair_id_feat_name: metadata feature name to use in annotating object with pair id, default: "pair_id"
@@ -33,11 +37,10 @@ class Pairer(Transformer):
         """
         assert obj_type in ["user", "utterance", "conversation"]
         self.obj_type = obj_type
-        self.clf = Pipeline([("standardScaler", StandardScaler(with_mean=False)),
-                             ("logreg", LogisticRegression(solver='liblinear'))]) if clf is None else clf
         self.pairing_func = pairing_func
         self.pos_label_func = pos_label_func
         self.neg_label_func = neg_label_func
+        self.pair_mode = pair_mode
         self.selector = selector
         self.pair_id_feat_name = pair_id_feat_name
         self.label_feat_name = label_feat_name
@@ -79,9 +82,27 @@ class Pairer(Transformer):
 
         valid_pairs = set(pair_feat_to_neg_objs).intersection(set(pair_feat_to_pos_objs))
 
-        return {pair_id: (choice(pair_feat_to_pos_objs[pair_id]),
-                          choice(pair_feat_to_neg_objs[pair_id]))
-                for pair_id in valid_pairs}
+        if self.pair_mode == "first":
+            return {pair_id: (pair_feat_to_pos_objs[pair_id][0],
+                              pair_feat_to_neg_objs[pair_id][0])
+                    for pair_id in valid_pairs}
+        elif self.pair_mode == "random":
+            return {pair_id: (choice(pair_feat_to_pos_objs[pair_id]),
+                              choice(pair_feat_to_neg_objs[pair_id]))
+                    for pair_id in valid_pairs}
+        elif self.pair_mode == "maximize":
+            retval = dict()
+            for pair_id in valid_pairs:
+                pos_objs = pair_feat_to_pos_objs[pair_id]
+                neg_objs = pair_feat_to_neg_objs[pair_id]
+                max_pairs = min(len(pos_objs), len(neg_objs))
+                shuffle(pos_objs)
+                shuffle(neg_objs)
+                for idx in range(max_pairs):
+                    retval[pair_id + "_" + str(idx)] = (pos_objs[idx], neg_objs[idx])
+            return retval
+        else:
+            raise ValueError("Invalid pair_mode setting: use 'random', 'first', or 'maximize'.")
 
     @staticmethod
     def _assign_pair_orientations(obj_pairs):
