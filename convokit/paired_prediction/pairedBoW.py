@@ -13,7 +13,7 @@ class PairedBoW(PairedPrediction):
                  selector: Callable[[CorpusObject], bool] = lambda x: True,
                  vector_name="bow_vector",
                  clf=None, pair_id_feat_name: str = "pair_id",
-                 label_feat_name: str = "label",
+                 label_feat_name: str = "pair_obj_label",
                  pair_orientation_feat_name: str = "pair_orientation"):
 
         """

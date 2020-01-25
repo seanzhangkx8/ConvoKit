@@ -12,9 +12,9 @@ class PairedPrediction(Transformer):
     def __init__(self, obj_type: str,
                  pred_feats: List[str],
                  selector: Callable[[CorpusObject], bool] = lambda x: True,
-                 clf=None, # annotate_pairs: bool = True,
+                 clf=None,
                  pair_id_feat_name: str = "pair_id",
-                 label_feat_name: str = "label",
+                 label_feat_name: str = "pair_obj_label",
                  pair_orientation_feat_name: str = "pair_orientation"):
 
         """
@@ -85,34 +85,3 @@ class PairedPrediction(Transformer):
         :return: DataFrame of features and coefficients, indexed by feature names
         """
         return get_coefs_helper(self.clf, feature_names, coef_func)
-
-    #
-    # def print_extreme_coefs(self, feature_names: List[str], num_features: Optional[int] = None):
-    #     """
-    #     Must be run after summarize()
-    #     Prints the extreme coefficients of the trained classifier model for visual inspection, assuming
-    #     it is a pipeline with a logistic regression component
-    #     :param feature_names: list of feature names to inspect
-    #     :param num_features: optional number of extreme coefficients to print
-    #     :return: None (prints features)
-    #     """
-    #     coefs = self.clf.named_steps['logreg'].coef_[0].tolist()
-    #
-    #     assert len(feature_names) == len(coefs)
-    #
-    #     feats_coefs = sorted(list(zip(feature_names, coefs)), key=lambda x: x[1], reverse=True)
-    #
-    #     if num_features is None:
-    #         num_features = len(feature_names) // 4
-    #
-    #     print()
-    #     print("TOP {} FEATURES".format(num_features))
-    #     for ft, coef in feats_coefs[:num_features]:
-    #         print("{}: {:.3f}".format(ft, coef))
-    #     print()
-    #     print("BOTTOM {} FEATURES".format(num_features))
-    #     for ft, coef in feats_coefs[-num_features:]:
-    #         print("{}: {:.3f}".format(ft, coef))
-    #     print()
-    #
-    #
