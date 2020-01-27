@@ -34,6 +34,13 @@ class Utterance(CorpusObject):
         self.timestamp = timestamp # int(timestamp) if timestamp is not None else timestamp
         self.text = text
 
+    def get_conversation(self):
+        """
+        Get the Conversation (identified by Utterance.root) this Utterance belongs to
+        :return: Conversation
+        """
+        return self.owner.get_conversation(self.root)
+
     def __hash__(self):
         return super().__hash__()
 
