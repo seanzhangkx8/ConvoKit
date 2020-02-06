@@ -90,14 +90,14 @@ class HyperConvo(Transformer):
         return "C" if b else "c"
 
     @staticmethod
-    def _degree_feats(G: Optional[Hypergraph] = None, name_ext: str = "") -> Dict:
+    def _degree_feats(graph: Optional[Hypergraph] = None, name_ext: str = "") -> Dict:
         """
         Helper method for retrieve_feats().
         Generate statistics on degree-related features in a Hypergraph (G), or a Hypergraph
         constructed from provided utterances (uts)
 
         :param utts: utterances to construct Hypergraph from
-        :param G: Hypergraph to calculate degree features statistics from
+        :param graph: Hypergraph to calculate degree features statistics from
         :param name_ext: Suffix to append to feature name
         :param exclude_id: id of utterance to exclude from Hypergraph construction
         :return: A stats dictionary, i.e. a dictionary of feature names to feature values. For degree-related features specifically.
@@ -107,8 +107,8 @@ class HyperConvo(Transformer):
         for from_hyper in [False, True]:
             for to_hyper in [False, True]:
                 if not from_hyper and to_hyper: continue  # skip c -> C
-                outdegrees = np.array(G.outdegrees(from_hyper, to_hyper))
-                indegrees = np.array(G.indegrees(from_hyper, to_hyper))
+                outdegrees = np.array(graph.outdegrees(from_hyper, to_hyper))
+                indegrees = np.array(graph.indegrees(from_hyper, to_hyper))
 
                 for stat, stat_func in degree_stat_funcs.items():
                     stats["{}[outdegree over {}->{} {}responses]".format(stat,
@@ -122,25 +122,25 @@ class HyperConvo(Transformer):
         return stats
 
     @staticmethod
-    def _motif_feats(G: Hypergraph = None, name_ext: str = "") -> Dict:
+    def _motif_feats(graph: Hypergraph = None, name_ext: str = "") -> Dict:
         """
         Helper method for retrieve_feats().
         Generate statistics on degree-related features in a Hypergraph (G), or a Hypergraph
         constructed from provided utterances (uts)
 
         :param utts: utterances to construct Hypergraph from
-        :param G: Hypergraph to calculate degree features statistics from
+        :param graph: Hypergraph to calculate degree features statistics from
         :param name_ext: Suffix to append to feature name
         :param exclude_id: id of utterance to exclude from Hypergraph construction
         :return: A dictionary from a thread root id to its stats dictionary, which is a dictionary from feature names to feature values. For motif-related features specifically.
         """
         stats = {}
         for motif, motif_func in [
-            ("reciprocity motif", G.reciprocity_motifs),
-            ("external reciprocity motif", G.external_reciprocity_motifs),
-            ("dyadic interaction motif", G.dyadic_interaction_motifs),
-            ("incoming triads", G.incoming_triad_motifs),
-            ("outgoing triads", G.outgoing_triad_motifs)]:
+            ("reciprocity motif", graph.reciprocity_motifs),
+            ("external reciprocity motif", graph.external_reciprocity_motifs),
+            ("dyadic interaction motif", graph.dyadic_interaction_motifs),
+            ("incoming triads", graph.incoming_triad_motifs),
+            ("outgoing triads", graph.outgoing_triad_motifs)]:
             motifs = motif_func()
             for stat, stat_func in motif_stat_funcs.items():
                 stats["{}[{}{}]".format(stat, motif, name_ext)] = stat_func(motifs)
@@ -167,10 +167,10 @@ class HyperConvo(Transformer):
             stats = {}
             G = Hypergraph.init_from_utterances(utterances=utts)
             G_mid = Hypergraph.init_from_utterances(utterances=utts[1:]) # exclude root
-            for k, v in HyperConvo._degree_feats(G=G).items(): stats[k] = v
-            for k, v in HyperConvo._motif_feats(G=G).items(): stats[k] = v
-            for k, v in HyperConvo._degree_feats(G=G_mid, name_ext="mid-thread ").items(): stats[k] = v
-            for k, v in HyperConvo._motif_feats(G=G_mid, name_ext=" over mid-thread").items(): stats[k] = v
+            for k, v in HyperConvo._degree_feats(graph=G).items(): stats[k] = v
+            for k, v in HyperConvo._motif_feats(graph=G).items(): stats[k] = v
+            for k, v in HyperConvo._degree_feats(graph=G_mid, name_ext="mid-thread ").items(): stats[k] = v
+            for k, v in HyperConvo._motif_feats(graph=G_mid, name_ext=" over mid-thread").items(): stats[k] = v
             threads_stats[convo.id] = stats
         return threads_stats
 

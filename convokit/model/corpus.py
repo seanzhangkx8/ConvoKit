@@ -144,8 +144,9 @@ class Corpus:
 			 increment_version: bool = True,
 			 save_to_existing_path: bool = False,
 			 fields_to_skip=None) -> None:
-		"""Dumps the corpus and its metadata to disk.
-		Automatically increments the version number.
+		"""
+		Dumps the corpus and its metadata to disk. Automatically increments the version number.
+
 		:param name: name of corpus
 		:param base_path: base directory to save corpus in (None to save to a default directory)
 		:param increment_version: whether to increment the Corpus version number when dumping
@@ -606,7 +607,6 @@ class Corpus:
 		Re-uses original Index values where possible, and avoids having NoneType as the class-type for any key.
 		Checks metadata of all Corpus objects of each type to ensure that all keys are accounted for.
 
-		Uses the
 		:return: None (sets the .meta_index of Corpus)
 		"""
 		old_index = self.meta_index
