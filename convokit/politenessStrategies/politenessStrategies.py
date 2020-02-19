@@ -71,7 +71,7 @@ class PolitenessStrategies(Transformer):
         doc['unigrams'] = list(chain(*[[y['tok'] for y in sent['toks']] for sent in parsed]))
         return doc
 
-    def _preprocess_utterances(self, corpus: Corpus) -> Tuple[List[Hashable], List[Dict]]:
+    def _preprocess_utterances(self, corpus: Corpus) -> Tuple[List[str], List[Dict]]:
         """Convert each Utterance in the given Corpus into the representation expected
         by the politeness API. Assumes that the Corpus has already been parsed, so that
         each Utterance contains the `parsed` metadata entry
