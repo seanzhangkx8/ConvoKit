@@ -5,7 +5,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.preprocessing import normalize
 from sklearn.decomposition import TruncatedSVD
 from sklearn.cluster import KMeans
-from sklearn.externals import joblib
+import joblib
 
 from convokit.transformer import Transformer
 
