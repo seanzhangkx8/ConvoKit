@@ -42,17 +42,15 @@ class FightingWords(Transformer):
 
     Implementation adapted from Jack Hessel's https://github.com/jmhessel/FightingWords
 
-    Identifies the fighting words of two groups of utterances, which we label as class1 and class2
+    Identifies the fighting words of two groups of utterances, which we define as groups: 'class1' and 'class2'
 
     """
-    def __init__(self, class1_selector: Callable[[Utterance], bool],
-                 class2_selector: Callable[[Utterance], bool], cv=None,
+    def __init__(self, cv=None,
                  ngram_range=None, prior=0.1, threshold=1, top_k=10, annot_method="top_k",
                  string_sanitizer=lambda str_: FightingWords.clean_text(str_)):
         """
 
-        :param class1_selector: selector function for identifying utterances that belong to class 1
-        :param class2_selector: selector function for identifying utterances that belong to class 2
+
         :param cv: optional CountVectorizer. default: an sklearn CV with min_df=10, max_df=.5, and ngram_range=(1,3) with max 15000 features
         :param ngram_range: range of ngrams to use if using default cv
         :param prior: either a float describing a uniform prior, or a vector describing a prior
@@ -64,8 +62,6 @@ class FightingWords(Transformer):
         :param string_sanitizer: optional function for cleaning strings prior to fighting words analysis: uses default
         string sanitizer otherwise
         """
-        self.class1_selector = class1_selector
-        self.class2_selector = class2_selector
         self.ngram_range = ngram_range
         self.prior = prior
         self.cv = cv
@@ -139,17 +135,23 @@ class FightingWords(Transformer):
         sorted_indices = np.argsort(z_scores)
         return {index_to_term[i]: z_scores[i] for i in sorted_indices}
 
-    def fit(self, corpus: Corpus, y=None):
+    def fit(self, corpus: Corpus, class1_func: Callable[[Utterance], bool],
+            class2_func: Callable[[Utterance], bool], y=None, selector: Callable[[Utterance], bool] = lambda utt: True):
         """
-        Learn the fighting words from a corpus
+        Learn the fighting words from a corpus, with an optional selector that selects for utterances prior to grouping
+        the utterances into class1 / class2.
+
         :param corpus: target Corpus
-        :return: fitted Transformer
+        :param class1_func: selector function for identifying utterances that belong to class 1
+        :param class2_func: selector function for identifying utterances that belong to class 2
+        :param selector: a (lambda) function that takes an Utterance and returns True/False; this selects for utterances that should be included in this fitting step
+        :return: fitted FightingWords Transformer
         """
         class1, class2 = [], []
-        for utt in corpus.iter_utterances():
-            if self.class1_selector(utt):
+        for utt in corpus.iter_utterances(selector):
+            if class1_func(utt):
                 class1.append(utt)
-            elif self.class2_selector(utt):
+            elif class2_func(utt):
                 class2.append(utt)
 
         if len(class1) == 0:
@@ -210,7 +212,7 @@ class FightingWords(Transformer):
                 class2_ngrams.append(ngram)
         return class1_ngrams[::-1], class2_ngrams
 
-    def transform(self, corpus: Corpus) -> Corpus:
+    def transform(self, corpus: Corpus, selector: Callable[[Utterance], bool] = lambda x: True) -> Corpus:
         """
         Annotates the corpus utterances with the lists of fighting words that the utterance contains
         The relevant fighting words to use are specified by FightingWords.top_k or FightingWords.threshold,
@@ -218,14 +220,22 @@ class FightingWords(Transformer):
 
         Lists are stored under metadata keys 'fighting_words_class1', 'fighting_words_class2'
         :param corpus: corpus to annotate
+        :param selector: a (lambda) function that takes an Utterance and returns True/False;
+        this selects for utterances that should be annotated with the fighting words
+
         :return: annotated corpus
         """
         class1_ngrams, class2_ngrams = self.get_top_k_ngrams() if self.annot_method == "top_k" \
                                 else self.get_ngrams_past_threshold()
 
         for utt in corpus.iter_utterances(): # improve the efficiency of this; tricky because ngrams #TODO
-            utt.meta['fighting_words_class1'] = [ngram for ngram in class1_ngrams if ngram in utt.text]
-            utt.meta['fighting_words_class2'] = [ngram for ngram in class2_ngrams if ngram in utt.text]
+            if selector(utt):
+                utt.meta['fighting_words_class1'] = [ngram for ngram in class1_ngrams if ngram in utt.text]
+                utt.meta['fighting_words_class2'] = [ngram for ngram in class2_ngrams if ngram in utt.text]
+            else:
+                utt.meta['fighting_words_class1'] = None
+                utt.meta['fighting_words_class2'] = None
+
         return corpus
 
     def get_zscore(self, ngram):
@@ -256,14 +266,12 @@ class FightingWords(Transformer):
 
     def summarize(self, corpus: Corpus, plot: bool = False):
         """
-        Returns a DataFrame of ngram with zscores and classes, and optionally plots the fighting words distribution
+        Returns a DataFrame of ngram with zscores and classes, and optionally plots the fighting words distribution.
+        FightingWords Transformer must be fitted prior to running this.
         :param corpus: corpus to learn fighting words from if not already fitted
         :param plot: if True, generates a plot for the fighting words distribution
         :return: DataFrame of ngrams with zscores and classes, indexed by the ngrams (plot is optionally generated)
         """
-        if self.ngram_zscores is None:
-            self.fit(corpus)
-
         if plot:
             self.plot_fighting_words()
         return self.get_ngram_zscores()
