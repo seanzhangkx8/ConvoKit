@@ -56,9 +56,3 @@ class Transformer(ABC):
 
     def summarize(self, corpus: Corpus, **kwargs):
         pass
-
-    def get_model(self):
-        pass
-
-    def set_model(self, model):
-        pass

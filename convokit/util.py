@@ -272,7 +272,7 @@ def get_wikiconv_year_info(year: str) -> str:
     wikiconv_base = "http://zissou.infosci.cornell.edu/convokit/datasets/wikiconv-corpus/"
     data_dir = wikiconv_base + "corpus-zipped/"
 
-    return data_dir + year + "/full.corpus"
+    return data_dir + year + "/full.corpus.zip"
 
 def meta_index(corpus: Corpus=None, filename: str=None) -> Dict:
     keys = ["utterances-index", "conversations-index", "users-index",

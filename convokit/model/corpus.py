@@ -287,7 +287,7 @@ class Corpus:
 		Utterance, None, None]:
 		"""
 		Get utterances in the Corpus, with an optional selector that filters for Utterances that should be included
-		:param selector: a function (typically, a lambda function) that takes an Utterance and returns True or False (i.e. include / exclude).
+		:param selector: a (lambda) function that takes an Utterance and returns True or False (i.e. include / exclude).
 		By default, the selector includes all Utterances in the Corpus.
 		:return: a generator of Utterances
 		"""
@@ -299,7 +299,7 @@ class Corpus:
 		Conversation, None, None]:
 		"""
 		Get conversations in the Corpus, with an optional selector that filters for Conversations that should be included
-		:param selector: a function (typically, a lambda function) that takes a Conversation and returns True or False (i.e. include / exclude).
+		:param selector: a (lambda) function that takes a Conversation and returns True or False (i.e. include / exclude).
 		By default, the selector includes all Conversations in the Corpus.
 		:return: a generator of Conversations
 		"""
@@ -310,7 +310,7 @@ class Corpus:
 	def iter_users(self, selector: Optional[Callable[[User], bool]] = lambda user: True) -> Generator[User, None, None]:
 		"""
 		Get Users in the Corpus, with an optional selector that filters for Conversations that should be included
-		:param selector: a function (typically, a lambda function) that takes a User and returns True or False (i.e. include / exclude).
+		:param selector: a (lambda) function that takes a User and returns True or False (i.e. include / exclude).
 		By default, the selector includes all Users in the Corpus.
 		:return: a generator of Users
 		"""
@@ -323,7 +323,7 @@ class Corpus:
 		"""
 		Get Corpus objects of specified type from the Corpus, with an optional selector that filters for Corpus object that should be included
 		:param obj_type: "user", "utterance", or "conversation"
-		:param selector: a function (typically, a lambda function) that takes a User and returns True or False (i.e. include / exclude).
+		:param selector: a (lambda) function that takes a Corpus object and returns True or False (i.e. include / exclude).
 		By default, the selector includes all objects of the specified type in the Corpus.
 		:return: a generator of Users
 		"""
@@ -338,7 +338,7 @@ class Corpus:
 	def get_utterance_ids(self, selector: Optional[Callable[[Utterance], bool]] = lambda utt: True) -> List[str]:
 		"""
 		Get a list of ids of Utterances in the Corpus, with an optional selector that filters for Utterances that should be included
-		:param selector: a function (typically, a lambda function) that takes an Utterance and returns True or False (i.e. include / exclude).
+		:param selector: a (lambda) function that takes an Utterance and returns True or False (i.e. include / exclude).
 		By default, the selector includes all Utterances in the Corpus.
 		:return: list of Utterance ids
 		"""
@@ -348,7 +348,7 @@ class Corpus:
 		str]:
 		"""
 		Get a list of ids of Conversations in the Corpus, with an optional selector that filters for Conversations that should be included
-		:param selector: a function (typically, a lambda function) that takes a Conversation and returns True or False (i.e. include / exclude).
+		:param selector: a (lambda) function that takes a Conversation and returns True or False (i.e. include / exclude).
 		By default, the selector includes all Conversations in the Corpus.
 		:return: list of Conversation ids
 		"""
@@ -358,7 +358,7 @@ class Corpus:
 		str]:
 		"""
 		Get a list of ids of Users in the Corpus, with an optional selector that filters for Users that should be included
-		:param selector: a function (typically, a lambda function) that takes a User and returns True or False (i.e. include / exclude).
+		:param selector: a (lambda) function that takes a User and returns True or False (i.e. include / exclude).
 		By default, the selector includes all Users in the Corpus.
 		:return: list of User ids
 		"""
@@ -369,7 +369,7 @@ class Corpus:
 		"""
 		Get a list of ids of Corpus objects of the specified type in the Corpus, with an optional selector that filters for objects that should be included
 		:param obj_type: "user", "utterance", or "conversation"
-		:param selector: a function (typically, a lambda function) that takes a User and returns True or False (i.e. include / exclude).
+		:param selector: a (lambda) function that takes a Corpus object and returns True or False (i.e. include / exclude).
 		By default, the selector includes all objects of the specified type in the Corpus.
 		:return: list of Corpus object ids
 		"""
