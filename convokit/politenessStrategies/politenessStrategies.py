@@ -1,16 +1,8 @@
-
-
-from typing import Callable, Generator, Tuple, List, Dict, Set, Optional, Hashable
-
-
-# from collections import defaultdict
-
+from typing import Callable, Optional
+from convokit.model import Utterance
 from convokit.politeness_api.features.politeness_strategies import get_politeness_strategy_features
-# from convokit.politeness_api.features.vectorizer import get_unigrams_and_bigrams
-
 from convokit.transformer import Transformer
 from convokit.model import Corpus
-
 import re
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -29,7 +21,7 @@ class PolitenessStrategies(Transformer):
         self.MRKR_NAME = "politeness_markers"
         self.verbose = verbose
 
-    def transform(self, corpus: Corpus, markers: bool=False):
+    def transform(self, corpus: Corpus, markers: bool = False):
         """
         Extract politeness strategies from each utterances in the corpus and annotate
         the utterances with the extracted strategies. Requires that the corpus has previously
@@ -38,68 +30,62 @@ class PolitenessStrategies(Transformer):
 
         :param corpus: the corpus to compute features for.
         :type corpus: Corpus
-        :param markers: whether or not to add politeness occurance markers
+        :param markers: whether or not to add politeness occurrence markers
         """
-        for utt in corpus.utterances.values():
+        for utt in corpus.iter_utterances():
             for i, sent in enumerate(utt.meta["parsed"]):
                 for p in sent["toks"]:
-                    p["tok"] = re.sub("[^a-z,.:;]","",p["tok"].lower())
+                    p["tok"] = re.sub("[^a-z,.:;]", "", p["tok"].lower())
             utt.meta[self.ATTR_NAME], marks = get_politeness_strategy_features(utt)
 
-            if markers == True:
+            if markers:
                 utt.meta[self.MRKR_NAME] = marks
 
         return corpus
 
-    def get_scores(self, corpus: Corpus, selector: Optional[Callable[[], bool]] = None):
+    def _get_scores(self, corpus: Corpus, selector: Optional[Callable[[Utterance], bool]] = lambda utt: True):
         """
-        Calculates average occurance per utterance. Used in summarize()
-        
-        :param corpus: the corpus used to compute averages
-        :param selector: lambda function which takes in meta data and returns a boolean.
+        Calculates average occurrence per utterance. Used in summarize()
+
+        :param corpus: the target Corpus
+        :param selector: function specifying whether the utterance should be included
         """
 
-        utts = [corpus.get_utterance(x) for x in corpus.get_utterance_ids()]
-
+        utts = list(corpus.iter_utterances(selector))
         if self.MRKR_NAME not in utts[0].meta:
-            corpus = self.transform(corpus)
+            print("Could not find politeness markers metadata. Running transform() on corpus first...")
+            self.transform(corpus)
+            print("Done.")
 
-        if selector != None:
-            utts = [x for x in utts if selector(x.meta)]
-            if len(utts) == 0:
-                raise Exception("No query matches")
-
-        counts = {k[21:len(k)-2]:0 for k in utts[0].meta[self.MRKR_NAME].keys()}
+        counts = {k[21:len(k)-2]: 0 for k in utts[0].meta[self.MRKR_NAME].keys()}
 
         for utt in utts:
             for k, v in utt.meta[self.MRKR_NAME].items():
-                counts[k[21:len(k)-2]] += len(v)
-        scores = {k:v/len(utts) for k,v in counts.items()}
+                counts[k[21: len(k)-2]] += len(v)
+        scores = {k: v/len(utts) for k, v in counts.items()}
         return scores
 
-    def summarize(self, corpus: Corpus, selector=None, plot: bool = False, y_lim = None):
+    def summarize(self, corpus: Corpus, selector: Callable[[Utterance], bool] = lambda utt: True, plot: bool = False, y_lim = None):
         """
-        Calculates average occurance per utterance and outputs graph if plot == True
+        Calculates average occurrence per utterance and outputs graph if plot == True, with an optional selector
+        that specifies which utterances to include in the analysis
 
-        :param corpus: the corpus used to compute averages
-        :param selector: lambda function which takes in meta data and returns a boolean.
-
-            For example, if selector is: lambda x : sum(x["politeness_strategies"].values()) == 1
-            Then only utterances which have one politeness feature will be used in the calculation.
-
+        :param corpus: the target Corpus
+        :param selector: a function (typically, a lambda function) that takes an Utterance and returns True or False (i.e. include / exclude).
+		By default, the selector includes all Utterances in the Corpus.
         :param plot: whether or not to output graph.
+        :return: a pandas DataFrame of scores with an graph optionally outputted
         """
-        scores = self.get_scores(corpus, selector)
+        scores = self._get_scores(corpus, selector)
 
         if plot:
-            plt.figure(dpi=200, figsize=(9,6))
+            plt.figure(dpi=200, figsize=(9, 6))
             plt.bar(list(range(len(scores))), scores.values(), tick_label = list(scores.keys()), align="edge")
             plt.xticks(np.arange(.4, len(scores)+.4), rotation=45, ha="right")
-            plt.ylabel("Occurance per Utterance", size = 20)
+            plt.ylabel("Occurrences per Utterance", size=20)
             plt.yticks(size=15)
             if y_lim != None:
                 plt.ylim(0, y_lim)
             plt.show()
-
 
         return pd.DataFrame.from_dict(scores, orient='index', columns = ["Averages"])
