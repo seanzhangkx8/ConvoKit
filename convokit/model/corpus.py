@@ -4,7 +4,7 @@ import pandas as pd
 from .corpusHelper import *
 from .corpusUtil import warn
 from .convoKitIndex import ConvoKitIndex
-
+import random
 
 class Corpus:
 	"""Represents a dataset, which can be loaded from a folder or a
@@ -199,36 +199,199 @@ class Corpus:
 	# with open(os.path.join(dir_name, "processed_text.index.json"), "w") as f:
 	#     json.dump(list(self.processed_text.keys()), f)
 
-	def get_utterance(self, ut_id: str) -> Utterance:
-		return self.utterances[ut_id]
+	def get_utterance(self, utt_id: str) -> Utterance:
+		"""
+		Gets Utterance of the specified id from the corpus
+		:param utt_id: id of Utterance
+		:return: Utterance
+		"""
+		return self.utterances[utt_id]
+
+	def get_conversation(self, convo_id: str) -> Conversation:
+		"""
+		Gets Conversation of the specified id from the corpus
+		:param convo_id: id of Conversation
+		:return: Conversation
+		"""
+		return self.conversations[convo_id]
+
+	def get_user(self, user_id: str) -> User:
+		"""
+		Gets User of the specified id from the corpus
+		:param user_id: id of User
+		:return: User
+		"""
+		return self.users[user_id]
+
+	def get_object(self, obj_type: str, oid: str):
+		"""
+		General Corpus object getter. Gets User / Utterance / Conversation of specified id from the Corpus
+		:param obj_type: "user", "utterance", or "conversation"
+		:param oid: object id
+		:return: Corpus object of specified object type with specified object id
+		"""
+		assert obj_type in ["user", "utterance", "conversation"]
+		if obj_type == "user":
+			return self.get_user(oid)
+		elif obj_type == "utterance":
+			return self.get_utterance(oid)
+		else:
+			return self.get_conversation(oid)
 
 	def has_utterance(self, utt_id: str) -> bool:
+		"""
+		Checks if an Utterance of the specified id exists in the Corpus
+		:param utt_id: id of Utterance
+		:return: True if Utterance of specified id is present, False otherwise
+		"""
 		return utt_id in self.utterances
+
+	def has_conversation(self, convo_id: str) -> bool:
+		"""
+		Checks if a Conversation of the specified id exists in the Corpus
+		:param convo_id: id of Conversation
+		:return: True if Conversation of specified id is present, False otherwise
+		"""
+		return convo_id in self.conversations
+
+	def has_user(self, user_id: str) -> bool:
+		"""
+		Checks if a User of the specified id exists in the Corpus
+		:param user_id: id of User
+		:return: True if User of specified id is present, False otherwise
+		"""
+		return user_id in self.users
+
+	def random_utterance(self) -> Utterance:
+		"""
+		Get a random Utterance from the Corpus
+		:return: a random Utterance
+		"""
+		return random.choice(list(self.utterances.values()))
+
+	def random_conversation(self) -> Conversation:
+		"""
+		Get a random Conversation from the Corpus
+		:return: a random Conversation
+		"""
+		return random.choice(list(self.conversations.values()))
+
+	def random_user(self) -> User:
+		"""
+		Get a random User from the Corpus
+		:return: a random User
+		"""
+		return random.choice(list(self.users.values()))
 
 	def iter_utterances(self, selector: Optional[Callable[[Utterance], bool]] = lambda utt: True) -> Generator[
 		Utterance, None, None]:
+		"""
+		Get utterances in the Corpus, with an optional selector that filters for Utterances that should be included
+		:param selector: a function (typically, a lambda function) that takes an Utterance and returns True or False (i.e. include / exclude).
+		By default, the selector includes all Utterances in the Corpus.
+		:return: a generator of Utterances
+		"""
 		for v in self.utterances.values():
 			if selector(v):
 				yield v
 
+	def iter_conversations(self, selector: Optional[Callable[[Conversation], bool]] = lambda convo: True) -> Generator[
+		Conversation, None, None]:
+		"""
+		Get conversations in the Corpus, with an optional selector that filters for Conversations that should be included
+		:param selector: a function (typically, a lambda function) that takes a Conversation and returns True or False (i.e. include / exclude).
+		By default, the selector includes all Conversations in the Corpus.
+		:return: a generator of Conversations
+		"""
+		for v in self.conversations.values():
+			if selector(v):
+				yield v
+
+	def iter_users(self, selector: Optional[Callable[[User], bool]] = lambda user: True) -> Generator[User, None, None]:
+		"""
+		Get Users in the Corpus, with an optional selector that filters for Conversations that should be included
+		:param selector: a function (typically, a lambda function) that takes a User and returns True or False (i.e. include / exclude).
+		By default, the selector includes all Users in the Corpus.
+		:return: a generator of Users
+		"""
+
+		for user in self.users.values():
+			if selector(user):
+				yield user
+
+	def iter_objs(self, obj_type: str, selector: Callable[[Union[User, Utterance, Conversation]], bool] = lambda obj: True):
+		"""
+		Get Corpus objects of specified type from the Corpus, with an optional selector that filters for Corpus object that should be included
+		:param obj_type: "user", "utterance", or "conversation"
+		:param selector: a function (typically, a lambda function) that takes a User and returns True or False (i.e. include / exclude).
+		By default, the selector includes all objects of the specified type in the Corpus.
+		:return: a generator of Users
+		"""
+
+		assert obj_type in ["user", "utterance", "conversation"]
+		obj_iters = {"conversation": self.iter_conversations,
+					 "user": self.iter_users,
+					 "utterance": self.iter_utterances}
+
+		return obj_iters[obj_type](selector)
+
 	def get_utterance_ids(self, selector: Optional[Callable[[Utterance], bool]] = lambda utt: True) -> List[str]:
+		"""
+		Get a list of ids of Utterances in the Corpus, with an optional selector that filters for Utterances that should be included
+		:param selector: a function (typically, a lambda function) that takes an Utterance and returns True or False (i.e. include / exclude).
+		By default, the selector includes all Utterances in the Corpus.
+		:return: list of Utterance ids
+		"""
 		return [utt.id for utt in self.iter_utterances(selector)]
 
 	def get_conversation_ids(self, selector: Optional[Callable[[Conversation], bool]] = lambda convo: True) -> List[
 		str]:
+		"""
+		Get a list of ids of Conversations in the Corpus, with an optional selector that filters for Conversations that should be included
+		:param selector: a function (typically, a lambda function) that takes a Conversation and returns True or False (i.e. include / exclude).
+		By default, the selector includes all Conversations in the Corpus.
+		:return: list of Conversation ids
+		"""
 		return [convo.id for convo in self.iter_conversations(selector)]
 
-	def get_conversation(self, cid: str) -> Conversation:
-		return self.conversations[cid]
+	def get_user_ids(self, selector: Optional[Callable[[User], bool]] = lambda user: True) -> List[
+		str]:
+		"""
+		Get a list of ids of Users in the Corpus, with an optional selector that filters for Users that should be included
+		:param selector: a function (typically, a lambda function) that takes a User and returns True or False (i.e. include / exclude).
+		By default, the selector includes all Users in the Corpus.
+		:return: list of User ids
+		"""
+		return [user.id for user in self.iter_users(selector)]
 
-	def has_conversation(self, cid: str) -> bool:
-		return cid in self.conversations
+	def get_object_ids(self, obj_type: str,
+					   selector: Callable[[Union[User, Utterance, Conversation]], bool] = lambda obj: True):
+		"""
+		Get a list of ids of Corpus objects of the specified type in the Corpus, with an optional selector that filters for objects that should be included
+		:param obj_type: "user", "utterance", or "conversation"
+		:param selector: a function (typically, a lambda function) that takes a User and returns True or False (i.e. include / exclude).
+		By default, the selector includes all objects of the specified type in the Corpus.
+		:return: list of Corpus object ids
+		"""
+		assert obj_type in ["user", "utterance", "conversation"]
+		return [obj.id for obj in self.iter_objs(obj_type, selector)]
 
-	def iter_conversations(self, selector: Optional[Callable[[Conversation], bool]] = lambda convo: True) -> Generator[
-		Conversation, None, None]:
-		for v in self.conversations.values():
-			if selector(v):
-				yield v
+	def get_usernames(self, selector: Optional[Callable[[User], bool]] = lambda user: True) -> Set[str]:
+		"""Get names of users in the dataset.
+
+		This function will be deprecated and replaced by get_user_ids()
+
+		:param selector: optional function that takes in a
+			`User` and returns True to include the user's name in the
+			resulting list, or False otherwise.
+
+		:return: Set containing all user names selected by the selector
+			function, or all user names in the dataset if no selector function
+			was used.
+
+		"""
+		warn("This function is deprecated. Use get_user_ids() instead.")
+		return set([u.name for u in self.iter_users(selector)])
 
 	def filter_conversations_by(self, selector: Callable[[Conversation], bool]):
 		"""
@@ -301,28 +464,6 @@ class Corpus:
 
 		return new_corpus
 
-	def iter_objs(self, obj_type: str, selector: Callable[[Union[User, Utterance, Conversation]], bool] = lambda obj: True):
-		assert obj_type in ["user", "utterance", "conversation"]
-		obj_iters = {"conversation": self.iter_conversations,
-					 "user": self.iter_users,
-					 "utterance": self.iter_utterances}
-
-		return obj_iters[obj_type](selector)
-
-	def get_object_ids(self, obj_type: str,
-					   selector: Callable[[Union[User, Utterance, Conversation]], bool] = lambda obj: True):
-		assert obj_type in ["user", "utterance", "conversation"]
-		return [obj.id for obj in self.iter_objs(obj_type, selector)]
-
-	def get_object(self, obj_type: str, oid: str):
-		assert obj_type in ["user", "utterance", "conversation"]
-		if obj_type == "user":
-			return self.get_user(oid)
-		elif obj_type == "utterance":
-			return self.get_utterance(oid)
-		else:
-			return self.get_conversation(oid)
-
 	def utterance_threads(self, prefix_len: Optional[int] = None,
 						  suffix_len: int = 0,
 						  include_root: bool = True) -> Dict[str, Dict[str, Utterance]]:
@@ -357,47 +498,7 @@ class Corpus:
 	def add_meta(self, key: str, value) -> None:
 		self.meta[key] = value
 
-	def iter_users(self, selector: Optional[Callable[[User], bool]] = lambda user: True) -> Generator[User, None, None]:
-		"""Get users in the dataset.
 
-		:param selector: optional function that takes in a
-			`User` and returns True to include the user in the
-			resulting list, or False otherwise.
-
-		:return: Set containing all users selected by the selector function,
-			or all users in the dataset if no selector function was
-			used.
-		"""
-
-		for user in self.users.values():
-			if selector(user):
-				yield user
-
-	def get_user(self, name: str) -> User:
-		return self.users[name]
-
-	def get_usernames(self, selector: Optional[Callable[[User], bool]] = lambda user: True) -> Set[str]:
-		"""Get names of users in the dataset.
-
-		This function will be deprecated and replaced by get_user_ids()
-
-		:param selector: optional function that takes in a
-			`User` and returns True to include the user's name in the
-			resulting list, or False otherwise.
-
-		:return: Set containing all user names selected by the selector
-			function, or all user names in the dataset if no selector function
-			was used.
-
-		"""
-		warn("This function is deprecated. Use get_user_ids() instead.")
-		return set([u.name for u in self.iter_users(selector)])
-
-	def get_user_ids(self, selector: Optional[Callable[[User], bool]] = lambda user: True) -> Set[str]:
-		return set([u.id for u in self.iter_users(selector)])
-
-	def has_user(self, user_id: str) -> bool:
-		return user_id in self.users
 
 	def speaking_pairs(self, selector: Optional[Callable[[User, User], bool]] = lambda user1, user2: True,
 					   user_names_only: bool = False) -> Set[Tuple]:
