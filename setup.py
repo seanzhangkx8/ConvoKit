@@ -42,6 +42,6 @@ setup(
         "unidecode>=1.1.1"
     ],
     extras_require={
-        'neuralnetwork': ["torch>=0.12"],
+        'craft': ["torch>=0.12"],
     }
 )
