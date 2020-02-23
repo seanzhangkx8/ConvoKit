@@ -37,7 +37,9 @@ default_options = {
 class CRAFTModel(ForecasterModel):
     """
     CRAFTModel is one of the Forecaster models that can be used with the Forecaster Transformer.
-    By default, CRAFTModel will be initialized with default options:
+
+    By default, CRAFTModel will be initialized with default options
+
     - hidden_size: 500
     - encoder_n_layers: 2
     - context_encoder_n_layers: 2
@@ -50,6 +52,7 @@ class CRAFTModel(ForecasterModel):
     - train_epochs (number of epochs for training): 30
     - validation_size (percentage of training input data to use as validation): 0.2
     - max_length (maximum utterance length in the dataset): 80
+
     """
 
     def __init__(self, device_type: str = 'cpu',
@@ -98,8 +101,7 @@ class CRAFTModel(ForecasterModel):
     def _evaluate_batch(self, predictor, input_batch, dialog_lengths,
                         dialog_lengths_list, utt_lengths, batch_indices, dialog_indices, true_batch_size):
         """
-        Helper for _evaluate_dataset. Runs CRAFT evaluation on a single batch; _evaluate_dataset calls this helper iteratively
-        to get results for the entire dataset.
+        Helper for _evaluate_dataset. Runs CRAFT evaluation on a single batch; _evaluate_dataset calls this helper iteratively to get results for the entire dataset.
 
         :param predictor: the trained CRAFT model to use, provided as a PyTorch Model instance.
         :param input_batch: the batch to run CRAFT on (produced by convokit.forecaster.craftUtil.batchIterator, formatted as a batch of utterances)
@@ -335,8 +337,8 @@ class CRAFTModel(ForecasterModel):
 
     def forecast(self, id_to_context_reply_label):
         """
-        Compute forecasts and forecast scores for the given dictionary of utterance id to (context, reply) pairs
-        Return the values in a DataFrame
+        Compute forecasts and forecast scores for the given dictionary of utterance id to (context, reply) pairs. Return the values in a DataFrame.
+
         :param id_to_context_reply_label: dict mapping utterance id to (context, reply, label)
         :return: a pandas DataFrame
         """

@@ -124,8 +124,7 @@ class FightingWords(Transformer):
     def fit(self, corpus: Corpus, class1_func: Callable[[Utterance], bool],
             class2_func: Callable[[Utterance], bool], y=None, selector: Callable[[Utterance], bool] = lambda utt: True):
         """
-        Learn the fighting words from a corpus, with an optional selector that selects for utterances prior to grouping
-        the utterances into class1 / class2.
+        Learn the fighting words from a corpus, with an optional selector that selects for utterances prior to grouping the utterances into class1 / class2.
 
         :param corpus: target Corpus
         :param class1_func: selector function for identifying utterances that belong to class 1
@@ -228,7 +227,8 @@ class FightingWords(Transformer):
 
     def get_zscore(self, ngram):
         """
-        Get z-score of a given ngram
+        Get z-score of a given ngram.
+
         :param ngram: ngram of interest
         :return: z-score value, None if zgram not in vocabulary
         """
@@ -239,6 +239,7 @@ class FightingWords(Transformer):
     def get_class(self, ngram):
         """
         Get the class that ngram more belongs to.
+
         :param ngram: ngram of interest
         :return: "class1" if the ngram has non-negative z-score, "class2" if ngram has positive z-score, None if ngram not in vocabulary
         """
@@ -255,6 +256,7 @@ class FightingWords(Transformer):
         """
         Returns a DataFrame of ngram with zscores and classes, and optionally plots the fighting words distribution.
         FightingWords Transformer must be fitted prior to running this.
+
         :param corpus: corpus to learn fighting words from if not already fitted
         :param plot: if True, generates a plot for the fighting words distribution
         :return: DataFrame of ngrams with zscores and classes, indexed by the ngrams (plot is optionally generated)
@@ -272,6 +274,7 @@ class FightingWords(Transformer):
         Specifically, the weighted log-odds ratio is plotted against frequency of word within topic.
 
         Only the most significant ngrams will have text labels. The most significant ngrams are specified by FightingWords.annot_method and (FightingWords.top_k or FightingWords.threshold)
+
         :param max_label_size: For the text labels, set the largest possible size for any text label (the rest will be scaled accordingly)
         :return: None (plot is generated)
         """

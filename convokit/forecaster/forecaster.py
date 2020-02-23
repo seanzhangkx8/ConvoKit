@@ -7,22 +7,17 @@ import pandas as pd
 
 class Forecaster(Transformer):
     """
-    Implements basic Forecaster behavior
+    Implements basic Forecaster behavior.
 
     :param forecaster_model: ForecasterModel to use, e.g. cumulativeBoW or CRAFT
-    :param forecast_mode: 'future' to annotate leaf utterances with forecasts for the next future utterance
-    (that has not occurred yet), 'past' for annotating all non-root utterances with the forecasts for all
-    existing utterances based on prior utterances
+    :param forecast_mode: 'future' to annotate leaf utterances with forecasts for the next future utterance (that has not occurred yet), 'past' for annotating all non-root utterances with the forecasts for all existing utterances based on prior utterances
     :param convo_structure: conversations in expected corpus are 'branched' or 'linear', default: "branched"
     :param text_func: optional function for extracting the text of the utterance, default: uses utterance's text attribute
     :param label_func: callable function for getting the utterance's forecast label (True or False); only used in training
-    :param use_last_only: if forecast_mode is 'past' and use_last_only is True, for each dialog, use only the
-    context-reply pair where the reply is the last utterance in the dialog
-    :param skip_broken_convos: if True and convo_structure is 'branched', exclude all conversations that
-    have broken reply-to structures, default: True
+    :param use_last_only: if forecast_mode is 'past' and use_last_only is True, for each dialog, use only the context-reply pair where the reply is the last utterance in the dialog
+    :param skip_broken_convos: if True and convo_structure is 'branched', exclude all conversations that have broken reply-to structures, default: True
     :param forecast_feat_name: metadata feature name to use in annotation for forecast result, default: "forecast"
-    :param forecast_prob_feat_name: metadata feature name to use in annotation for forecast result probability,
-    default: "forecast_prob"
+    :param forecast_prob_feat_name: metadata feature name to use in annotation for forecast result probability, default: "forecast_prob"
     """
     def __init__(self, forecaster_model: ForecasterModel = None,
                  forecast_mode: str = "future",
@@ -102,12 +97,11 @@ class Forecaster(Transformer):
             selector: Callable[[Conversation], bool] = lambda convo: True,
             ignore_utterances: Callable[[Utterance], bool] = lambda utt: False):
         """
-        Train the ForecasterModel on the given corpus
+        Train the ForecasterModel on the given corpus.
+
         :param corpus: target Corpus
-        :param selector: a (lambda) function that takes a Conversation and returns a bool: True if the Conversation
-        is to be included in the fitting step. By default, includes all Conversations.
-        :param ignore_utterances: a (lambda) function that takes an Utterance and returns a bool: True if the Utterance
-        should be excluded from the Conversation in the fitting step. By default, all Utterances are included.
+        :param selector: a (lambda) function that takes a Conversation and returns a bool: True if the Conversation is to be included in the fitting step. By default, includes all Conversations.
+        :param ignore_utterances: a (lambda) function that takes an Utterance and returns a bool: True if the Utterance should be excluded from the Conversation in the fitting step. By default, all Utterances are included.
         :return: fitted Forecaster Transformer
         """
         id_to_context_reply_label = self._get_context_reply_label_dict(corpus, selector, ignore_utterances, include_label=True)
@@ -118,11 +112,10 @@ class Forecaster(Transformer):
                   ignore_utterances: Callable[[Utterance], bool] = lambda utt: False) -> Corpus:
         """
         Annotate the corpus utterances with forecast and forecast score information
+
         :param corpus: target Corpus
-        :param selector: a (lambda) function that takes a Conversation and returns a bool: True if the Conversation
-        is to be included in the transformation step. By default, includes all Conversations.
-        :param ignore_utterances: a (lambda) function that takes an Utterance and returns a bool: True if the Utterance
-        should be excluded from the Conversation in the transformation step. By default, all Utterances are included.
+        :param selector: a (lambda) function that takes a Conversation and returns a bool: True if the Conversation is to be included in the transformation step. By default, includes all Conversations.
+        :param ignore_utterances: a (lambda) function that takes an Utterance and returns a bool: True if the Utterance should be excluded from the Conversation in the transformation step. By default, all Utterances are included.
         :return: annotated Corpus
         """
         id_to_context_reply_label = self._get_context_reply_label_dict(corpus, selector, ignore_utterances, include_label=False)
@@ -144,12 +137,11 @@ class Forecaster(Transformer):
                   exclude_na=True):
         """
         Returns a DataFrame of utterances and their forecasts (and forecast probabilities)
+
         :param corpus: target Corpus
         :param exclude_na: whether to drop NaN results
-        :param selector: a (lambda) function that takes a Conversation and returns a bool: True if the Conversation
-        is to be included in the summary step. By default, includes all Conversations.
-        :param ignore_utterances: a (lambda) function that takes an Utterance and returns a bool: True if the Utterance
-        should be excluded from the Conversation in the summary step. By default, all Utterances are included.
+        :param selector: a (lambda) function that takes a Conversation and returns a bool: True if the Conversation is to be included in the summary step. By default, includes all Conversations.
+        :param ignore_utterances: a (lambda) function that takes an Utterance and returns a bool: True if the Utterance should be excluded from the Conversation in the summary step. By default, all Utterances are included.
         :return: a pandas DataFrame
         """
         utt_forecast_prob = []

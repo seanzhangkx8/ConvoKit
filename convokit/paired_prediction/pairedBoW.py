@@ -8,19 +8,18 @@ from .util import *
 from .pairedPrediction import PairedPrediction
 from convokit.classifier.util import get_coefs_helper
 
+
 class PairedBoW(PairedPrediction):
     """
     Transformer for doing a Paired Prediction with bag-of-words vectors.
 
-    :param pairing_func: the Corpus object characteristic to pair on,
-            e.g. to pair on the first 10 characters of a well structured id, use lambda obj: obj.id[:10]
+    :param pairing_func: the Corpus object characteristic to pair on, e.g. to pair on the first 10 characters of a well structured id, use lambda obj: obj.id[:10]
     :param pos_label_func: The function to check if the object is a positive instance
     :param neg_label_func: The function to check if the object is a negative instance
     :param clf: optional classifier to be used in the paired prediction
     :param pair_id_feat_name: metadata feature name to use in annotating object with pair id, default: "pair_id"
     :param label_feat_name: metadata feature name to use in annotating object with predicted label, default: "label"
-    :param pair_orientation_feat_name: metadata feature name to use in annotating object with pair orientation,
-    default: "pair_orientation"
+    :param pair_orientation_feat_name: metadata feature name to use in annotating object with pair orientation, default: "pair_orientation"
 
     """
     def __init__(self, obj_type: str,
@@ -68,8 +67,7 @@ class PairedBoW(PairedPrediction):
 
     def get_coefs(self, feature_names: List[str], coef_func=None):
         """
-        Get dataframe of classifier coefficients. By default, assumes it is a pipeline with a logistic regression
-        component.
+        Get dataframe of classifier coefficients. By default, assumes it is a pipeline with a logistic regression component.
 
         :param feature_names: list of feature names to get coefficients for. if None, uses vectorizer vocabulary
         :param coef_func: function for accessing the list of coefficients from the classifier model

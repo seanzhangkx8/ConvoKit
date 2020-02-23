@@ -22,7 +22,8 @@ class Ranker(Transformer):
 
     def transform(self, corpus: Corpus, y=None, selector: Callable[[CorpusObject], bool] = lambda obj: True) -> Corpus:
         """
-        Annotate corpus objects with scores and rankings
+        Annotate corpus objects with scores and rankings.
+
         :param corpus: target corpus
         :param selector: (lambda) function taking in a Corpus object and returning True / False; selects for Corpus objects to annotate.
         :return: annotated corpus
@@ -46,7 +47,8 @@ class Ranker(Transformer):
 
     def transform_objs(self, objs: List[CorpusObject]):
         """
-        Annotate list of Corpus objects with scores and rankings
+        Annotate list of Corpus objects with scores and rankings.
+
         :param objs: target list of Corpus objects
         :return: list of annotated COrpus objects
         """
@@ -61,11 +63,10 @@ class Ranker(Transformer):
 
     def summarize(self, corpus: Corpus, selector: Callable[[CorpusObject], bool] = lambda obj: True):
         """
-        Generate a dataframe indexed by object id, containing score + rank, and sorted by rank (in ascending order)
-        of the objects in an annotated corpus, with an optional selector selecting which objects to be included in the dataframe
+        Generate a dataframe indexed by object id, containing score + rank, and sorted by rank (in ascending order) of the objects in an annotated corpus, with an optional selector selecting which objects to be included in the dataframe
+
         :param corpus: annotated target corpus
-        :param selector: a (lambda) function that takes a Corpus object and returns True or False (i.e. include / exclude).
-		By default, the selector includes all objects of the specified type in the Corpus.
+        :param selector: a (lambda) function that takes a Corpus object and returns True or False (i.e. include / exclude). By default, the selector includes all objects of the specified type in the Corpus.
         :return: a pandas DataFrame
         """
         obj_iters = {"conversation": corpus.iter_conversations,
@@ -81,8 +82,8 @@ class Ranker(Transformer):
 
     def summarize_objs(self, objs: List[CorpusObject]):
         """
-        Generate a dataframe indexed by object id, containing score + rank, and sorted by rank (in ascending order)
-        of the objects in an annotated corpus, or a list of corpus objects
+        Generate a dataframe indexed by object id, containing score + rank, and sorted by rank (in ascending order) of the objects in an annotated corpus, or a list of corpus objects
+
         :param objs: list of annotated corpus objects
         :return: a pandas DataFrame
         """

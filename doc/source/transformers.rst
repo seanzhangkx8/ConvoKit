@@ -9,13 +9,15 @@ These are the main offerings of ConvoKit: standalone modules implementing variou
    Bag-of-words <bow.rst>
    Classifier <classifier.rst>
    Coordination <coordination.rst>
-   PolitenessStrategies <politenessStrategies.rst>
    FightingWords <fightingwords.rst>
+   Forecaster <forecaster.rst>
    Hyperconvo <hyperconvo.rst>
-   PairedPrediction <pairedprediction.rst>
    ThreadEmbedder <threadEmbedder.rst>
    CommunityEmbedder <communityEmbedder.rst>
-   UserConvoDiversity <userConvoDiversity.rst>
-   PromptTypes <promptTypes.rst>
+   PairedPrediction <pairedprediction.rst>
    PhrasingMotifs <phrasingMotifs.rst>
+   PolitenessStrategies <politenessStrategies.rst>
+   PromptTypes <promptTypes.rst>
+   Ranker <ranker.rst>
+   UserConvoDiversity <userConvoDiversity.rst>
    Transformer base class <transformer.rst>
