@@ -1,4 +1,8 @@
-import torch
+try:
+    import torch
+except (ModuleNotFoundError, ImportError) as e:
+    raise ModuleNotFoundError("torch is not currently installed. Run 'pip install convokit[craft]' if you would like to use the CRAFT model.")
+
 from torch import nn
 import os
 from urllib.request import urlretrieve

@@ -1,8 +1,8 @@
 try:
     import torch
-except ImportError:
-    raise ImportError("Could not find torch >= 0.12, which is a required dependency for using the CRAFT model. "
-                      "Run 'pip install convokit[neuralnetwork]' to fix this.")
+except (ModuleNotFoundError, ImportError) as e:
+    raise ModuleNotFoundError("torch is not currently installed. Run 'pip install convokit[craft]' if you would like to use the CRAFT model.")
+
 import pandas as pd
 from convokit.forecaster.CRAFT.CRAFTUtil import loadPrecomputedVoc, batchIterator, CONSTANTS
 from .CRAFT.CRAFTNN import initialize_model, makeContextEncoderInput, Predictor
