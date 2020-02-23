@@ -155,7 +155,7 @@ class Hypergraph:
 
         motifs = []
         for C1, C2 in itertools.combinations(self.hypernodes, 2):
-            if len(self.adj_out[C1][C2]) > 0 and len(self.adj_out[C2][C1]) > 0:
+            if len(self.adj_out[C1].get(C2, [])) > 0 and len(self.adj_out[C2].get(C1, [])) > 0:
                 motifs += [(C1, C2, self.adj_out[C1][C2], self.adj_out[C2][C1])]
         return motifs
 
@@ -167,8 +167,7 @@ class Hypergraph:
         for C1 in self.hypernodes:
             incoming = list(self.adj_in[C1].keys())
             for C2, C3 in itertools.combinations(incoming, 2):
-                if self.adj_out[C2][C1] > 0 and self.adj_out[C3][C1] > 0:
-                    motifs += [(C1, C2, C3, self.adj_out[C2][C1], self.adj_out[C3][C1])]
+                motifs += [(C1, C2, C3, self.adj_out[C2][C1], self.adj_out[C3][C1])]
         return motifs
 
     def outgoing_triad_motifs(self) -> List[Tuple]:
