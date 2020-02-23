@@ -15,6 +15,7 @@ class BoWClassifier(Classifier):
     Runs on the Corpus's Users, Utterances, or Conversations (as specified by obj_type)
 
     Inherits from `Classifier` and has access to its methods.
+
     :param obj_type: "user", "utterance", or "conversation"
     :param vector_name: the metadata key where the Corpus object text vector is stored
     :param labeller: a (lambda) function that takes a Corpus object and returns True (y=1) or False (y=0) - i.e. labeller defines the y value of the object for fitting
@@ -39,11 +40,11 @@ class BoWClassifier(Classifier):
 
     def fit(self, corpus: Corpus, y=None, selector: Callable[[CorpusObject], bool] = lambda x: True):
         """
-        Fit the Transformer's internal classifier model on the Corpus objects, with an optional selector that filters
-        for objects to be fit on.
+        Fit the Transformer's internal classifier model on the Corpus objects, with an optional selector that filters for objects to be fit on.
+
         :param corpus: the target Corpus
-        :param selector: a (lambda) function that takes a Corpus object and returns True or False (i.e. include / exclude).
-		By default, the selector includes all objects of the specified type in the Corpus.
+        :param selector: a (lambda) function that takes a Corpus object and returns True or False (i.e. include /
+        exclude). By default, the selector includes all objects of the specified type in the Corpus.
         :return: the fitted BoWClassifier
         """
         # collect texts for vectorization
@@ -58,12 +59,14 @@ class BoWClassifier(Classifier):
 
     def transform(self, corpus: Corpus, selector: Callable[[CorpusObject], bool] = lambda x: True) -> Corpus:
         """
-        Annotate the corpus objects with the classifier prediction and prediction score, with an optional selector that filters
-        for objects to be classified. Objects that are not selected will get a metadata value of 'None' instead of the classifier prediction.
+        Annotate the corpus objects with the classifier prediction and prediction score, with an optional selector
+        that filters for objects to be classified. Objects that are not selected will get a metadata value of 'None'
+        instead of the classifier prediction.
 
         :param corpus: the target Corpus
-        :param selector: a (lambda) function that takes a Corpus object and returns True or False (i.e. include / exclude).
-		By default, the selector includes all objects of the specified type in the Corpus.
+        :param selector: a (lambda) function that takes a Corpus object and returns True or False (i.e. include /
+        exclude). By default, the selector includes all objects of the specified type in the Corpus.
+
         :return: the target Corpus annotated
         """
         objs = []
@@ -87,6 +90,7 @@ class BoWClassifier(Classifier):
     def summarize(self, corpus: Corpus, selector: Callable[[CorpusObject], bool] = lambda x: True):
         """
         Generate a DataFrame indexed by object id with the classifier predictions and scores
+
         :param corpus: the annotated Corpus
         :param selector: a (lambda) function that takes a Corpus object and returns True or False (i.e. include / exclude).
 		By default, the selector includes all objects of the specified type in the Corpus.

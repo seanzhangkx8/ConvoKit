@@ -7,17 +7,19 @@ from convokit import Transformer, CorpusObject
 
 class Classifier(Transformer):
     """
-    Transformer that trains a classifier on the specified features of a Corpus's objects
+    Transformer that trains a classifier on the specified features of a Corpus's objects.
 
-    Runs on the Corpus's Users, Utterances, or Conversations (as specified by obj_type)
+    Runs on the Corpus's Users, Utterances, or Conversations (as specified by obj_type).
 
     :param obj_type: type of Corpus object to classify: 'conversation', 'user', or 'utterance'
-    :param pred_feats: list of metadata keys containing the features to be used in prediction.
-    If the key corresponds to a dictionary, all the keys of the dictionary will be included in pred_feats.
-    :param labeller: a (lambda) function that takes a Corpus object and returns True (y=1) or False (y=0) - i.e. labeller defines the y value of the object for fitting
+    :param pred_feats: list of metadata keys containing the features to be used in prediction. If the key
+    corresponds to a dictionary, all the keys of the dictionary will be included in pred_feats.
+    :param labeller: a (lambda) function that takes a Corpus object and returns True (y=1) or False (y=0) - i.e.
+    labeller defines the y value of the object for fitting
     :param clf: optional sklearn classifier model, an SVM with linear kernel will be initialized by default
     :param clf_feat_name: the metadata key to store the classifier prediction value under; default: "prediction"
     :param clf_prob_feat_name: the metadata key to store the classifier prediction score under; default: "pred_score"
+
     """
     def __init__(self, obj_type: str, pred_feats: List[str],
                  labeller: Callable[[CorpusObject], bool] = lambda x: True,
@@ -35,8 +37,8 @@ class Classifier(Transformer):
         Trains the Transformer's classifier model, with an optional selector that filters for objects to be fit on.
 
         :param corpus: target Corpus
-        :param selector: a (lambda) function that takes a Corpus object and returns True or False (i.e. include / exclude).
-		By default, the selector includes all objects of the specified type in the Corpus.
+        :param selector: a (lambda) function that takes a Corpus object and returns True or False (i.e. include /
+        exclude). By default, the selector includes all objects of the specified type in the Corpus.
         :return: the fitted Classifier Transformer
         """
         X, y = extract_feats_and_label(corpus, self.obj_type, self.pred_feats, self.labeller, selector)
@@ -45,9 +47,9 @@ class Classifier(Transformer):
 
     def transform(self, corpus: Corpus, selector: Callable[[CorpusObject], bool] = lambda x: True) -> Corpus:
         """
-        Run classifier on given corpus's objects and annotate them with the predictions and prediction scores, with
-        an optional selector that filters for objects to be classified.
-        Objects that are not selected will get a metadata value of 'None' instead of the classifier prediction.
+        Run classifier on given corpus's objects and annotate them with the predictions and prediction scores,
+        with an optional selector that filters for objects to be classified. Objects that are not selected will get
+        a metadata value of 'None' instead of the classifier prediction.
 
         :param corpus: target Corpus
         :param selector: a (lambda) function that takes a Corpus object and returns True or False (i.e. include / exclude).
@@ -92,11 +94,14 @@ class Classifier(Transformer):
 
     def summarize(self, corpus: Corpus, selector: Callable[[CorpusObject], bool] = lambda x: True):
         """
-        Generate a pandas DataFrame (indexed by object id, with prediction and prediction score columns) of classification results.
+        Generate a pandas DataFrame (indexed by object id, with prediction and prediction score columns) of
+        classification results.
+
         Run either on a target Corpus or a list of Corpus objects
+
         :param corpus: target Corpus
-        :param selector: a (lambda) function that takes a Corpus object and returns True or False (i.e. include / exclude).
-		By default, the selector includes all objects of the specified type in the Corpus.
+        :param selector: a (lambda) function that takes a Corpus object and returns True or False (i.e. include /
+        exclude). By default, the selector includes all objects of the specified type in the Corpus.
         :return: pandas DataFrame indexed by Corpus object id
         """
         objId_clf_prob = []
@@ -109,7 +114,9 @@ class Classifier(Transformer):
 
     def summarize_objs(self, objs: List[CorpusObject]):
         """
-        Generate a pandas DataFrame (indexed by object id, with prediction and prediction score columns) of classification results.
+        Generate a pandas DataFrame (indexed by object id, with prediction and prediction score columns) of
+        classification results.
+
         Runs on a list of Corpus objects.
 
         :param objs: list of Corpus objects
@@ -127,13 +134,15 @@ class Classifier(Transformer):
                  selector: Callable[[CorpusObject], bool] = lambda x: True,
                  test_size: float = 0.2):
         """
-        Evaluate the performance of predictive features (Classifier.pred_feats) in predicting for the label, using a
-        train-test split.
+        Evaluate the performance of predictive features (Classifier.pred_feats) in predicting for the label,
+        using a train-test split.
 
         Run either on a Corpus (with Classifier labeller, selector, obj_type settings) or a list of Corpus objects
+
         :param corpus: target Corpus
         :param objs: target list of Corpus objects
-        :param selector: if running on a Corpus, this is a (lambda) function that takes a Corpus object and returns True or False (i.e. include / exclude).
+        :param selector: if running on a Corpus, this is a (lambda) function that takes a Corpus object and returns
+        True or False (i.e. include / exclude).
 		By default, the selector includes all objects of the specified type in the Corpus.
         :param test_size: size of test set
         :return: accuracy and confusion matrix
@@ -164,16 +173,18 @@ class Classifier(Transformer):
                          selector: Callable[[CorpusObject], bool] = lambda x: True
                          ):
         """
-        Evaluate the performance of predictive features (Classifier.pred_feats) in predicting for the label, using cross-validation
-        for data splitting.
+        Evaluate the performance of predictive features (Classifier.pred_feats) in predicting for the label,
+        using cross-validation for data splitting.
 
-        Run either on a Corpus (with Classifier labeller, selector, obj_type settings) or a list of Corpus objects
+        Run either on a Corpus (with Classifier labeller, selector, obj_type settings) or a list of Corpus objects.
 
         :param corpus: target Corpus
         :param objs: target list of Corpus objects
         :param cv: cross-validation model to use: KFold(n_splits=5) by default.
-        :param selector: if running on a Corpus, this is a (lambda) function that takes a Corpus object and returns True or False (i.e. include / exclude).
-		By default, the selector includes all objects of the specified type in the Corpus.
+        :param selector: if running on a Corpus, this is a (lambda) function that takes a Corpus object and returns
+        True or False (i.e. include / exclude). By default, the selector includes all objects of the specified type
+        in the Corpus.
+
         :return: cross-validated accuracy score
         """
         if ((corpus is None) and (objs is None)) or ((corpus is not None) and (objs is not None)):
@@ -196,6 +207,7 @@ class Classifier(Transformer):
     def confusion_matrix(self, corpus, selector: Callable[[CorpusObject], bool] = lambda x: True):
         """
         Generate confusion matrix for transformed corpus using labeller for y_true and clf_feat_name as y_pred
+
         :param corpus: target Corpus
         :param selector: (lambda) function selecting objects to include in this confusion_matrix; uses all objects by default
         :return: sklearn confusion matrix
@@ -211,6 +223,7 @@ class Classifier(Transformer):
     def base_accuracy(self, corpus, selector: Callable[[CorpusObject], bool] = lambda x: True):
         """
         Get the base accuracy, i.e. the maximum of the percentages of results that are y=1 and y=0
+
         :param corpus: the classified Corpus
         :param selector: (lambda) function selecting objects to include in this accuracy calculation; uses all objects by default
         :return: float value
@@ -222,6 +235,7 @@ class Classifier(Transformer):
     def accuracy(self, corpus, selector: Callable[[CorpusObject], bool] = lambda x: True):
         """
         Calculate the accuracy of the classification
+
         :param corpus: target Corpus
         :param selector: (lambda) function selecting objects to include in this accuracy calculation; uses all objects by default
         :return: float value
@@ -232,6 +246,7 @@ class Classifier(Transformer):
     def get_y_true_pred(self, corpus, selector: Callable[[CorpusObject], bool] = lambda x: True):
         """
         Get lists of true and predicted labels
+
         :param corpus: target Corpus
         :param selector: (lambda) function selecting objects to get labels for; uses all objects by default
         :return: list of true labels, and list of predicted labels
@@ -247,6 +262,7 @@ class Classifier(Transformer):
     def classification_report(self, corpus, selector: Callable[[CorpusObject], bool] = lambda x: True):
         """
         Generate classification report for transformed corpus using labeller for y_true and clf_feat_name as y_pred
+
         :param corpus: target Corpus
         :param selector: (lambda) function selecting objects to include in this classification report
         :return: classification report
@@ -262,6 +278,7 @@ class Classifier(Transformer):
     def get_coefs(self, feature_names: List[str], coef_func=None):
         """
         Get dataframe of classifier coefficients
+
         :param feature_names: list of feature names to get coefficients for
         :param coef_func: function for accessing the list of coefficients from the classifier model; by default,
                             assumes it is a pipeline with a logistic regression component
