@@ -70,6 +70,10 @@ class BoWTransformer(Transformer):
 
         return corpus
 
+    def fit_transform(self, corpus: Corpus, y=None, selector: Callable[[CorpusObject], bool] = lambda x: True) -> Corpus:
+        self.fit(corpus, selector=selector)
+        return self.transform(corpus, selector=selector)
+
     def get_vocabulary(self):
         """
         Get the vocabulary of the vectorizer object

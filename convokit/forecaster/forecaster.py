@@ -131,6 +131,11 @@ class Forecaster(Transformer):
 
         return corpus
 
+    def fit_transform(self, corpus: Corpus, y=None, selector: Callable[[Conversation], bool] = lambda convo: True,
+                      ignore_utterances: Callable[[Utterance], bool] = lambda utt: False) -> Corpus:
+        self.fit(corpus, selector=selector, ignore_utterances=ignore_utterances)
+        return self.transform(corpus, selector=selector, ignore_utterances=ignore_utterances)
+
     def summarize(self, corpus: Corpus,
                   selector: Callable[[Conversation], bool] = lambda convo: True,
                   ignore_utterances: Callable[[Utterance], bool] = lambda utt: False,

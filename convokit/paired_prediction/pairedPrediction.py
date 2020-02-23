@@ -16,13 +16,12 @@ class PairedPrediction(Transformer):
 
     See Pairer's documentation for more information about pairing.
 
-    :param pred_feats: List of metadata features to be used in prediction. Features can either be values or a
-                        dictionary of key-value pairs, but not a nested dictionary
+    :param pred_feats: List of metadata features to be used in prediction. Features can either be values or a dictionary of key-value pairs, but not a nested dictionary
     :param clf: optional classifier to be used in the paired prediction
     :param pair_id_feat_name: metadata feature name to use in annotating object with pair id, default: "pair_id"
     :param label_feat_name: metadata feature name to use in annotating object with predicted label, default: "label"
-    :param pair_orientation_feat_name: metadata feature name to use in annotating object with pair orientation,
-    default: "pair_orientation"
+    :param pair_orientation_feat_name: metadata feature name to use in annotating object with pair orientation, default: "pair_orientation"
+
     """
     def __init__(self, obj_type: str,
                  pred_feats: List[str],
@@ -42,11 +41,10 @@ class PairedPrediction(Transformer):
 
     def fit(self, corpus: Corpus, y=None, selector: Callable[[CorpusObject], bool] = lambda x: True):
         """
-        Fit the internal classifier on the paired object features, with an optional selector selecting for which
-        corpus objects to include in the analysis
+        Fit the internal classifier on the paired object features, with an optional selector selecting for which corpus objects to include in the analysis
+
         :param corpus: target Corpus
-        :param selector: a (lambda) function that takes a Corpus object and returns a bool: True if the object
-        is to be included in the paired prediction. By default, includes all objects.
+        :param selector: a (lambda) function that takes a Corpus object and returns a bool: True if the object is to be included in the paired prediction. By default, includes all objects.
         :return: fitted PairedPrediction Transformer
         """
         # Check if Pairer.transform() needs to be run first
@@ -76,14 +74,14 @@ class PairedPrediction(Transformer):
 
     def summarize(self, corpus: Corpus, selector: Callable[[CorpusObject], bool] = lambda x: True, cv=LeaveOneOut()):
         """
-        Run PairedPrediction on the corpus with cross-validation and returns the mean cross-validation score
+        Run PairedPrediction on the corpus with cross-validation and returns the mean cross-validation score.
+
         :param corpus: target Corpus (must be annotated with pair information using PairedPrediction.transform())
-        :param selector: a (lambda) function that takes a Corpus object and returns a bool: True if the object
-        is to be included in summary. By default, includes all objects.
+        :param selector: a (lambda) function that takes a Corpus object and returns a bool: True if the object is to be included in summary. By default, includes all objects.
         :param cv: optional CV model: default is LOOCV
         :return: cross-validation accuracy score
         """
-        pair_id_to_objs = generate_pair_id_to_objs(corpus, self.obj_type, self.selector, self.pair_orientation_feat_name,
+        pair_id_to_objs = generate_pair_id_to_objs(corpus, self.obj_type, selector, self.pair_orientation_feat_name,
                                                    self.label_feat_name, self.pair_id_feat_name)
 
         X, y = generate_paired_X_y(self.pred_feats, self.pair_orientation_feat_name, pair_id_to_objs)
@@ -91,10 +89,10 @@ class PairedPrediction(Transformer):
 
     def get_coefs(self, feature_names: List[str], coef_func=None):
         """
-        Get dataframe of classifier coefficients
+        Get dataframe of classifier coefficients.
+
         :param feature_names: list of feature names to get coefficients for
-        :param coef_func: function for accessing the list of coefficients from the classifier model; by default,
-                            assumes it is a pipeline with a logistic regression component
+        :param coef_func: function for accessing the list of coefficients from the classifier model; by default, assumes it is a pipeline with a logistic regression component
         :return: DataFrame of features and coefficients, indexed by feature names
         """
         return get_coefs_helper(self.clf, feature_names, coef_func)

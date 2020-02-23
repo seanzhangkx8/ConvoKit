@@ -87,6 +87,10 @@ class BoWClassifier(Classifier):
             obj.add_meta(self.clf_prob_feat_name, clf_prob)
         return corpus
 
+    def fit_transform(self, corpus: Corpus, y=None, selector: Callable[[CorpusObject], bool] = lambda x: True) -> Corpus:
+        self.fit(corpus, selector=selector)
+        return self.transform(corpus, selector=selector)
+
     def summarize(self, corpus: Corpus, selector: Callable[[CorpusObject], bool] = lambda x: True):
         """
         Generate a DataFrame indexed by object id with the classifier predictions and scores

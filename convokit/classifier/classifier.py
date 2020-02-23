@@ -74,6 +74,10 @@ class Classifier(Transformer):
 
         return corpus
 
+    def fit_transform(self, corpus: Corpus, y=None, selector: Callable[[CorpusObject], bool] = lambda x: True) -> Corpus:
+        self.fit(corpus, selector=selector)
+        return self.transform(corpus, selector=selector)
+
     def transform_objs(self, objs: List[CorpusObject]) -> List[CorpusObject]:
         """
         Run classifier on list of Corpus objects and annotate them with the predictions and prediction scores
