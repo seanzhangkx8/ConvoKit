@@ -5,12 +5,6 @@ from convokit.model import Corpus, Utterance
 from typing import List, Callable, Tuple
 from matplotlib import pyplot as plt
 import pandas as pd
-try:
-    from cleantext import clean
-except ImportError:
-    raise ImportError("Could not find clean-text >= 0.1.1, which is a required dependency for using the FightingWords Transformer. "
-                      "Run 'pip install convokit[cleantext]' to fix this.")
-
 from cleantext import clean
 
 clean_str = lambda s: clean(s,
@@ -41,7 +35,7 @@ class FightingWords(Transformer):
 
     Implementation adapted from Jack Hessel's https://github.com/jmhessel/FightingWords
 
-    Identifies the fighting words of two groups of utterances, which we define as groups: 'class1' and 'class2'
+    Identifies the fighting words of two groups of utterances, which we define as the groups: 'class1' and 'class2'
 
     :param cv: optional CountVectorizer. default: an sklearn CV with min_df=10, max_df=.5, and ngram_range=(1,3) with max 15000 features
     :param ngram_range: range of ngrams to use if using default cv
