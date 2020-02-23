@@ -6,12 +6,10 @@ from sklearn.linear_model import LogisticRegression
 from typing import List
 import pandas as pd
 
-
 class CumulativeBoW(ForecasterModel):
     def __init__(self, vectorizer=None, clf_model=None, use_tokens=False,
                  forecast_feat_name: str = "prediction", forecast_prob_feat_name: str = "score"):
         """
-
         :param vectorizer: optional vectorizer; default CV (min_df=10, max_df=0.5, ngram_range=(1,1), max_features=15000)
         :param clf_model: optional classifier model; default standard-scaled logistic regression
         :param use_tokens: if using default vectorizer, set this to true if input is already tokenized

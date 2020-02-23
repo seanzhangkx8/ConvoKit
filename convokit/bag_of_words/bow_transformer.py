@@ -9,17 +9,16 @@ class BoWTransformer(Transformer):
     Compatible with any type of vectorizer (e.g. bag-of-words, TF-IDF, etc)
 
     Runs on the Corpus's Users, Utterances, or Conversations (as specified by obj_type)
+
+    :param obj_type: "user", "utterance", or "conversation"
+    :param vectorizer: a sklearn vectorizer object; default is CountVectorizer(min_df=10, max_df=.5, ngram_range(1,1), binary=False, max_features=15000)
+    :param vector_name: the name of the metadata key to store the vector under
+    :param text_func: a (lambda) function to extract the textual element from the Corpus object. By default, the function uses the 'text' attribute of Utterance
+
     """
     def __init__(self, obj_type: str, vectorizer=None, vector_name="bow_vector",
                  text_func: Callable[[CorpusObject], str] = lambda utt: utt.text):
-        """
 
-        :param obj_type: "user", "utterance", or "conversation"
-        :param vectorizer: a sklearn vectorizer object; default is CountVectorizer(min_df=10, max_df=.5, ngram_range(1,1), binary=False, max_features=15000)
-        :param vector_name: the name of the metadata key to store the vector under
-        :param text_func: a (lambda) function to extract the textual element from the Corpus object. By default, the function uses the 'text' attribute of Utterance
-
-        """
         if vectorizer is None:
             print("Initializing default unigram CountVectorizer...")
             self.vectorizer = CV(decode_error='ignore', min_df=10, max_df=.5,

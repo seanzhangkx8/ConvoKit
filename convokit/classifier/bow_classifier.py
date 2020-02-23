@@ -1,12 +1,12 @@
 from convokit import Corpus, CorpusObject
-from typing import Callable, List
+from typing import Callable
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import KFold
 import pandas as pd
 from scipy.sparse import vstack
 from .classifier import Classifier
+
 
 class BoWClassifier(Classifier):
     """
@@ -15,20 +15,16 @@ class BoWClassifier(Classifier):
     Runs on the Corpus's Users, Utterances, or Conversations (as specified by obj_type)
 
     Inherits from `Classifier` and has access to its methods.
+    :param obj_type: "user", "utterance", or "conversation"
+    :param vector_name: the metadata key where the Corpus object text vector is stored
+    :param labeller: a (lambda) function that takes a Corpus object and returns True (y=1) or False (y=0) - i.e. labeller defines the y value of the object for fitting
+    :param clf: a sklearn Classifier. By default, clf is a Pipeline with StandardScaler and LogisticRegression
+    :param clf_feat_name: the metadata key to store the classifier prediction value under; default: "prediction"
+    :param clf_prob_feat_name: the metadata key to store the classifier prediction score under; default: "pred_score"
     """
     def __init__(self, obj_type: str, vector_name="bow_vector",
                  labeller: Callable[[CorpusObject], bool] = lambda x: True,
                  clf=None, clf_feat_name: str = "prediction", clf_prob_feat_name: str = "pred_score"):
-        """
-
-        :param obj_type: "user", "utterance", or "conversation"
-        :param vector_name: the metadata key where the Corpus object text vector is stored
-        :param labeller: a (lambda) function that takes a Corpus object and returns True (y=1) or False (y=0) - i.e. labeller defines the y value of the object for fitting
-        :param clf: a sklearn Classifier. By default, clf is a Pipeline with StandardScaler and LogisticRegression
-        :param clf_feat_name: the metadata key to store the classifier prediction value under; default: "prediction"
-        :param clf_prob_feat_name: the metadata key to store the classifier prediction score under; default: "pred_score"
-        """
-
         if clf is None:
             print("Initializing default classification model (standard scaled logistic regression)")
             clf = Pipeline([("standardScaler", StandardScaler(with_mean=False)),

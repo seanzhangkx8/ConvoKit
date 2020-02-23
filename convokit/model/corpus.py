@@ -501,7 +501,7 @@ class Corpus:
 
 
 	def speaking_pairs(self, selector: Optional[Callable[[User, User], bool]] = lambda user1, user2: True,
-					   user_names_only: bool = False) -> Set[Tuple]:
+					   user_names_only: bool = False) -> Set[Tuple[str, str]]:
 		"""Get all directed speaking pairs (a, b) of users such that a replies
 			to b at least once in the dataset.
 
@@ -1005,7 +1005,7 @@ class Corpus:
 
 		table_entries = []
 		for obj in iterator:
-			entry = {}
+			entry = dict()
 			entry['id'] = obj.id
 			for attr in attrs:
 				entry[attr] = obj.get_info(attr)
@@ -1013,15 +1013,15 @@ class Corpus:
 		return pd.DataFrame(table_entries).set_index('id')
 
 	def set_user_convo_info(self, user_id, convo_id, key, value):
-		'''
-			assigns user-conversation attribute `key` with `value` to user `user_id` in conversation `convo_id`.
+		"""
+		assigns user-conversation attribute `key` with `value` to user `user_id` in conversation `convo_id`.
 
-			:param user_id: user
-			:param convo_id: conversation
-			:param key: name of attribute
-			:param value: value of attribute
-			:return: None
-		'''
+		:param user_id: user
+		:param convo_id: conversation
+		:param key: name of attribute
+		:param value: value of attribute
+		:return: None
+		"""
 
 		user = self.get_user(user_id)
 		if 'conversations' not in user.meta:
@@ -1031,14 +1031,14 @@ class Corpus:
 		user.meta['conversations'][convo_id][key] = value
 
 	def get_user_convo_info(self, user_id, convo_id, key=None):
-		'''
-			retreives user-conversation attribute `key` for `user_id` in conversation `convo_id`.
+		"""
+		retreives user-conversation attribute `key` for `user_id` in conversation `convo_id`.
 
-			:param user_id: user
-			:param convo_id: conversation
-			:param key: name of attribute. if None, will return all attributes for that user-conversation.
-			:return: attribute value
-		'''
+		:param user_id: user
+		:param convo_id: conversation
+		:param key: name of attribute. if None, will return all attributes for that user-conversation.
+		:return: attribute value
+		"""
 
 		user = self.get_user(user_id)
 		if 'conversations' not in user.meta: return None
@@ -1047,19 +1047,19 @@ class Corpus:
 		return user.meta['conversations'].get(convo_id, {}).get(key)
 
 	def organize_user_convo_history(self, utterance_filter=None):
-		'''
-			For each user, pre-computes a list of all of their utterances, organized by the conversation they participated in. Annotates user with the following:
-				* `n_convos`: number of conversations
-				* `start_time`: time of first utterance, across all conversations
-				* `conversations`: a dictionary keyed by conversation id, where entries consist of:
-					* `idx`: the index of the conversation, in terms of the time of the first utterance contributed by that particular user (i.e., `idx=0` means this is the first conversation the user ever participated in)
-					* `n_utterances`: the number of utterances the user contributed in the conversation
-					* `start_time`: the timestamp of the user's first utterance in the conversation
-					* `utterance_ids`: a list of ids of utterances contributed by the user, ordered by timestamp.
-			In case timestamps are not provided with utterances, the present behavior is to sort just by utterance id.
+		"""
+		For each user, pre-computes a list of all of their utterances, organized by the conversation they participated in. Annotates user with the following:
+			* `n_convos`: number of conversations
+			* `start_time`: time of first utterance, across all conversations
+			* `conversations`: a dictionary keyed by conversation id, where entries consist of:
+				* `idx`: the index of the conversation, in terms of the time of the first utterance contributed by that particular user (i.e., `idx=0` means this is the first conversation the user ever participated in)
+				* `n_utterances`: the number of utterances the user contributed in the conversation
+				* `start_time`: the timestamp of the user's first utterance in the conversation
+				* `utterance_ids`: a list of ids of utterances contributed by the user, ordered by timestamp.
+		In case timestamps are not provided with utterances, the present behavior is to sort just by utterance id.
 
-			:param utterance_filter: function that returns True for an utterance that counts towards a user having participated in that conversation. (e.g., one could filter out conversations where the user contributed less than k words per utterance)
-		'''
+		:param utterance_filter: function that returns True for an utterance that counts towards a user having participated in that conversation. (e.g., one could filter out conversations where the user contributed less than k words per utterance)
+		"""
 
 		if utterance_filter is None:
 			utterance_filter = lambda x: True
@@ -1090,12 +1090,12 @@ class Corpus:
 				self.set_user_convo_info(user.id, convo_id, 'idx', idx)
 
 	def get_user_convo_attribute_table(self, attrs):
-		'''
+		"""
 		returns a table where each row lists a (user, convo) level aggregate for each attribute in attrs.
 
 		:param attrs: list of (user, convo) attribute names
 		:return: dataframe containing all user,convo attributes.
-		'''
+		"""
 
 		table_entries = []
 		for user in self.iter_users():
@@ -1113,16 +1113,16 @@ class Corpus:
 
 	def get_full_attribute_table(self, user_convo_attrs, user_attrs=None, convo_attrs=None, user_suffix='__user',
 								 convo_suffix='__convo'):
-		'''
-			returns a table where each row lists a (user, convo) level aggregate for each attribute in attrs, along with user-level and conversation-level attributes; by default these attributes are suffixed with '__user' and '__convo' respectively.
+		"""
+		returns a table where each row lists a (user, convo) level aggregate for each attribute in attrs, along with user-level and conversation-level attributes; by default these attributes are suffixed with '__user' and '__convo' respectively.
 
-			:param user_convo_attrs: list of (user, convo) attribute names
-			:param user_attrs: list of user attribute names
-			:param convo_attrs: list of conversation attribute names
-			:param user_suffix: suffix to append to names of user-level attributes
-			:param convo_suffix: suffix to append to names of conversation-level attributes.
-			:return: dataframe containing all attributes.
-		'''
+		:param user_convo_attrs: list of (user, convo) attribute names
+		:param user_attrs: list of user attribute names
+		:param convo_attrs: list of conversation attribute names
+		:param user_suffix: suffix to append to names of user-level attributes
+		:param convo_suffix: suffix to append to names of conversation-level attributes.
+		:return: dataframe containing all attributes.
+		"""
 		if user_attrs is None:
 			user_attrs = []
 		if convo_attrs is None:

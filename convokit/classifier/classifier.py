@@ -10,20 +10,18 @@ class Classifier(Transformer):
     Transformer that trains a classifier on the specified features of a Corpus's objects
 
     Runs on the Corpus's Users, Utterances, or Conversations (as specified by obj_type)
+
+    :param obj_type: type of Corpus object to classify: 'conversation', 'user', or 'utterance'
+    :param pred_feats: list of metadata keys containing the features to be used in prediction.
+    If the key corresponds to a dictionary, all the keys of the dictionary will be included in pred_feats.
+    :param labeller: a (lambda) function that takes a Corpus object and returns True (y=1) or False (y=0) - i.e. labeller defines the y value of the object for fitting
+    :param clf: optional sklearn classifier model, an SVM with linear kernel will be initialized by default
+    :param clf_feat_name: the metadata key to store the classifier prediction value under; default: "prediction"
+    :param clf_prob_feat_name: the metadata key to store the classifier prediction score under; default: "pred_score"
     """
     def __init__(self, obj_type: str, pred_feats: List[str],
                  labeller: Callable[[CorpusObject], bool] = lambda x: True,
                  clf=None, clf_feat_name: str = "prediction", clf_prob_feat_name: str = "pred_score"):
-        """
-
-        :param obj_type: type of Corpus object to classify: 'conversation', 'user', or 'utterance'
-        :param pred_feats: list of metadata keys containing the features to be used in prediction.
-        If the key corresponds to a dictionary, all the keys of the dictionary will be included in pred_feats.
-        :param labeller: a (lambda) function that takes a Corpus object and returns True (y=1) or False (y=0) - i.e. labeller defines the y value of the object for fitting
-        :param clf: optional sklearn classifier model, an SVM with linear kernel will be initialized by default
-        :param clf_feat_name: the metadata key to store the classifier prediction value under; default: "prediction"
-        :param clf_prob_feat_name: the metadata key to store the classifier prediction score under; default: "pred_score"
-        """
         self.pred_feats = pred_feats
         self.labeller = labeller
         self.obj_type = obj_type

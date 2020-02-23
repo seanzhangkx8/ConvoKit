@@ -1,6 +1,5 @@
 import numpy as np
 from sklearn.feature_extraction.text import CountVectorizer as CV
-import string
 from convokit import Transformer
 from convokit.model import Corpus, Utterance
 from typing import List, Callable, Tuple
@@ -44,24 +43,20 @@ class FightingWords(Transformer):
 
     Identifies the fighting words of two groups of utterances, which we define as groups: 'class1' and 'class2'
 
+    :param cv: optional CountVectorizer. default: an sklearn CV with min_df=10, max_df=.5, and ngram_range=(1,3) with max 15000 features
+    :param ngram_range: range of ngrams to use if using default cv
+    :param prior: either a float describing a uniform prior, or a vector describing a prior
+    over vocabulary items. If you're using a predefined vocabulary, make sure to specify that
+    when you make your CountVectorizer object.
+    :param threshold: the z-score threshold for annotating utterances with identified ngrams
+    :param top_k: the top_k threshold for which ngrams to annotate utterances with
+    :param annot_method: "top_k" or "threshold" to specify which annotation method to use in transform() and
+    :param string_sanitizer: optional function for cleaning strings prior to fighting words analysis: uses default
+    string sanitizer otherwise
     """
     def __init__(self, cv=None,
                  ngram_range=None, prior=0.1, threshold=1, top_k=10, annot_method="top_k",
                  string_sanitizer=lambda str_: FightingWords.clean_text(str_)):
-        """
-
-
-        :param cv: optional CountVectorizer. default: an sklearn CV with min_df=10, max_df=.5, and ngram_range=(1,3) with max 15000 features
-        :param ngram_range: range of ngrams to use if using default cv
-        :param prior: either a float describing a uniform prior, or a vector describing a prior
-        over vocabulary items. If you're using a predefined vocabulary, make sure to specify that
-        when you make your CountVectorizer object.
-        :param threshold: the z-score threshold for annotating utterances with identified ngrams
-        :param top_k: the top_k threshold for which ngrams to annotate utterances with
-        :param annot_method: "top_k" or "threshold" to specify which annotation method to use in transform() and
-        :param string_sanitizer: optional function for cleaning strings prior to fighting words analysis: uses default
-        string sanitizer otherwise
-        """
         self.ngram_range = ngram_range
         self.prior = prior
         self.cv = cv
@@ -96,12 +91,14 @@ class FightingWords(Transformer):
         return clean_str(in_string)
 
     def _bayes_compare_language(self, class1: List[Utterance], class2: List[Utterance]):
-        '''
+        """
         Arguments:
         - class1, class2; a list of strings from each language sample
 
         Returns:
-        - A dict of length |Vocab| with (n-gram, zscore) pairs.'''
+        - A dict of length |Vocab| with (n-gram, zscore) pairs.
+        """
+
         class1 = [self.string_sanitizer(utt.text) for utt in class1]
         class2 = [self.string_sanitizer(utt.text) for utt in class2]
 
