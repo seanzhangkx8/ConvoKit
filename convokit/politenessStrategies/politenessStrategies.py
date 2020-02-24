@@ -21,7 +21,8 @@ class PolitenessStrategies(Transformer):
         self.MRKR_NAME = "politeness_markers"
         self.verbose = verbose
 
-    def transform(self, corpus: Corpus, markers: bool = False):
+    def transform(self, corpus: Corpus, selector: Optional[Callable[[Utterance], bool]] = lambda utt: True,
+                  markers: bool = False):
         """
         Extract politeness strategies from each utterances in the corpus and annotate
         the utterances with the extracted strategies. Requires that the corpus has previously
@@ -29,17 +30,21 @@ class PolitenessStrategies(Transformer):
         its metadata table.
 
         :param corpus: the corpus to compute features for.
-        :type corpus: Corpus
+        :param selector: a (lambda) function that takes an Utterance and returns a bool indicating whether the utterance should be included in this annotation step.
         :param markers: whether or not to add politeness occurrence markers
         """
         for utt in corpus.iter_utterances():
-            for i, sent in enumerate(utt.meta["parsed"]):
-                for p in sent["toks"]:
-                    p["tok"] = re.sub("[^a-z,.:;]", "", p["tok"].lower())
-            utt.meta[self.ATTR_NAME], marks = get_politeness_strategy_features(utt)
+            if selector(utt):
+                for i, sent in enumerate(utt.meta["parsed"]):
+                    for p in sent["toks"]:
+                        p["tok"] = re.sub("[^a-z,.:;]", "", p["tok"].lower())
+                utt.meta[self.ATTR_NAME], marks = get_politeness_strategy_features(utt)
 
-            if markers:
-                utt.meta[self.MRKR_NAME] = marks
+                if markers:
+                    utt.meta[self.MRKR_NAME] = marks
+            else:
+                utt.meta[self.ATTR_NAME] = None
+                utt.meta[self.MRKR_NAME] = None
 
         return corpus
 
@@ -48,13 +53,13 @@ class PolitenessStrategies(Transformer):
         Calculates average occurrence per utterance. Used in summarize()
 
         :param corpus: the target Corpus
-        :param selector: function specifying whether the utterance should be included
+        :param selector: (lambda) function specifying whether the utterance should be included
         """
 
         utts = list(corpus.iter_utterances(selector))
         if self.MRKR_NAME not in utts[0].meta:
-            print("Could not find politeness markers metadata. Running transform() on corpus first...")
-            self.transform(corpus)
+            print("Could not find politeness markers metadata. Running transform() on corpus first...", end="")
+            self.transform(corpus, markers=True)
             print("Done.")
 
         counts = {k[21:len(k)-2]: 0 for k in utts[0].meta[self.MRKR_NAME].keys()}
@@ -88,4 +93,4 @@ class PolitenessStrategies(Transformer):
                 plt.ylim(0, y_lim)
             plt.show()
 
-        return pd.DataFrame.from_dict(scores, orient='index', columns = ["Averages"])
+        return pd.DataFrame.from_dict(scores, orient='index', columns=["Averages"])
