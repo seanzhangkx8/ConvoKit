@@ -16,6 +16,8 @@ If you haven't already,
 
 #. Download nltk's punkt tokenizer: ``import nltk; nltk.download('punkt')`` (in a ``python`` interactive session)
 
+**If you encounter difficulties with installation**, check out our `Troubleshooting Guide <https://zissou.infosci.cornell.edu/convokit/documentation/troubleshooting.html>`_ for a list of solutions to common issues.
+
 Interactive tutorial
 ====================
 Let us start an interactive session (e.g. with ``python`` or ``ipython``) and import Convokit.
