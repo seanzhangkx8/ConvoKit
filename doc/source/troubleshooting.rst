@@ -45,4 +45,20 @@ This is an error encountered when installing the SpaCy dependency for ConvoKit o
 
 >>> CFLAGS=-stdlib=libc++ python3 -m pip install convokit
 
+-----------------------------
+
+**urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed** [Mac OS]
+
+This is an error encountered when using the convokit.download() function without having SSL certificates properly set up.
+
+An explanation for this error is detailed in this `site <https://timonweb.com/tutorials/fixing-certificate_verify_failed-error-when-trying-requests_html-out-on-mac/>`_.
+
+The two recommended fixes are to run:
+
+>>> pip install --upgrade certifi
+
+and if that doesn't fix the issue, then run:
+
+>>> open /Applications/Python\ 3.6/Install\ Certificates.command
+
 
