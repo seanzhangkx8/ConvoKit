@@ -46,7 +46,7 @@ def download(name: str, verbose: bool = True, data_dir: str = None, use_newest_v
             A collection of almost 1.5 million conversations and 2.8 million comments posted by developers reviewing proposed code changes in the Chromium project.
     :param verbose: Print checkpoint statements for download
     :param data_dir: Output path of downloaded file (default: ~/.convokit)
-    :param use_newest_version: Redownload if new version is found
+    :param use_newest_version: Re-download if new version is found
     :param use_local: if True, use the local version of corpus if it exists (regardless of whether a newer version exists)
 
     :return: The path to the downloaded item.

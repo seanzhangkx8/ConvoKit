@@ -15,7 +15,7 @@ clean_str = lambda s: clean(s,
                             no_urls=True,                  # replace all URLs with a special token
                             no_emails=True,                # replace all email addresses with a special token
                             no_phone_numbers=True,         # replace all phone numbers with a special token
-                            no_numbers=True,               # replace all numbers with a special token
+                            no_numbers=False,               # replace all numbers with a special token
                             no_digits=False,                # replace all digits with a special token
                             no_currency_symbols=True,      # replace all currency symbols with a special token
                             no_punct=False,                 # fully remove punctuation
@@ -62,11 +62,13 @@ class FightingWords(Transformer):
             raise ValueError("If using a non-uniform prior, you must pass a count vectorizer with "
                              "the vocabulary parameter set.")
         if self.cv is None:
-            print("Initializing default CountVectorizer...")
+            print("Initializing default CountVectorizer...", end="")
             if self.ngram_range is None:
                 self.ngram_range = (1, 3)
+            print("with ngram_range {}".format(self.ngram_range), end="")
             self.cv = CV(decode_error='ignore', min_df=10, max_df=.5, ngram_range=self.ngram_range,
                          binary=False, max_features=15000)
+            print("Done.")
 
 
     @staticmethod

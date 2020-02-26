@@ -15,6 +15,7 @@ class Conversation(CorpusObject):
     :param utterances: A list of the IDs of the Utterances in this Conversation
     :param meta: Table of initial values for conversation-level metadata
 
+    :ivar id: the ID of the Conversation
     :ivar meta: A dictionary-like view object providing read-write access to
         conversation-level metadata. For utterance-level metadata, use
         Utterance.meta. For user-level metadata, use User.meta. For corpus-level

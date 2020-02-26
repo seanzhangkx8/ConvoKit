@@ -13,7 +13,6 @@ class Utterance(CorpusObject):
     :param timestamp: timestamp of the utterance. Can be any
         comparable type.
     :param text: text of the utterance.
-    :type text: str
 
     :ivar id: the unique id of the utterance.
     :ivar user: the user giving the utterance.

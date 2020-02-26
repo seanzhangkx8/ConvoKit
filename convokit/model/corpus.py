@@ -202,6 +202,7 @@ class Corpus:
 	def get_utterance(self, utt_id: str) -> Utterance:
 		"""
 		Gets Utterance of the specified id from the corpus
+
 		:param utt_id: id of Utterance
 		:return: Utterance
 		"""
@@ -210,6 +211,7 @@ class Corpus:
 	def get_conversation(self, convo_id: str) -> Conversation:
 		"""
 		Gets Conversation of the specified id from the corpus
+
 		:param convo_id: id of Conversation
 		:return: Conversation
 		"""
@@ -218,6 +220,7 @@ class Corpus:
 	def get_user(self, user_id: str) -> User:
 		"""
 		Gets User of the specified id from the corpus
+
 		:param user_id: id of User
 		:return: User
 		"""
@@ -226,6 +229,7 @@ class Corpus:
 	def get_object(self, obj_type: str, oid: str):
 		"""
 		General Corpus object getter. Gets User / Utterance / Conversation of specified id from the Corpus
+
 		:param obj_type: "user", "utterance", or "conversation"
 		:param oid: object id
 		:return: Corpus object of specified object type with specified object id
@@ -241,6 +245,7 @@ class Corpus:
 	def has_utterance(self, utt_id: str) -> bool:
 		"""
 		Checks if an Utterance of the specified id exists in the Corpus
+
 		:param utt_id: id of Utterance
 		:return: True if Utterance of specified id is present, False otherwise
 		"""
@@ -249,6 +254,7 @@ class Corpus:
 	def has_conversation(self, convo_id: str) -> bool:
 		"""
 		Checks if a Conversation of the specified id exists in the Corpus
+
 		:param convo_id: id of Conversation
 		:return: True if Conversation of specified id is present, False otherwise
 		"""
@@ -257,6 +263,7 @@ class Corpus:
 	def has_user(self, user_id: str) -> bool:
 		"""
 		Checks if a User of the specified id exists in the Corpus
+
 		:param user_id: id of User
 		:return: True if User of specified id is present, False otherwise
 		"""
@@ -265,6 +272,7 @@ class Corpus:
 	def random_utterance(self) -> Utterance:
 		"""
 		Get a random Utterance from the Corpus
+
 		:return: a random Utterance
 		"""
 		return random.choice(list(self.utterances.values()))
@@ -272,6 +280,7 @@ class Corpus:
 	def random_conversation(self) -> Conversation:
 		"""
 		Get a random Conversation from the Corpus
+
 		:return: a random Conversation
 		"""
 		return random.choice(list(self.conversations.values()))
@@ -279,6 +288,7 @@ class Corpus:
 	def random_user(self) -> User:
 		"""
 		Get a random User from the Corpus
+
 		:return: a random User
 		"""
 		return random.choice(list(self.users.values()))
@@ -287,6 +297,7 @@ class Corpus:
 		Utterance, None, None]:
 		"""
 		Get utterances in the Corpus, with an optional selector that filters for Utterances that should be included
+
 		:param selector: a (lambda) function that takes an Utterance and returns True or False (i.e. include / exclude).
 		By default, the selector includes all Utterances in the Corpus.
 		:return: a generator of Utterances
@@ -299,6 +310,7 @@ class Corpus:
 		Conversation, None, None]:
 		"""
 		Get conversations in the Corpus, with an optional selector that filters for Conversations that should be included
+
 		:param selector: a (lambda) function that takes a Conversation and returns True or False (i.e. include / exclude).
 		By default, the selector includes all Conversations in the Corpus.
 		:return: a generator of Conversations
@@ -310,6 +322,7 @@ class Corpus:
 	def iter_users(self, selector: Optional[Callable[[User], bool]] = lambda user: True) -> Generator[User, None, None]:
 		"""
 		Get Users in the Corpus, with an optional selector that filters for Conversations that should be included
+
 		:param selector: a (lambda) function that takes a User and returns True or False (i.e. include / exclude).
 		By default, the selector includes all Users in the Corpus.
 		:return: a generator of Users
@@ -322,6 +335,7 @@ class Corpus:
 	def iter_objs(self, obj_type: str, selector: Callable[[Union[User, Utterance, Conversation]], bool] = lambda obj: True):
 		"""
 		Get Corpus objects of specified type from the Corpus, with an optional selector that filters for Corpus object that should be included
+
 		:param obj_type: "user", "utterance", or "conversation"
 		:param selector: a (lambda) function that takes a Corpus object and returns True or False (i.e. include / exclude).
 		By default, the selector includes all objects of the specified type in the Corpus.
@@ -338,6 +352,7 @@ class Corpus:
 	def get_utterance_ids(self, selector: Optional[Callable[[Utterance], bool]] = lambda utt: True) -> List[str]:
 		"""
 		Get a list of ids of Utterances in the Corpus, with an optional selector that filters for Utterances that should be included
+
 		:param selector: a (lambda) function that takes an Utterance and returns True or False (i.e. include / exclude).
 		By default, the selector includes all Utterances in the Corpus.
 		:return: list of Utterance ids
@@ -348,6 +363,7 @@ class Corpus:
 		str]:
 		"""
 		Get a list of ids of Conversations in the Corpus, with an optional selector that filters for Conversations that should be included
+
 		:param selector: a (lambda) function that takes a Conversation and returns True or False (i.e. include / exclude).
 		By default, the selector includes all Conversations in the Corpus.
 		:return: list of Conversation ids
@@ -358,6 +374,7 @@ class Corpus:
 		str]:
 		"""
 		Get a list of ids of Users in the Corpus, with an optional selector that filters for Users that should be included
+
 		:param selector: a (lambda) function that takes a User and returns True or False (i.e. include / exclude).
 		By default, the selector includes all Users in the Corpus.
 		:return: list of User ids
@@ -368,6 +385,7 @@ class Corpus:
 					   selector: Callable[[Union[User, Utterance, Conversation]], bool] = lambda obj: True):
 		"""
 		Get a list of ids of Corpus objects of the specified type in the Corpus, with an optional selector that filters for objects that should be included
+
 		:param obj_type: "user", "utterance", or "conversation"
 		:param selector: a (lambda) function that takes a Corpus object and returns True or False (i.e. include / exclude).
 		By default, the selector includes all objects of the specified type in the Corpus.
@@ -396,6 +414,7 @@ class Corpus:
 	def filter_conversations_by(self, selector: Callable[[Conversation], bool]):
 		"""
 		Mutate the corpus by filtering for a subset of Conversations within the Corpus
+
 		:param selector: function for selecting which functions to keep
 		:return: None (mutates the corpus)
 		"""
@@ -528,7 +547,8 @@ class Corpus:
 
 	def pairwise_exchanges(self, selector: Optional[Callable[[User, User], bool]] = None,
 						   user_names_only: bool = False) -> Dict[Tuple, List[Utterance]]:
-		"""Get all directed pairwise exchanges in the dataset.
+		"""
+		Get all directed pairwise exchanges in the dataset.
 
 		:param selector: optional function that takes in a
 			speaker user and a replied-to user and returns True to include
@@ -552,7 +572,8 @@ class Corpus:
 
 	def iterate_by(self, iter_type: str,
 				   is_utterance_question: Callable[[str], bool]) -> Generator[Tuple[str, str, str], None, None]:
-		"""Iterator for utterances.
+		"""
+		Iterator for utterances.
 
 		Can give just questions, just answers or questions followed by their answers
 		"""
@@ -801,6 +822,7 @@ class Corpus:
 	def update_users_data(self) -> None:
 		"""
 		Updates the conversation and utterance lists of every User in the Corpus
+
 		:return: None
 		"""
 		users_utts = defaultdict(list)
@@ -829,11 +851,11 @@ class Corpus:
 
 	def get_vect_repr(self, id, field):
 		"""
-			gets a vector representation stored under the name field, for an individual object with a particular id.
+		gets a vector representation stored under the name field, for an individual object with a particular id.
 
-			:param id: id of object
-			:param field: the name of the particular representation
-			:return: a vector representation of object <id>
+		:param id: id of object
+		:param field: the name of the particular representation
+		:return: a vector representation of object <id>
 		"""
 
 		vect_obj = self.vector_reprs[field]
@@ -845,12 +867,12 @@ class Corpus:
 
 	def set_vect_reprs(self, field, keys, vects):
 		"""
-			stores a matrix where each row is a vector representation of an object
+		stores a matrix where each row is a vector representation of an object
 
-			:param field: name of representation
-			:param keys: list of object ids, where each entry corresponds to each row of the matrix
-			:param vects: matrix of vector representations
-			:return: None
+		:param field: name of representation
+		:param keys: list of object ids, where each entry corresponds to each row of the matrix
+		:param vects: matrix of vector representations
+		:return: None
 		"""
 
 		vect_obj = {'vects': vects, 'keys': keys}
@@ -890,15 +912,15 @@ class Corpus:
 
 	def load_info(self, obj_type, fields=None, dir_name=None):
 		"""
-			loads attributes of objects in a corpus from disk.
-			This function, along with dump_info, supports cases where a particular attribute is to be stored separately from the other corpus files, for organization or efficiency. These attributes will not be read when the corpus is initialized; rather, they can be loaded on-demand using this function.
+		loads attributes of objects in a corpus from disk.
+		This function, along with dump_info, supports cases where a particular attribute is to be stored separately from the other corpus files, for organization or efficiency. These attributes will not be read when the corpus is initialized; rather, they can be loaded on-demand using this function.
 
-			For each attribute with name <NAME>, will read from a file called info.<NAME>.jsonl, and load each attribute value into the respective object's .meta field.
+		For each attribute with name <NAME>, will read from a file called info.<NAME>.jsonl, and load each attribute value into the respective object's .meta field.
 
-			:param obj_type: type of object the attribute is associated with. can be one of "utterance", "user", "conversation".
-			:param fields: a list of names of attributes to load. if empty, will load all attributes stored in the specified directory dir_name.
-			:param dir_name: the directory to read attributes from. by default, or if set to None, will read from the directory that the Corpus was loaded from.
-			:return: None
+		:param obj_type: type of object the attribute is associated with. can be one of "utterance", "user", "conversation".
+		:param fields: a list of names of attributes to load. if empty, will load all attributes stored in the specified directory dir_name.
+		:param dir_name: the directory to read attributes from. by default, or if set to None, will read from the directory that the Corpus was loaded from.
+		:return: None
 		"""
 		if fields is None:
 			fields = []
@@ -927,15 +949,15 @@ class Corpus:
 
 	def dump_info(self, obj_type, fields, dir_name=None):
 		"""
-			writes attributes of objects in a corpus to disk.
-			This function, along with load_info, supports cases where a particular attribute is to be stored separately from the other corpus files, for organization or efficiency. These attributes will not be read when the corpus is initialized; rather, they can be loaded on-demand using this function.
+		writes attributes of objects in a corpus to disk.
+		This function, along with load_info, supports cases where a particular attribute is to be stored separately from the other corpus files, for organization or efficiency. These attributes will not be read when the corpus is initialized; rather, they can be loaded on-demand using this function.
 
-			For each attribute with name <NAME>, will write to a file called info.<NAME>.jsonl, where rows are json-serialized dictionaries structured as {"id": id of object, "value": value of attribute}.
+		For each attribute with name <NAME>, will write to a file called info.<NAME>.jsonl, where rows are json-serialized dictionaries structured as {"id": id of object, "value": value of attribute}.
 
-			:param obj_type: type of object the attribute is associated with. can be one of "utterance", "user", "conversation".
-			:param fields: a list of names of attributes to write to disk.
-			:param dir_name: the directory to write attributes to. by default, or if set to None, will read from the directory that the Corpus was loaded from.
-			:return: None
+		:param obj_type: type of object the attribute is associated with. can be one of "utterance", "user", "conversation".
+		:param fields: a list of names of attributes to write to disk.
+		:param dir_name: the directory to write attributes to. by default, or if set to None, will read from the directory that the Corpus was loaded from.
+		:return: None
 		"""
 
 		if (self.original_corpus_path is None) and (dir_name is None):
@@ -956,13 +978,13 @@ class Corpus:
 
 	def load_vector_reprs(self, field, dir_name=None):
 		"""
-			reads vector representations of Corpus objects from disk.
+		reads vector representations of Corpus objects from disk.
 
-			Will read matrices from a file called vect_info.<field>.npy and corresponding object IDs from a file called vect_info.<field>.keys,
+		Will read matrices from a file called vect_info.<field>.npy and corresponding object IDs from a file called vect_info.<field>.keys,
 
-			:param field: the name of the representation
-			:param dir_name: the directory to read from; by default, or if set to None, will read from the directory that the Corpus was loaded from.
-			:return: None
+		:param field: the name of the representation
+		:param dir_name: the directory to read from; by default, or if set to None, will read from the directory that the Corpus was loaded from.
+		:return: None
 		"""
 
 		if (self.original_corpus_path is None) and (dir_name is None):
@@ -976,13 +998,13 @@ class Corpus:
 
 	def dump_vector_reprs(self, field, dir_name=None):
 		"""
-			writes vector representations of Corpus objects to disk.
+		writes vector representations of Corpus objects to disk.
 
-			Will write matrices to a file called vect_info.<field>.npy and corresponding object IDs to a file called vect_info.<field>.keys,
+		Will write matrices to a file called vect_info.<field>.npy and corresponding object IDs to a file called vect_info.<field>.keys,
 
-			:param field: the name of the representation to write to disk
-			:param dir_name: the directory to write to. by default, or if set to None, will read from the directory that the Corpus was loaded from.
-			:return: None
+		:param field: the name of the representation to write to disk
+		:param dir_name: the directory to write to. by default, or if set to None, will read from the directory that the Corpus was loaded from.
+		:return: None
 		"""
 
 		if (self.original_corpus_path is None) and (dir_name is None):
@@ -995,11 +1017,11 @@ class Corpus:
 
 	def get_attribute_table(self, obj_type, attrs):
 		"""
-			returns a dataframe, indexed by the IDs of objects of `obj_type`, containing attributes of these objects.
+		returns a dataframe, indexed by the IDs of objects of `obj_type`, containing attributes of these objects.
 
-			:param obj_type: the type of object to get attributes for. can be `'utterance'`, `'user'` or `'conversation'`.
-			:param attrs: a list of names of attributes to get.
-			:return: a Pandas dataframe of attributes.
+		:param obj_type: the type of object to get attributes for. can be `'utterance'`, `'user'` or `'conversation'`.
+		:param attrs: a list of names of attributes to get.
+		:return: a Pandas dataframe of attributes.
 		"""
 		iterator = self.iter_objs(obj_type)
 
