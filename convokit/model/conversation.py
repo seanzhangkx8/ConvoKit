@@ -98,7 +98,8 @@ class Conversation(CorpusObject):
         return list(self._user_ids)
 
     def get_user(self, username: str) -> User:
-        """Looks up the User with the given name. Raises a KeyError if no user
+        """
+        Looks up the User with the given name. Raises a KeyError if no user
         with that name exists.
 
         :return: the User with the given username
@@ -108,7 +109,8 @@ class Conversation(CorpusObject):
         return self._owner.get_user(username)
 
     def iter_users(self) -> Generator[User, None, None]:
-        """Generator allowing iteration over all users in the Conversation.
+        """
+        Generator allowing iteration over all users in the Conversation.
         Provides no ordering guarantees.
 
         :return: Generator that produces Users.
@@ -174,6 +176,7 @@ class Conversation(CorpusObject):
         """
         Traverse through the Conversation tree structure in a breadth-first search ('bfs'), depth-first search (dfs),
         pre-order ('preorder'), or post-order ('postorder') way.
+
         :param traversal_type: dfs, bfs, preorder, or postorder
         :param as_utterance: whether the iterator should yield the utterance (True) or the utterance node (False)
         :return: an iterator of the utterances or utterance nodes
@@ -194,6 +197,7 @@ class Conversation(CorpusObject):
     def get_subtree(self, root_utt_id):
         """
         Get the utterance node of the specified input id
+
         :param root_utt_id: id of the root node that the subtree starts from
         :return: UtteranceNode object
         """
@@ -221,8 +225,9 @@ class Conversation(CorpusObject):
         """
         Prints an indented representation of utterances in the Conversation with conversation reply-to structure
         determining the indented level. The details of each utterance to be printed can be configured.
+
         :param utt_info_func: callable function taking an utterance as input and returning a string of the desired
-        utterance information. By default, this is a lambda function returning the utterance's user's id
+                              utterance information. By default, this is a lambda function returning the utterance's user's id
         :return: None. Prints to stdout.
         """
         if not self.check_integrity(verbose=False):
@@ -237,6 +242,7 @@ class Conversation(CorpusObject):
     def get_chronological_utterance_list(self, selector: Callable[[Utterance], bool] = lambda utt: True):
         """
         Get the utterances in the conversation sorted in increasing order of timestamp
+
         :param selector: function for which utterances should be included; all utterances are included by default
         :return: list of utterances, sorted by timestamp
         """
@@ -260,7 +266,8 @@ class Conversation(CorpusObject):
         """
         Get the paths (stored as a list of lists of utterances) from the root to each of the leaves
         in the conversational tree
-        :return:
+
+        :return: List of lists of Utterances
         """
         if not self.check_integrity(verbose=False):
             raise ValueError("Conversation failed integrity check. "
