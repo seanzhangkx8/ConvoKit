@@ -53,6 +53,11 @@ class CRAFTModel(ForecasterModel):
     - validation_size (percentage of training input data to use as validation): 0.2
     - max_length (maximum utterance length in the dataset): 80
 
+    :param device_type: 'cpu' or 'cuda', default: 'cpu'
+    :param model_path: filepath to CRAFT model if loading a custom CRAFT model
+    :param options: configuration options for the neural network: uses default options otherwise.
+    :param forecast_feat_name: name of DataFrame column containing predictions, default: "prediction"
+    :param forecast_prob_feat_name: name of DataFrame column containing prediction scores, default: "score"
     """
 
     def __init__(self, device_type: str = 'cpu',
@@ -60,13 +65,6 @@ class CRAFTModel(ForecasterModel):
                  options: Dict = None,
                  forecast_feat_name: str = "prediction",
                  forecast_prob_feat_name: str = "pred_score"):
-        """
-        :param device_type: 'cpu' or 'cuda', default: 'cpu'
-        :param model_path: filepath to CRAFT model if loading a custom CRAFT model
-        :param options: configuration options for the neural network: uses default options otherwise.
-        :param forecast_feat_name: name of DataFrame column containing predictions, default: "prediction"
-        :param forecast_prob_feat_name: name of DataFrame column containing prediction scores, default: "score"
-        """
 
         super().__init__(forecast_feat_name=forecast_feat_name, forecast_prob_feat_name=forecast_prob_feat_name)
         assert device_type in ['cuda', 'cpu']
