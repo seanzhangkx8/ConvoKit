@@ -409,7 +409,7 @@ class Corpus:
 
 		"""
 		warn("This function is deprecated. Use get_user_ids() instead.")
-		return set([u.name for u in self.iter_users(selector)])
+		return set([u.id for u in self.iter_users(selector)])
 
 	def filter_conversations_by(self, selector: Callable[[Conversation], bool]):
 		"""

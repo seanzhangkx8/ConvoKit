@@ -138,7 +138,7 @@ def initialize_users_and_utterances_objects(corpus, utt_dict, utterances, users_
         u = defaultdict(lambda: None, u)
         user_key = u[KeyUser]
         if user_key not in users_dict:
-            users_dict[user_key] = User(owner=corpus, name=u[KeyUser], meta=users_meta[u[KeyUser]])
+            users_dict[user_key] = User(owner=corpus, id=u[KeyUser], meta=users_meta[u[KeyUser]])
 
         user = users_dict[user_key]
 
