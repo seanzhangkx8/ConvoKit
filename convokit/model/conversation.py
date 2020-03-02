@@ -17,9 +17,7 @@ class Conversation(CorpusObject):
 
     :ivar id: the ID of the Conversation
     :ivar meta: A dictionary-like view object providing read-write access to
-        conversation-level metadata. For utterance-level metadata, use
-        Utterance.meta. For user-level metadata, use User.meta. For corpus-level
-        metadata, use Corpus.meta.
+        conversation-level metadata.
     """
 
     def __init__(self, owner, id: Optional[str] = None,
