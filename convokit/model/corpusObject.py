@@ -1,7 +1,5 @@
-from warnings import warn
-# from abc import ABC, abstractmethod
 from .convoKitMeta import ConvoKitMeta
-
+from convokit.util import warn
 
 class CorpusObject:
 
@@ -10,17 +8,8 @@ class CorpusObject:
         self._owner = owner
         if meta is None:
             meta = dict()
-        self._meta = self.init_meta(meta)
+        self.meta = self.init_meta(meta)
         self.id = id
-
-    def get_meta(self):
-        return self._meta
-
-    def set_meta(self, new_dict):
-        # Note that allowing meta to be set directly creates too many difficulties for maintaining a consistent index
-        warn("The object meta object cannot be set directly. Add or delete key-value pairs instead. No changes made.")
-
-    meta = property(get_meta, set_meta)
 
     def get_owner(self):
         return self._owner
