@@ -10,11 +10,7 @@ Dataset details
 User-level information
 ^^^^^^^^^^^^^^^^^^^^^^
 
-Users in this corpus are Reddit users, identified by their account names. The corpus includes the following activity statistics:
-
-* num_posts: number of posts from the user
-* num_comments: number of comments from the user
-
+Users in this corpus are Reddit users, identified by their account names.
 
 Utterance-level information
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
