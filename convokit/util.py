@@ -59,7 +59,7 @@ def download(name: str, verbose: bool = True, data_dir: str = None, use_newest_v
     DatasetURLs = dataset_config['DatasetURLs']
 
     if name.startswith("subreddit"):
-        subreddit_name = name.split("-")[1]
+        subreddit_name = name.split("-", maxsplit=1)[1]
         # print(subreddit_name)
         cur_version[name] = cur_version['subreddit']
         DatasetURLs[name] = get_subreddit_info(subreddit_name)
