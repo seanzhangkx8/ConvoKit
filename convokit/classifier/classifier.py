@@ -51,8 +51,7 @@ class Classifier(Transformer):
         a metadata value of 'None' instead of the classifier prediction.
 
         :param corpus: target Corpus
-        :param selector: a (lambda) function that takes a Corpus object and returns True or False (i.e. include / exclude).
-		By default, the selector includes all objects of the specified type in the Corpus.
+        :param selector: a (lambda) function that takes a Corpus object and returns True or False (i.e. include / exclude). By default, the selector includes all objects of the specified type in the Corpus.
 
         :return: annotated Corpus
         """
@@ -99,8 +98,7 @@ class Classifier(Transformer):
 
     def summarize(self, corpus: Corpus, selector: Callable[[CorpusObject], bool] = lambda x: True):
         """
-        Generate a pandas DataFrame (indexed by object id, with prediction and prediction score columns) of
-        classification results.
+        Generate a pandas DataFrame (indexed by object id, with prediction and prediction score columns) of classification results.
 
         Run either on a target Corpus or a list of Corpus objects
 
@@ -145,9 +143,7 @@ class Classifier(Transformer):
 
         :param corpus: target Corpus
         :param objs: target list of Corpus objects
-        :param selector: if running on a Corpus, this is a (lambda) function that takes a Corpus object and returns
-        True or False (i.e. include / exclude).
-		By default, the selector includes all objects of the specified type in the Corpus.
+        :param selector: if running on a Corpus, this is a (lambda) function that takes a Corpus object and returns True or False (i.e. include / exclude). By default, the selector includes all objects of the specified type in the Corpus.
         :param test_size: size of test set
         :return: accuracy and confusion matrix
         """
