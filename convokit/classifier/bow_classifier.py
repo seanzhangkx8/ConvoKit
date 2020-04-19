@@ -43,8 +43,7 @@ class BoWClassifier(Classifier):
         Fit the Transformer's internal classifier model on the Corpus objects, with an optional selector that filters for objects to be fit on.
 
         :param corpus: the target Corpus
-        :param selector: a (lambda) function that takes a Corpus object and returns True or False (i.e. include /
-        exclude). By default, the selector includes all objects of the specified type in the Corpus.
+        :param selector: a (lambda) function that takes a Corpus object and returns True or False (i.e. include / exclude). By default, the selector includes all objects of the specified type in the Corpus.
         :return: the fitted BoWClassifier
         """
         # collect texts for vectorization
@@ -64,8 +63,7 @@ class BoWClassifier(Classifier):
         instead of the classifier prediction.
 
         :param corpus: the target Corpus
-        :param selector: a (lambda) function that takes a Corpus object and returns True or False (i.e. include /
-        exclude). By default, the selector includes all objects of the specified type in the Corpus.
+        :param selector: a (lambda) function that takes a Corpus object and returns True or False (i.e. include / exclude). By default, the selector includes all objects of the specified type in the Corpus.
 
         :return: the target Corpus annotated
         """
@@ -87,6 +85,28 @@ class BoWClassifier(Classifier):
             obj.add_meta(self.clf_prob_feat_name, clf_prob)
         return corpus
 
+    def transform_objs(self, objs: List[CorpusObject]) -> List[CorpusObject]:
+        """
+        Run classifier on list of Corpus objects and annotate them with the predictions and prediction scores
+
+        :param objs: list of Corpus objects
+
+        :return: list of annotated Corpus objects
+        """
+        X, _ = extract_feats_and_label_bow(corpus=None, objs=objs, obj_type=None, vector_name=self.vector_name,
+                                    labeller=self.labeller, selector=None)
+
+        X = X.toarray()
+        # obj_ids = [obj.id for obj in objs]
+        clfs, clfs_probs = self.clf.predict(X), self.clf.predict_proba(X)[:, 1]
+
+        for idx, (clf, clf_prob) in enumerate(list(zip(clfs, clfs_probs))):
+            obj = objs[idx]
+            obj.add_meta(self.clf_feat_name, clf)
+            obj.add_meta(self.clf_prob_feat_name, clf_prob)
+
+        return objs
+
     def fit_transform(self, corpus: Corpus, y=None, selector: Callable[[CorpusObject], bool] = lambda x: True) -> Corpus:
         self.fit(corpus, selector=selector)
         return self.transform(corpus, selector=selector)
@@ -96,8 +116,7 @@ class BoWClassifier(Classifier):
         Generate a DataFrame indexed by object id with the classifier predictions and scores
 
         :param corpus: the annotated Corpus
-        :param selector: a (lambda) function that takes a Corpus object and returns True or False (i.e. include / exclude).
-		By default, the selector includes all objects of the specified type in the Corpus.
+        :param selector: a (lambda) function that takes a Corpus object and returns True or False (i.e. include / exclude). By default, the selector includes all objects of the specified type in the Corpus.
         :return: a pandas DataFrame
         """
         objId_clf_prob = []
@@ -108,6 +127,22 @@ class BoWClassifier(Classifier):
         return pd.DataFrame(list(objId_clf_prob),
                            columns=['id', self.clf_feat_name, self.clf_prob_feat_name])\
                         .set_index('id').sort_values(self.clf_prob_feat_name, ascending=False)
+
+    def summarize_objs(self, objs: List[CorpusObject]):
+        """
+        Generate a pandas DataFrame (indexed by object id, with prediction and prediction score columns) of classification results.
+
+        Runs on a list of Corpus objects.
+
+        :param objs: list of Corpus objects
+        :return: pandas DataFrame indexed by Corpus object id
+        """
+        objId_clf_prob = []
+        for obj in objs:
+            objId_clf_prob.append((obj.id, obj.meta[self.clf_feat_name], obj.meta[self.clf_prob_feat_name]))
+
+        return pd.DataFrame(list(objId_clf_prob),
+                            columns=['id', self.clf_feat_name, self.clf_prob_feat_name]).set_index('id').sort_values(self.clf_prob_feat_name)
 
 
     def evaluate_with_train_test_split(self, corpus: Corpus = None,
@@ -122,9 +157,7 @@ class BoWClassifier(Classifier):
 
         :param corpus: target Corpus
         :param objs: target list of Corpus objects
-        :param selector: if running on a Corpus, this is a (lambda) function that takes a Corpus object and returns
-        True or False (i.e. include / exclude).
-		By default, the selector includes all objects of the specified type in the Corpus.
+        :param selector: if running on a Corpus, this is a (lambda) function that takes a Corpus object and returns True or False (i.e. include / exclude). By default, the selector includes all objects of the specified type in the Corpus.
         :param test_size: size of test set
         :return: accuracy and confusion matrix
         """
@@ -152,9 +185,7 @@ class BoWClassifier(Classifier):
         :param corpus: target Corpus
         :param objs: target list of Corpus objects (do not pass in corpus if using this)
         :param cv: cross-validation model to use: KFold(n_splits=5) by default.
-        :param selector: if running on a Corpus, this is a (lambda) function that takes a Corpus object and returns
-        True or False (i.e. include / exclude). By default, the selector includes all objects of the specified type
-        in the Corpus.
+        :param selector: if running on a Corpus, this is a (lambda) function that takes a Corpus object and returns True or False (i.e. include / exclude). By default, the selector includes all objects of the specified type in the Corpus.
 
         :return: cross-validated accuracy score
         """

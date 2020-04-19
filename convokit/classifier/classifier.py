@@ -12,10 +12,8 @@ class Classifier(Transformer):
     Runs on the Corpus's Users, Utterances, or Conversations (as specified by obj_type).
 
     :param obj_type: type of Corpus object to classify: 'conversation', 'user', or 'utterance'
-    :param pred_feats: list of metadata keys containing the features to be used in prediction. If the key
-    corresponds to a dictionary, all the keys of the dictionary will be included in pred_feats.
-    :param labeller: a (lambda) function that takes a Corpus object and returns True (y=1) or False (y=0) - i.e.
-    labeller defines the y value of the object for fitting
+    :param pred_feats: list of metadata keys containing the features to be used in prediction. If the key corresponds to a dictionary, all the keys of the dictionary will be included in pred_feats.
+    :param labeller: a (lambda) function that takes a Corpus object and returns True (y=1) or False (y=0) - i.e. labeller defines the y value of the object for fitting
     :param clf: optional sklearn classifier model, an SVM with linear kernel will be initialized by default
     :param clf_feat_name: the metadata key to store the classifier prediction value under; default: "prediction"
     :param clf_prob_feat_name: the metadata key to store the classifier prediction score under; default: "pred_score"
@@ -39,6 +37,7 @@ class Classifier(Transformer):
         :param corpus: target Corpus
         :param selector: a (lambda) function that takes a Corpus object and returns True or False (i.e. include /
         exclude). By default, the selector includes all objects of the specified type in the Corpus.
+
         :return: the fitted Classifier Transformer
         """
         X, y = extract_feats_and_label(corpus, self.obj_type, self.pred_feats, self.labeller, selector)
@@ -54,6 +53,7 @@ class Classifier(Transformer):
         :param corpus: target Corpus
         :param selector: a (lambda) function that takes a Corpus object and returns True or False (i.e. include / exclude).
 		By default, the selector includes all objects of the specified type in the Corpus.
+
         :return: annotated Corpus
         """
         obj_id_to_feats = extract_feats_dict(corpus, self.obj_type, self.pred_feats, selector)
@@ -83,6 +83,7 @@ class Classifier(Transformer):
         Run classifier on list of Corpus objects and annotate them with the predictions and prediction scores
 
         :param objs: list of Corpus objects
+
         :return: list of annotated Corpus objects
         """
         X = np.array([list(extract_feats_from_obj(obj, self.pred_feats).values()) for obj in objs])
@@ -104,8 +105,8 @@ class Classifier(Transformer):
         Run either on a target Corpus or a list of Corpus objects
 
         :param corpus: target Corpus
-        :param selector: a (lambda) function that takes a Corpus object and returns True or False (i.e. include /
-        exclude). By default, the selector includes all objects of the specified type in the Corpus.
+        :param selector: a (lambda) function that takes a Corpus object and returns True or False (i.e. include / exclude). By default, the selector includes all objects of the specified type in the Corpus.
+
         :return: pandas DataFrame indexed by Corpus object id
         """
         objId_clf_prob = []
@@ -118,8 +119,7 @@ class Classifier(Transformer):
 
     def summarize_objs(self, objs: List[CorpusObject]):
         """
-        Generate a pandas DataFrame (indexed by object id, with prediction and prediction score columns) of
-        classification results.
+        Generate a pandas DataFrame (indexed by object id, with prediction and prediction score columns) of classification results.
 
         Runs on a list of Corpus objects.
 
@@ -294,10 +294,10 @@ class Classifier(Transformer):
         """
         Gets the Classifier's internal model
         """
-        return self.cv
+        return self.clf
 
-    def set_model(self, cv):
+    def set_model(self, clf):
         """
         Sets the Classifier's internal model
         """
-        self.cv = cv
+        self.clf = clf
