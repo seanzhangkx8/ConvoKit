@@ -1,12 +1,15 @@
 from convokit import Corpus, CorpusObject
-from typing import Callable
+from sklearn.model_selection import train_test_split, cross_val_score, KFold
+from typing import Callable, List
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import confusion_matrix, classification_report
 import pandas as pd
 from scipy.sparse import vstack
 from .classifier import Classifier
-
+import numpy as np
+from .util import extract_feats_and_label_bow
 
 class BoWClassifier(Classifier):
     """
@@ -30,13 +33,10 @@ class BoWClassifier(Classifier):
             print("Initializing default classification model (standard scaled logistic regression)")
             clf = Pipeline([("standardScaler", StandardScaler(with_mean=False)),
                             ("logreg", LogisticRegression(solver='liblinear'))])
-
-        self.obj_type = obj_type
-        self.labeller = labeller
-        self.clf = clf
-        self.clf_feat_name = clf_feat_name
-        self.clf_prob_feat_name = clf_prob_feat_name
         self.vector_name = vector_name
+
+        super().__init__(obj_type=obj_type, pred_feats=[], labeller=labeller,
+                         clf=clf, clf_feat_name=clf_feat_name, clf_prob_feat_name=clf_prob_feat_name)
 
     def fit(self, corpus: Corpus, y=None, selector: Callable[[CorpusObject], bool] = lambda x: True):
         """
@@ -109,15 +109,60 @@ class BoWClassifier(Classifier):
                            columns=['id', self.clf_feat_name, self.clf_prob_feat_name])\
                         .set_index('id').sort_values(self.clf_prob_feat_name, ascending=False)
 
-    # def evaluate_with_cv(self, corpus: Corpus = None,
-    #                      objs: List[CorpusObject] = None, cv=KFold(n_splits=5)):
-    #     raise NotImplementedError
-    #
-    # def evaluate_with_train_test_split(self, corpus: Corpus = None,
-    #              objs: List[CorpusObject] = None,
-    #              test_size: float = 0.2):
-    #     raise NotImplementedError
 
+    def evaluate_with_train_test_split(self, corpus: Corpus = None,
+                                       objs: List[CorpusObject] = None,
+                                       selector: Callable[[CorpusObject], bool] = lambda x: True,
+                                       test_size: float = 0.2):
+        """
+        Evaluate the performance of predictive features (Classifier.pred_feats) in predicting for the label,
+        using a train-test split.
 
+        Run either on a Corpus (with Classifier labeller, selector, obj_type settings) or a list of Corpus objects
+
+        :param corpus: target Corpus
+        :param objs: target list of Corpus objects
+        :param selector: if running on a Corpus, this is a (lambda) function that takes a Corpus object and returns
+        True or False (i.e. include / exclude).
+		By default, the selector includes all objects of the specified type in the Corpus.
+        :param test_size: size of test set
+        :return: accuracy and confusion matrix
+        """
+        X, y = extract_feats_and_label_bow(corpus, objs, self.obj_type, self.vector_name, self.labeller, selector)
+
+        print("Running a train-test-split evaluation...")
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size)
+        self.clf.fit(X_train, y_train)
+        preds = self.clf.predict(X_test)
+        accuracy = np.mean(preds == y_test)
+        print("Done.")
+        return accuracy, confusion_matrix(y_true=y_test, y_pred=preds)
+
+    def evaluate_with_cv(self, corpus: Corpus = None,
+                         objs: List[CorpusObject] = None,
+                         cv=KFold(n_splits=5),
+                         selector: Callable[[CorpusObject], bool] = lambda x: True
+                         ):
+        """
+        Evaluate the performance of predictive features (Classifier.pred_feats) in predicting for the label,
+        using cross-validation for data splitting.
+
+        Run either on a Corpus (with Classifier labeller, selector, obj_type settings) or a list of Corpus objects.
+
+        :param corpus: target Corpus
+        :param objs: target list of Corpus objects (do not pass in corpus if using this)
+        :param cv: cross-validation model to use: KFold(n_splits=5) by default.
+        :param selector: if running on a Corpus, this is a (lambda) function that takes a Corpus object and returns
+        True or False (i.e. include / exclude). By default, the selector includes all objects of the specified type
+        in the Corpus.
+
+        :return: cross-validated accuracy score
+        """
+
+        X, y = extract_feats_and_label_bow(corpus, objs, self.obj_type, self.vector_name, self.labeller, selector)
+        print("Running a cross-validated evaluation...")
+        score = cross_val_score(self.clf, X, y, cv=cv)
+        print("Done.")
+        return score
 
 
