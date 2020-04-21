@@ -35,8 +35,7 @@ class Classifier(Transformer):
         Trains the Transformer's classifier model, with an optional selector that filters for objects to be fit on.
 
         :param corpus: target Corpus
-        :param selector: a (lambda) function that takes a Corpus object and returns True or False (i.e. include /
-        exclude). By default, the selector includes all objects of the specified type in the Corpus.
+        :param selector: a (lambda) function that takes a Corpus object and returns True or False (i.e. include / exclude). By default, the selector includes all objects of the specified type in the Corpus.
 
         :return: the fitted Classifier Transformer
         """
