@@ -122,9 +122,9 @@ A collection of 1,155 five-minute telephone conversations between two participan
 
 Name for download: `switchboard-corpus`
 
-### [Stanford Politeness Corpus (Wikipedia/Stack Exchange)](https://www.cs.cornell.edu/~cristian/Politeness.html)
+### Stanford Politeness Corpus ([Wikipedia](https://zissou.infosci.cornell.edu/convokit/documentation/wiki_politeness.html)/[Stack Exchange](https://zissou.infosci.cornell.edu/convokit/documentation/stack_politeness.html))
 
-Two collections of requests (from Wikipedia and Stack Exchange respectively) with politeness annotations. Name for download: `wikipedia-politeness-corpus` (Wikipedia portion), `stack-exchange-politeness-corpus` (Stack Exchange portion)
+Two collections of requests (from Wikipedia and Stack Exchange respectively) with politeness annotations. Name for download: `wikipedia-politeness-corpus` (Wikipedia portion), `stack-exchange-politeness-corpus` (Stack Exchange portion).
 
 ### ...And your own corpus!
 
