@@ -45,7 +45,7 @@ For some quick stats:
 Data License
 ^^^^^^^^^^^^
 
-Creative Commons Attribution 4.0 International
+ConvoKit's Stanford Politeness Corpus is governed by the `CC BY license v4.0 <https://creativecommons.org/licenses/by/4.0/>`_. Copyright (C) 2017-2020 The ConvoKit Developers. 
 
 Contact
 ^^^^^^^
