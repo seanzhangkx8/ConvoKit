@@ -122,6 +122,10 @@ A collection of 1,155 five-minute telephone conversations between two participan
 
 Name for download: `switchboard-corpus`
 
+### [Stanford Politeness Corpus (Wikipedia/Stack Exchange)](https://www.cs.cornell.edu/~cristian/Politeness.html)
+
+Two collections of requests (from Wikipedia and Stack Exchange respectively) with politeness annotations. Name for download: `wikipedia-politeness-corpus` (Wikipedia portion), `stack-exchange-politeness-corpus` (Stack Exchange portion)
+
 ### ...And your own corpus!
 
 In addition to the provided datasets, you may also use ConvoKit with your own custom datasets by loading them into a `convokit.Corpus` object. [This example script](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/converting_movie_corpus.ipynb) shows how to construct a Corpus from custom data.
