@@ -42,6 +42,10 @@ For some quick stats:
 >>> len(corpus.get_utterance_ids()) 
 4353
 
+Data License
+^^^^^^^^^^^^
+
+Creative Commons Attribution 4.0 International
 
 Contact
 ^^^^^^^
