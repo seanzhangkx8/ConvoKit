@@ -57,6 +57,12 @@ class User(CorpusObject):
 
     name = property(_get_name, _set_name)
 
+    def _add_utterance(self, utt):
+        self.utterances[utt.id] = utt
+
+    def _add_conversation(self, convo):
+        self.conversations[convo.id] = convo
+
     def get_utterance(self, ut_id: str): #-> Utterance:
         """
         Get the Utterance with the specified Utterance id
