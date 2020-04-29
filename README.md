@@ -152,6 +152,6 @@ We welcome community contributions. To see how you can help out, check the [cont
 
 If you use the code or datasets distributed with ConvoKit please acknowledge the work tied to the respective component (indicated in the documentation) in addition to:
 
-Jonathan P. Chang, Caleb Chiam, Liye Fu, Andrew Wang, Justine Zhang, Cristian Danescu-Niculescu-Mizil. 2019. "ConvoKit: The Cornell Conversational Analysis Toolkit" Retrieved from http://convokit.cornell.edu
+Jonathan P. Chang, Caleb Chiam, Liye Fu, Andrew Wang, Justine Zhang, Cristian Danescu-Niculescu-Mizil. 2020. "ConvoKit: A Toolkit for the Analysis of Conversations". Proceedings of SIGDIAL.
 
 [ConvoKit](http://convokit.cornell.edu/)
