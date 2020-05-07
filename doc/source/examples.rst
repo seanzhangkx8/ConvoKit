@@ -23,6 +23,7 @@ Prompt Types
 
 Politeness Strategies
 ---------------------
+- `Exploring common politeness strategies used in Stanford Politeness Corpus <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/politeness-strategies/politeness_demo.ipynb>`_
 - `Using politeness strategies to predict Wikipedia conversations gone awry <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/conversations-gone-awry/Conversations_Gone_Awry_Prediction.ipynb>`_
 
 Hyperconvo

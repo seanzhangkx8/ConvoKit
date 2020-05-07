@@ -31,7 +31,7 @@ def convert_df_to_corpus(df: DataFrame, id_col: str, text_col: str, meta_cols: L
     # in this particular case, speaker, reply_to, and timestamp information are all not applicable
     # and we will simply either create a placeholder entry, or leave it as None 
         
-    user = Speaker(id="speaker")
+    generic_speaker = Speaker(id="speaker")
     time = "NOT_RECORDED"
 
     utterance_list = []    
@@ -42,7 +42,7 @@ def convert_df_to_corpus(df: DataFrame, id_col: str, text_col: str, meta_cols: L
         for meta_col in meta_cols:
             metadata[meta_col] = row[meta_col]
         
-        utterance_list.append(Utterance(id=str(row[id_col]), speaker=user, \
+        utterance_list.append(Utterance(id=str(row[id_col]), speaker=generic_speaker, \
                                         root=str(row[id_col]), reply_to=None, \
                                         timestamp=time, text=row[text_col], \
                                         meta=metadata))
