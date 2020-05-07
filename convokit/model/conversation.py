@@ -110,6 +110,10 @@ class Conversation(CorpusObject):
         # any Utterances
         return self._owner.get_speaker(speaker_id)
 
+    def get_user(self, speaker_id: str):
+        warn("This function is deprecated. Use get_user() instead.")
+        return self.get_speaker(speaker_id)
+
     def iter_speakers(self, selector: Callable[[Speaker], bool] = lambda speaker: True) -> Generator[Speaker, None, None]:
         """
         Generator allowing iteration over all speakers in the Conversation.
@@ -127,6 +131,10 @@ class Conversation(CorpusObject):
             speaker = self._owner.get_speaker(speaker_id)
             if selector(speaker):
                 yield speaker
+
+    def iter_users(self, selector=lambda speaker: True):
+        warn("This function is deprecated. Use iter_speakers() instead.")
+        return self.iter_speakers(selector)
 
     def get_chronological_speaker_list(self, selector: Callable[[Speaker], bool] = lambda speaker: True):
         """
