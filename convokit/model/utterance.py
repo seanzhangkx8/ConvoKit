@@ -30,6 +30,7 @@ class Utterance(CorpusObject):
                  meta: Optional[Dict] = None):
         super().__init__(obj_type="utterance", owner=owner, id=id, meta=meta)
         self.speaker = speaker
+        self.user = speaker # for backwards compatbility
         self.root = root
         self.reply_to = reply_to
         self.timestamp = timestamp # int(timestamp) if timestamp is not None else timestamp
