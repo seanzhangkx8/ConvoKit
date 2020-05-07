@@ -28,7 +28,7 @@ class PairedBoW(PairedPrediction):
                  label_feat_name: str = "pair_obj_label",
                  pair_orientation_feat_name: str = "pair_orientation"):
 
-        assert obj_type in ["user", "utterance", "conversation"]
+        assert obj_type in ["speaker", "utterance", "conversation"]
         self.obj_type = obj_type
         self.vector_name = vector_name
 

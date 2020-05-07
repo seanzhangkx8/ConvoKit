@@ -24,9 +24,9 @@ Also includes functionality to extract surface motifs to represent utterances, u
 A method for extracting structural features of conversations through a hypergraph representation.  
 Example: [hypergraph creation and feature extraction, visualization and interpretation on a subsample of Reddit](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/hyperconvo/demo_new.ipynb).
 
-### [Linguistic diversity in conversations](http://www.cs.cornell.edu/~cristian/Finding_your_voice__linguistic_development.html) <sub><sup>[(API)](https://convokit.cornell.edu/documentation/userConvoDiversity.html)</sup></sub>
+### [Linguistic diversity in conversations](http://www.cs.cornell.edu/~cristian/Finding_your_voice__linguistic_development.html) <sub><sup>[(API)](https://convokit.cornell.edu/documentation/speakerConvoDiversity.html)</sup></sub>
 A method to compute the linguistic diversity of individuals within their own conversations, and between other individuals in a population.  
-Example: [user conversation attributes and diversity example on ChangeMyView](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/user-convo-attributes/user-convo-diversity-demo.ipynb)
+Example: [speaker conversation attributes and diversity example on ChangeMyView](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/speaker-convo-attributes/speaker-convo-diversity-demo.ipynb)
 
 ### [CRAFT: Online forecasting of conversational outcomes](https://arxiv.org/abs/1909.01362) <sub><sup>[(API)](https://convokit.cornell.edu/documentation/forecaster.html)</sup></sub>
 A neural model for forecasting future outcomes of conversations (e.g., derailment into personal attacks) as they develop.  
@@ -88,7 +88,7 @@ Name for download: `chromium-corpus`
 
 ### [Winning Arguments Corpus](https://convokit.cornell.edu/documentation/winning.html)
 
-A metadata-rich subset of conversations made in the r/ChangeMyView subreddit between 1 Jan 2013 - 7 May 2015, with information on the delta (success) of a user's utterance in convincing the poster.
+A metadata-rich subset of conversations made in the r/ChangeMyView subreddit between 1 Jan 2013 - 7 May 2015, with information on the delta (success) of a speaker's utterance in convincing the poster.
 
 Name for download: `winning-args-corpus`
 

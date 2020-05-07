@@ -4,7 +4,7 @@ from convokit.util import warn
 class CorpusObject:
 
     def __init__(self, obj_type: str, owner=None, id=None, meta=None):
-        self.obj_type = obj_type  # utterance, user, conversation
+        self.obj_type = obj_type  # utterance, speaker, conversation
         self._owner = owner
         if meta is None:
             meta = dict()
@@ -43,7 +43,7 @@ class CorpusObject:
 
     # def __eq__(self, other):
     #     if type(self) != type(other): return False
-    #     # do not compare 'utterances' and 'conversations' in User.__dict__. recursion loop will occur.
+    #     # do not compare 'utterances' and 'conversations' in Speaker.__dict__. recursion loop will occur.
     #     self_keys = set(self.__dict__).difference(['_owner', 'meta', 'utterances', 'conversations'])
     #     other_keys = set(other.__dict__).difference(['_owner', 'meta', 'utterances', 'conversations'])
     #     return self_keys == other_keys and all([self.__dict__[k] == other.__dict__[k] for k in self_keys])

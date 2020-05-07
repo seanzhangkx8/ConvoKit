@@ -1,7 +1,7 @@
 Supreme Court Corpus
 ====================
 
-A collection of conversations from the U.S. Supreme Court Oral Arguments (51,498 utterances, from 204 cases). 
+A collection of conversations from the U.S. Supreme Court Oral Arguments (51,498 utterances, from 204 cases).
 
 Distributed together with: `Echoes of power: Language effects and power differences in social interaction <https://www.cs.cornell.edu/~cristian/Echoes_of_power.html>`_. Cristian Danescu-Niculescu-Mizil, Bo Pang, Lillian Lee and Jon Kleinberg. WWW 2012
 
@@ -9,13 +9,13 @@ Distributed together with: `Echoes of power: Language effects and power differen
 Dataset details
 ---------------
 
-User-level information
+speaker-level information
 ^^^^^^^^^^^^^^^^^^^^^^
 
-For each user, additional information include:
+For each speaker, additional information include:
 
-* is-justice: whether the user is a Justice 
-* gender: gender of the user 
+* is-justice: whether the speaker is a Justice
+* gender: gender of the speaker
 
 
 Utterance-level information
@@ -24,7 +24,7 @@ Utterance-level information
 For each utterance, we provide:
 
 * id: index of the utterance
-* user: the user who author the utterance
+* speaker: the speaker who author the utterance
 * root: index of the conversation root of the utterance
 * reply_to: index of the utterance to which this utterance replies to (None if the utterance is not a reply)
 * timestamp: time of the utterance
@@ -32,18 +32,18 @@ For each utterance, we provide:
 
 Metadata for utterances may include:
 
-* case: case number 
+* case: case number
 * justice-is-favorable: true if the Justice eventually vote for this side
-* justice-vote: eventual vote from the Justice 
+* justice-vote: eventual vote from the Justice
 * side: side of the case
 
-Note that some utterances may have only a subset of such information.  
+Note that some utterances may have only a subset of such information.
 
 
 Usage
 -----
 
-To download directly with ConvoKit: 
+To download directly with ConvoKit:
 
 >>> from convokit import Corpus, download
 >>> corpus = Corpus(filename=download("supreme-corpus"))
@@ -51,12 +51,10 @@ To download directly with ConvoKit:
 
 For some quick stats:
 
->>> len(corpus.get_utterance_ids()) 
-51498
->>> len(corpus.get_usernames())
-324
->>> len(corpus.get_conversations())
-938
+>>> corpus.print_summary_stats()
+Number of Speakers: 324
+Number of Utterances: 51498
+Number of Conversations: 938
 
 
 Additional note
@@ -75,4 +73,3 @@ Related links
 Contact
 ^^^^^^^
 Please email any questions to: cristian@cs.cornell.edu (Cristian Danescu-Niculescu-Mizil)
-
