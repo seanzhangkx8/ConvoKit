@@ -10,7 +10,7 @@ Dataset details
 ---------------
 
 Speaker-level information
-^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 There are 1285 users in this dataset. Speakers are workers on Amazon Mechanical Turk. Each user has associated metadata from pre-task psychological surveys, as well as demographic information:
 

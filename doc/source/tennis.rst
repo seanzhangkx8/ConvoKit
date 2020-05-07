@@ -12,7 +12,7 @@ Dataset details
 ---------------
 
 Speaker-level information
-^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Speakers in this dataset are tennis professional players, represented by their real names. As this dataset do not contain information about individual reporters, we use a single pseudo user with username "REPORTER" to represent them.
 

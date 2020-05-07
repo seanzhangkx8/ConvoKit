@@ -7,8 +7,8 @@ A sample of conversations from Reddit from 100 highly active subreddits. From ea
 Dataset details
 ---------------
 
-speaker-level information
-^^^^^^^^^^^^^^^^^^^^^^
+Speaker-level information
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 speakers in this corpus are Reddit speakers, identified by their account names. The corpus includes the following activity statistics:
 

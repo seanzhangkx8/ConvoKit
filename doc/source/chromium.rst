@@ -14,7 +14,7 @@ Dataset details
 ---------------
 
 Speaker-level information
-^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Speaker names have been anonymized randomly to 'developer_#' where '#' is a number between 1 and 4842.
 

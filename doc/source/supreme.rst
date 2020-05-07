@@ -9,8 +9,8 @@ Distributed together with: `Echoes of power: Language effects and power differen
 Dataset details
 ---------------
 
-speaker-level information
-^^^^^^^^^^^^^^^^^^^^^^
+Speaker-level information
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 For each speaker, additional information include:
 

@@ -13,7 +13,7 @@ Dataset details
 ---------------
 
 Speaker-level information
-^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 In this dataset, users are the participants in the phone conversations (two per conversation). The user's name is the same as the ID used in the original SwDA dataset. 
 

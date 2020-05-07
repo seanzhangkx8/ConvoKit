@@ -14,8 +14,8 @@ Trouble on the Horizon: Forecasting the Derailment of Online Conversations as th
 Dataset details
 ---------------
 
-speaker-level information
-^^^^^^^^^^^^^^^^^^^^^^
+Speaker-level information
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 speakers in this dataset are Wikipedia editors; their account names are taken as the speaker names.
 

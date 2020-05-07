@@ -15,7 +15,7 @@ Dataset details
 ---------------
 
 Speaker-level information
-^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Speakers in this dataset are Redditors and are indexed by their Reddit username. There is no other metadata information.
 

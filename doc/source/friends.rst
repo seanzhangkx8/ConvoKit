@@ -11,7 +11,7 @@ Dataset details
 ---------------
 
 Speaker-level information
-^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Speakers in this dataset are characters in a given scene. The original dataset provides each character's name as a string, e.g. "Monica Geller". We index Speakers by their names.
 

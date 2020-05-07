@@ -9,7 +9,7 @@ Dataset details
 ---------------
 
 Speaker-level information
-^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Speakers in this dataset are Reddit users; their account names are taken as the user names.
 
