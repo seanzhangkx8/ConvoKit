@@ -64,13 +64,10 @@ To download directly with ConvoKit:
 
 For some quick stats:
 
->>> len(corpus.get_utterance_ids()) 
-30021
->>> len(corpus.get_speakernames())
-8069
->>> len(corpus.get_conversation_ids())
-4188
-
+>>> corpus.print_summary_stats()
+Number of Speakers: 8069
+Number of Utterances: 30021
+Number of Conversations: 4188
 
 Additional note
 ---------------
