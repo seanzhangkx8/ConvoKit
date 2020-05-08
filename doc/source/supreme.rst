@@ -68,7 +68,9 @@ Related links
 
 2. Case outcome and vote data were extracted from the `Spaeth Supreme Court database <http://scdb.wustl.edu/>`_.
 
-3. This corpus builds upon and enriches the data initially used in: `Computational analysis of the conversational dynamics of the United States Supreme Court <https://drum.lib.umd.edu/handle/1903/9999>`_. Timothy Hawes. Master's Thesis, 2009
+3. This corpus builds upon and enriches the data initially used in: `Computational analysis of the conversational dynamics of the United States Supreme Court <https://drum.lib.umd.edu/handle/1903/9999>`_. Timothy Hawes. Master's Thesis, 2009 and "Elements of a computational model for multi-party discourse: The turn-taking behavior of Supreme Court justices."  Timothy Hawes, Jimmy Lin, and Philip Resnik, JASIST 60(8), 2009.  The original used in these studies can be found `here <https://confluence.cornell.edu/download/attachments/172918779/HAWES_TRANSCRIPT_DATA.zip?version=1&modificationDate=1333554907000&api=v2>`_.
+
+4. A legacy (unmaintained) version of the dataset is `available <https://confluence.cornell.edu/display/llresearch/Supreme+Court+Dialogs+Corpus>`_.
 
 Contact
 ^^^^^^^
