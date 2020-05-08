@@ -37,6 +37,12 @@ class CoordinationScore(dict):
         """
         return {speaker: scores[marker] for speaker, scores in self.items()}
 
+    def averages_by_user(self):
+        warn("This function is deprecated and will be removed in a future release. Use averages_by_speaker() instead.")
+        return {speaker: sum(scores.values()) / len(scores)
+                for speaker, scores in self.items()}
+
+
     def averages_by_speaker(self) -> Dict[Union[Speaker, Hashable], float]:
         """Return a dictionary from speakers to the average of each speaker's
         marker scores."""
