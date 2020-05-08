@@ -32,5 +32,9 @@ Hyperconvo
 - `Using Hyperconvo features to predict conversation growth on Reddit <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/hyperconvo/predictive_tasks.ipynb>`_
 
 Speaker Convo Diversity
----------------------
+-----------------------
 - `Speaker conversation attributes and diversity example on ChangeMyView <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/speaker-convo-attributes/speaker-convo-diversity-demo.ipynb>`_
+
+Fighting Words
+--------------
+- `Examining the Fighting Words of mixed-gender vs. single-gender conversations in movies <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/movie-corpus-gender-fighting-words.ipynb>`_
