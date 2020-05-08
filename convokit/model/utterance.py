@@ -25,11 +25,13 @@ class Utterance(CorpusObject):
     """
 
     def __init__(self, owner=None, id: Optional[str] = None, speaker: Optional[Speaker] = None,
+                 user: Optional[Speaker] = None,
                  root: Optional[str] = None, reply_to: Optional[str] = None,
                  timestamp: Optional[int] = None, text: Optional[str] = None,
                  meta: Optional[Dict] = None):
         super().__init__(obj_type="utterance", owner=owner, id=id, meta=meta)
-        self.speaker = speaker
+        speaker_ = speaker if speaker is not None else user
+        self.speaker = speaker_
         self.user = speaker # for backwards compatbility
         self.root = root
         self.reply_to = reply_to

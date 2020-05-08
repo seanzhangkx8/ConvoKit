@@ -101,10 +101,10 @@ class CorpusObject:
 
     def __repr__(self):
         copy = self.__dict__.copy()
-        if 'utterances' in copy:
-            del copy['utterances']
-        if 'conversations' in copy:
-            del copy['conversations']
+        deleted_keys = ['utterances', 'conversations', 'user']
+        for k in deleted_keys:
+            if k in copy:
+                del copy[k]
         try:
             return self.obj_type.capitalize() + "(" + str(copy) + ")"
         except AttributeError: # for backwards compatibility when corpus objects are saved as binary data, e.g. wikiconv
