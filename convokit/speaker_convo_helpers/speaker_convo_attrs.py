@@ -4,7 +4,7 @@ from convokit.model import Corpus
 class SpeakerConvoAttrs(Transformer):
 
     '''
-        Transformer that aggregates statistics per (speaker, convo). e.g., average wordcount of all utterances that speaker contributed per convo. Assumes that `corpus.organize_user_convo_history` has already been called.
+        Transformer that aggregates statistics per (speaker, convo). e.g., average wordcount of all utterances that speaker contributed per convo. Assumes that `corpus.organize_speaker_convo_history` has already been called.
 
         :param attr_name: name of attribute to aggregate over. note that this attribute must already exist as an annotation to utterances in the corpus.
         :param output_field: name of the aggregated attribute to output. defaults to `attr_name`.
@@ -32,12 +32,12 @@ class SpeakerConvoAttrs(Transformer):
         :type corpus: Corpus
         '''
 
-        for user in corpus.iter_speakers():
-            if 'conversations' not in user.meta: continue
+        for speaker in corpus.iter_speakers():
+            if 'conversations' not in speaker.meta: continue
 
-            for convo_id, convo in user.meta['conversations'].items():
-                if self.recompute or (corpus.get_speaker_convo_info(user.name, convo_id, self.output_field) is None):
+            for convo_id, convo in speaker.meta['conversations'].items():
+                if self.recompute or (corpus.get_speaker_convo_info(speaker.id, convo_id, self.output_field) is None):
                     utterance_attrs = [corpus.get_utterance(utt_id).meta[self.attr_name] 
                                        for utt_id in convo['utterance_ids']]
-                    corpus.set_speaker_convo_info(user.name, convo_id, self.output_field, self.agg_fn(utterance_attrs))
+                    corpus.set_speaker_convo_info(speaker.id, convo_id, self.output_field, self.agg_fn(utterance_attrs))
         return corpus
