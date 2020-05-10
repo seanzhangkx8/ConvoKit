@@ -150,7 +150,7 @@ def download_local(name: str, data_dir: str):
     :return: string path to local Corpus
     """
     custom_data_dir = data_dir
-    data_dir = os.path.expanduser("~/.convokit/")
+    data_dir = os.path.expandspeaker("~/.convokit/")
 
     #pkg_resources.resource_filename("convokit", "")
     if not os.path.exists(data_dir):
@@ -277,7 +277,7 @@ def _get_wikiconv_year_info(year: str) -> str:
     return data_dir + year + "/full.corpus.zip"
 
 def meta_index(corpus=None, filename: str=None) -> Dict:
-    keys = ["utterances-index", "conversations-index", "users-index",
+    keys = ["utterances-index", "conversations-index", "speakers-index",
             "overall-index"]
     if corpus is not None:
         return {k: v for k, v in corpus.meta_index.items() if k in keys}

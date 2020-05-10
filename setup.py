@@ -24,8 +24,8 @@ setup(
                 "convokit.prompt_types",
                 "convokit.ranker",
                 "convokit.text_processing",
-                "convokit.user_convo_helpers",
-                "convokit.userConvoDiversity",
+                "convokit.speaker_convo_helpers",
+                "convokit.speakerConvoDiversity",
               ],
     package_data={"convokit": ["data/*.txt"]},
     install_requires=[

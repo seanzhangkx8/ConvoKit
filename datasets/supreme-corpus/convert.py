@@ -4,7 +4,7 @@ import json
 MaxUtterances = -1
 
 KeyId = "id"
-KeyUser = "user"
+KeyUser = "speaker"
 KeyConvoRoot = "root"
 KeyReplyTo = "reply-to"
 KeyUserInfo = "meta"  # can store any extra data
@@ -41,13 +41,13 @@ with open("supreme.conversations.dat", "r", encoding="utf-8") as f:
                 case = fields[0].strip() 
                 is_justice = fields[4].strip() == "JUSTICE"
 
-                #user += "(case:" + fields[0].strip() + ")"
+                #speaker += "(case:" + fields[0].strip() + ")"
                 #is_justice = fields[4].strip() == "JUSTICE"
                 #if is_justice:
                 #    if fields[5].strip() == fields[6].strip(): # favorable justice
-                #        user += "{justice-fav}"
+                #        speaker += "{justice-fav}"
                 #    else:
-                #        user += "{justice-unfav}"
+                #        speaker += "{justice-unfav}"
 
                 is_reply = fields[2].strip() == "TRUE"
                 if not is_reply:
@@ -68,7 +68,7 @@ with open("supreme.conversations.dat", "r", encoding="utf-8") as f:
                     KeyText: fields[7],
                     KeyUserInfo: {
                         "case": case,
-                        #"gender": genders[user],
+                        #"gender": genders[speaker],
                         #"is-justice": is_justice,
                         "side": fields[6].lower(),
                     }
@@ -80,7 +80,7 @@ with open("supreme.conversations.dat", "r", encoding="utf-8") as f:
 
                 if is_reply:
                     d[KeyReplyTo] = last_utterance_id
-                    d[KeyConvoRoot] = root_id#convo_id#user # \
+                    d[KeyConvoRoot] = root_id#convo_id#speaker # \
                         #+ "->" + (
                         #"[justices]" if \
                         #u[last_utterance_id][KeyUser].endswith("fav}") else \
@@ -115,7 +115,7 @@ if MaxUtterances > 0:
 json.dump(utterances, open("supreme.json", "w"), indent=2,
           sort_keys=True)
 
-with open("supreme-users.json", "w") as f:
+with open("supreme-speakers.json", "w") as f:
     json.dump(users_meta, f, indent=2)
 #print(len(usernames), len(usernames_cased))
 print("Done")

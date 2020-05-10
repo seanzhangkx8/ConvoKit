@@ -23,6 +23,7 @@ Prompt Types
 
 Politeness Strategies
 ---------------------
+- `Exploring common politeness strategies used in Stanford Politeness Corpus <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/politeness-strategies/politeness_demo.ipynb>`_
 - `Using politeness strategies to predict Wikipedia conversations gone awry <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/conversations-gone-awry/Conversations_Gone_Awry_Prediction.ipynb>`_
 
 Hyperconvo
@@ -30,6 +31,10 @@ Hyperconvo
 - `Categorizing and analyzing subreddits using Hyperconvo features <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/hyperconvo/demo.ipynb>`_
 - `Using Hyperconvo features to predict conversation growth on Reddit <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/hyperconvo/predictive_tasks.ipynb>`_
 
-User Convo Diversity
----------------------
-- `User conversation attributes and diversity example on ChangeMyView <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/user-convo-attributes/user-convo-diversity-demo.ipynb>`_
+Speaker Convo Diversity
+-----------------------
+- `Speaker conversation attributes and diversity example on ChangeMyView <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/speaker-convo-attributes/speaker-convo-diversity-demo.ipynb>`_
+
+Fighting Words
+--------------
+- `Examining the Fighting Words of mixed-gender vs. single-gender conversations in movies <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/movie-corpus-gender-fighting-words.ipynb>`_

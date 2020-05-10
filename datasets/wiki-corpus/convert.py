@@ -6,7 +6,7 @@ import datetime
 MaxUtterances = -1
 
 KeyId = "id"
-KeyUser = "user"
+KeyUser = "speaker"
 KeyConvoRoot = "root"
 KeyReplyTo = "reply-to"
 KeyTimestamp = "timestamp"
@@ -54,7 +54,7 @@ with open("wikipedia.talkpages.conversations.dat", "r", encoding="utf-8") as f:
                 is_admin = False
                 if user in admins and float(timestamp) > admins[user]:
                     is_admin = True
-                    #user += "{admin}"
+                    #speaker += "{admin}"
                     uniq_admins.add(user)
 
                 is_admin_glob = is_admin
@@ -115,7 +115,7 @@ if MaxUtterances > 0:
 json.dump(utterances, open("utterances.json", "w"), indent=2,
           sort_keys=True)
 
-with open("users.json", "w") as f:
+with open("speakers.json", "w") as f:
     json.dump(users_meta, f, indent=2)
 
 print(len(uniq_admins), "admins")

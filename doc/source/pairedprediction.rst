@@ -17,8 +17,7 @@ utterances where Rachel speaks to Monica and Rachel speaks to Chandler *within* 
 for differences between these paired sets of utterances.
 
 Example usage: `paired prediction, predicting for whether a science in Friends goes on to have all six friends
-participating, based on features from the first 5 utterances <https://github
-.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/tree/master/convokit/fighting_words>`_.
+participating, based on features from the first 5 utterances <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/convokit/paired_prediction/demo/paired_prediction_demo.ipynb>`_.
 
 .. automodule:: convokit.paired_prediction.pairedPrediction
     :members:
