@@ -10,6 +10,17 @@ from .convoKitMeta import ConvoKitMeta
 class Corpus:
 	"""Represents a dataset, which can be loaded from a folder or a
 	list of utterances.
+
+	:param filename: Path to a folder containing a Corpus or to an utterances.jsonl / utterances.json file to load
+	:param utterances: List of utterances to initialize Corpus from
+	:param utterance_start_index: For utterances.jsonl, specify the line number (zero-indexed) to begin parsing utterances from
+	:param utterance_end_index: For utterances.jsonl, specify the line number (zero-indexed) of the last utterance to be parsed.
+	:param merge_lines: whether to merge adjacent lines from same user if the two utterances have same root
+	:param exclude_utterance_meta: utterance metadata to be ignored
+	:param exclude_conversation_meta: conversation metadata to be ignored
+	:param exclude_user_meta: user metadata to be ignored
+	:param exclude_overall_meta: overall metadata to be ignored
+	:param version: version no. of corpus
 	"""
 
 	def __init__(self, filename: Optional[str] = None, utterances: Optional[List[Utterance]] = None,
@@ -19,19 +30,6 @@ class Corpus:
 				 exclude_user_meta: Optional[List[str]] = None,
 				 exclude_overall_meta: Optional[List[str]] = None,
 				 version: Optional[int] = None):
-		"""
-
-		:param filename: Path to a folder containing a Corpus or to an utterances.jsonl / utterances.json file to load
-		:param utterances: List of utterances to initialize Corpus from
-		:param utterance_start_index: For utterances.jsonl, specify the line number (zero-indexed) to begin parsing utterances from
-		:param utterance_end_index: For utterances.jsonl, specify the line number (zero-indexed) of the last utterance to be parsed.
-		:param merge_lines: whether to merge adjacent lines from same user if the two utterances have same root
-		:param exclude_utterance_meta: utterance metadata to be ignored
-		:param exclude_conversation_meta: conversation metadata to be ignored
-		:param exclude_user_meta: user metadata to be ignored
-		:param exclude_overall_meta: overall metadata to be ignored
-		:param version: version no. of corpus
-		"""
 
 		if filename is None:
 			self.original_corpus_path = None
@@ -438,8 +436,7 @@ class Corpus:
 		
 		:param new_convo_roots: List of utterance ids to use as roots
 		:param preserve_corpus_meta: set as True to copy original Corpus metadata to new Corpus
-		:param preserve_convo_meta: set as True to copy original Conversation metadata to new Conversation metadata 
-		(For each new convo root, use the metadata of the conversation that convo root belonged to.)
+		:param preserve_convo_meta: set as True to copy original Conversation metadata to new Conversation metadata (For each new convo root, use the metadata of the conversation that convo root belonged to.)
 		:param verbose: whether to print a warning when 
 		:return: new Corpus with reindexed Conversations
 		"""""
