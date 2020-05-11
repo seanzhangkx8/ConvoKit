@@ -37,14 +37,28 @@ def download(name: str, verbose: bool = True, data_dir: str = None, use_newest_v
         -  "tennis-corpus": Tennis post-match press conferences transcripts
             Transcripts for tennis singles post-match press conferences for major tournaments between 2007 to 2015
             (see http://www.cs.cornell.edu/~liye/tennis.html)
-        -  "reddit-corpus-small" Reddit Corpus (sampled):
+        -  "reddit-corpus-small": Reddit Corpus (sampled):
             A sample from 100 highly-active subreddits
         -  "subreddit-<subreddit-name>": Subreddit Corpus
             A corpus made from the given subreddit
+        -  "friends-corpus": Friends TV show Corpus
+            A collection of all the conversations that occurred over 10 seasons of Friends, a popular American TV sitcom that ran in the 1990s.
+        -  "switchboard-corpus": Switchboard Dialog Act Corpus
+            A collection of 1,155 five-minute telephone conversations between two participants, annotated with speech act tags.
+        -  "persuasionforgood-corpus": Persuasion For Good Corpus
+            A collection of online conversations where a persuader tries to convince a persuadee to donate to charity.
+        -  "iq2-corpus": Intelligence Squared Debates Corpus
+            Transcripts of debates held as part of Intelligence Squared Debates.
+        -  "diplomacy-corpus": Deception in Diplomacy Corpus
+            Dataset with intended and perceived deception labels in the negotiation-based game Diplomacy.
+        -  "reddit-coarse-discourse-corpus": Coarse Discourse Sequence Corpus
+            Reddit dataset with utterances containing discourse act labels.
         -  "chromium-corpus": Chromium Conversations Corpus
             A collection of almost 1.5 million conversations and 2.8 million comments posted by developers reviewing proposed code changes in the Chromium project.
-        -  "wikipedia-politeness-corpus": A corpus of politeness annotations on requests from Wikipedia talk pages.
-        -  "stack-exchange-politeness-corpus": A corpus of politeness annotations on requests from stack exchange.
+        -  "wikipedia-politeness-corpus": Wikipedia Politeness Corpus
+            A corpus of politeness annotations on requests from Wikipedia talk pages.
+        -  "stack-exchange-politeness-corpus": Stack Exchange Politeness Corpus
+            A corpus of politeness annotations on requests from stack exchange.
     :param verbose: Print checkpoint statements for download
     :param data_dir: Output path of downloaded file (default: ~/.convokit)
     :param use_newest_version: Re-download if new version is found
@@ -144,9 +158,9 @@ def download(name: str, verbose: bool = True, data_dir: str = None, use_newest_v
 
 def download_local(name: str, data_dir: str):
     """
-    Get path to local version of the Corpus (which may be an older version)
+    Get path to a previously-downloaded local version of the corpus (which may be an older version).
     
-    :param name of Corpus
+    :param: name of Corpus
     :return: string path to local Corpus
     """
     custom_data_dir = data_dir
@@ -289,6 +303,7 @@ def meta_index(corpus=None, filename: str=None) -> Dict:
 def warn(text: str):
     """
     Pre-pends a red-colored 'WARNING: ' to [text].
+
     :param text: Warning message
     :return: 'WARNING: [text]'
     """

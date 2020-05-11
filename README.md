@@ -128,13 +128,14 @@ A collection of 1,155 five-minute telephone conversations between two participan
 
 Name for download: `switchboard-corpus`
 
-### [Deception in Diplomacy Conversations (coming soon)](https://www.cs.cornell.edu/~cristian/Deception_in_conversations.html)
-
-Conversational dataset with intended and perceived deception labels. Over 17,000 messages annotated by the sender for their intended truthfulness and by the receiver for their perceived truthfulness.
-
 ### Stanford Politeness Corpus ([Wikipedia](https://convokit.cornell.edu/documentation/wiki_politeness.html)/[Stack Exchange](https://convokit.cornell.edu/documentation/stack_politeness.html))
 
 Two collections of requests (from Wikipedia and Stack Exchange respectively) with politeness annotations. Name for download: `wikipedia-politeness-corpus` (Wikipedia portion), `stack-exchange-politeness-corpus` (Stack Exchange portion).
+
+### [Deception in Diplomacy Conversations](https://convokit.cornell.edu/documentation/diplomacy.html)
+
+Conversational dataset with intended and perceived deception labels. Over 17,000 messages annotated by the sender for their intended truthfulness and by the receiver for their perceived truthfulness.
+
 
 ### ...And your own corpus!
 
