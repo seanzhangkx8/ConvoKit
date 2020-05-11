@@ -13,8 +13,8 @@ class Corpus:
 
 	:param filename: Path to a folder containing a Corpus or to an utterances.jsonl / utterances.json file to load
 	:param utterances: List of utterances to initialize Corpus from
-	:param utterance_start_index: For utterances.jsonl, specify the line number (zero-indexed) to begin parsing utterances from
-	:param utterance_end_index: For utterances.jsonl, specify the line number (zero-indexed) of the last utterance to be parsed.
+	:param utterance_start_index: if the corpus folder contains utterances.jsonl, specify the line number (zero-indexed) to begin parsing utterances from
+	:param utterance_end_index: if the corpus folder contains utterances.jsonl, specify the line number (zero-indexed) of the last utterance to be parsed.
 	:param merge_lines: whether to merge adjacent lines from same user if the two utterances have same root
 	:param exclude_utterance_meta: utterance metadata to be ignored
 	:param exclude_conversation_meta: conversation metadata to be ignored
@@ -308,10 +308,10 @@ class Corpus:
 	def iter_utterances(self, selector: Optional[Callable[[Utterance], bool]] = lambda utt: True) -> Generator[
 		Utterance, None, None]:
 		"""
-		Get utterances in the Corpus, with an optional selector that filters for Utterances that should be included
+		Get utterances in the Corpus, with an optional selector that filters for Utterances that should be included.
 
 		:param selector: a (lambda) function that takes an Utterance and returns True or False (i.e. include / exclude).
-		By default, the selector includes all Utterances in the Corpus.
+			By default, the selector includes all Utterances in the Corpus.
 		:return: a generator of Utterances
 		"""
 		for v in self.utterances.values():
@@ -324,7 +324,7 @@ class Corpus:
 		Get conversations in the Corpus, with an optional selector that filters for Conversations that should be included
 
 		:param selector: a (lambda) function that takes a Conversation and returns True or False (i.e. include / exclude).
-		By default, the selector includes all Conversations in the Corpus.
+			By default, the selector includes all Conversations in the Corpus.
 		:return: a generator of Conversations
 		"""
 		for v in self.conversations.values():
@@ -336,7 +336,7 @@ class Corpus:
 		Get Speakers in the Corpus, with an optional selector that filters for Conversations that should be included
 
 		:param selector: a (lambda) function that takes a Speaker and returns True or False (i.e. include / exclude).
-		By default, the selector includes all Speakers in the Corpus.
+			By default, the selector includes all Speakers in the Corpus.
 		:return: a generator of Speakers
 		"""
 
@@ -354,7 +354,7 @@ class Corpus:
 
 		:param obj_type: "speaker", "utterance", or "conversation"
 		:param selector: a (lambda) function that takes a Corpus object and returns True or False (i.e. include / exclude).
-		By default, the selector includes all objects of the specified type in the Corpus.
+			By default, the selector includes all objects of the specified type in the Corpus.
 		:return: a generator of Speakers
 		"""
 
@@ -370,7 +370,7 @@ class Corpus:
 		Get a list of ids of Utterances in the Corpus, with an optional selector that filters for Utterances that should be included
 
 		:param selector: a (lambda) function that takes an Utterance and returns True or False (i.e. include / exclude).
-		By default, the selector includes all Utterances in the Corpus.
+			By default, the selector includes all Utterances in the Corpus.
 		:return: list of Utterance ids
 		"""
 		return [utt.id for utt in self.iter_utterances(selector)]
@@ -381,7 +381,7 @@ class Corpus:
 		Get a list of ids of Conversations in the Corpus, with an optional selector that filters for Conversations that should be included
 
 		:param selector: a (lambda) function that takes a Conversation and returns True or False (i.e. include / exclude).
-		By default, the selector includes all Conversations in the Corpus.
+			By default, the selector includes all Conversations in the Corpus.
 		:return: list of Conversation ids
 		"""
 		return [convo.id for convo in self.iter_conversations(selector)]
@@ -392,7 +392,7 @@ class Corpus:
 		Get a list of ids of Speakers in the Corpus, with an optional selector that filters for Speakers that should be included
 
 		:param selector: a (lambda) function that takes a Speaker and returns True or False (i.e. include / exclude).
-		By default, the selector includes all Speakers in the Corpus.
+			By default, the selector includes all Speakers in the Corpus.
 		:return: list of Speaker ids
 		"""
 		return [speaker.id for speaker in self.iter_speakers(selector)]
@@ -404,7 +404,7 @@ class Corpus:
 
 		:param obj_type: "speaker", "utterance", or "conversation"
 		:param selector: a (lambda) function that takes a Corpus object and returns True or False (i.e. include / exclude).
-		By default, the selector includes all objects of the specified type in the Corpus.
+			By default, the selector includes all objects of the specified type in the Corpus.
 		:return: list of Corpus object ids
 		"""
 		assert obj_type in ["speaker", "utterance", "conversation"]
@@ -1129,7 +1129,7 @@ class Corpus:
 				* `n_utterances`: the number of utterances the speaker contributed in the conversation
 				* `start_time`: the timestamp of the speaker's first utterance in the conversation
 				* `utterance_ids`: a list of ids of utterances contributed by the speaker, ordered by timestamp.
-		In case timestamps are not provided with utterances, the present behavior is to sort just by utterance id.
+			In case timestamps are not provided with utterances, the present behavior is to sort just by utterance id.
 
 		:param utterance_filter: function that returns True for an utterance that counts towards a speaker having participated in that conversation. (e.g., one could filter out conversations where the speaker contributed less than k words per utterance)
 		"""

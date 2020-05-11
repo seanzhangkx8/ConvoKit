@@ -1,5 +1,7 @@
 # Cornell Conversational Analysis Toolkit ([ConvoKit](http://convokit.cornell.edu/))
-This toolkit contains tools to extract conversational features and analyze social phenomena in conversations, using a [single unified interface](https://convokit.cornell.edu/documentation/architecture.html) inspired by (and compatible with) scikit-learn.  Several large [conversational datasets](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit#datasets) are included together with scripts exemplifying the use of the toolkit on these datasets. The latest version is [2.3.0](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/releases/tag/v2.3) (released 23 Feb 2020); follow the [project on GitHub](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit) to keep track of updates.
+This toolkit contains tools to extract conversational features and analyze social phenomena in conversations, using a [single unified interface](https://convokit.cornell.edu/documentation/architecture.html) inspired by (and compatible with) scikit-learn.  Several large [conversational datasets](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit#datasets) are included together with scripts exemplifying the use of the toolkit on these datasets. The latest version is [2.3.1](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/releases/tag/v2.3) (released 11 May 2020); follow the [project on GitHub](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit) to keep track of updates.
+
+Read the documentation [here](https://convokit.cornell.edu/documentation).
 
 The toolkit currently implements features for:
 
@@ -31,6 +33,10 @@ Example: [speaker conversation attributes and diversity example on ChangeMyView]
 ### [CRAFT: Online forecasting of conversational outcomes](https://arxiv.org/abs/1909.01362) <sub><sup>[(API)](https://convokit.cornell.edu/documentation/forecaster.html)</sup></sub>
 A neural model for forecasting future outcomes of conversations (e.g., derailment into personal attacks) as they develop.  
 Available as an interactive notebook: [full version (fine-tuning + inference)](https://colab.research.google.com/drive/1SH4iMEHdoH4IovN-b9QOSK4kG4DhAwmb) or [inference-only](https://colab.research.google.com/drive/1GvICZN0VwZQSWw3pJaEVY-EQGoO-L5lH).
+
+### [Orientation (coming soon)](https://www.cs.cornell.edu/~cristian/Orientation.html)
+
+A method to quantify the degree to which an utterance is intended to direct the flow of the conversation forwards or backwards.
 
 ## Datasets
 ConvoKit ships with several datasets ready for use "out-of-the-box".
@@ -122,6 +128,10 @@ A collection of 1,155 five-minute telephone conversations between two participan
 
 Name for download: `switchboard-corpus`
 
+### [Deception in Diplomacy Conversations (coming soon)](https://www.cs.cornell.edu/~cristian/Deception_in_conversations.html)
+
+Conversational dataset with intended and perceived deception labels. Over 17,000 messages annotated by the sender for their intended truthfulness and by the receiver for their perceived truthfulness.
+
 ### Stanford Politeness Corpus ([Wikipedia](https://convokit.cornell.edu/documentation/wiki_politeness.html)/[Stack Exchange](https://convokit.cornell.edu/documentation/stack_politeness.html))
 
 Two collections of requests (from Wikipedia and Stack Exchange respectively) with politeness annotations. Name for download: `wikipedia-politeness-corpus` (Wikipedia portion), `stack-exchange-politeness-corpus` (Stack Exchange portion).
@@ -152,6 +162,6 @@ We welcome community contributions. To see how you can help out, check the [cont
 
 If you use the code or datasets distributed with ConvoKit please acknowledge the work tied to the respective component (indicated in the documentation) in addition to:
 
-Jonathan P. Chang, Caleb Chiam, Liye Fu, Andrew Wang, Justine Zhang, Cristian Danescu-Niculescu-Mizil. 2020. "ConvoKit: A Toolkit for the Analysis of Conversations". Proceedings of SIGDIAL.
+Jonathan P. Chang, Caleb Chiam, Liye Fu, Andrew Wang, Justine Zhang, Cristian Danescu-Niculescu-Mizil. 2020. "[ConvoKit: A Toolkit for the Analysis of Conversations](https://www.cs.cornell.edu/~cristian/ConvoKit_Demo_Paper_files/convokit-demo-paper.pdf)". Proceedings of SIGDIAL.
 
 [ConvoKit](http://convokit.cornell.edu/)

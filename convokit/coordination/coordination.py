@@ -63,8 +63,7 @@ class Coordination(Transformer):
               utterance_thresh_func: Optional[Callable[[Tuple[Utterance, Utterance]], bool]] = None,
               split_by_attribs: Optional[List[str]] = None,
               speaker_attribs: Optional[Dict] = None, target_attribs: Optional[Dict] = None) -> CoordinationScore:
-        """Computes the coordination scores for each speaker, given a set of
-        speakers and a group of targets.
+        """Computes the coordination scores for each speaker, given a set of speakers and a group of targets.
 
         :param corpus: Corpus to compute scores on
         :param speakers: A collection of speaker ids or speaker objects corresponding
@@ -80,24 +79,15 @@ class Coordination(Transformer):
         :param speaker_thresh: Thresholds based on minimum number of times the speaker uses each coordination marker.
         :param target_thresh: Thresholds based on minimum number of times the target uses each coordination marker.
         :param utterances_thresh: Thresholds based on the minimum number of utterances for each speaker.
-        :param speaker_thresh_indiv: Like `speaker_thresh` but only considers the utterances between a speaker and a
-        single target; thresholds whether the utterances for a single target should be considered for a particular speaker.
-        :param target_thresh_indiv: Like `target_thresh` but thresholds whether a single target's utterances should be
-        considered for a particular speaker.
-        :param utterances_thresh_indiv: Like `utterances_thresh` but thresholds whether a single target's
-        utterances should be considered for a particular speaker.
-        :param utterance_thresh_func: Optional utterance-level threshold function that takes in a speaker `Utterance`
-        and the `Utterance` the speaker replied to, and returns a `bool` corresponding to whether or not to include
-        the utterance in scoring.
-        :param split_by_attribs: Utterance meta attributes to split speakers by when tallying coordination
-        (e.g. in supreme court transcripts, you may want to treat the same lawyer as a different person across
-            different cases --- see coordination examples)
-
+        :param speaker_thresh_indiv: Like `speaker_thresh` but only considers the utterances between a speaker and a single target; thresholds whether the utterances for a single target should be considered for a particular speaker.
+        :param target_thresh_indiv: Like `target_thresh` but thresholds whether a single target's utterances should be considered for a particular speaker.
+        :param utterances_thresh_indiv: Like `utterances_thresh` but thresholds whether a single target's utterances should be considered for a particular speaker.
+        :param utterance_thresh_func: Optional utterance-level threshold function that takes in a speaker `Utterance` and the `Utterance` the speaker replied to, and returns a `bool` corresponding to whether or not to include the utterance in scoring.
+        :param split_by_attribs: Utterance meta attributes to split speakers by when tallying coordination (e.g. in supreme court transcripts, you may want to treat the same lawyer as a different person across different cases --- see coordination examples)
         :param speaker_attribs: attribute names and values the speaker must have
         :param target_attribs: attribute names and values the target must have
 
-        :return: A :class:`CoordinationScore` object corresponding to the
-            coordination scores for each speaker.
+        :return: A :class:`CoordinationScore` object corresponding to the coordination scores for each speaker.
         """
         if corpus != self.corpus:
             raise Exception("Coordination: must fit and score on same corpus")

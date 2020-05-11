@@ -35,8 +35,8 @@ class Classifier(Transformer):
         Trains the Transformer's classifier model, with an optional selector that filters for objects to be fit on.
 
         :param corpus: target Corpus
-        :param selector: a (lambda) function that takes a Corpus object and returns True or False (i.e. include / exclude). By default, the selector includes all objects of the specified type in the Corpus.
-
+        :param selector: a (lambda) function that takes a Corpus object and returns True or False (i.e. include / exclude).
+            By default, the selector includes all objects of the specified type in the Corpus.
         :return: the fitted Classifier Transformer
         """
         X, y = extract_feats_and_label(corpus, self.obj_type, self.pred_feats, self.labeller, selector)
@@ -50,7 +50,8 @@ class Classifier(Transformer):
         a metadata value of 'None' instead of the classifier prediction.
 
         :param corpus: target Corpus
-        :param selector: a (lambda) function that takes a Corpus object and returns True or False (i.e. include / exclude). By default, the selector includes all objects of the specified type in the Corpus.
+        :param selector: a (lambda) function that takes a Corpus object and returns True or False (i.e. include / exclude).
+            By default, the selector includes all objects of the specified type in the Corpus.
 
         :return: annotated Corpus
         """
@@ -181,8 +182,8 @@ class Classifier(Transformer):
         :param objs: target list of Corpus objects (do not pass in corpus if using this)
         :param cv: cross-validation model to use: KFold(n_splits=5) by default.
         :param selector: if running on a Corpus, this is a (lambda) function that takes a Corpus object and returns
-        True or False (i.e. include / exclude). By default, the selector includes all objects of the specified type
-        in the Corpus.
+            True or False (i.e. include / exclude). By default, the selector includes all objects of the specified type
+            in the Corpus.
 
         :return: cross-validated accuracy score
         """

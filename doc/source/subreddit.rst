@@ -11,7 +11,7 @@ Dataset details
 ---------------
 
 Speaker-level information
-^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Speakers in this corpus are Reddit speakers, identified by their account names.
 

@@ -31,17 +31,17 @@ def compute_divergences(cmp_tokens, ref_token_list,
 			aux_input={'cmp_sample_size': 200, 'ref_sample_size': 1000,
 				'n_iters': 50}):
 	'''
-		computes the linguistic divergence between a text `cmp_tokens` and a set of reference texts `ref_token_list`. in particular, implements a sampling-based unigram perplexity score (where the sampling is done to ensure that we do not incur length-based effects)
+	computes the linguistic divergence between a text `cmp_tokens` and a set of reference texts `ref_token_list`. in particular, implements a sampling-based unigram perplexity score (where the sampling is done to ensure that we do not incur length-based effects)
 
-		this function takes in several parameters, through the `aux_input` argument:
-			* cmp_sample_size: the number of tokens to sample from the analyzed text `cmp_tokens`. the function returns `np.nan` if `cmp_tokens` doesn't have that many tokens.
-			* ref_sample_size: the nubmer of tokens to sample from each reference text. typically setting this to be longer than `cmp_tokens` makes sense, especially in the (typical) use case where language models are trained on longer texts. if none of the texts in `ref_token_list` pass this length threshold then the fucntion returns `np.nan`.
-			* n_iters: the number of times to compute divergence.
+	this function takes in several parameters, through the `aux_input` argument:
+		* cmp_sample_size: the number of tokens to sample from the analyzed text `cmp_tokens`. the function returns `np.nan` if `cmp_tokens` doesn't have that many tokens.
+		* ref_sample_size: the nubmer of tokens to sample from each reference text. typically setting this to be longer than `cmp_tokens` makes sense, especially in the (typical) use case where language models are trained on longer texts. if none of the texts in `ref_token_list` pass this length threshold then the fucntion returns `np.nan`.
+		* n_iters: the number of times to compute divergence.
 
-		:param cmp_tokens: the text to compute divergence of (relative to texts in `ref_token_list`). is a list of tokens.
-		:param ref_token_list: the texts on which to train reference language models against which `cmp_tokens` is compared. each entry in the list is a list of tokens.
-		:param aux_input: additional parameters (see above)
-		:return: if texts are of sufficient length, returns a perplexity score, else returns `np.nan`
+	:param cmp_tokens: the text to compute divergence of (relative to texts in `ref_token_list`). is a list of tokens.
+	:param ref_token_list: the texts on which to train reference language models against which `cmp_tokens` is compared. each entry in the list is a list of tokens.
+	:param aux_input: additional parameters (see above)
+	:return: if texts are of sufficient length, returns a perplexity score, else returns `np.nan`
 	'''
 	if len(cmp_tokens) < aux_input['cmp_sample_size']:
 		return np.nan
@@ -57,35 +57,35 @@ def compute_divergences(cmp_tokens, ref_token_list,
 
 class SpeakerConvoDiversity(Transformer):
 	'''
-		implements methodology to compute the linguistic divergence between a speaker's activity in each conversation in a corpus (i.e., the language of their utterances) and a reference language model trained over a different set of conversations/speakers.  See `SpeakerConvoDiversityWrapper` for more specific implementation which compares language used by individuals within fixed lifestages, and see the implementation of this wrapper for examples of calls to this transformer.
+	implements methodology to compute the linguistic divergence between a speaker's activity in each conversation in a corpus (i.e., the language of their utterances) and a reference language model trained over a different set of conversations/speakers.  See `SpeakerConvoDiversityWrapper` for more specific implementation which compares language used by individuals within fixed lifestages, and see the implementation of this wrapper for examples of calls to this transformer.
 
-		The transformer assumes that a corpus has already been tokenized (via a call to `TextParser`).
+	The transformer assumes that a corpus has already been tokenized (via a call to `TextParser`).
 
-		In general, this is appropriate for cases when the reference language model you wish to compare against varies across different speaker/conversations; in contrast, if you wish to compare many conversations to a _single_ language model (e.g., one trained on past conversations) then this will be inefficient.
-		
-		This will produce attributes per speaker-conversation (i.e., the behavior of a speaker in a conversation); hence it takes as parameters functions which will subset the data at a speaker-conversation level. these functions operate on a table which has as columns:
-			* `speaker`: speaker ID
-			* `convo_id`: conversation ID
-			* `convo_idx`: n where this conversation is the nth that the speaker participated in
-			* `tokens`: all utterances the speaker contributed to the conversation, concatenated together as a single list of words
-			* any other speaker-conversation, speaker, or conversation-level metadata required to filter input and select reference language models per speaker-conversation (passed in via the `speaker_convo_cols`, `speaker_cols` and `convo_cols` parameters)
-		The table is the output of calling  `Corpus.get_full_attribute_table`; see documentation of that function for further reference. 
+	In general, this is appropriate for cases when the reference language model you wish to compare against varies across different speaker/conversations; in contrast, if you wish to compare many conversations to a _single_ language model (e.g., one trained on past conversations) then this will be inefficient.
 
-		The transformer supports two broad types of comparisons:
-			* if `groupby=[]`, then each text will be compared against a single reference text (specified by `select_fn`)
-			* if `groupby=[key]` then each text will be compared against a set of reference texts, where each reference text represents a different chunk of the data, aggregated by `key` (e.g., each text could be compared against the utterances contributed by different speakers, such that in each iteration of a divergence computation, the text is compared against just the utterances of a single speaker.)
+	This will produce attributes per speaker-conversation (i.e., the behavior of a speaker in a conversation); hence it takes as parameters functions which will subset the data at a speaker-conversation level. these functions operate on a table which has as columns:
+		* `speaker`: speaker ID
+		* `convo_id`: conversation ID
+		* `convo_idx`: n where this conversation is the nth that the speaker participated in
+		* `tokens`: all utterances the speaker contributed to the conversation, concatenated together as a single list of words
+		* any other speaker-conversation, speaker, or conversation-level metadata required to filter input and select reference language models per speaker-conversation (passed in via the `speaker_convo_cols`, `speaker_cols` and `convo_cols` parameters)
+	The table is the output of calling  `Corpus.get_full_attribute_table`; see documentation of that function for further reference.
 
-		:param cmp_select_fn: the subset of speaker-conversation entries to compute divergences for. function of the form fn(df, aux) where df is a data frame indexed by speaker-conversation, and aux is any auxiliary parametsr required; returns a boolean mask over the dataframe.
-		:param ref_select_fn: the subset of speaker-conversation entries to compute reference language models over. function of the form fn(df, aux) where df is a data frame indexed by speaker-conversation, and aux is any auxiliary parameters required; returns a boolean mask over the dataframe.
-		:param select_fn: function of the form fn(df,row, aux) where df is a data frame indexed by speaker-conversation, row is a row of a dataframe indexed by speaker-conversation, and aux is any auxiliary parameters required; returns a boolean mask over the dataframe.
-		:param divergence_fn: function to compute divergence between a speaker-conversation and reference texts. By default, the transformer will compute unigram perplexity scores, as implemented by the `compute_divergences` function. However, you can also specify your own divergence function (e.g., some sort of bigram divergence) using the same function signature.
-		:param speaker_convo_cols: additional speaker-convo attributes used as input to the selector functions
-		:param speaker_cols: additional speaker-level attributes
-		:param convo_cols: additional conversation-level attributes
-		:param groupby: whether to aggregate the reference texts according to the specified keys (leave empty to avoid aggregation). 
-		:param aux_input: a dictionary of auxiliary input to the selector functions and the divergence computation
-		:param recompute_tokens: whether to reprocess tokens by aggregating all tokens across different utterances made by a speaker in a conversation. by default, will cache existing output.
-		:param verbosity: frequency of status messages.
+	The transformer supports two broad types of comparisons:
+		* if `groupby=[]`, then each text will be compared against a single reference text (specified by `select_fn`)
+		* if `groupby=[key]` then each text will be compared against a set of reference texts, where each reference text represents a different chunk of the data, aggregated by `key` (e.g., each text could be compared against the utterances contributed by different speakers, such that in each iteration of a divergence computation, the text is compared against just the utterances of a single speaker.)
+
+	:param cmp_select_fn: the subset of speaker-conversation entries to compute divergences for. function of the form fn(df, aux) where df is a data frame indexed by speaker-conversation, and aux is any auxiliary parametsr required; returns a boolean mask over the dataframe.
+	:param ref_select_fn: the subset of speaker-conversation entries to compute reference language models over. function of the form fn(df, aux) where df is a data frame indexed by speaker-conversation, and aux is any auxiliary parameters required; returns a boolean mask over the dataframe.
+	:param select_fn: function of the form fn(df,row, aux) where df is a data frame indexed by speaker-conversation, row is a row of a dataframe indexed by speaker-conversation, and aux is any auxiliary parameters required; returns a boolean mask over the dataframe.
+	:param divergence_fn: function to compute divergence between a speaker-conversation and reference texts. By default, the transformer will compute unigram perplexity scores, as implemented by the `compute_divergences` function. However, you can also specify your own divergence function (e.g., some sort of bigram divergence) using the same function signature.
+	:param speaker_convo_cols: additional speaker-convo attributes used as input to the selector functions
+	:param speaker_cols: additional speaker-level attributes
+	:param convo_cols: additional conversation-level attributes
+	:param groupby: whether to aggregate the reference texts according to the specified keys (leave empty to avoid aggregation).
+	:param aux_input: a dictionary of auxiliary input to the selector functions and the divergence computation
+	:param recompute_tokens: whether to reprocess tokens by aggregating all tokens across different utterances made by a speaker in a conversation. by default, will cache existing output.
+	:param verbosity: frequency of status messages.
 	'''
 
 	def __init__(self, output_field,
@@ -112,7 +112,6 @@ class SpeakerConvoDiversity(Transformer):
 								 agg_fn=_join_all_tokens,
 								 recompute=recompute_tokens)
 
-		
 
 	def transform(self, corpus):
 		if self.verbosity > 0:
@@ -186,23 +185,23 @@ def compute_speaker_convo_divergence(input_table, cmp_select_fn=lambda df, aux: 
 class SpeakerConvoDiversityWrapper(Transformer):
 
 	'''
-		implements methodology for calculating linguistic diversity per life-stage. A wrapper around `SpeakerConvoDiversity`.
+	Implements methodology for calculating linguistic diversity per life-stage. A wrapper around `SpeakerConvoDiversity`.
 
-		Outputs the following (speaker, conversation) attributes:
-			* `div__self` (within-diversity)
-			* `div__other` (across-diversity)
-			* `div__adj` (relative diversity)
+	Outputs the following (speaker, conversation) attributes:
+		* `div__self` (within-diversity)
+		* `div__other` (across-diversity)
+		* `div__adj` (relative diversity)
 
-		Note that `np.nan` is returned for (speaker, conversation) pairs with not enough text.
+	Note that `np.nan` is returned for (speaker, conversation) pairs with not enough text.
 
-		:param output_field: prefix of attributes to output, defaults to 'div'
-		:param lifestage_size: number of conversations per lifestage
-		:param max_exp: highest experience level (i.e., # convos taken) to compute diversity scores for.
-		:param sample_size: number of words to sample per convo
-		:param min_n_utterances: minimum number of utterances a speaker contributes per convo for that (speaker, convo) to get scored
-		:param n_iters: number of samples to take for perplexity scoring
-		:param cohort_delta: timespan between when speakers start for them to be counted as part of the same cohort. defaults to 2 months
-		:param verbosity: amount of output to print
+	:param output_field: prefix of attributes to output, defaults to 'div'
+	:param lifestage_size: number of conversations per lifestage
+	:param max_exp: highest experience level (i.e., # convos taken) to compute diversity scores for.
+	:param sample_size: number of words to sample per convo
+	:param min_n_utterances: minimum number of utterances a speaker contributes per convo for that (speaker, convo) to get scored
+	:param n_iters: number of samples to take for perplexity scoring
+	:param cohort_delta: timespan between when speakers start for them to be counted as part of the same cohort. defaults to 2 months
+	:param verbosity: amount of output to print
 	'''
 	
 	def __init__(self, output_field='div', lifestage_size=20, max_exp=120,

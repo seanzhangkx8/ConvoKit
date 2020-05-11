@@ -35,10 +35,10 @@ A more detailed example of how the `Cornell Movie--Dialogs Corpus <https://www.c
 Details of component files
 --------------------------
 
-utterances.json
-^^^^^^^^^^^^^^^
+utterances.jsonl
+^^^^^^^^^^^^^^^^
 
-Each utterance is represented as a json object, with six mandatory fields:
+Each utterance is stored on its own line and represented as a json object, with six mandatory fields:
 
 * id: index of the utterance
 * speaker: the speaker who author the utterance
@@ -51,7 +51,7 @@ Additional information can be added optionally, depending on characteristics of 
 
 * meta: dictionary of utterance metadata
 
-utterances.json contains a list of such utterances. An example utterance is shown below, drawn from the Supreme Court corpus: 
+utterances.jsonl contains a list of such utterances. An example utterance is shown below, drawn from the Supreme Court corpus:
 
 ::
 
@@ -60,7 +60,7 @@ utterances.json contains a list of such utterances. An example utterance is show
 
 
 speakers.json
-^^^^^^^^^^
+^^^^^^^^^^^^^
 
 speakers are identified by speaker names. speakers.json keeps a dictionary, where the keys are speaker names, and values are metadata associated with the speakers. Provision of speaker metadata is optional.
 
