@@ -90,7 +90,7 @@ Number of Conversations: 183
 Additional note
 ---------------
 
-This corpus is also available in a different format at https://sites.google.com/view/qanta/projects/diplomacy .
+This corpus is also available in a different format at https://sites.google.com/view/qanta/projects/diplomacy.
 
 One player was dropped from the data as they did not contribute any messages.
 
