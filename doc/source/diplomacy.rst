@@ -4,7 +4,7 @@ Deception in Diplomacy Dataset
 Dataset with intended and perceived deception labels in the negotiation-based game Diplomacy, where seven players compete for world domination by forging and breaking alliances with each other.  Over 17,000 messages are annotated by the sender for their intended truthfulness and by the receiver for their perceived truthfulness. This dataset captures deception in long-lasting relationships, where the interlocutors strategically combine truth with lies to advance objectives
 
 Distributed together with:
-`It Takes Two to Lie: One to Lie, and One to Listen <https://www.cs.cornell.edu/~cristian/Deception_in_conversations.html>`_. Denis Peskov, Benny Cheng, Ahmed Elgohary, Joe Barrow, Cristian Danescu-Niculescu-Mizil and Jordan Boyd-Graber. Proceedings of ACL 2020. Short paper.
+`It Takes Two to Lie: One to Lie, and One to Listen <https://www.cs.cornell.edu/~cristian/Deception_in_conversations.html>`_. Denis Peskov, Benny Cheng, Ahmed Elgohary, Joe Barrow, Cristian Danescu-Niculescu-Mizil and Jordan Boyd-Graber. Proceedings of ACL 2020.
 
 Dataset details
 ---------------
@@ -40,7 +40,7 @@ For each utterance, we provide:
 Metadata for utterances include:
 
 * speaker_intention: “Lie” if the speaker indicated this message was intended to deceive, “Truth” otherwise; this label was provided by the speaker at the time they composed the message.
-* receiver_perception: “Lie” if the receiver indicated this message was perceived by the receiver as deceiving , “Truth” if the receiver indicated that the message was perceived as truthful, None if the receiver did not indicate anything; this label was provided by the receiver at the time they received the message.
+* receiver_perception: “Lie” if the receiver indicated that they perceived it as deceiving , “Truth” if the receiver indicated that the message was perceived as truthful, None if the receiver did not indicate anything; this label was provided by the receiver at the time they received the message.
 * relative_message_index: the index of the utterance in the current conversation
 * absolute_message_index: the index of the utterance in the game (same as timestamp)
 * year: the Diplomacy-year in which the message was sent
@@ -90,7 +90,7 @@ Number of Conversations: 183
 Additional note
 ---------------
 
-This corpus is also available in a different format at https://sites.google.com/view/qanta/projects/diplomacy.
+This corpus is also available in a different format at go.umd.edu/diplomacy_data.
 
 One player was dropped from the data as they did not contribute any messages.
 
