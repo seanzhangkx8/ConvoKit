@@ -90,7 +90,7 @@ Number of Conversations: 183
 Additional note
 ---------------
 
-This corpus is also available in a different format at `go.umd.edu/diplomacy_data <https://go.umd.edu/diplomacy_data>`
+This corpus is also available in a different format at `go.umd.edu/diplomacy_data <go.umd.edu/diplomacy_data>`_.
 
 One player was dropped from the data as they did not contribute any messages.
 
