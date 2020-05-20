@@ -3,7 +3,7 @@ from typing import List, Union, Callable
 import pandas as pd
 from scipy.sparse import csr_matrix
 import numpy as np
-from convokit.model import warn
+from convokit.util import warn
 from scipy.sparse import vstack
 
 
