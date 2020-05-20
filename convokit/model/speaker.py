@@ -1,6 +1,6 @@
 from functools import total_ordering
 from typing import Dict, List, Optional
-from .corpusUtil import warn
+from convokit.util import deprecation
 from .corpusObject import CorpusObject
 
 @total_ordering
@@ -47,11 +47,11 @@ class Speaker(CorpusObject):
     #     # self._update_uid()
 
     def _get_name(self):
-        warn("This attribute will be removed in a future release. Use speaker.id instead.")
+        deprecation("speaker.name", "speaker.id")
         return self._id
 
     def _set_name(self, value: str):
-        warn("This attribute will be removed in a future release. Use speaker.id instead.")
+        deprecation("speaker.name", "speaker.id")
         self._id = value
         # self._update_uid()
 

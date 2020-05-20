@@ -1,8 +1,8 @@
 from .speaker import Speaker
-from .corpusUtil import warn
+from convokit.util import deprecation
+
 
 class User(Speaker):
     def __init__(self, *args, **kwargs):
-        warn("The User class is deprecated. Use the Speaker class instead.")
-
+        deprecation("The User class", "the speaker class")
         super().__init__(*args, **kwargs)

@@ -2,7 +2,7 @@ from typing import List, Collection, Callable, Set, Generator, Tuple, Optional, 
 import numpy as np
 import pandas as pd
 from .corpusHelper import *
-from .corpusUtil import warn
+from convokit.util import deprecation, warn
 from .convoKitIndex import ConvoKitIndex
 import random
 from .convoKitMeta import ConvoKitMeta
@@ -227,7 +227,7 @@ class Corpus:
 		return self.speakers[speaker_id]
 
 	def get_user(self, user_id: str) -> Speaker:
-		warn("This function is deprecated. Use get_speaker() instead.")
+		deprecation("get_user()", "get_speaker()")
 		return self.get_speaker(user_id)
 
 	def get_object(self, obj_type: str, oid: str):
@@ -274,7 +274,7 @@ class Corpus:
 		return speaker_id in self.speakers
 
 	def has_user(self, speaker_id):
-		warn("This function is deprecated. Use has_speaker() instead.")
+		deprecation("has_user()", "has_speaker()")
 		return self.has_speaker(speaker_id)
 
 	def random_utterance(self) -> Utterance:
@@ -302,7 +302,7 @@ class Corpus:
 		return random.choice(list(self.speakers.values()))
 
 	def random_user(self) -> Speaker:
-		warn("This function is deprecated. Use random_speaker() instead.")
+		deprecation("random_user()", "random_speaker()")
 		return self.random_speaker()
 
 	def iter_utterances(self, selector: Optional[Callable[[Utterance], bool]] = lambda utt: True) -> Generator[
@@ -345,7 +345,7 @@ class Corpus:
 				yield speaker
 
 	def iter_users(self, selector=lambda speaker: True):
-		warn("This function is deprecated. Use iter_speakers() instead.")
+		deprecation("iter_users()", "iter_speakers()")
 		return self.iter_speakers(selector)
 
 	def iter_objs(self, obj_type: str, selector: Callable[[Union[Speaker, Utterance, Conversation]], bool] = lambda obj: True):
@@ -424,7 +424,7 @@ class Corpus:
 			was used.
 
 		"""
-		warn("This function is deprecated. Use get_speaker_ids() instead.")
+		deprecation("get_usernames()", "get_speaker_ids()")
 		return set([u.id for u in self.iter_speakers(selector)])
 
 	def filter_conversations_by(self, selector: Callable[[Conversation], bool]):

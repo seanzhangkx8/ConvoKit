@@ -1,7 +1,7 @@
-from typing import Dict, List, Callable, Generator, Optional, Set
+from typing import Dict, List, Callable, Generator, Optional
 from .utterance import Utterance
 from .speaker import Speaker
-from .corpusUtil import warn
+from convokit.util import deprecation, warn
 from .corpusObject import CorpusObject
 from collections import defaultdict
 from .utteranceNode import UtteranceNode
@@ -74,7 +74,7 @@ class Conversation(CorpusObject):
 
         :return: a list of usernames
         """
-        warn("This function is deprecated and will be removed in a future release. Use get_speaker_ids() instead.")
+        deprecation("get_usernames()", "get_speaker_ids()")
         if self._speaker_ids is None:
             # first call to get_usernames or iter_speakers; precompute cached list
             # of usernames
@@ -111,7 +111,7 @@ class Conversation(CorpusObject):
         return self._owner.get_speaker(speaker_id)
 
     def get_user(self, speaker_id: str):
-        warn("This function is deprecated. Use get_user() instead.")
+        deprecation("get_user()", "get_speaker()")
         return self.get_speaker(speaker_id)
 
     def iter_speakers(self, selector: Callable[[Speaker], bool] = lambda speaker: True) -> Generator[Speaker, None, None]:
@@ -133,7 +133,7 @@ class Conversation(CorpusObject):
                 yield speaker
 
     def iter_users(self, selector=lambda speaker: True):
-        warn("This function is deprecated. Use iter_speakers() instead.")
+        deprecation("iter_users()", "iter_speakers()")
         return self.iter_speakers(selector)
 
     def get_chronological_speaker_list(self, selector: Callable[[Speaker], bool] = lambda speaker: True):

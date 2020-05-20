@@ -5,7 +5,7 @@ import zipfile
 import json
 from typing import Dict
 import requests
-
+import warnings
 
 # returns a path to the dataset file
 def download(name: str, verbose: bool = True, data_dir: str = None, use_newest_version: bool = True,
@@ -308,3 +308,8 @@ def warn(text: str):
     :return: 'WARNING: [text]'
     """
     print('\033[91m'+ "WARNING: " + '\033[0m' + text)
+
+
+def deprecation(prev_name: str, new_name: str):
+    warnings.warn("{} is deprecated and will be removed in a future release. "
+                  "Please use {} instead.".format(prev_name, new_name), category=FutureWarning, stacklevel=1)

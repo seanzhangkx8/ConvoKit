@@ -1,5 +1,5 @@
 from collections import MutableMapping
-from .corpusUtil import warn
+from convokit.util import warn
 from .convoKitIndex import ConvoKitIndex
 import json
 
