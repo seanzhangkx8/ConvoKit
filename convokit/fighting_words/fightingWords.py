@@ -31,19 +31,23 @@ clean_str = lambda s: clean(s,
 
 class FightingWords(Transformer):
     """
-    Based on Monroe et al.'s "Fightin’ Words: Lexical Feature Selection and Evaluation for Identifying the Content of Political Conflict"
+    Based on Monroe et al.'s "Fightin’ Words: Lexical Feature Selection and Evaluation for Identifying the Content of
+    Political Conflict"
 
     Implementation adapted from Jack Hessel's https://github.com/jmhessel/FightingWords
 
     Identifies the fighting words of two groups of utterances, which we define as the groups: 'class1' and 'class2'
 
-    :param cv: optional CountVectorizer. default: an sklearn CV with min_df=10, max_df=.5, and ngram_range=(1,3) with max 15000 features
+    :param cv: optional CountVectorizer. default: an sklearn CV with min_df=10, max_df=.5, and ngram_range=(1,3)
+        with max 15000 features
     :param ngram_range: range of ngrams to use if using default cv
-    :param prior: either a float describing a uniform prior, or a vector describing a prior over vocabulary items. If you're using a predefined vocabulary, make sure to specify that when you make your CountVectorizer object.
+    :param prior: either a float describing a uniform prior, or a vector describing a prior over vocabulary items.
+        If using a predefined vocabulary, make sure to specify that when you make your CountVectorizer object.
     :param threshold: the z-score threshold for annotating utterances with identified ngrams
     :param top_k: the top_k threshold for which ngrams to annotate utterances with
-    :param annot_method: "top_k" or "threshold" to specify which annotation method to use in transform() and
-    :param string_sanitizer: optional function for cleaning strings prior to fighting words analysis: uses default string sanitizer otherwise
+    :param annot_method: "top_k" or "threshold" to specify which annotation method to use in transform()
+    :param string_sanitizer: optional function for cleaning strings prior to fighting words analysis:
+        uses default string sanitizer otherwise
     """
     def __init__(self, cv=None,
                  ngram_range=None, prior=0.1, threshold=1, top_k=10, annot_method="top_k",
@@ -126,12 +130,14 @@ class FightingWords(Transformer):
     def fit(self, corpus: Corpus, class1_func: Callable[[Utterance], bool],
             class2_func: Callable[[Utterance], bool], y=None, selector: Callable[[Utterance], bool] = lambda utt: True):
         """
-        Learn the fighting words from a corpus, with an optional selector that selects for utterances prior to grouping the utterances into class1 / class2.
+        Learn the fighting words from a corpus, with an optional selector that selects for utterances prior to
+            grouping the utterances into class1 / class2.
 
         :param corpus: target Corpus
         :param class1_func: selector function for identifying utterances that belong to class 1
         :param class2_func: selector function for identifying utterances that belong to class 2
-        :param selector: a (lambda) function that takes an Utterance and returns True/False; this selects for utterances that should be included in this fitting step
+        :param selector: a (lambda) function that takes an Utterance and returns True/False; this selects for
+            utterances that should be included in this fitting step
         :return: fitted FightingWords Transformer
 
         """
@@ -205,12 +211,14 @@ class FightingWords(Transformer):
         """
         Annotates the corpus utterances with the lists of fighting words that the utterance contains.
 
-        The relevant fighting words to use are specified by FightingWords.top_k or FightingWords.threshold, with FightingWords.annot_method indicating which criterion to use.
+        The relevant fighting words to use are specified by FightingWords.top_k or FightingWords.threshold,
+            with FightingWords.annot_method indicating which criterion to use.
 
         Lists are stored under metadata keys 'fighting_words_class1', 'fighting_words_class2'
 
         :param corpus: corpus to annotate
-        :param selector: a (lambda) function that takes an Utterance and returns True/False; this selects for utterances that should be annotated with the fighting words
+        :param selector: a (lambda) function that takes an Utterance and returns True/False; this selects for utterances
+            that should be annotated with the fighting words
 
         :return: annotated corpus
         """
@@ -243,7 +251,8 @@ class FightingWords(Transformer):
         Get the class that ngram more belongs to.
 
         :param ngram: ngram of interest
-        :return: "class1" if the ngram has non-negative z-score, "class2" if ngram has positive z-score, None if ngram not in vocabulary
+        :return: "class1" if the ngram has non-negative z-score, "class2" if ngram has positive z-score, None if
+            ngram not in vocabulary
         """
         if self.ngram_zscores is None:
             raise ValueError("fit() must be run on a corpus first.")
@@ -275,9 +284,11 @@ class FightingWords(Transformer):
 
         Specifically, the weighted log-odds ratio is plotted against frequency of word within topic.
 
-        Only the most significant ngrams will have text labels. The most significant ngrams are specified by FightingWords.annot_method and (FightingWords.top_k or FightingWords.threshold)
+        Only the most significant ngrams will have text labels. The most significant ngrams are specified by
+            FightingWords.annot_method and (FightingWords.top_k or FightingWords.threshold)
 
-        :param max_label_size: For the text labels, set the largest possible size for any text label (the rest will be scaled accordingly)
+        :param max_label_size: For the text labels, set the largest possible size for any text label
+            (the rest will be scaled accordingly)
         :return: None (plot is generated)
         """
         if self.ngram_zscores is None:

@@ -94,13 +94,13 @@ with open("wikipedia.talkpages.conversations.dat", "r", encoding="utf-8") as f:
 #for i, u in enumerate(utterances):
 #    if KeyReplyTo in u:
 #        target = udict[u[KeyReplyTo]][KeyUser]
-#        #u[KeyConvoRoot] = u[KeyUser] + "->" + (
+#        #u[KeyConvoId] = u[KeyUser] + "->" + (
 #        #    "{admin}" if target.endswith("{admin}") else "{nonadmin}")  # target groups
-#        #u[KeyConvoRoot] = target  # target groups -- experimental
-#        u[KeyConvoRoot] = u[KeyUser]  # speaker groups
+#        #u[KeyConvoId] = target  # target groups -- experimental
+#        u[KeyConvoId] = u[KeyUser]  # speaker groups
 #        utterances[i] = u
 #    else:
-#        del utterances[i][KeyConvoRoot]
+#        del utterances[i][KeyConvoId]
 
 ips = set()
 for user in usernames:

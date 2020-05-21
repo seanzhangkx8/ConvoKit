@@ -10,11 +10,11 @@ from typing import Dict
 BIN_DELIM_L, BIN_DELIM_R = "<##bin{", "}&&@**>"
 KeyId = "id"
 KeySpeaker = "speaker"
-KeyConvoRoot = "root"
+KeyConvoId = "conversation_id"
 KeyReplyTo = "reply-to"
 KeyTimestamp = "timestamp"
 KeyText = "text"
-DefinedKeys = {KeyId, KeySpeaker, KeyConvoRoot, KeyReplyTo, KeyTimestamp, KeyText}
+DefinedKeys = {KeyId, KeySpeaker, KeyConvoId, KeyReplyTo, KeyTimestamp, KeyText}
 KeyMeta = "meta"
 
 def load_uttinfo_from_dir(dirname, utterance_start_index, utterance_end_index, exclude_utterance_meta):
@@ -151,7 +151,7 @@ def initialize_speakers_and_utterances_objects(corpus, utt_dict, utterances, spe
         else:
             reply_to_data = u[KeyReplyTo]
         utt = Utterance(owner=corpus, id=u[KeyId], speaker=speaker,
-                        root=u[KeyConvoRoot],
+                        conversation_id=u[KeyConvoId],
                         reply_to=reply_to_data, timestamp=u[KeyTimestamp],
                         text=u[KeyText], meta=u[KeyMeta])
 
@@ -236,7 +236,7 @@ def dump_utterances(corpus, dir_name, fields_to_skip):
         for ut in corpus.iter_utterances():
             ut_obj = {
                 KeyId: ut.id,
-                KeyConvoRoot: ut.root,
+                KeyConvoId: ut.root,
                 KeyText: ut.text,
                 KeySpeaker: ut.speaker.id,
                 KeyMeta: dump_helper_bin(ut.meta, d_bin, fields_to_skip.get('utterance', [])),

@@ -99,14 +99,14 @@ with open("supreme.conversations.dat", "r", encoding="utf-8") as f:
 #    if KeyReplyTo in ut:
 #        target = udict[ut[KeyReplyTo]][KeyUser]
 #        if target.endswith("{justice-fav}"):
-#            ut[KeyConvoRoot] = ut[KeyUser] + "->{justice-fav}"
+#            ut[KeyConvoId] = ut[KeyUser] + "->{justice-fav}"
 #        elif target.endswith("{justice-unfav}"):
-#            ut[KeyConvoRoot] = ut[KeyUser] + "->{justice-unfav}"  # target groups
-#        #ut[KeyConvoRoot] = target  # target groups -- experimental
-#        #ut[KeyConvoRoot] = ut[KeyUser]  # speaker groups
+#            ut[KeyConvoId] = ut[KeyUser] + "->{justice-unfav}"  # target groups
+#        #ut[KeyConvoId] = target  # target groups -- experimental
+#        #ut[KeyConvoId] = ut[KeyUser]  # speaker groups
 #        utterances[i] = ut
 #    else:
-#        del utterances[i][KeyConvoRoot]
+#        del utterances[i][KeyConvoId]
 
 if MaxUtterances > 0:
     #import random

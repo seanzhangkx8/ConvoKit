@@ -43,7 +43,7 @@ def convert_df_to_corpus(df: DataFrame, id_col: str, text_col: str, meta_cols: L
             metadata[meta_col] = row[meta_col]
         
         utterance_list.append(Utterance(id=str(row[id_col]), speaker=generic_speaker, \
-                                        root=str(row[id_col]), reply_to=None, \
+                                        conversation_id=str(row[id_col]), reply_to=None, \
                                         timestamp=time, text=row[text_col], \
                                         meta=metadata))
     

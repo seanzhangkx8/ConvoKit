@@ -136,7 +136,8 @@ class HyperConvo(Transformer):
         :param graph: Hypergraph to calculate degree features statistics from
         :param name_ext: Suffix to append to feature name
         :param exclude_id: id of utterance to exclude from Hypergraph construction
-        :return: A dictionary from a thread root id to its stats dictionary, which is a dictionary from feature names to feature values. For motif-related features specifically.
+        :return: A dictionary from a thread root id to its stats dictionary, which is a dictionary from feature names
+            to feature values. For motif-related features specifically.
         """
         stats = {}
         for motif, motif_func in [

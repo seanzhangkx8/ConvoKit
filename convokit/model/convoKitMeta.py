@@ -3,6 +3,7 @@ from convokit.util import warn
 from .convoKitIndex import ConvoKitIndex
 import json
 
+
 class ConvoKitMeta(MutableMapping, dict):
     """
     See reference: https://stackoverflow.com/questions/7760916/correct-usage-of-a-getter-setter-for-dictionary-values

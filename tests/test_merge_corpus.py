@@ -106,15 +106,15 @@ class CorpusMerge(unittest.TestCase):
         Expect second corpus convo metadata to override if keys are the same
         """
         corpus1 = Corpus(utterances = [
-            Utterance(id="0", root='convo1', text="hello world", speaker=Speaker(id="alice")),
-            Utterance(id="1", root='convo1', text="my name is bob", speaker=Speaker(id="bob")),
-            Utterance(id="2", root='convo1', text="this is a test", speaker=Speaker(id="charlie")),
+            Utterance(id="0", conversation_id='convo1', text="hello world", speaker=Speaker(id="alice")),
+            Utterance(id="1", conversation_id='convo1', text="my name is bob", speaker=Speaker(id="bob")),
+            Utterance(id="2", conversation_id='convo1', text="this is a test", speaker=Speaker(id="charlie")),
         ])
 
         corpus2 = Corpus(utterances = [
-            Utterance(id="2", root='convo1', text="this is a test", speaker=Speaker(id="charlie")),
-            Utterance(id="4", root='convo1', text="this is a sentence", speaker=Speaker(id="echo")),
-            Utterance(id="5", root='convo1', text="goodbye", speaker=Speaker(id="foxtrot")),
+            Utterance(id="2", conversation_id='convo1', text="this is a test", speaker=Speaker(id="charlie")),
+            Utterance(id="4", conversation_id='convo1', text="this is a sentence", speaker=Speaker(id="echo")),
+            Utterance(id="5", conversation_id='convo1', text="goodbye", speaker=Speaker(id="foxtrot")),
         ])
 
 

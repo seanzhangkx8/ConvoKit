@@ -1,6 +1,7 @@
-from typing import Dict, List, Collection, Callable, Set, Generator, Tuple, Optional, ValuesView
-from .speaker import Speaker
+from typing import Dict, Optional
+from convokit.util import deprecation
 from .corpusObject import CorpusObject
+from .speaker import Speaker
 
 
 class Utterance(CorpusObject):
@@ -8,7 +9,7 @@ class Utterance(CorpusObject):
 
     :param id: the unique id of the utterance.
     :param speaker: the speaker giving the utterance.
-    :param root: the id of the root utterance of the conversation.
+    :param conversation_id: the id of the root utterance of the conversation.
     :param reply_to: id of the utterance this was a reply to.
     :param timestamp: timestamp of the utterance. Can be any
         comparable type.
@@ -16,7 +17,7 @@ class Utterance(CorpusObject):
 
     :ivar id: the unique id of the utterance.
     :ivar speaker: the speaker giving the utterance.
-    :ivar root: the id of the root utterance of the conversation.
+    :ivar conversation_id: the id of the root utterance of the conversation.
     :ivar reply_to: id of the utterance this was a reply to.
     :ivar timestamp: timestamp of the utterance.
     :ivar text: text of the utterance.
@@ -25,7 +26,7 @@ class Utterance(CorpusObject):
     """
 
     def __init__(self, owner=None, id: Optional[str] = None, speaker: Optional[Speaker] = None,
-                 user: Optional[Speaker] = None,
+                 user: Optional[Speaker] = None, conversation_id: Optional[str] = None,
                  root: Optional[str] = None, reply_to: Optional[str] = None,
                  timestamp: Optional[int] = None, text: Optional[str] = None,
                  meta: Optional[Dict] = None):
@@ -33,10 +34,22 @@ class Utterance(CorpusObject):
         speaker_ = speaker if speaker is not None else user
         self.speaker = speaker_
         self.user = speaker # for backwards compatbility
-        self.root = root
+        self.conversation_id = conversation_id if conversation_id is not None else root
+        self._root = self.conversation_id
         self.reply_to = reply_to
         self.timestamp = timestamp # int(timestamp) if timestamp is not None else timestamp
         self.text = text
+
+    def _get_root(self):
+        deprecation("utterance.root", "utterance.conversation_id")
+        return self.conversation_id
+
+    def _set_root(self, value: str):
+        deprecation("utterance.root", "utterance.conversation_id")
+        self.conversation_id = value
+        # self._update_uid()
+
+    root = property(_get_root, _set_root)
 
     def get_conversation(self):
         """
