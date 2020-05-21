@@ -166,7 +166,7 @@ def merge_utterance_lines(utt_dict):
         merged = False
         if utt.reply_to is not None and utt.speaker is not None:
             u0 = utt_dict[utt.reply_to]
-            if u0.root == utt.root and u0.speaker == utt.speaker:
+            if u0.conversation_id == utt.conversation_id and u0.speaker == utt.speaker:
                 new_utterances[u0.id].text += " " + utt.text
                 merged = True
         if not merged:
@@ -180,7 +180,7 @@ def initialize_conversations(corpus, utt_dict, convos_meta):
     # organize utterances by conversation
     convo_to_utts = defaultdict(list) # temp container identifying utterances by conversation
     for u in utt_dict.values():
-        convo_key = u.root # each root is considered a separate conversation
+        convo_key = u.conversation_id # each conversation_id is considered a separate conversation
         convo_to_utts[convo_key].append(u.id)
     conversations = {}
     for convo_id in convo_to_utts:
@@ -236,7 +236,7 @@ def dump_utterances(corpus, dir_name, fields_to_skip):
         for ut in corpus.iter_utterances():
             ut_obj = {
                 KeyId: ut.id,
-                KeyConvoId: ut.root,
+                KeyConvoId: ut.conversation_id,
                 KeyText: ut.text,
                 KeySpeaker: ut.speaker.id,
                 KeyMeta: dump_helper_bin(ut.meta, d_bin, fields_to_skip.get('utterance', [])),

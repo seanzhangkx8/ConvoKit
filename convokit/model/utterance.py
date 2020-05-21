@@ -56,7 +56,7 @@ class Utterance(CorpusObject):
         Get the Conversation (identified by Utterance.root) this Utterance belongs to
         :return: Conversation
         """
-        return self.owner.get_conversation(self.root)
+        return self.owner.get_conversation(self.conversation_id)
 
     def __hash__(self):
         return super().__hash__()
@@ -65,15 +65,15 @@ class Utterance(CorpusObject):
         if not isinstance(other, Utterance):
             return False
         try:
-            return self.id == other.id and self.root == other.root and self.reply_to == other.reply_to and \
+            return self.id == other.id and self.conversation_id == other.conversation_id and self.reply_to == other.reply_to and \
                    self.speaker == other.speaker and self.timestamp == other.timestamp and self.text == other.text
         except AttributeError: # for backwards compatibility with wikiconv
             return self.__dict__ == other.__dict__
 
     def __str__(self):
-        return "Utterance('id': {}, 'root': {}, 'reply-to': {}, " \
+        return "Utterance('id': {}, 'conversation_id': {}, 'reply-to': {}, " \
                "'speaker': {}, 'timestamp': {}, 'text': {}, 'meta': {})".format(repr(self.id),
-                                                                             self.root,
+                                                                             self.conversation_id,
                                                                              self.reply_to,
                                                                              self.speaker,
                                                                              self.timestamp,

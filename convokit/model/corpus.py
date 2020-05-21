@@ -13,12 +13,15 @@ class Corpus:
 
 	:param filename: Path to a folder containing a Corpus or to an utterances.jsonl / utterances.json file to load
 	:param utterances: List of utterances to initialize Corpus from
-	:param utterance_start_index: if the corpus folder contains utterances.jsonl, specify the line number (zero-indexed) to begin parsing utterances from
-	:param utterance_end_index: if the corpus folder contains utterances.jsonl, specify the line number (zero-indexed) of the last utterance to be parsed.
-	:param merge_lines: whether to merge adjacent lines from same user if the two utterances have same root
+	:param utterance_start_index: if the corpus folder contains utterances.jsonl, specify the line number (zero-indexed)
+		to begin parsing utterances from
+	:param utterance_end_index: if the corpus folder contains utterances.jsonl, specify the line number (zero-indexed)
+		of the last utterance to be parsed.
+	:param merge_lines: whether to merge adjacent lines from same speaker if the two utterances belong to the
+		same conversation
 	:param exclude_utterance_meta: utterance metadata to be ignored
 	:param exclude_conversation_meta: conversation metadata to be ignored
-	:param exclude_user_meta: user metadata to be ignored
+	:param exclude_speaker_meta: speaker metadata to be ignored
 	:param exclude_overall_meta: overall metadata to be ignored
 	:param version: version no. of corpus
 	"""
@@ -446,13 +449,14 @@ class Corpus:
 	def reindex_conversations(self, new_convo_roots: List[str], preserve_corpus_meta: bool = True,
 							  preserve_convo_meta: bool = True, verbose = True) -> 'Corpus':
 		"""
-		Generates a new Corpus from current Corpus with specified list of utterance ids to use as conversation roots.
+		Generates a new Corpus from current Corpus with specified list of utterance ids to use as conversation ids.
 
 		The subtrees denoted by these utterance ids should be distinct and should not overlap, otherwise there may be unexpected behavior.
 
-		:param new_convo_roots: List of utterance ids to use as roots
+		:param new_convo_roots: List of utterance ids to use as conversation ids
 		:param preserve_corpus_meta: set as True to copy original Corpus metadata to new Corpus
-		:param preserve_convo_meta: set as True to copy original Conversation metadata to new Conversation metadata (For each new convo root, use the metadata of the conversation that convo root belonged to.)
+		:param preserve_convo_meta: set as True to copy original Conversation metadata to new Conversation metadata 
+			(For each new conversation, use the metadata of the conversation that the utterance belonged to.)
 		:param verbose: whether to print a warning when
 		:return: new Corpus with reindexed Conversations
 		"""""
@@ -468,7 +472,7 @@ class Corpus:
 		original_utt_to_convo_id = dict()
 
 		for utt_id in new_convo_roots:
-			orig_convo = self.get_conversation(self.get_utterance(utt_id).root)
+			orig_convo = self.get_conversation(self.get_utterance(utt_id).conversation_id)
 			original_utt_to_convo_id[utt_id] = orig_convo.id
 			try:
 				subtree = orig_convo.get_subtree(utt_id)
@@ -497,34 +501,6 @@ class Corpus:
 				print(missing_convo_roots)
 
 		return new_corpus
-
-	def utterance_threads(self, prefix_len: Optional[int] = None,
-						  suffix_len: int = 0,
-						  include_root: bool = True) -> Dict[str, Dict[str, Utterance]]:
-		"""
-		Returns dict of threads, where a thread is all utterances with the
-		same root.
-
-		:param prefix_len: if an integer n, only get the first n utterances
-			of each thread (sorted by ascending timestamp value)
-		:param suffix_len: if an integer n, only get the last n utterances
-			of each thread (sorted by descending timestamp value)
-		:param include_root: True if root utterance should be included in the utterance thread.
-			If False, thread begins from top level comment.
-
-		:return: Dictionary from thread root ids to threads, where a thread is
-			itself a dictionary from utterance ids to utterances.
-		"""
-		threads = defaultdict(list)
-		for ut in self.utterances.values():
-			if include_root:
-				threads[ut.root].append(ut)
-			else:
-				top_level_comment = ut.meta["top_level_comment"]
-				if top_level_comment is None: continue  # i.e. this is a post (root) utterance
-				threads[top_level_comment].append(ut)
-		return {root: {utt.id: utt for utt in list(sorted(l, key=lambda x: x.timestamp))[-suffix_len:prefix_len]}
-				for root, l in threads.items()}
 
 	def get_meta(self) -> Dict:
 		return self.meta
@@ -1143,7 +1119,7 @@ class Corpus:
 		for utterance in self.iter_utterances():
 			if not utterance_filter(utterance): continue
 
-			speaker_to_convo_utts[utterance.speaker.id][utterance.root].append((utterance.id, utterance.timestamp))
+			speaker_to_convo_utts[utterance.speaker.id][utterance.conversation_id].append((utterance.id, utterance.timestamp))
 		for speaker, convo_utts in speaker_to_convo_utts.items():
 			for convo, utts in convo_utts.items():
 				sorted_utts = sorted(utts, key=lambda x: (x[1], x[0]))

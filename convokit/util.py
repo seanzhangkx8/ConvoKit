@@ -16,7 +16,7 @@ def download(name: str, verbose: bool = True, data_dir: str = None, use_newest_v
 
         - "wiki-corpus": Wikipedia Talk Page Conversations Corpus
             A medium-size collection of conversations from Wikipedia editors' talk pages.
-                (see http://www.cs.cornell.edu/~cristian/Echoes_of_power.html)
+            (see http://www.cs.cornell.edu/~cristian/Echoes_of_power.html)
         - "wikiconv-<year>": Wikipedia Talk Page Conversations Corpus
             Conversations data for the specified year.
         - "supreme-corpus": Supreme Court Dialogs Corpus
@@ -314,10 +314,12 @@ def warn(text: str):
     """
     print('\033[91m'+ "WARNING: " + '\033[0m' + text)
 
+
 def _deprecation_format(message, category, filename, lineno, file=None, line=None):
     return '{}:{}: {}: {}\n'.format(filename, lineno, category.__name__, message)
 
-def deprecation(prev_name: str, new_name: str, stacklevel: int = 2):
+
+def deprecation(prev_name: str, new_name: str, stacklevel: int = 3):
     """
     Suppressable deprecation warning.
     """
