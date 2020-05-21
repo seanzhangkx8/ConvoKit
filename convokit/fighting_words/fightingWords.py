@@ -6,6 +6,7 @@ from typing import List, Callable, Tuple
 from matplotlib import pyplot as plt
 import pandas as pd
 from cleantext import clean
+from collections import defaultdict
 
 clean_str = lambda s: clean(s,
                             fix_unicode=True,               # fix various unicode errors
@@ -300,7 +301,6 @@ class FightingWords(Transformer):
         scale_factor = max_label_size / max(sizes)
         sizes *= scale_factor
         neg_color, pos_color, insig_color = ('orange', 'purple', 'grey')
-        colors = []
         annots = []
 
         class1_sig_ngrams, class2_sig_ngrams = self.get_top_k_ngrams() if self.annot_method == "top_k" \
@@ -310,25 +310,39 @@ class FightingWords(Transformer):
 
         terms = list(self.get_ngram_zscores().index)
 
+        class1, class2, class_insig = defaultdict(list), defaultdict(list), defaultdict(list)
+
         for i in range(len(terms)):
             if terms[i] in class1_sig_ngrams:
-                colors.append(pos_color)
+                class1['x'].append(x_vals[i])
+                class1['y'].append(y_vals[i])
+                class1['size'].append(sizes[i])
                 annots.append(terms[i])
             elif terms[i] in class2_sig_ngrams:
-                colors.append(neg_color)
+                class2['x'].append(x_vals[i])
+                class2['y'].append(y_vals[i])
+                class2['size'].append(sizes[i])
                 annots.append(terms[i])
             else:
-                colors.append(insig_color)
+                class_insig['x'].append(x_vals[i])
+                class_insig['y'].append(y_vals[i])
+                class_insig['size'].append(sizes[i])
                 annots.append(None)
-        # fig, ax = plt.subplots()
-        plt.figure(dpi=200, figsize=(9, 6))
 
-        plt.scatter(x_vals, y_vals, c=colors, s=sizes, linewidth=0)
+
+        fig, ax = plt.subplots(figsize=(9, 6), dpi=200)
+
+        ax.scatter(class1['x'], class1['y'], c=pos_color, s=class1['size'], label='class1')
+        ax.scatter(class2['x'], class2['y'], c=neg_color, s=class2['size'], label='class2')
+        ax.scatter(class_insig['x'], class_insig['y'], c=insig_color, s=class_insig['size'])
+
         for i, annot in enumerate(annots):
             if annot is not None:
-                plt.annotate(annot, (x_vals[i], y_vals[i]), color=colors[i], size=sizes[i])
-        plt.xscale('log')
-        plt.title("Weighted log-odds ratio against Frequency of word within topic")
+                ax.annotate(annot, (x_vals[i], y_vals[i]))
+
+        ax.legend()
+        ax.set_xscale('log')
+        ax.set_title("Weighted log-odds ratio against Frequency of word within topic")
         plt.show()
 
     def get_model(self):
