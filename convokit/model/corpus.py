@@ -480,7 +480,7 @@ class Corpus:
 				new_root_utt.reply_to = None
 				subtree_utts = [node.utt for node in subtree.bfs_traversal()]
 				for utt in subtree_utts:
-					utt.root = utt_id
+					utt.conversation_id = utt_id
 				new_corpus_utts.extend(subtree_utts)
 			except ValueError:
 				continue
@@ -832,10 +832,10 @@ class Corpus:
 			# update corpus conversations + (link convo <-> utt)
 			new_convos = defaultdict(list)
 			for utt in new_utterances.values():
-				if utt.root in self.conversations:
-					self.conversations[utt.root]._add_utterance(utt)
+				if utt.conversation_id in self.conversations:
+					self.conversations[utt.conversation_id]._add_utterance(utt)
 				else:
-					new_convos[utt.root].append(utt.id)
+					new_convos[utt.conversation_id].append(utt.id)
 			for convo_id, convo_utts in new_convos.items():
 				new_convo = Conversation(owner=self, id=convo_id,
 										 utterances=convo_utts,

@@ -49,6 +49,13 @@ class FightingWords(Transformer):
     :param annot_method: "top_k" or "threshold" to specify which annotation method to use in transform()
     :param string_sanitizer: optional function for cleaning strings prior to fighting words analysis:
         uses default string sanitizer otherwise
+
+    :ivar cv: modifiable countvectorizer
+    :ivar threshold: modifiable threshold value
+    :ivar top_k: modifiable top_k threshold value
+    :ivar annot_method: modifiable annotation method
+    :ivar string_sanitizer: modifiable string sanitizer
+
     """
     def __init__(self, cv=None,
                  ngram_range=None, prior=0.1, threshold=1, top_k=10, annot_method="top_k",

@@ -137,6 +137,8 @@ def initialize_speakers_and_utterances_objects(corpus, utt_dict, utterances, spe
     """
     if len(utterances) > 0: # utterances might be empty for invalid corpus start/end indices
         KeySpeaker = "user" if "user" in utterances[0] else "speaker"
+        KeyConvoId = "root" if "root" in utterances[0] else "conversation_id"
+
     for i, u in enumerate(utterances):
         u = defaultdict(lambda: None, u)
         speaker_key = u[KeySpeaker]
