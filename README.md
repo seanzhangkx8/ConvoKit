@@ -136,6 +136,7 @@ Two collections of requests (from Wikipedia and Stack Exchange respectively) wit
 
 Conversational dataset with intended and perceived deception labels. Over 17,000 messages annotated by the sender for their intended truthfulness and by the receiver for their perceived truthfulness.
 
+Name for download: `diplomacy-corpus`
 
 ### ...And your own corpus!
 
