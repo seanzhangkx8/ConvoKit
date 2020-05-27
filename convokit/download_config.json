@@ -21,7 +21,7 @@
     "switchboard-corpus":0,
     "wikipedia-politeness-corpus":1,
     "stack-exchange-politeness-corpus":1,
-    "diplomacy-corpus": 0
+    "diplomacy-corpus": 2
   },
   "DatasetURLs": {
     "chromium-corpus": "http://zissou.infosci.cornell.edu/convokit/datasets/chromium-corpus/chromium-corpus.zip",
