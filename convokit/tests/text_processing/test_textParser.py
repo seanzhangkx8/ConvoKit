@@ -1,7 +1,12 @@
 import unittest
 
-from convokit.text_processing.textParser import _process_sentence, _process_token, process_text
-from convokit.tests.utils import buffalo_doc, fox_doc, fox_buffalo_doc, BUFFALO_TEXT, FOX_TEXT, FOX_BUFFALO_TEXT
+from convokit.model import Corpus, Speaker, Utterance
+from convokit.text_processing.textParser import _process_sentence, _process_token, TextParser
+from convokit.tests.util import buffalo_doc, fox_doc, fox_buffalo_doc, burr_sir_corpus, \
+    BUFFALO_TEXT, FOX_TEXT, FOX_BUFFALO_TEXT, BURR_SIR_TEXT_1, BURR_SIR_TEXT_2, \
+    burr_sir_doc_1, burr_sir_doc_2, BURR_SIR_SENTENCE_1, BURR_SIR_SENTENCE_2, BURR_SIR_SENTENCE_3, \
+    BURR_SIR_SENTENCE_4, burr_sir_sentence_doc_1, burr_sir_sentence_doc_2, burr_sir_sentence_doc_3, \
+    burr_sir_sentence_doc_4
 
 
 class TestTextParser(unittest.TestCase):
@@ -84,217 +89,387 @@ class TestTextParser(unittest.TestCase):
 
     def test_process_text_parse_mode(self):
         def fake_spacy_nlp(input_text):
-            return fox_buffalo_doc()
-        
-        expected = process_text(text=FOX_BUFFALO_TEXT, mode='parse', spacy_nlp=fake_spacy_nlp)
-        actual = [
-            {
-                "rt": 4,
-                "toks": [
-                    {
-                        "tok": "A",
-                        "tag": "DT",
-                        "dep": "det",
-                        "up": 4,
-                        "dn": []
-                    },
-                    {
-                        "tok": "quick",
-                        "tag": "JJ",
-                        "dep": "amod",
-                        "up": 4,
-                        "dn": []
-                    },
-                    {
-                        "tok": "brown",
-                        "tag": "JJ",
-                        "dep": "amod",
-                        "up": 4,
-                        "dn": []
-                    },
-                    {
-                        "tok": "fox",
-                        "tag": "NN",
-                        "dep": "compound",
-                        "up": 4,
-                        "dn": []
-                    },
-                    {
-                        "tok": "jumps",
-                        "tag": "NNS",
-                        "dep": "ROOT",
-                        "dn": [0, 1, 2, 3, 5, 9]
-                    },
-                    {
-                        "tok": "over",
-                        "tag": "IN",
-                        "dep": "prep",
-                        "up": 4,
-                        "dn": [
-                            8
-                        ]
-                    },
-                    {
-                        "tok": "the",
-                        "tag": "DT",
-                        "dep": "det",
-                        "up": 8,
-                        "dn": []
-                    },
-                    {
-                        "tok": "lazy",
-                        "tag": "JJ",
-                        "dep": "amod",
-                        "up": 8,
-                        "dn": []
-                    },
-                    {
-                        "tok": "dog",
-                        "tag": "NN",
-                        "dep": "pobj",
-                        "up": 5,
-                        "dn": [
-                            6,
-                            7
-                        ]
-                    },
-                    {
-                        "tok": ".",
-                        "tag": ".",
-                        "dep": "punct",
-                        "up": 4,
-                        "dn": []
-                    }
-                ]
-            },
-            {
-                "rt": 1,
-                "toks": [
-                    {
-                        "tok": "Buffalo",
-                        "tag": "NNP",
-                        "dep": "compound",
-                        "up": 1,
-                        "dn": []
-                    },
-                    {
-                        "tok": "buffalo",
-                        "tag": "NNP",
-                        "dep": "ROOT",
-                        "dn": [
-                            0
-                        ]
-                    }
-                ]
-            },
-            {
-                "rt": 3,
-                "toks": [
-                    {
-                        "tok": "Buffalo",
-                        "tag": "NNP",
-                        "dep": "compound",
-                        "up": 1,
-                        "dn": []
-                    },
-                    {
-                        "tok": "buffalo",
-                        "tag": "NNP",
-                        "dep": "compound",
-                        "up": 2,
-                        "dn": [
-                            0
-                        ]
-                    },
-                    {
-                        "tok": "buffalo",
-                        "tag": "NNP",
-                        "dep": "nsubj",
-                        "up": 3,
-                        "dn": [
-                            1
-                        ]
-                    },
-                    {
-                        "tok": "buffalo",
-                        "tag": "NNP",
-                        "dep": "ROOT",
-                        "dn": [
-                            2
-                        ]
-                    }
-                ]
-            },
-            {
-                "rt": 1,
-                "toks": [
-                    {
-                        "tok": "Buffalo",
-                        "tag": "NNP",
-                        "dep": "compound",
-                        "up": 1,
-                        "dn": []
-                    },
-                    {
-                        "tok": "buffalo",
-                        "tag": "NNP",
-                        "dep": "ROOT",
-                        "dn": [
-                            0
-                        ]
-                    }
-                ]
+            text_to_doc = {
+                BURR_SIR_TEXT_1: burr_sir_doc_1(),
+                BURR_SIR_TEXT_2: burr_sir_doc_2()
             }
+
+            return text_to_doc[input_text]
+        
+        parser = TextParser(spacy_nlp=fake_spacy_nlp, mode='parse')
+        corpus = burr_sir_corpus()
+        actual = [utterance.meta['parsed'] for utterance in parser.transform(corpus).utterances.values()]
+        expected = [
+            [
+                {
+                    'rt': 0,
+                    'toks': [
+                        {
+                            'tok': 'Pardon',
+                            'tag': 'VB',
+                            'dep': 'ROOT',
+                            'dn': [1, 2]
+                        },
+                        {
+                            'tok': 'me',
+                            'tag': 'PRP',
+                            'dep': 'dobj',
+                            'up': 0,
+                            'dn': []
+                        },
+                        {
+                            'tok': '.',
+                            'tag': '.',
+                            'dep': 'punct',
+                            'up': 0,
+                            'dn': []
+                        }
+                    ]
+                },
+                {
+                    'rt': 0,
+                    'toks': [
+                        {
+                            'tok': 'Are',
+                            'tag': 'VBP',
+                            'dep': 'ROOT',
+                            'dn': [1, 3, 4, 5, 6]
+                        },
+                        {
+                            'tok': 'you',
+                            'tag': 'PRP',
+                            'dep': 'nsubj',
+                            'up': 0,
+                            'dn': []
+                        },
+                        {
+                            'tok': 'Aaron',
+                            'tag': 'NNP',
+                            'dep': 'compound',
+                            'up': 3,
+                            'dn': []
+                        },
+                        {
+                            'tok': 'Burr',
+                            'tag': 'NNP',
+                            'dep': 'attr',
+                            'up': 0,
+                            'dn': [
+                                2
+                            ]
+                        },
+                        {
+                            'tok': ',',
+                            'tag': ',',
+                            'dep': 'punct',
+                            'up': 0,
+                            'dn': []
+                        },
+                        {
+                            'tok': 'sir',
+                            'tag': 'NN',
+                            'dep': 'npadvmod',
+                            'up': 0,
+                            'dn': []
+                        },
+                        {
+                            'tok': '?',
+                            'tag': '.',
+                            'dep': 'punct',
+                            'up': 0,
+                            'dn': []
+                        }
+                    ]
+                }
+            ],
+            [
+                {
+                    'rt': 1,
+                    'toks': [
+                        {
+                            'tok': 'That',
+                            'tag': 'DT',
+                            'dep': 'nsubj',
+                            'up': 1,
+                            'dn': []
+                        },
+                        {
+                            'tok': 'depends',
+                            'tag': 'VBZ',
+                            'dep': 'ROOT',
+                            'dn': [
+                                0,
+                                2
+                            ]
+                        },
+                        {
+                            'tok': '.',
+                            'tag': '.',
+                            'dep': 'punct',
+                            'up': 1,
+                            'dn': []
+                        }
+                    ]
+                },
+                {
+                    'rt': 2,
+                    'toks': [
+                        {
+                            'tok': 'Who',
+                            'tag': 'WP',
+                            'dep': 'nsubj',
+                            'up': 2,
+                            'dn': []
+                        },
+                        {
+                            'tok': "'s",
+                            'tag': 'VBZ',
+                            'dep': 'aux',
+                            'up': 2,
+                            'dn': []
+                        },
+                        {
+                            'tok': 'asking',
+                            'tag': 'VBG',
+                            'dep': 'ROOT',
+                            'dn': [0, 1, 3]
+                        },
+                        {
+                            'tok': '?',
+                            'tag': '.',
+                            'dep': 'punct',
+                            'up': 2,
+                            'dn': []
+                        }
+                    ]
+                }
+            ]
         ]
 
         self.assertListEqual(expected, actual)
 
-    def test_process_text_non_parse_mode(self):
-        def fake_spacy_nlp(text):
-            if text == FOX_TEXT:
-                return fox_doc()
-            if text == BUFFALO_TEXT:
-                return buffalo_doc()
-            
-            raise Exception(f'Received text that matched neither expected test doc: {text}')
-
+    def test_process_text_tag_mode(self):
         class FakeSentenceTokenizer:
-            def tokenize(self, text):
-                return [FOX_TEXT, BUFFALO_TEXT]
-        
-        expected = [
-            {
-                "toks": [
-                    {"tok": "A"},
-                    {"tok": "quick"},
-                    {"tok": "brown"},
-                    {"tok": "fox"},
-                    {"tok": "jumps"},
-                    {"tok": "over"},
-                    {"tok": "the"},
-                    {"tok": "lazy"},
-                    {"tok": "dog"}
-                ]
-            },
-            {
-                "toks": [
-                    {"tok": "Buffalo"},
-                    {"tok": "buffalo"},
-                    {"tok": "Buffalo"},
-                    {"tok": "buffalo"},
-                    {"tok": "buffalo"},
-                    {"tok": "buffalo"},
-                    {"tok": "Buffalo"},
-                    {"tok": "buffalo"}
-                ]
+            def tokenize(self, input_text):
+                text_to_sentences = {
+                    BURR_SIR_TEXT_1: [
+                        'Pardon me.',
+                        'Are you Aaron Burr, sir?'
+                    ],
+                    BURR_SIR_TEXT_2: [
+                        'That depends.',
+                        "Who's asking?"
+                    ]
+                }
+
+
+        def fake_spacy_nlp(input_text):
+            text_to_doc = {
+                BURR_SIR_SENTENCE_1: burr_sir_sentence_doc_1(),
+                BURR_SIR_SENTENCE_2: burr_sir_sentence_doc_2(),
+                BURR_SIR_SENTENCE_3: burr_sir_sentence_doc_3(),
+                BURR_SIR_SENTENCE_4: burr_sir_sentence_doc_4()
             }
+
+            return text_to_doc[input_text]
+        
+        parser = TextParser(spacy_nlp=fake_spacy_nlp, mode='tag')
+        corpus = burr_sir_corpus()
+        actual = [utterance.meta['parsed'] for utterance in parser.transform(corpus).utterances.values()]
+        expected = [
+            [
+                {
+                    "toks": [
+                        {
+                            "tok": "Pardon",
+                            "tag": "VB"
+                        },
+                        {
+                            "tok": "me",
+                            "tag": "PRP"
+                        },
+                        {
+                            "tok": ".",
+                            "tag": "."
+                        }
+                    ]
+                },
+                {
+                    "toks": [
+                        {
+                            "tok": "Are",
+                            "tag": "VBP"
+                        },
+                        {
+                            "tok": "you",
+                            "tag": "PRP"
+                        },
+                        {
+                            "tok": "Aaron",
+                            "tag": "NNP"
+                        },
+                        {
+                            "tok": "Burr",
+                            "tag": "NNP"
+                        },
+                        {
+                            "tok": ",",
+                            "tag": ","
+                        },
+                        {
+                            "tok": "sir",
+                            "tag": "NN"
+                        },
+                        {
+                            "tok": "?",
+                            "tag": "."
+                        }
+                    ]
+                }
+            ],
+            [
+                {
+                    "toks": [
+                        {
+                            "tok": "That",
+                            "tag": "DT"
+                        },
+                        {
+                            "tok": "depends",
+                            "tag": "VBZ"
+                        },
+                        {
+                            "tok": ".",
+                            "tag": "."
+                        }
+                    ]
+                },
+                {
+                    "toks": [
+                        {
+                            "tok": "Who",
+                            "tag": "WP"
+                        },
+                        {
+                            "tok": "'s",
+                            "tag": "VBZ"
+                        },
+                        {
+                            "tok": "asking",
+                            "tag": "VBG"
+                        },
+                        {
+                            "tok": "?",
+                            "tag": "."
+                        }
+                    ]
+                }
+            ]
         ]
-        actual = process_text(
-            FOX_BUFFALO_TEXT,
-            mode='tokenize',
-            sent_tokenizer=FakeSentenceTokenizer(),
-            spacy_nlp=fake_spacy_nlp
-        )
+
+        self.assertListEqual(expected, actual)
+    
+    def test_process_text_tokenize_mode(self):
+        class FakeSentenceTokenizer:
+            def tokenize(self, input_text):
+                text_to_sentences = {
+                    BURR_SIR_TEXT_1: [
+                        'Pardon me.',
+                        'Are you Aaron Burr, sir?'
+                    ],
+                    BURR_SIR_TEXT_2: [
+                        'That depends.',
+                        "Who's asking?"
+                    ]
+                }
+
+
+        def fake_spacy_nlp(input_text):
+            text_to_doc = {
+                BURR_SIR_SENTENCE_1: burr_sir_sentence_doc_1(),
+                BURR_SIR_SENTENCE_2: burr_sir_sentence_doc_2(),
+                BURR_SIR_SENTENCE_3: burr_sir_sentence_doc_3(),
+                BURR_SIR_SENTENCE_4: burr_sir_sentence_doc_4()
+            }
+
+            return text_to_doc[input_text]
+        
+        parser = TextParser(spacy_nlp=fake_spacy_nlp, mode='tokenize')
+        corpus = burr_sir_corpus()
+        actual = [utterance.meta['parsed'] for utterance in parser.transform(corpus).utterances.values()]
+        expected = [
+            [
+                {
+                    "toks": [
+                        {
+                            "tok": "Pardon"
+                        },
+                        {
+                            "tok": "me"
+                        },
+                        {
+                            "tok": "."
+                        }
+                    ]
+                },
+                {
+                    "toks": [
+                        {
+                            "tok": "Are"
+                        },
+                        {
+                            "tok": "you"
+                        },
+                        {
+                            "tok": "Aaron"
+                        },
+                        {
+                            "tok": "Burr"
+                        },
+                        {
+                            "tok": ","
+                        },
+                        {
+                            "tok": "sir"
+                        },
+                        {
+                            "tok": "?"
+                        }
+                    ]
+                }
+            ],
+            [
+                {
+                    "toks": [
+                        {
+                            "tok": "That"
+                        },
+                        {
+                            "tok": "depends"
+                        },
+                        {
+                            "tok": "."
+                        }
+                    ]
+                },
+                {
+                    "toks": [
+                        {
+                            "tok": "Who"
+                        },
+                        {
+                            "tok": "'s"
+                        },
+                        {
+                            "tok": "asking"
+                        },
+                        {
+                            "tok": "?"
+                        }
+                    ]
+                }
+            ]
+        ]
 
         self.assertListEqual(expected, actual)
 
