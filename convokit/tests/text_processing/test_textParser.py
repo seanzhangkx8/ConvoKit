@@ -262,6 +262,7 @@ class TestTextParser(unittest.TestCase):
                     ]
                 }
 
+                return text_to_sentences[input_text]
 
         def fake_spacy_nlp(input_text):
             text_to_doc = {
@@ -382,6 +383,8 @@ class TestTextParser(unittest.TestCase):
                         "Who's asking?"
                     ]
                 }
+
+                return text_to_sentences[input_text]
 
 
         def fake_spacy_nlp(input_text):
