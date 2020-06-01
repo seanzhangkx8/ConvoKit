@@ -98,7 +98,7 @@ class TestTextParser(unittest.TestCase):
         
         parser = TextParser(spacy_nlp=fake_spacy_nlp, mode='parse')
         corpus = burr_sir_corpus()
-        actual = [utterance.meta['parsed'] for utterance in parser.transform(corpus).utterances.values()]
+        actual = [utterance.meta['parsed'] for utterance in parser.transform(corpus).iter_utterances()]
         expected = [
             [
                 {
@@ -276,7 +276,7 @@ class TestTextParser(unittest.TestCase):
         
         parser = TextParser(spacy_nlp=fake_spacy_nlp, sent_tokenizer=FakeSentenceTokenizer(), mode='tag')
         corpus = burr_sir_corpus()
-        actual = [utterance.meta['parsed'] for utterance in parser.transform(corpus).utterances.values()]
+        actual = [utterance.meta['parsed'] for utterance in parser.transform(corpus).iter_utterances()]
         expected = [
             [
                 {
@@ -399,7 +399,7 @@ class TestTextParser(unittest.TestCase):
         
         parser = TextParser(spacy_nlp=fake_spacy_nlp, sent_tokenizer=FakeSentenceTokenizer(), mode='tokenize')
         corpus = burr_sir_corpus()
-        actual = [utterance.meta['parsed'] for utterance in parser.transform(corpus).utterances.values()]
+        actual = [utterance.meta['parsed'] for utterance in parser.transform(corpus).iter_utterances()]
         expected = [
             [
                 {
