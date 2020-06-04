@@ -321,6 +321,32 @@ class Corpus:
 			if selector(v):
 				yield v
 
+	def view_utterances(self, selector: Optional[Callable[[Utterance], bool]] = lambda utt: True,
+						exclude_meta: bool = False):
+		"""
+		View utterances in the Corpus, with an optional selector that filters for Utterances that should be included
+		Returns a dataframe of the utterances with data and metadata values
+		:param exclude_meta:
+		:param selector:
+		:return:
+		"""
+		ds = dict()
+		for utt in self.iter_utterances(selector):
+			d = utt.__dict__.copy()
+			if not exclude_meta:
+				for k, v in d['meta'].items():
+					d['meta.'+k] = v
+			del d['meta']
+			ds[utt.id] = d
+
+		df = pd.DataFrame(ds).T
+		df['id'] = df['_id']
+		df = df.set_index('id')
+		df = df.drop(['_id', '_owner', 'obj_type', 'user', '_root'], axis=1)
+		df['speaker'] = df['speaker'].map(lambda spkr: spkr.id)
+		meta_columns = [k for k in df.columns if k.startswith('meta.')]
+		return df[['timestamp', 'text', 'speaker', 'reply_to', 'conversation_id'] + meta_columns]
+
 	def iter_conversations(self, selector: Optional[Callable[[Conversation], bool]] = lambda convo: True) -> Generator[
 		Conversation, None, None]:
 		"""
@@ -334,6 +360,28 @@ class Corpus:
 			if selector(v):
 				yield v
 
+	def view_conversations(self, selector: Optional[Callable[[Conversation], bool]] = lambda utt: True,
+						   exclude_meta: bool = False):
+		"""
+		View conversations in the Corpus, with an optional selector that filters for Conversations that should be included
+		Returns a dataframe of the conversations with data and metadata values
+		:param selector:
+		:return:
+		"""
+		ds = dict()
+		for convo in self.iter_conversations(selector):
+			d = convo.__dict__.copy()
+			if not exclude_meta:
+				for k, v in d['meta'].items():
+					d['meta.'+k] = v
+			del d['meta']
+			ds[convo.id] = d
+
+		df = pd.DataFrame(ds).T
+		df['id'] = df['_id']
+		df = df.set_index('id')
+		return df.drop(['_owner', 'obj_type', '_utterance_ids', '_speaker_ids', 'tree', '_id'], axis=1)
+
 	def iter_speakers(self, selector: Optional[Callable[[Speaker], bool]] = lambda speaker: True) -> Generator[Speaker, None, None]:
 		"""
 		Get Speakers in the Corpus, with an optional selector that filters for Conversations that should be included
@@ -346,6 +394,28 @@ class Corpus:
 		for speaker in self.speakers.values():
 			if selector(speaker):
 				yield speaker
+
+	def view_speakers(self, selector: Optional[Callable[[Speaker], bool]] = lambda utt: True,
+					  exclude_meta: bool = False):
+		"""
+		View speakers in the Corpus, with an optional selector that filters for Speakers that should be included
+		Returns a dataframe of the Speakers with data and metadata values
+		:param selector:
+		:return:
+		"""
+		ds = dict()
+		for spkr in self.iter_speakers(selector):
+			d = spkr.__dict__.copy()
+			if not exclude_meta:
+				for k, v in d['meta'].items():
+					d['meta.'+k] = v
+			del d['meta']
+			ds[spkr.id] = d
+
+		df = pd.DataFrame(ds).T
+		df['id'] = df['_id']
+		df = df.set_index('id')
+		return df.drop(['_owner', 'obj_type', 'utterances', 'conversations', '_id'], axis=1)
 
 	def iter_users(self, selector=lambda speaker: True):
 		deprecation("iter_users()", "iter_speakers()")
@@ -455,7 +525,7 @@ class Corpus:
 
 		:param new_convo_roots: List of utterance ids to use as conversation ids
 		:param preserve_corpus_meta: set as True to copy original Corpus metadata to new Corpus
-		:param preserve_convo_meta: set as True to copy original Conversation metadata to new Conversation metadata 
+		:param preserve_convo_meta: set as True to copy original Conversation metadata to new Conversation metadata
 			(For each new conversation, use the metadata of the conversation that the utterance belonged to.)
 		:param verbose: whether to print a warning when
 		:return: new Corpus with reindexed Conversations
