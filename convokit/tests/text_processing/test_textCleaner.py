@@ -2,7 +2,7 @@ from copy import deepcopy
 import unittest
 
 from convokit.tests.util import burr_sir_corpus
-from convokit.text_processing.textCleaner import TextCleaner
+from convokit.text_processing.textCleaner import clean_str, TextCleaner
 
 
 class TestTextCleaner(unittest.TestCase):
@@ -32,3 +32,15 @@ class TestTextCleaner(unittest.TestCase):
         for original_utterance, cleaned_utterance in zip(corpus.iter_utterances(), cleaned_corpus.iter_utterances()):
             self.assertEqual(cleaned_utterance.text, 'cleaned text')
             self.assertEqual(original_utterance.text, cleaned_utterance.meta['original'])
+    
+    def test_clean_str_replacements(self):
+        original_str = 'https://mywebsite.com myemail@gmail.com (123) 456-7890 1,000 $'
+        cleaned_str = clean_str(original_str)
+
+        self.assertEqual('<url> <email> <phone> <number> <cur>', cleaned_str)
+    
+    def test_clean_str_text(self):
+        original_str = 'BA OBAMA ĐỘI BA Ô BA OBAMA' # vietnamese joke https://twitter.com/tetracarbon/status/735009694515789824
+        cleaned_str = clean_str(original_str)
+
+        self.assertEqual('ba obama doi ba o ba obama', cleaned_str)
