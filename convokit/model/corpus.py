@@ -324,11 +324,14 @@ class Corpus:
 	def view_utterances(self, selector: Optional[Callable[[Utterance], bool]] = lambda utt: True,
 						exclude_meta: bool = False):
 		"""
-		View utterances in the Corpus, with an optional selector that filters for Utterances that should be included
-		Returns a dataframe of the utterances with data and metadata values
-		:param exclude_meta:
-		:param selector:
-		:return:
+		View utterances in the Corpus, with an optional selector that filters for Utterances that should be included.
+		Returns a DataFrame of the utterances with data and metadata values. Edits to the DataFrame do not change
+		the corpus in any way.
+
+		:param exclude_meta: whether to exclude metadata
+		:param selector: a (lambda) function that takes a Utterance and returns True or False (i.e. include / exclude).
+			By default, the selector includes all Utterances in the Corpus.
+		:return: a pandas DataFrame
 		"""
 		ds = dict()
 		for utt in self.iter_utterances(selector):
@@ -360,13 +363,17 @@ class Corpus:
 			if selector(v):
 				yield v
 
-	def view_conversations(self, selector: Optional[Callable[[Conversation], bool]] = lambda utt: True,
+	def view_conversations(self, selector: Optional[Callable[[Conversation], bool]] = lambda convo: True,
 						   exclude_meta: bool = False):
 		"""
-		View conversations in the Corpus, with an optional selector that filters for Conversations that should be included
-		Returns a dataframe of the conversations with data and metadata values
-		:param selector:
-		:return:
+		View conversations in the Corpus, with an optional selector that filters for Conversations that should be included.
+		Returns a DataFrame of the conversations with data and metadata values. Edits to the DataFrame do not change
+		the corpus in any way.
+
+		:param exclude_meta: whether to exclude metadata
+		:param selector: a (lambda) function that takes a Conversation and returns True or False (i.e. include / exclude).
+			By default, the selector includes all Conversations in the Corpus.
+		:return: a pandas DataFrame
 		"""
 		ds = dict()
 		for convo in self.iter_conversations(selector):
@@ -398,10 +405,14 @@ class Corpus:
 	def view_speakers(self, selector: Optional[Callable[[Speaker], bool]] = lambda utt: True,
 					  exclude_meta: bool = False):
 		"""
-		View speakers in the Corpus, with an optional selector that filters for Speakers that should be included
-		Returns a dataframe of the Speakers with data and metadata values
-		:param selector:
-		:return:
+		View speakers in the Corpus, with an optional selector that filters for Speakers that should be included.
+		Returns a DataFrame of the Speakers with data and metadata values. Edits to the DataFrame do not change
+		the corpus in any way.
+
+		:param exclude_meta: whether to exclude metadata
+		:param selector: selector: a (lambda) function that takes a Speaker and returns True or False (i.e. include / exclude).
+			By default, the selector includes all Speakers in the Corpus.
+		:return: a pandas DataFrame
 		"""
 		ds = dict()
 		for spkr in self.iter_speakers(selector):
@@ -1114,11 +1125,11 @@ class Corpus:
 
 	def get_attribute_table(self, obj_type, attrs):
 		"""
-		returns a dataframe, indexed by the IDs of objects of `obj_type`, containing attributes of these objects.
+		returns a DataFrame, indexed by the IDs of objects of `obj_type`, containing attributes of these objects.
 
 		:param obj_type: the type of object to get attributes for. can be `'utterance'`, `'speaker'` or `'conversation'`.
 		:param attrs: a list of names of attributes to get.
-		:return: a Pandas dataframe of attributes.
+		:return: a Pandas DataFrame of attributes.
 		"""
 		iterator = self.iter_objs(obj_type)
 
@@ -1213,7 +1224,7 @@ class Corpus:
 		returns a table where each row lists a (speaker, convo) level aggregate for each attribute in attrs.
 
 		:param attrs: list of (speaker, convo) attribute names
-		:return: dataframe containing all speaker,convo attributes.
+		:return: DataFrame containing all speaker,convo attributes.
 		"""
 
 		table_entries = []
@@ -1240,7 +1251,7 @@ class Corpus:
 		:param convo_attrs: list of conversation attribute names
 		:param speaker_suffix: suffix to append to names of speaker-level attributes
 		:param convo_suffix: suffix to append to names of conversation-level attributes.
-		:return: dataframe containing all attributes.
+		:return: DataFrame containing all attributes.
 		"""
 		if speaker_attrs is None:
 			speaker_attrs = []
