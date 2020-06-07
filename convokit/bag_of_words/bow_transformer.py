@@ -1,4 +1,4 @@
-from convokit import Corpus, CorpusObject, Transformer
+from convokit import Corpus, CorpusComponent, Transformer
 from typing import Callable
 from sklearn.feature_extraction.text import CountVectorizer as CV
 
@@ -24,7 +24,7 @@ class BoWTransformer(Transformer):
 
     """
     def __init__(self, obj_type: str, vectorizer=None, vector_name="bow_vector",
-                 text_func: Callable[[CorpusObject], str] = None):
+                 text_func: Callable[[CorpusComponent], str] = None):
 
         if vectorizer is None:
             print("Initializing default unigram CountVectorizer...", end="")
@@ -49,7 +49,7 @@ class BoWTransformer(Transformer):
         else:
             self.text_func = text_func
 
-    def fit(self, corpus: Corpus, y=None, selector: Callable[[CorpusObject], bool] = lambda x: True):
+    def fit(self, corpus: Corpus, y=None, selector: Callable[[CorpusComponent], bool] = lambda x: True):
         """
         Fit the Transformer's internal vectorizer on the Corpus objects' texts, with an optional selector that filters for objects to be fit on.
 
@@ -65,7 +65,7 @@ class BoWTransformer(Transformer):
         self.vectorizer.fit(docs)
         return self
 
-    def transform(self, corpus: Corpus, selector: Callable[[CorpusObject], bool] = lambda x: True) -> Corpus:
+    def transform(self, corpus: Corpus, selector: Callable[[CorpusComponent], bool] = lambda x: True) -> Corpus:
         """
         Annotate the corpus objects with the vectorized representation of the object's text, with an optional
         selector that filters for objects to be transformed. Objects that are not selected will get a metadata value
@@ -84,7 +84,7 @@ class BoWTransformer(Transformer):
 
         return corpus
 
-    def fit_transform(self, corpus: Corpus, y=None, selector: Callable[[CorpusObject], bool] = lambda x: True) -> Corpus:
+    def fit_transform(self, corpus: Corpus, y=None, selector: Callable[[CorpusComponent], bool] = lambda x: True) -> Corpus:
         self.fit(corpus, selector=selector)
         return self.transform(corpus, selector=selector)
 

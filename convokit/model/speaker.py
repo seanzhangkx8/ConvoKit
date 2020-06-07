@@ -1,10 +1,10 @@
 from functools import total_ordering
 from typing import Dict, List, Optional
 from convokit.util import deprecation
-from .corpusObject import CorpusObject
+from .corpusComponent import CorpusComponent
 
 @total_ordering
-class Speaker(CorpusObject):
+class Speaker(CorpusComponent):
     """
     Represents a single speaker in a dataset.
 

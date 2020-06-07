@@ -1,10 +1,10 @@
 from typing import Dict, Optional
 from convokit.util import deprecation
-from .corpusObject import CorpusObject
+from .corpusComponent import CorpusComponent
 from .speaker import Speaker
 
 
-class Utterance(CorpusObject):
+class Utterance(CorpusComponent):
     """Represents a single utterance in the dataset.
 
     :param id: the unique id of the utterance.

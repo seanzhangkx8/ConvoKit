@@ -10,32 +10,32 @@ import os
 
 class PromptTypeWrapper(Transformer):
 	"""	
-		This is a wrapper class implementing a pipeline that infers types of rhetorical intentions encapsulated by utterances in a corpus, in terms of their anticipated responses. 
+	This is a wrapper class implementing a pipeline that infers types of rhetorical intentions encapsulated by utterances in a corpus, in terms of their anticipated responses.
 
-		The pipeline involves:
-			* parsing input text via `TextParser`
-			* representing input text as dependency tree arcs, with nouns censored out, via `CensorNouns`, `TextToArcs` and `QuestionSentences`
-			* extracting a set of "phrasings" from the corpus, using a `PhrasingMotifs` model
-			* inferring prompt types and type assignments per-utterance, using a `PromptTypes` model.
-		
-		While the pipeline computes many attributes of an utterance along the way, the overall goal is to assign each utterance to a prompt type.
-		By default, the pipeline will focus on learning types of *questions*, in terms of how the questions are phrased. However, other options are possible (see parameters below).
-		For further details, see the respective classes listed above. 
-		
-		:param output_field:  the name of the attribute to write to in the transform step. the transformer outputs several fields, corresponding to both vector representations and discrete type assignments.
-		:param n_types: the number of prompt types to infer.
-		:param use_prompt_motifs: whether to represent prompts in terms of how they are phrased. defaults to `True`. if `False`, will use individual dependency arcs as input (this might be better for noisier text)
-		:param root_only: whether to only use dependency arcs attached to the root of the parse. defaults to `True`. if `False` will also consider arcs beyond the root (may be better for noisier text)
-		:param questions_only: whether to only learn representations of questions (i.e., utterances containing sentences that end in question marks); defaults to `True`.
-		:param enforce_caps: whether to only fit and transform on sentences that start with capital letters. defaults to `True`, which is appropriate for formal settings like transcripts of institutional proceedings, where this is a check on how well-formed the input is. in less formal settings like social media, setting to `False` may be more appropriately permissive.
-		:param min_support: the minimum frequency of phrasings to extract.
-		:param min_df: the minimum frequency of prompt and response terms to consider when inferring types.
-		:param max_df: the maximum frequency of prompt and response terms to use. defaults to 0.1 (i.e., occurs in at most 10% of prompt-response pairs). Setting higher is more permissive, but may result in many stopword-like terms adding noise to the model.
-		:param svd__n_components: the number of SVD dimensions to use when inferring types, defaults to 25. higher values result in richer vector representations, perhaps at the cost of the model learning overly-specific types.
-		:param max_dist: the maximum distance between a vector representation of an utterance and the cluster centroid; a cluster whose distance to all centroids is above this cutoff will get assigned to a null type, denoted by -1. defaults to 0.9.
-		:param recompute_all: if `False` (the default), checks utterances to see if they already have an attribute computed, skipping over that utterance in the relevant step of the pipeline. if `True`, recomputes all attributes.
-		:param random_state: the random seed to use.
-		:param verbosity: frequency of status messages.
+	The pipeline involves:
+		* parsing input text via `TextParser`
+		* representing input text as dependency tree arcs, with nouns censored out, via `CensorNouns`, `TextToArcs` and `QuestionSentences`
+		* extracting a set of "phrasings" from the corpus, using a `PhrasingMotifs` model
+		* inferring prompt types and type assignments per-utterance, using a `PromptTypes` model.
+
+	While the pipeline computes many attributes of an utterance along the way, the overall goal is to assign each utterance to a prompt type.
+	By default, the pipeline will focus on learning types of *questions*, in terms of how the questions are phrased. However, other options are possible (see parameters below).
+	For further details, see the respective classes listed above.
+
+	:param output_field:  the name of the attribute to write to in the transform step. the transformer outputs several fields, corresponding to both vector representations and discrete type assignments.
+	:param n_types: the number of prompt types to infer.
+	:param use_prompt_motifs: whether to represent prompts in terms of how they are phrased. defaults to `True`. if `False`, will use individual dependency arcs as input (this might be better for noisier text)
+	:param root_only: whether to only use dependency arcs attached to the root of the parse. defaults to `True`. if `False` will also consider arcs beyond the root (may be better for noisier text)
+	:param questions_only: whether to only learn representations of questions (i.e., utterances containing sentences that end in question marks); defaults to `True`.
+	:param enforce_caps: whether to only fit and transform on sentences that start with capital letters. defaults to `True`, which is appropriate for formal settings like transcripts of institutional proceedings, where this is a check on how well-formed the input is. in less formal settings like social media, setting to `False` may be more appropriately permissive.
+	:param min_support: the minimum frequency of phrasings to extract.
+	:param min_df: the minimum frequency of prompt and response terms to consider when inferring types.
+	:param max_df: the maximum frequency of prompt and response terms to use. defaults to 0.1 (i.e., occurs in at most 10% of prompt-response pairs). Setting higher is more permissive, but may result in many stopword-like terms adding noise to the model.
+	:param svd__n_components: the number of SVD dimensions to use when inferring types, defaults to 25. higher values result in richer vector representations, perhaps at the cost of the model learning overly-specific types.
+	:param max_dist: the maximum distance between a vector representation of an utterance and the cluster centroid; a cluster whose distance to all centroids is above this cutoff will get assigned to a null type, denoted by -1. defaults to 0.9.
+	:param recompute_all: if `False` (the default), checks utterances to see if they already have an attribute computed, skipping over that utterance in the relevant step of the pipeline. if `True`, recomputes all attributes.
+	:param random_state: the random seed to use.
+	:param verbosity: frequency of status messages.
 
 	"""
 	
@@ -87,15 +87,15 @@ class PromptTypeWrapper(Transformer):
 		pipe.append(
 			('pt_model', PromptTypes(prompt_field=prompt_field, ref_field='arcs', 
 									 prompt_transform_field=prompt_transform_field,
-				 output_field=output_field, n_types=n_types,
-				 svd__n_components=svd__n_components,
-				 prompt_filter=prompt_filter, ref_filter=ref_filter,
-				 prompt__tfidf_min_df=min_df,
-				 prompt__tfidf_max_df=max_df,
-				 ref__tfidf_min_df=min_df,
-				 ref__tfidf_max_df=max_df,
-				 max_dist=max_dist,
-				 random_state=random_state, verbosity=verbosity
+									 output_field=output_field, n_types=n_types,
+									 svd__n_components=svd__n_components,
+									 prompt_filter=prompt_filter, ref_filter=ref_filter,
+									 prompt__tfidf_min_df=min_df,
+									 prompt__tfidf_max_df=max_df,
+									 ref__tfidf_min_df=min_df,
+									 ref__tfidf_max_df=max_df,
+									 max_dist=max_dist,
+									 random_state=random_state, verbosity=verbosity
 			))
 		)
 		self.pipe = ConvokitPipeline(pipe)

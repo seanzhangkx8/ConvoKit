@@ -1,4 +1,4 @@
-from convokit import Corpus, CorpusObject
+from convokit import Corpus, CorpusComponent
 from sklearn.model_selection import train_test_split, cross_val_score, KFold
 from typing import Callable, List
 from sklearn.pipeline import Pipeline
@@ -27,7 +27,7 @@ class BoWClassifier(Classifier):
     :param clf_prob_feat_name: the metadata key to store the classifier prediction score under; default: "pred_score"
     """
     def __init__(self, obj_type: str, vector_name="bow_vector",
-                 labeller: Callable[[CorpusObject], bool] = lambda x: True,
+                 labeller: Callable[[CorpusComponent], bool] = lambda x: True,
                  clf=None, clf_feat_name: str = "prediction", clf_prob_feat_name: str = "pred_score"):
         if clf is None:
             print("Initializing default classification model (standard scaled logistic regression)")
@@ -38,7 +38,7 @@ class BoWClassifier(Classifier):
         super().__init__(obj_type=obj_type, pred_feats=[], labeller=labeller,
                          clf=clf, clf_feat_name=clf_feat_name, clf_prob_feat_name=clf_prob_feat_name)
 
-    def fit(self, corpus: Corpus, y=None, selector: Callable[[CorpusObject], bool] = lambda x: True):
+    def fit(self, corpus: Corpus, y=None, selector: Callable[[CorpusComponent], bool] = lambda x: True):
         """
         Fit the Transformer's internal classifier model on the Corpus objects, with an optional selector that filters for objects to be fit on.
 
@@ -59,7 +59,7 @@ class BoWClassifier(Classifier):
         self.clf.fit(X, y)
         return self
 
-    def transform(self, corpus: Corpus, selector: Callable[[CorpusObject], bool] = lambda x: True) -> Corpus:
+    def transform(self, corpus: Corpus, selector: Callable[[CorpusComponent], bool] = lambda x: True) -> Corpus:
         """
         Annotate the corpus objects with the classifier prediction and prediction score, with an optional selector
         that filters for objects to be classified. Objects that are not selected will get a metadata value of 'None'
@@ -88,7 +88,7 @@ class BoWClassifier(Classifier):
             obj.add_meta(self.clf_prob_feat_name, clf_prob)
         return corpus
 
-    def transform_objs(self, objs: List[CorpusObject]) -> List[CorpusObject]:
+    def transform_objs(self, objs: List[CorpusComponent]) -> List[CorpusComponent]:
         """
         Run classifier on list of Corpus objects and annotate them with the predictions and prediction scores
 
@@ -110,11 +110,11 @@ class BoWClassifier(Classifier):
 
         return objs
 
-    def fit_transform(self, corpus: Corpus, y=None, selector: Callable[[CorpusObject], bool] = lambda x: True) -> Corpus:
+    def fit_transform(self, corpus: Corpus, y=None, selector: Callable[[CorpusComponent], bool] = lambda x: True) -> Corpus:
         self.fit(corpus, selector=selector)
         return self.transform(corpus, selector=selector)
 
-    def summarize(self, corpus: Corpus, selector: Callable[[CorpusObject], bool] = lambda x: True):
+    def summarize(self, corpus: Corpus, selector: Callable[[CorpusComponent], bool] = lambda x: True):
         """
         Generate a DataFrame indexed by object id with the classifier predictions and scores
 
@@ -131,7 +131,7 @@ class BoWClassifier(Classifier):
                            columns=['id', self.clf_feat_name, self.clf_prob_feat_name])\
                         .set_index('id').sort_values(self.clf_prob_feat_name, ascending=False)
 
-    def summarize_objs(self, objs: List[CorpusObject]):
+    def summarize_objs(self, objs: List[CorpusComponent]):
         """
         Generate a pandas DataFrame (indexed by object id, with prediction and prediction score columns) of classification results.
 
@@ -149,8 +149,8 @@ class BoWClassifier(Classifier):
 
 
     def evaluate_with_train_test_split(self, corpus: Corpus = None,
-                                       objs: List[CorpusObject] = None,
-                                       selector: Callable[[CorpusObject], bool] = lambda x: True,
+                                       objs: List[CorpusComponent] = None,
+                                       selector: Callable[[CorpusComponent], bool] = lambda x: True,
                                        test_size: float = 0.2):
         """
         Evaluate the performance of predictive features (Classifier.pred_feats) in predicting for the label,
@@ -175,9 +175,9 @@ class BoWClassifier(Classifier):
         return accuracy, confusion_matrix(y_true=y_test, y_pred=preds)
 
     def evaluate_with_cv(self, corpus: Corpus = None,
-                         objs: List[CorpusObject] = None,
+                         objs: List[CorpusComponent] = None,
                          cv=KFold(n_splits=5),
-                         selector: Callable[[CorpusObject], bool] = lambda x: True
+                         selector: Callable[[CorpusComponent], bool] = lambda x: True
                          ):
         """
         Evaluate the performance of predictive features (Classifier.pred_feats) in predicting for the label,

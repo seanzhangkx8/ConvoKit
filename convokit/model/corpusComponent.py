@@ -1,7 +1,8 @@
 from .convoKitMeta import ConvoKitMeta
 from convokit.util import warn, deprecation
 
-class CorpusObject:
+
+class CorpusComponent:
 
     def __init__(self, obj_type: str, owner=None, id=None, meta=None):
         self.obj_type = obj_type  # utterance, speaker, conversation

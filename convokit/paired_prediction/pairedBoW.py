@@ -3,7 +3,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import LeaveOneOut, cross_val_score
 from typing import List, Callable
-from convokit import CorpusObject, Corpus
+from convokit import CorpusComponent, Corpus
 from .util import *
 from .pairedPrediction import PairedPrediction
 from convokit.classifier.util import get_coefs_helper
@@ -38,7 +38,7 @@ class PairedBoW(PairedPrediction):
                          pair_id_feat_name=pair_id_feat_name,
                          label_feat_name=label_feat_name, pair_orientation_feat_name=pair_orientation_feat_name, clf=clf)
 
-    def fit(self, corpus: Corpus, y=None, selector: Callable[[CorpusObject], bool] = lambda x: True):
+    def fit(self, corpus: Corpus, y=None, selector: Callable[[CorpusComponent], bool] = lambda x: True):
         # Check if Pairer.transform() needs to be run first
         self._check_for_pair_information(corpus)
         pair_id_to_objs = generate_pair_id_to_objs(corpus, self.obj_type, selector, self.pair_orientation_feat_name,
@@ -48,7 +48,7 @@ class PairedBoW(PairedPrediction):
         self.clf.fit(X, y)
         return self
 
-    def summarize(self, corpus: Corpus, selector: Callable[[CorpusObject], bool] = lambda x: True, cv=LeaveOneOut()):
+    def summarize(self, corpus: Corpus, selector: Callable[[CorpusComponent], bool] = lambda x: True, cv=LeaveOneOut()):
         """
         Run PairedPrediction on the corpus with cross-validation
 

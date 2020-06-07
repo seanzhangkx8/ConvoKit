@@ -3,7 +3,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import LeaveOneOut, cross_val_score
 from typing import List, Callable
-from convokit import Transformer, CorpusObject, Corpus
+from convokit import Transformer, CorpusComponent, Corpus
 from .util import *
 from convokit.classifier.util import get_coefs_helper
 
@@ -39,7 +39,7 @@ class PairedPrediction(Transformer):
         self.label_feat_name = label_feat_name
         self.pair_orientation_feat_name = pair_orientation_feat_name
 
-    def fit(self, corpus: Corpus, y=None, selector: Callable[[CorpusObject], bool] = lambda x: True):
+    def fit(self, corpus: Corpus, y=None, selector: Callable[[CorpusComponent], bool] = lambda x: True):
         """
         Fit the internal classifier on the paired object features, with an optional selector selecting for which corpus objects to include in the analysis
 
@@ -72,7 +72,7 @@ class PairedPrediction(Transformer):
             raise ValueError("Some metadata features required for paired prediction are missing: {}. "
                              "You may need to run Pairer.transform() first.".format(required_keys))
 
-    def summarize(self, corpus: Corpus, selector: Callable[[CorpusObject], bool] = lambda x: True, cv=LeaveOneOut()):
+    def summarize(self, corpus: Corpus, selector: Callable[[CorpusComponent], bool] = lambda x: True, cv=LeaveOneOut()):
         """
         Run PairedPrediction on the corpus with cross-validation and returns the mean cross-validation score.
 

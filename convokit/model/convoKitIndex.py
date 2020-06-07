@@ -34,19 +34,25 @@ class ConvoKitIndex:
     def update_from_dict(self, meta_index: Dict):
         self.conversations_index.update(meta_index["conversations-index"])
         self.utterances_index.update(meta_index["utterances-index"])
-        speakerIndex = "speakers-index" if "speakers-index" in meta_index else "users-index"
-        self.speakers_index.update(meta_index[speakerIndex])
+        speaker_index = "speakers-index" if "speakers-index" in meta_index else "users-index"
+        self.speakers_index.update(meta_index[speaker_index])
         self.overall_index.update(meta_index["overall-index"])
         self.version = meta_index["version"]
 
-    def to_dict(self, increment_version=False):
+    def to_dict(self, force_version=None):
         retval = dict()
         retval["utterances-index"] = self.utterances_index
         retval["speakers-index"] = self.speakers_index
         retval["conversations-index"] = self.conversations_index
         retval["overall-index"] = self.overall_index
-        retval["version"] = self.version + int(increment_version)
+        if force_version is None:
+            retval['version'] = self.version + 1
+        else:
+            retval['version'] = force_version
         return retval
 
     def __str__(self):
-        return str(self.to_dict(increment_version=False))
+        return str(self.to_dict(force_version=self.version))
+
+    def __repr__(self):
+        return str(self)

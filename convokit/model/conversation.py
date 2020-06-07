@@ -2,11 +2,11 @@ from typing import Dict, List, Callable, Generator, Optional
 from .utterance import Utterance
 from .speaker import Speaker
 from convokit.util import deprecation, warn
-from .corpusObject import CorpusObject
+from .corpusComponent import CorpusComponent
 from collections import defaultdict
 from .utteranceNode import UtteranceNode
 
-class Conversation(CorpusObject):
+class Conversation(CorpusComponent):
     """Represents a discrete subset of utterances in the dataset, connected by a
     reply-to chain.
 
@@ -143,8 +143,11 @@ class Conversation(CorpusObject):
         :param selector: (lambda) function for which speakers should be included; all speakers are included by default
         :return: list of speakers for each chronological utterance
         """
-        chrono_utts = sorted(list(self.iter_utterances()), key=lambda utt: utt.timestamp)
-        return [utt.speaker for utt in chrono_utts if selector(utt.speaker)]
+        try:
+            chrono_utts = sorted(list(self.iter_utterances()), key=lambda utt: utt.timestamp)
+            return [utt.speaker for utt in chrono_utts if selector(utt.speaker)]
+        except TypeError as e:
+            raise ValueError(str(e) + "\nUtterance timestamps may not have been set correctly.")
 
     def check_integrity(self, verbose=True):
         if verbose: print("Checking reply-to chain of Conversation", self.id)
@@ -285,7 +288,10 @@ class Conversation(CorpusObject):
         :param selector: function for which utterances should be included; all utterances are included by default
         :return: list of utterances, sorted by timestamp
         """
-        return sorted([utt for utt in self.iter_utterances(selector)], key=lambda utt: utt.timestamp)
+        try:
+            return sorted([utt for utt in self.iter_utterances(selector)], key=lambda utt: utt.timestamp)
+        except TypeError as e:
+            raise ValueError(str(e) + "\nUtterance timestamps may not have been set correctly.")
 
     def _get_path_from_leaf_to_root(self, leaf_utt: Utterance, root_utt: Utterance) -> List[Utterance]:
         """

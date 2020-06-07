@@ -3,10 +3,11 @@ from convokit.util import warn
 from .convoKitIndex import ConvoKitIndex
 import json
 
+# See reference: https://stackoverflow.com/questions/7760916/correct-usage-of-a-getter-setter-for-dictionary-values
 
 class ConvoKitMeta(MutableMapping, dict):
     """
-    See reference: https://stackoverflow.com/questions/7760916/correct-usage-of-a-getter-setter-for-dictionary-values
+    ConvoKitMeta is a dictlike object that stores the metadata attributes of a corpus component
     """
     def __init__(self, convokit_index, obj_type):
         self.index: ConvoKitIndex = convokit_index

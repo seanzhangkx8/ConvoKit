@@ -1,5 +1,5 @@
 from typing import Callable
-from convokit import Transformer, CorpusObject, Corpus
+from convokit import Transformer, CorpusComponent, Corpus
 from .util import *
 from collections import defaultdict
 from random import shuffle
@@ -23,9 +23,9 @@ class Pairer(Transformer):
     """
 
     def __init__(self, obj_type: str,
-                 pairing_func: Callable[[CorpusObject], str],
-                 pos_label_func: Callable[[CorpusObject], bool],
-                 neg_label_func: Callable[[CorpusObject], bool],
+                 pairing_func: Callable[[CorpusComponent], str],
+                 pos_label_func: Callable[[CorpusComponent], bool],
+                 neg_label_func: Callable[[CorpusComponent], bool],
                  pair_mode: str = "random",
                  pair_id_feat_name: str = "pair_id",
                  label_feat_name: str = "pair_obj_label",
@@ -127,7 +127,7 @@ class Pairer(Transformer):
             flip = not flip
         return pair_orientations
 
-    def transform(self, corpus: Corpus, selector: Callable[[CorpusObject], bool] = lambda x: True) -> Corpus:
+    def transform(self, corpus: Corpus, selector: Callable[[CorpusComponent], bool] = lambda x: True) -> Corpus:
         """
         Annotate corpus objects with pair information (label, pair_id, pair_orientation), with an optional selector indicating which objects should be considered for pairing.
 
