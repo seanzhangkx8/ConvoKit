@@ -1,16 +1,17 @@
 from .convoKitMeta import ConvoKitMeta
 from convokit.util import warn, deprecation
-
+from typing import List, Optional
 
 class CorpusComponent:
 
-    def __init__(self, obj_type: str, owner=None, id=None, meta=None):
+    def __init__(self, obj_type: str, owner=None, id=None, vectors: List[str]=None, meta=None):
         self.obj_type = obj_type  # utterance, speaker, conversation
         self._owner = owner
         if meta is None:
             meta = dict()
         self.meta = self.init_meta(meta)
         self.id = id
+        self.vectors = vectors if vectors is not None else []
 
     def get_owner(self):
         return self._owner
@@ -89,8 +90,21 @@ class CorpusComponent:
         self.meta[key] = value
 
     def del_info(self, key):
+        # TODO deprecate
         if key in self.meta:
             del self.meta[key]
+
+    def get_vector(self, name: str, columns: Optional[List[str]]):
+        """
+        Get the vector stored as <name> for this object
+
+        :param name: name of vector
+        :param columns: optional list of named columns of the vector to include. All columns returned otherwise.
+        :return: a numpy / scipy array
+        """
+        if name not in self.vectors:
+            return ValueError("This {} has no vector stored as '{}'.".format(self.obj_type, name))
+        return self._owner.get_vector_matrix(name).get_vector(self.id, columns)
 
     def __str__(self):
         return "{}('id': {}, 'meta': {})".format(self.obj_type.capitalize(),

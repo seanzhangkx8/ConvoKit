@@ -6,6 +6,7 @@ from .speaker import Speaker
 from .utterance import Utterance
 from .conversation import Conversation
 from typing import Dict
+from .convoKitMeta import ConvoKitMeta
 
 BIN_DELIM_L, BIN_DELIM_R = "<##bin{", "}&&@**>"
 KeyId = "id"
@@ -16,6 +17,7 @@ KeyTimestamp = "timestamp"
 KeyText = "text"
 DefinedKeys = {KeyId, KeySpeaker, KeyConvoId, KeyReplyTo, KeyTimestamp, KeyText}
 KeyMeta = "meta"
+KeyVectors = "vectors"
 
 def load_uttinfo_from_dir(dirname, utterance_start_index, utterance_end_index, exclude_utterance_meta):
     assert dirname is not None
@@ -131,13 +133,14 @@ def load_from_utterance_file(filename, utterance_start_index, utterance_end_inde
             raise Exception("Could not load corpus. Expected json file, encountered error: \n" + str(e))
     return utterances
 
+
 def initialize_speakers_and_utterances_objects(corpus, utt_dict, utterances, speakers_dict, speakers_meta):
     """
     Initialize Speaker and Utterance objects
     """
     if len(utterances) > 0: # utterances might be empty for invalid corpus start/end indices
-        KeySpeaker = "user" if "user" in utterances[0] else "speaker"
-        KeyConvoId = "root" if "root" in utterances[0] else "conversation_id"
+        KeySpeaker = "speaker" if "speaker" in utterances[0] else "user"
+        KeyConvoId = "conversation_id" if "conversation_id" in utterances[0] else "root"
 
     for i, u in enumerate(utterances):
         u = defaultdict(lambda: None, u)
@@ -194,12 +197,12 @@ def initialize_conversations(corpus, utt_dict, convos_meta):
         conversations[convo_id] = convo
     return conversations
 
-def dump_helper_bin(d: Dict, d_bin: Dict, fields_to_skip=None) -> Dict: # object_idx
+
+def dump_helper_bin(d: ConvoKitMeta, d_bin: Dict, fields_to_skip=None) -> Dict: # object_idx
     """
 
-    :param d: The dict to encode
+    :param d: The ConvoKitMeta to encode
     :param d_bin: The dict of accumulated lists of binary attribs
-    :param object_idx:
     :return:
     """
     if fields_to_skip is None:
@@ -220,7 +223,7 @@ def dump_helper_bin(d: Dict, d_bin: Dict, fields_to_skip=None) -> Dict: # object
     return d_out
 
 
-def dump_corpus_object(corpus, dir_name, filename, obj_type, bin_name, fields_to_skip):
+def dump_corpus_component(corpus, dir_name, filename, obj_type, bin_name, fields_to_skip):
     with open(os.path.join(dir_name, filename), "w") as f:
         d_bin = defaultdict(list)
         objs = {u: dump_helper_bin(corpus.get_object(obj_type, u).meta, d_bin,
@@ -243,7 +246,8 @@ def dump_utterances(corpus, dir_name, fields_to_skip):
                 KeySpeaker: ut.speaker.id,
                 KeyMeta: dump_helper_bin(ut.meta, d_bin, fields_to_skip.get('utterance', [])),
                 KeyReplyTo: ut.reply_to,
-                KeyTimestamp: ut.timestamp
+                KeyTimestamp: ut.timestamp,
+                KeyVectors: ut.vectors
             }
             json.dump(ut_obj, f)
             f.write("\n")
