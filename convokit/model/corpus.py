@@ -11,10 +11,10 @@ from .convoKitMatrix import ConvoKitMatrix
 
 class Corpus:
     """
-    Represents a dataset, which can be loaded from a folder or a list of utterances.
+    Represents a dataset, which can be loaded from a folder or constructed from a list of utterances.
 
     :param filename: Path to a folder containing a Corpus or to an utterances.jsonl / utterances.json file to load
-    :param utterances: List of utterances to initialize Corpus from
+    :param utterances: list of utterances to initialize Corpus from
     :param utterance_start_index: if the corpus folder contains utterances.jsonl, specify the line number (zero-indexed)
         to begin parsing utterances from
     :param utterance_end_index: if the corpus folder contains utterances.jsonl, specify the line number (zero-indexed)
@@ -54,6 +54,7 @@ class Corpus:
 
         # Construct corpus from file or directory
         if filename is not None:
+            self.meta_index.disable_type_check()
             if os.path.isdir(filename):
                 utterances = load_uttinfo_from_dir(filename, utterance_start_index,
                                                    utterance_end_index, exclude_utterance_meta)
@@ -98,6 +99,8 @@ class Corpus:
 
             initialize_speakers_and_utterances_objects(self, self.utterances, utterances, self.speakers, speakers_meta)
 
+            self.meta_index.enable_type_check()
+
         elif utterances is not None:  # Construct corpus from utterances list
             self.speakers = {u.speaker.id: u.speaker for u in utterances}
             self.utterances = {u.id: u for u in utterances}
@@ -112,32 +115,6 @@ class Corpus:
         self.conversations = initialize_conversations(self, self.utterances, convos_meta)
         self.update_speakers_data()
 
-    @staticmethod
-    def dump_helper_bin(d: Dict, d_bin: Dict, object_idx: Dict, fields_to_skip=None) -> Dict:
-        """
-
-        :param d: The dict to encode
-        :param d_bin: The dict of accumulated lists of binary attribs
-        :param object_idx:
-        :return:
-        """
-        if fields_to_skip is None:
-            fields_to_skip = []
-
-        d_out = {}
-        for k, v in d.items():
-            if k in fields_to_skip: continue
-            try:  # try saving the field
-                json.dumps(v)
-                d_out[k] = v
-                if k not in object_idx:
-                    object_idx[k] = str(type(v))
-            except (TypeError, OverflowError):  # unserializable
-                d_out[k] = "{}{}{}".format(BIN_DELIM_L, len(d_bin[k]), BIN_DELIM_R)
-                d_bin[k].append(v)
-                object_idx[k] = "bin"  # overwrite non-bin type annotation if necessary
-        return d_out
-
     def dump(self, name: str, base_path: Optional[str] = None,
              force_version: int = None,
              save_to_existing_path: bool = False,
@@ -150,7 +127,7 @@ class Corpus:
         :param base_path: base directory to save corpus in (None to save to a default directory)
         :param force_version: version number to set for the dumped corpus
         :param save_to_existing_path: if True, save to the path you loaded the corpus from (supersedes base_path)
-        :param fields_to_skip: a dictionary of {object type: list of attributes to omit when writing to disk}. object types can be one of "speaker", "utterance", "conversation", "corpus".
+        :param fields_to_skip: a dictionary of {object type: list of metadata attributes to omit when writing to disk}. object types can be one of "speaker", "utterance", "conversation", "corpus".
         """
         if fields_to_skip is None:
             fields_to_skip = dict()
@@ -174,21 +151,22 @@ class Corpus:
         if not os.path.exists(dir_name):
             os.mkdir(dir_name)
 
-        overall_idx = {}
-
-        dump_corpus_object(self, dir_name, "speakers.json", "speaker", "speaker", fields_to_skip)
-        dump_corpus_object(self, dir_name, "conversations.json", "conversation", "convo", fields_to_skip)
+        # dump speakers, conversations, utterances
+        dump_corpus_component(self, dir_name, "speakers.json", "speaker", "speaker", fields_to_skip)
+        dump_corpus_component(self, dir_name, "conversations.json", "conversation", "convo", fields_to_skip)
         dump_utterances(self, dir_name, fields_to_skip)
 
+        # dump corpus
         with open(os.path.join(dir_name, "corpus.json"), "w") as f:
             d_bin = defaultdict(list)
-            meta_up = Corpus.dump_helper_bin(self.meta, d_bin, overall_idx, fields_to_skip.get('corpus', []))
+            meta_up = dump_helper_bin(self.meta, d_bin, fields_to_skip.get('corpus', None))
 
             json.dump(meta_up, f)
             for name, l_bin in d_bin.items():
                 with open(os.path.join(dir_name, name + "-overall-bin.p"), "wb") as f_pk:
                     pickle.dump(l_bin, f_pk)
 
+        # dump index
         with open(os.path.join(dir_name, "index.json"), "w") as f:
             json.dump(self.meta_index.to_dict(force_version=force_version), f)
 
@@ -315,7 +293,7 @@ class Corpus:
                 yield v
 
     def get_utterances_dataframe(self, selector: Optional[Callable[[Utterance], bool]] = lambda utt: True,
-                        exclude_meta: bool = False):
+                                 exclude_meta: bool = False):
         """
         Get a DataFrame of the utterances with fields and metadata attributes, with an optional selector that filters
         utterances that should be included. Edits to the DataFrame do not change the corpus in any way.
@@ -342,8 +320,8 @@ class Corpus:
         meta_columns = [k for k in df.columns if k.startswith('meta.')]
         return df[['timestamp', 'text', 'speaker', 'reply_to', 'conversation_id'] + meta_columns]
 
-    def iter_conversations(self, selector: Optional[Callable[[Conversation], bool]] = lambda convo: True) -> Generator[
-        Conversation, None, None]:
+    def iter_conversations(self, selector: Optional[Callable[[Conversation], bool]] = lambda convo: True) -> \
+            Generator[Conversation, None, None]:
         """
         Get conversations in the Corpus, with an optional selector that filters for Conversations that should be included
 
@@ -356,7 +334,7 @@ class Corpus:
                 yield v
 
     def get_conversations_dataframe(self, selector: Optional[Callable[[Conversation], bool]] = lambda convo: True,
-                           exclude_meta: bool = False):
+                                    exclude_meta: bool = False):
         """
         Get a DataFrame of the conversations with fields and metadata attributes, with an optional selector that filters
         for utterances that should be included. Edits to the DataFrame do not change the corpus in any way.

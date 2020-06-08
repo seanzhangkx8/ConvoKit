@@ -1,10 +1,10 @@
-from typing import Optional, Dict
+from typing import Optional, Dict, List
 
 class ConvoKitIndex:
-    def __init__(self, owner, utterances_index: Optional[Dict[str, str]] = None,
-                 speakers_index: Optional[Dict[str, str]] = None,
-                 conversations_index: Optional[Dict[str, str]] = None,
-                 overall_index: Optional[Dict[str, str]] = None, version: Optional[int] = 0):
+    def __init__(self, owner, utterances_index: Optional[Dict[str, List[str]]] = None,
+                 speakers_index: Optional[Dict[str, List[str]]] = None,
+                 conversations_index: Optional[Dict[str, List[str]]] = None,
+                 overall_index: Optional[Dict[str, List[str]]] = None, version: Optional[int] = 0):
         self.owner = owner
         self.utterances_index = utterances_index if utterances_index is not None else {}
         self.speakers_index = speakers_index if speakers_index is not None else {}
@@ -15,11 +15,38 @@ class ConvoKitIndex:
                         'speaker': self.speakers_index,
                         'corpus': self.overall_index}
         self.version = version
+        self.type_check = True # toggle-able to enable/disable type checks on metadata additions
 
     def update_index(self, obj_type: str, key: str, class_type: str):
+        """
+        Append the class_type to the index
+
+        :param obj_type: utterance, conversation, or speaker
+        :param key: string
+        :param class_type: class type
+        :return: None
+        """
         assert type(key) == str
         assert 'class' in class_type or class_type == 'bin'
-        self.indices[obj_type][key] = class_type
+        if key not in self.indices[obj_type]:
+            self.indices[obj_type][key] = []
+        self.indices[obj_type][key].append(class_type)
+
+    def set_index(self, obj_type: str, key: str, class_type: str):
+        """
+        Set the class_type of the index as [<class_type>].
+
+        :param obj_type: utterance, conversation, or speaker
+        :param key: string
+        :param class_type: class type
+        :return: None
+        """
+        assert type(key) == str
+        assert 'class' in class_type or class_type == 'bin'
+        self.indices[obj_type][key] = [class_type]
+
+    def get_index(self, obj_type: str):
+        return self.indices[obj_type]
 
     def del_from_index(self, obj_type: str, key: str):
         assert type(key) == str
@@ -50,6 +77,12 @@ class ConvoKitIndex:
         else:
             retval['version'] = force_version
         return retval
+
+    def enable_type_check(self):
+        self.type_check = True
+
+    def disable_type_check(self):
+        self.type_check = False
 
     def __str__(self):
         return str(self.to_dict(force_version=self.version))
