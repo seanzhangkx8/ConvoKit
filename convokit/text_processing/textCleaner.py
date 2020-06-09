@@ -49,7 +49,7 @@ class TextCleaner(TextProcessor):
             for utt in corpus.iter_utterances(selector):
                 cleaned_text = utt.get_info(self.output_field)
                 if self.save_original:
-                    utt.set_info(self.output_field, utt.text)
+                    utt.add_meta(self.output_field, utt.text)
                 utt.text = cleaned_text
 
             if not self.save_original:

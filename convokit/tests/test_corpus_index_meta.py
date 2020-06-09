@@ -94,5 +94,19 @@ class CorpusIndexMeta(unittest.TestCase):
         self.assertEqual(corpus1.meta_index.conversations_index, corpus2.meta_index.conversations_index)
         self.assertEqual(corpus1.meta_index.overall_index, corpus2.meta_index.overall_index)
 
+    def test_multiple_types(self):
+        corpus1 = Corpus(utterances = [
+            Utterance(id="0", text="hello world", speaker=Speaker(id="alice")),
+            Utterance(id="1", text="my name is bob", speaker=Speaker(id="bob")),
+            Utterance(id="2", text="this is a test", speaker=Speaker(id="charlie")),
+        ])
+
+        corpus1.get_utterance('2').meta['hey'] = None
+        self.assertEqual(corpus1.meta_index.utterances_index.get('hey', None), None)
+        corpus1.get_utterance('0').meta['hey'] = 5
+        self.assertEqual(corpus1.meta_index.utterances_index['hey'], [str(type(5))])
+        corpus1.get_utterance('1').meta['hey'] = 'five'
+        self.assertEqual(corpus1.meta_index.utterances_index['hey'], [str(type(5)), str(type('five'))])
+
 if __name__ == '__main__':
     unittest.main()
