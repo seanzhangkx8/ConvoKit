@@ -209,18 +209,15 @@ def dump_helper_bin(d: ConvoKitMeta, d_bin: Dict, fields_to_skip=None) -> Dict: 
     if fields_to_skip is None:
         fields_to_skip = []
 
+    obj_idx = d.index.get_index(d.obj_type)
     d_out = {}
     for k, v in d.items():
         if k in fields_to_skip: continue
-        try:   # try saving the field
-            json.dumps(v)
-            d_out[k] = v
-            # if k not in object_idx:
-            #     object_idx[k] = str(type(v))
-        except (TypeError, OverflowError):   # unserializable
+        if obj_idx[k][0] == "bin":
             d_out[k] = "{}{}{}".format(BIN_DELIM_L, len(d_bin[k]), BIN_DELIM_R)
             d_bin[k].append(v)
-            # object_idx[k] = "bin"   # overwrite non-bin type annotation if necessary
+        else:
+            d_out[k] = v
     return d_out
 
 
