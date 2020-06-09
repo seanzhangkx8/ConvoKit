@@ -17,7 +17,7 @@ class CorpusIndexMeta(unittest.TestCase):
         first_utt.meta['hey'] = 9
 
         # correct class type stored
-        self.assertEqual(corpus1.meta_index.utterances_index['hey'], repr(type(9)))
+        self.assertEqual(corpus1.meta_index.utterances_index['hey'], [repr(type(9))])
 
         # keyErrors result in None output
         self.assertRaises(KeyError, lambda: first_utt.meta['nonexistent key'])
@@ -40,9 +40,9 @@ class CorpusIndexMeta(unittest.TestCase):
 
         corpus1.get_speaker("alice").meta['surname'] = 1.0
 
-        self.assertEqual(corpus1.meta_index.utterances_index['foo'], str(type('bar')))
-        self.assertEqual(corpus1.meta_index.conversations_index['convo_meta'], str(type(1)))
-        self.assertEqual(corpus1.meta_index.speakers_index['surname'], str(type(1.0)))
+        self.assertEqual(corpus1.meta_index.utterances_index['foo'], [str(type('bar'))])
+        self.assertEqual(corpus1.meta_index.conversations_index['convo_meta'], [str(type(1))])
+        self.assertEqual(corpus1.meta_index.speakers_index['surname'], [str(type(1.0))])
 
         # test that deleting a key from an utterance removes it from the index
         del corpus1.get_utterance("2").meta['hey']

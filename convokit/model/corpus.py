@@ -1,6 +1,7 @@
 from typing import List, Collection, Callable, Set, Generator, Tuple, Optional, ValuesView, Union
 import numpy as np
 import pandas as pd
+from .corpusHelper import dump_corpus_component
 from .corpusHelper import *
 from convokit.util import deprecation, warn
 from .convoKitIndex import ConvoKitIndex

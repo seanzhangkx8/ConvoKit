@@ -78,8 +78,8 @@ def load_corpus_meta_from_dir(filename, corpus_meta, exclude_overall_meta):
 
 
 def unpack_binary_data_for_utts(utterances, filename, utterance_index, exclude_meta, KeyMeta):
-    for field, field_type in utterance_index.items():
-        if field_type == "bin" and field not in exclude_meta:
+    for field, field_types in utterance_index.items():
+        if field_types[0] == "bin" and field not in exclude_meta:
             with open(os.path.join(filename, field + "-bin.p"), "rb") as f:
                 l_bin = pickle.load(f)
             for i, ut in enumerate(utterances):
@@ -97,11 +97,11 @@ def unpack_binary_data(filename, obj_meta, object_index, obj_type, exclude_meta)
     Unpack binary data for Speakers or Conversations
     """
     # unpack speaker meta
-    for field, field_type in object_index.items():
-        if field_type == "bin" and field not in exclude_meta:
+    for field, field_types in object_index.items():
+        if field_types[0] == "bin" and field not in exclude_meta:
             with open(os.path.join(filename, field + "-{}-bin.p".format(obj_type)), "rb") as f:
                 l_bin = pickle.load(f)
-            for speaker, metadata in obj_meta.items():
+            for obj, metadata in obj_meta.items():
                 for k, v in metadata.items():
                     if k == field and type(v) == str and str(v).startswith(BIN_DELIM_L) and \
                             str(v).endswith(BIN_DELIM_R):
@@ -161,6 +161,7 @@ def initialize_speakers_and_utterances_objects(corpus, utt_dict, utterances, spe
                         text=u[KeyText], meta=u[KeyMeta])
 
         utt_dict[utt.id] = utt
+
 
 def merge_utterance_lines(utt_dict):
     """
