@@ -9,8 +9,8 @@ from .convoKitMeta import ConvoKitMeta
 
 
 class Corpus:
-    """Represents a dataset, which can be loaded from a folder or a
-	list of utterances.
+    """
+    Represents a dataset, which can be loaded from a folder or a list of utterances.
 
 	:param filename: Path to a folder containing a Corpus or to an utterances.jsonl / utterances.json file to load
 	:param utterances: List of utterances to initialize Corpus from
@@ -18,8 +18,9 @@ class Corpus:
 		to begin parsing utterances from
 	:param utterance_end_index: if the corpus folder contains utterances.jsonl, specify the line number (zero-indexed)
 		of the last utterance to be parsed.
-	:param merge_lines: whether to merge adjacent lines from same speaker if the two utterances belong to the
-		same conversation
+	:param merge_lines: whether to merge consecutive utterances from the same speaker within each conversation. Only the
+	    primary data fields and metadata attributes of the first utterance are preserved, where its text field is a
+	    concatenation of texts from the merged utterances
 	:param exclude_utterance_meta: utterance metadata to be ignored
 	:param exclude_conversation_meta: conversation metadata to be ignored
 	:param exclude_speaker_meta: speaker metadata to be ignored

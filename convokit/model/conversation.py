@@ -146,7 +146,13 @@ class Conversation(CorpusObject):
         chrono_utts = sorted(list(self.iter_utterances()), key=lambda utt: utt.timestamp)
         return [utt.speaker for utt in chrono_utts if selector(utt.speaker)]
 
-    def check_integrity(self, verbose=True):
+    def check_integrity(self, verbose: bool = True) -> bool:
+        """
+        Check the integrity of this Conversation; i.e. do the constituent utterances form a complete reply-to chain?
+
+        :param verbose: whether to print errors indicating the problems with the Conversation
+        :return: True if the conversation structure is complete else False
+        """
         if verbose: print("Checking reply-to chain of Conversation", self.id)
         utt_reply_tos = {utt.id: utt.reply_to for utt in self.iter_utterances()}
         target_utt_ids = set(list(utt_reply_tos.values()))
