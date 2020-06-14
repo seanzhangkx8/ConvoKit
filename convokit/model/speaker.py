@@ -1,7 +1,8 @@
 from functools import total_ordering
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Callable
 from convokit.util import deprecation
 from .corpusObject import CorpusObject
+import pandas as pd
 
 @total_ordering
 class Speaker(CorpusObject):
@@ -73,12 +74,44 @@ class Speaker(CorpusObject):
 
     def iter_utterances(self, selector=lambda utt: True): #-> Generator[Utterance, None, None]:
         """
+        Get utterances made by the Speaker, with an optional selector that filters for Utterances that should be
+        included.
 
+		:param selector: a (lambda) function that takes an Utterance and returns True or False (i.e. include / exclude).
+			By default, the selector includes all Utterances in the Corpus.
         :return: An iterator of the Utterances made by the speaker
         """
         for v in self.utterances.values():
             if selector(v):
                 yield v
+
+    def get_utterances_dataframe(self, selector=lambda utt: True, exclude_meta: bool = False):
+        """
+		Get a DataFrame of the Utterances made by the Speaker with fields and metadata attributes.
+		Set an optional selector that filters Utterances that should be included.
+		Edits to the DataFrame do not change the corpus in any way.
+
+		:param exclude_meta: whether to exclude metadata
+		:param selector: a (lambda) function that takes a Utterance and returns True or False (i.e. include / exclude).
+			By default, the selector includes all Utterances in the Corpus.
+		:return: a pandas DataFrame
+		"""
+        ds = dict()
+        for utt in self.iter_utterances(selector):
+            d = utt.__dict__.copy()
+            if not exclude_meta:
+                for k, v in d['meta'].items():
+                    d['meta.' + k] = v
+            del d['meta']
+            ds[utt.id] = d
+
+        df = pd.DataFrame(ds).T
+        df['id'] = df['_id']
+        df = df.set_index('id')
+        df = df.drop(['_id', '_owner', 'obj_type', 'user', '_root'], axis=1)
+        df['speaker'] = df['speaker'].map(lambda spkr: spkr.id)
+        meta_columns = [k for k in df.columns if k.startswith('meta.')]
+        return df[['timestamp', 'text', 'speaker', 'reply_to', 'conversation_id'] + meta_columns]
 
     def get_utterance_ids(self, selector=lambda utt: True) -> List[str]:
         """
@@ -99,11 +132,36 @@ class Speaker(CorpusObject):
     def iter_conversations(self, selector=lambda convo: True): # -> Generator[Conversation, None, None]:
         """
 
-        :return: An iterator of the Conversations started by the speaker
+        :return: An iterator of the Conversations that the speaker has participated in
         """
         for v in self.conversations.values():
             if selector(v):
                 yield v
+
+    def get_conversations_dataframe(self, selector=lambda convo: True, exclude_meta: bool = False):
+        """
+        Get a DataFrame of the Conversations the Speaker has participated in, with fields and metadata attributes.
+        Set an optional selector that filters for Conversations that should be included. Edits to the DataFrame do not
+        change the corpus in any way.
+
+        :param exclude_meta: whether to exclude metadata
+        :param selector: a (lambda) function that takes a Conversation and returns True or False (i.e. include / exclude).
+            By default, the selector includes all Conversations in the Corpus.
+        :return: a pandas DataFrame
+        """
+        ds = dict()
+        for convo in self.iter_conversations(selector):
+            d = convo.__dict__.copy()
+            if not exclude_meta:
+                for k, v in d['meta'].items():
+                    d['meta.' + k] = v
+            del d['meta']
+            ds[convo.id] = d
+
+        df = pd.DataFrame(ds).T
+        df['id'] = df['_id']
+        df = df.set_index('id')
+        return df.drop(['_owner', 'obj_type', '_utterance_ids', '_speaker_ids', 'tree', '_id'], axis=1)
 
     def get_conversation_ids(self, selector=lambda convo: True) -> List[str]:
         """
@@ -112,15 +170,14 @@ class Speaker(CorpusObject):
         """
         return [convo.id for convo in self.iter_conversations(selector)]
 
+    def print_speaker_stats(self):
+        """
+        Helper function for printing the number of Utterances and Conversations by the speaker
 
-
-    # def _update_uid(self):
-    #     rep = dict()
-    #     rep["name"] = self._name
-    #     if self._split_attribs:
-    #         rep["attribs"] = {k: self._meta[k] for k in self._split_attribs
-    #                           if k in self._meta}
-    #     # self.meta["uid"] = "speaker(" + str(sorted(rep.items())) + ")"
+        :return: None
+        """
+        print("Number of Utterances: {}".format(len(list(self.iter_utterances()))))
+        print("Number of Conversations: {}".format(len(list(self.iter_conversations()))))
 
     def __lt__(self, other):
         return self.id < other.id
@@ -136,16 +193,3 @@ class Speaker(CorpusObject):
         except AttributeError:
             return self.__dict__['_name'] == other.__dict__['_name']
 
-    def print_speaker_stats(self):
-        """
-        Helper function for printing the number of Utterances and Conversations by the speaker
-
-        :return: None
-        """
-        print("Number of Utterances: {}".format(len(list(self.iter_utterances()))))
-        print("Number of Conversations: {}".format(len(list(self.iter_conversations()))))
-    # def copy(self):
-    #     """
-    #     :return: A duplicate of the speaker with the same data and metadata
-    #     """
-    #     return speaker(name=self.name, utts=self.utterances, convos=self.conversations, meta=self.meta.copy())

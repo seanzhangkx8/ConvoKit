@@ -352,7 +352,7 @@ class Corpus:
         return df[['timestamp', 'text', 'speaker', 'reply_to', 'conversation_id'] + meta_columns]
 
     def iter_conversations(self, selector: Optional[Callable[[Conversation], bool]] = lambda convo: True) -> Generator[
-        Conversation, None, None]:
+                           Conversation, None, None]:
         """
 		Get conversations in the Corpus, with an optional selector that filters for Conversations that should be included
 
@@ -365,10 +365,10 @@ class Corpus:
                 yield v
 
     def get_conversations_dataframe(self, selector: Optional[Callable[[Conversation], bool]] = lambda convo: True,
-                           exclude_meta: bool = False):
+                                    exclude_meta: bool = False):
         """
         Get a DataFrame of the conversations with fields and metadata attributes, with an optional selector that filters
-		for utterances that should be included. Edits to the DataFrame do not change the corpus in any way.
+		for conversations that should be included. Edits to the DataFrame do not change the corpus in any way.
 
 		:param exclude_meta: whether to exclude metadata
 		:param selector: a (lambda) function that takes a Conversation and returns True or False (i.e. include / exclude).
@@ -392,7 +392,7 @@ class Corpus:
     def iter_speakers(self, selector: Optional[Callable[[Speaker], bool]] = lambda speaker: True) -> Generator[
         Speaker, None, None]:
         """
-		Get Speakers in the Corpus, with an optional selector that filters for Conversations that should be included
+		Get Speakers in the Corpus, with an optional selector that filters for Speakers that should be included
 
 		:param selector: a (lambda) function that takes a Speaker and returns True or False (i.e. include / exclude).
 			By default, the selector includes all Speakers in the Corpus.
@@ -406,8 +406,8 @@ class Corpus:
     def get_speakers_dataframe(self, selector: Optional[Callable[[Speaker], bool]] = lambda utt: True,
                       exclude_meta: bool = False):
         """
-        Get a DataFrame of the utterances with fields and metadata attributes, with an optional selector that filters
-		utterances that should be included. Edits to the DataFrame do not change the corpus in any way.
+        Get a DataFrame of the Speakers with fields and metadata attributes, with an optional selector that filters
+		Speakers that should be included. Edits to the DataFrame do not change the corpus in any way.
 
 		:param exclude_meta: whether to exclude metadata
 		:param selector: selector: a (lambda) function that takes a Speaker and returns True or False
