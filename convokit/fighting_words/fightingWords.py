@@ -349,7 +349,7 @@ class FightingWords(Transformer):
 
         ax.legend()
         ax.set_xscale('log')
-        ax.set_title("Weighted log-odds ratio against Frequency of word within topic")
+        ax.set_title("Weighted log-odds ratio vs. Frequency of word within class")
         plt.show()
 
     def get_model(self):
