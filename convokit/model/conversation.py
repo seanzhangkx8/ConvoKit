@@ -243,6 +243,24 @@ class Conversation(CorpusObject):
             if utt_node.utt.id == root_utt_id:
                 return utt_node
 
+    def get_longest_path(self) -> List[List[Utterance]]:
+        """
+        Finds the Utterances form the longest path (i.e. root to leaf) in the Conversation tree.
+        If there are multiple paths with tied lengths, returns all of them as a list of lists. If only one such path
+        exists, a list containing a single list of Utterances is returned.
+
+        :return: a list of lists of Utterances
+        """
+        if self.tree is None:
+            self.initialize_tree_structure()
+            if self.tree is None:
+                raise ValueError("Failed to traverse because Conversation reply-to chain does not form a valid tree.")
+
+        paths = self.get_root_to_leaf_paths()
+        max_len = max(len(path) for path in paths)
+
+        return [p for p in paths if len(p) == max_len]
+
     def _print_convo_helper(self, root: str, indent: int, reply_to_dict: Dict[str, str],
                             utt_info_func: Callable[[Utterance], str],
                             limit=None) -> None:

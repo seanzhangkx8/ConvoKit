@@ -514,10 +514,10 @@ class Corpus:
 
     def filter_conversations_by(self, selector: Callable[[Conversation], bool]):
         """
-		Mutate the corpus by filtering for a subset of Conversations within the Corpus
+		Mutate the corpus by filtering for a subset of Conversations within the Corpus.
 
-		:param selector: function for selecting which functions to keep
-		:return: None (mutates the corpus)
+		:param selector: function for selecting which Conversations to keep
+		:return: the mutated Corpus
 		"""
 
         self.conversations = {convo_id: convo for convo_id, convo in self.conversations.items() if selector(convo)}
@@ -527,6 +527,21 @@ class Corpus:
         self.speakers = {speaker.id: speaker for speaker in self.speakers.values() if speaker.id in speaker_ids}
         self.update_speakers_data()
         self.reinitialize_index()
+        return self
+
+    def filter_utterances_by(self, selector: Callable[[Utterance], bool]):
+        """
+        Returns a new corpus that includes only a subset of Utterances within this Corpus. This filtering provides no
+        guarantees with regard to maintaining conversational integrity and should be used with care.
+
+        :param selector: function for selecting which
+        :return: a new Corpus with a subset of the Utterances
+        """
+        utts = list(self.iter_utterances(selector))
+        new_corpus = Corpus(utterances=utts)
+        for convo in new_corpus.iter_conversations():
+            convo.meta.update(self.get_conversation(convo.id).meta)
+        return new_corpus
 
     def reindex_conversations(self, new_convo_roots: List[str], preserve_corpus_meta: bool = True,
                               preserve_convo_meta: bool = True, verbose=True) -> 'Corpus':
