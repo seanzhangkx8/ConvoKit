@@ -1,3 +1,7 @@
+"""
+Contains functions that help with the construction / dumping of a Corpus
+"""
+
 import os
 import json
 from collections import defaultdict
