@@ -288,7 +288,7 @@ class Conversation(CorpusObject):
             if utt_node.utt.id == root_utt_id:
                 return utt_node
 
-    def get_longest_path(self) -> List[List[Utterance]]:
+    def get_longest_paths(self) -> List[List[Utterance]]:
         """
         Finds the Utterances form the longest path (i.e. root to leaf) in the Conversation tree.
         If there are multiple paths with tied lengths, returns all of them as a list of lists. If only one such path
