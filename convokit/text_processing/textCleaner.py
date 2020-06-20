@@ -47,7 +47,7 @@ class TextCleaner(TextProcessor):
         if self.replace_text:
             selector = lambda utt_: self.input_filter(utt_, None)
             for utt in corpus.iter_utterances(selector):
-                cleaned_text = utt.get_info(self.output_field)
+                cleaned_text = utt.retrieve_meta(self.output_field)
                 if self.save_original:
                     utt.add_meta(self.output_field, utt.text)
                 utt.text = cleaned_text

@@ -4,6 +4,7 @@ import pandas as pd
 from .corpusHelper import dump_corpus_component
 from .corpusHelper import *
 from convokit.util import deprecation, warn
+from .corpusUtil import *
 from .convoKitIndex import ConvoKitIndex
 import random
 from .convoKitMeta import ConvoKitMeta
@@ -280,8 +281,8 @@ class Corpus:
         deprecation("random_user()", "random_speaker()")
         return self.random_speaker()
 
-    def iter_utterances(self, selector: Optional[Callable[[Utterance], bool]] = lambda utt: True) -> Generator[
-        Utterance, None, None]:
+    def iter_utterances(self, selector: Optional[Callable[[Utterance], bool]] = lambda utt: True) -> \
+            Generator[Utterance, None, None]:
         """
         Get utterances in the Corpus, with an optional selector that filters for Utterances that should be included.
 
@@ -299,30 +300,15 @@ class Corpus:
         Get a DataFrame of the utterances with fields and metadata attributes, with an optional selector that filters
         utterances that should be included. Edits to the DataFrame do not change the corpus in any way.
 
-        :param exclude_meta: whether to exclude metadata
-        :param selector: a (lambda) function that takes a Utterance and returns True or False (i.e. include / exclude).
-            By default, the selector includes all Utterances in the Corpus.
-        :return: a pandas DataFrame
-        """
-        ds = dict()
-        for utt in self.iter_utterances(selector):
-            d = utt.__dict__.copy()
-            if not exclude_meta:
-                for k, v in d['meta'].items():
-                    d['meta.' + k] = v
-            del d['meta']
-            ds[utt.id] = d
+		:param exclude_meta: whether to exclude metadata
+		:param selector: a (lambda) function that takes a Utterance and returns True or False (i.e. include / exclude).
+			By default, the selector includes all Utterances in the Corpus.
+		:return: a pandas DataFrame
+		"""
+        return get_utterances_dataframe(self, selector, exclude_meta)
 
-        df = pd.DataFrame(ds).T
-        df['id'] = df['_id']
-        df = df.set_index('id')
-        df = df.drop(['_id', '_owner', 'obj_type', 'user', '_root'], axis=1)
-        df['speaker'] = df['speaker'].map(lambda spkr: spkr.id)
-        meta_columns = [k for k in df.columns if k.startswith('meta.')]
-        return df[['timestamp', 'text', 'speaker', 'reply_to', 'conversation_id'] + meta_columns]
-
-    def iter_conversations(self, selector: Optional[Callable[[Conversation], bool]] = lambda convo: True) -> \
-            Generator[Conversation, None, None]:
+    def iter_conversations(self, selector: Optional[Callable[[Conversation], bool]] = lambda convo: True) -> Generator[
+                           Conversation, None, None]:
         """
         Get conversations in the Corpus, with an optional selector that filters for Conversations that should be included
 
@@ -338,31 +324,19 @@ class Corpus:
                                     exclude_meta: bool = False):
         """
         Get a DataFrame of the conversations with fields and metadata attributes, with an optional selector that filters
-        for utterances that should be included. Edits to the DataFrame do not change the corpus in any way.
+		for conversations that should be included. Edits to the DataFrame do not change the corpus in any way.
 
-        :param exclude_meta: whether to exclude metadata
-        :param selector: a (lambda) function that takes a Conversation and returns True or False (i.e. include / exclude).
-            By default, the selector includes all Conversations in the Corpus.
-        :return: a pandas DataFrame
+		:param exclude_meta: whether to exclude metadata
+		:param selector: a (lambda) function that takes a Conversation and returns True or False (i.e. include / exclude).
+			By default, the selector includes all Conversations in the Corpus.
+		:return: a pandas DataFrame
+		"""
+        return get_conversations_dataframe(self, selector, exclude_meta)
+
+    def iter_speakers(self, selector: Optional[Callable[[Speaker], bool]] = lambda speaker: True) -> \
+            Generator[Speaker, None, None]:
         """
-        ds = dict()
-        for convo in self.iter_conversations(selector):
-            d = convo.__dict__.copy()
-            if not exclude_meta:
-                for k, v in d['meta'].items():
-                    d['meta.' + k] = v
-            del d['meta']
-            ds[convo.id] = d
-
-        df = pd.DataFrame(ds).T
-        df['id'] = df['_id']
-        df = df.set_index('id')
-        return df.drop(['_owner', 'obj_type', '_utterance_ids', '_speaker_ids', 'tree', '_id'], axis=1)
-
-    def iter_speakers(self, selector: Optional[Callable[[Speaker], bool]] = lambda speaker: True) -> Generator[
-        Speaker, None, None]:
-        """
-        Get Speakers in the Corpus, with an optional selector that filters for Conversations that should be included
+		Get Speakers in the Corpus, with an optional selector that filters for Speakers that should be included
 
         :param selector: a (lambda) function that takes a Speaker and returns True or False (i.e. include / exclude).
             By default, the selector includes all Speakers in the Corpus.
@@ -374,29 +348,17 @@ class Corpus:
                 yield speaker
 
     def get_speakers_dataframe(self, selector: Optional[Callable[[Speaker], bool]] = lambda utt: True,
-                      exclude_meta: bool = False):
+                               exclude_meta: bool = False):
         """
-        Get a DataFrame of the utterances with fields and metadata attributes, with an optional selector that filters
-        utterances that should be included. Edits to the DataFrame do not change the corpus in any way.
+        Get a DataFrame of the Speakers with fields and metadata attributes, with an optional selector that filters
+		Speakers that should be included. Edits to the DataFrame do not change the corpus in any way.
 
-        :param exclude_meta: whether to exclude metadata
-        :param selector: selector: a (lambda) function that takes a Speaker and returns True or False
-            (i.e. include / exclude). By default, the selector includes all Speakers in the Corpus.
-        :return: a pandas DataFrame
-        """
-        ds = dict()
-        for spkr in self.iter_speakers(selector):
-            d = spkr.__dict__.copy()
-            if not exclude_meta:
-                for k, v in d['meta'].items():
-                    d['meta.' + k] = v
-            del d['meta']
-            ds[spkr.id] = d
-
-        df = pd.DataFrame(ds).T
-        df['id'] = df['_id']
-        df = df.set_index('id')
-        return df.drop(['_owner', 'obj_type', 'utterances', 'conversations', '_id'], axis=1)
+		:param exclude_meta: whether to exclude metadata
+		:param selector: selector: a (lambda) function that takes a Speaker and returns True or False
+			(i.e. include / exclude). By default, the selector includes all Speakers in the Corpus.
+		:return: a pandas DataFrame
+		"""
+        return get_speakers_dataframe(self, selector, exclude_meta)
 
     def iter_users(self, selector=lambda speaker: True):
         deprecation("iter_users()", "iter_speakers()")
@@ -484,11 +446,11 @@ class Corpus:
 
     def filter_conversations_by(self, selector: Callable[[Conversation], bool]):
         """
-        Mutate the corpus by filtering for a subset of Conversations within the Corpus
+		Mutate the corpus by filtering for a subset of Conversations within the Corpus.
 
-        :param selector: function for selecting which functions to keep
-        :return: None (mutates the corpus)
-        """
+		:param selector: function for selecting which Conversations to keep
+		:return: the mutated Corpus
+		"""
 
         self.conversations = {convo_id: convo for convo_id, convo in self.conversations.items() if selector(convo)}
         utt_ids = set([utt for convo in self.conversations.values() for utt in convo.get_utterance_ids()])
@@ -497,6 +459,21 @@ class Corpus:
         self.speakers = {speaker.id: speaker for speaker in self.speakers.values() if speaker.id in speaker_ids}
         self.update_speakers_data()
         self.reinitialize_index()
+        return self
+
+    def filter_utterances_by(self, selector: Callable[[Utterance], bool]):
+        """
+        Returns a new corpus that includes only a subset of Utterances within this Corpus. This filtering provides no
+        guarantees with regard to maintaining conversational integrity and should be used with care.
+
+        :param selector: function for selecting which
+        :return: a new Corpus with a subset of the Utterances
+        """
+        utts = list(self.iter_utterances(selector))
+        new_corpus = Corpus(utterances=utts)
+        for convo in new_corpus.iter_conversations():
+            convo.meta.update(self.get_conversation(convo.id).meta)
+        return new_corpus
 
     def reindex_conversations(self, new_convo_roots: List[str], preserve_corpus_meta: bool = True,
                               preserve_convo_meta: bool = True, verbose=True) -> 'Corpus':
