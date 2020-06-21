@@ -1,5 +1,6 @@
 from typing import Optional, Dict, List
 
+
 class ConvoKitIndex:
     def __init__(self, owner, utterances_index: Optional[Dict[str, List[str]]] = None,
                  speakers_index: Optional[Dict[str, List[str]]] = None,

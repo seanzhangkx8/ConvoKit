@@ -112,10 +112,11 @@ class Corpus:
             self.meta_index.enable_type_check()
 
             # load vectors
-            for vector_name in vectors:
-                matrix = ConvoKitMatrix.from_dir(self.corpus_dirpath, vector_name)
-                if matrix is not None:
-                    self._vector_matrices[vector_name] = None
+            if vectors is not None:
+                for vector_name in vectors:
+                    matrix = ConvoKitMatrix.from_dir(self.corpus_dirpath, vector_name)
+                    if matrix is not None:
+                        self._vector_matrices[vector_name] = None
 
         elif utterances is not None:  # Construct corpus from utterances list
             self.speakers = {u.speaker.id: u.speaker for u in utterances}
