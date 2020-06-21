@@ -2,6 +2,7 @@ from .convoKitMeta import ConvoKitMeta
 from convokit.util import warn, deprecation
 from typing import List, Optional
 
+
 class CorpusComponent:
 
     def __init__(self, obj_type: str, owner=None, id=None, vectors: List[str]=None, meta=None):
@@ -55,9 +56,9 @@ class CorpusComponent:
         Retrieves a value stored under the key of the metadata of corpus object
 
         :param key: name of metadata
-        :return: value (if key not found, raises an error)
+        :return: value
         """
-        return self.meta[key]
+        return self.meta.get(key, None)
 
     def add_meta(self, key: str, value) -> None:
         """
@@ -88,11 +89,6 @@ class CorpusComponent:
         """
         deprecation("set_info()", "add_meta()")
         self.meta[key] = value
-
-    def del_info(self, key):
-        # TODO deprecate
-        if key in self.meta:
-            del self.meta[key]
 
     def get_vector(self, name: str, columns: Optional[List[str]]):
         """

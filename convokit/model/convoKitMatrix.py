@@ -1,5 +1,8 @@
 import pandas as pd
 from typing import Optional, List
+import pickle
+import os
+from convokit.util import warn
 
 class ConvoKitMatrix:
     """
@@ -59,6 +62,42 @@ class ConvoKitMatrix:
         sorted_ids = [index[idx] for idx in sorted(index)]
 
         return pd.DataFrame(self.matrix, index=sorted_ids, columns=self.columns) # TODO check if this passes for None
+
+    @staticmethod
+    def from_file(filepath):
+        """
+        Initialize a ConvoKitMatrix from a file of form "vector.name.p".
+        
+        :param filepath:
+        :return:
+        """
+        with open(filepath, 'rb') as f:
+            return pickle.load(f)
+
+    @staticmethod
+    def from_dir(dirpath, matrix_name):
+        """
+        Initialize a ConvoKitMatrix of the specified `matrix_name` from a specified directory `dirpath`.
+
+        :param dirpath: path to Corpus directory
+        :param matrix_name: name of vector matrix
+        :return: the initialized ConvoKitMatrix
+        """
+        try:
+            with open(os.path.join(dirpath, 'vectors.{}.p'.format(matrix_name)), 'rb') as f:
+                return pickle.load(f)
+        except FileNotFoundError:
+            warn("Could not find vector with name: {} at {}.".format(matrix_name, dirpath))
+
+    def dump(self, dirpath):
+        """
+        Dumps the ConvoKitMatrix as a pickle file.
+
+        :param dirpath: directory path to Corpus
+        :return: None
+        """
+        with open(os.path.join(dirpath, 'vectors.{}.p'.format(self.name)), 'wb') as f:
+            pickle.dump(self, f)
 
     def __repr__(self):
         # TODO check this. Maybe make it more consistent with usual matrices

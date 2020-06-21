@@ -4,7 +4,9 @@ class ConvoKitIndex:
     def __init__(self, owner, utterances_index: Optional[Dict[str, List[str]]] = None,
                  speakers_index: Optional[Dict[str, List[str]]] = None,
                  conversations_index: Optional[Dict[str, List[str]]] = None,
-                 overall_index: Optional[Dict[str, List[str]]] = None, version: Optional[int] = 0):
+                 overall_index: Optional[Dict[str, List[str]]] = None,
+                 vectors: Optional[List[str]] = None,
+                 version: Optional[int] = 0):
         self.owner = owner
         self.utterances_index = utterances_index if utterances_index is not None else {}
         self.speakers_index = speakers_index if speakers_index is not None else {}
@@ -14,6 +16,7 @@ class ConvoKitIndex:
                         'conversation': self.conversations_index,
                         'speaker': self.speakers_index,
                         'corpus': self.overall_index}
+        self.vectors = vectors
         self.version = version
         self.type_check = True # toggle-able to enable/disable type checks on metadata additions
 
@@ -34,7 +37,7 @@ class ConvoKitIndex:
 
     def set_index(self, obj_type: str, key: str, class_type: str):
         """
-        Set the class_type of the index as [<class_type>].
+        Set the class_type of the index as [`class_type`].
 
         :param obj_type: utterance, conversation, or speaker
         :param key: string
@@ -66,7 +69,7 @@ class ConvoKitIndex:
         self.overall_index.update(meta_index["overall-index"])
         self.version = meta_index["version"]
 
-    def to_dict(self, force_version=None):
+    def to_dict(self, exclude_vectors: List[str] = None, force_version=None):
         retval = dict()
         retval["utterances-index"] = self.utterances_index
         retval["speakers-index"] = self.speakers_index
@@ -76,6 +79,12 @@ class ConvoKitIndex:
             retval['version'] = self.version + 1
         else:
             retval['version'] = force_version
+
+        if exclude_vectors is not None:
+            retval['vectors'] = [v for v in self.vectors if v not in set(exclude_vectors)]
+        else:
+            retval['vectors'] = self.vectors
+
         return retval
 
     def enable_type_check(self):

@@ -9,6 +9,7 @@ from .convoKitIndex import ConvoKitIndex
 import random
 from .convoKitMeta import ConvoKitMeta
 from .convoKitMatrix import ConvoKitMatrix
+import shutil
 
 
 class Corpus:
@@ -17,36 +18,43 @@ class Corpus:
 
     :param filename: Path to a folder containing a Corpus or to an utterances.jsonl / utterances.json file to load
     :param utterances: list of utterances to initialize Corpus from
-    :param utterance_start_index: if the corpus folder contains utterances.jsonl, specify the line number (zero-indexed)
-        to begin parsing utterances from
-    :param utterance_end_index: if the corpus folder contains utterances.jsonl, specify the line number (zero-indexed)
-        of the last utterance to be parsed.
-    :param merge_lines: whether to merge adjacent lines from same speaker if the two utterances belong to the
-        same conversation
+    :param vectors: list of names of vectors to load from directory; by default, no vectors are loaded but can be loaded
+        any time after corpus initialization (i.e. vectors are lazy-loaded).
+    :param utterance_start_index: if loading from directory and the corpus folder contains utterances.jsonl, specify the
+        line number (zero-indexed) to begin parsing utterances from
+    :param utterance_end_index: if loading from directory and the corpus folder contains utterances.jsonl, specify the
+        line number (zero-indexed) of the last utterance to be parsed.
+    :param merge_lines: whether to merge adjacent lines from same speaker if multiple consecutive utterances belong to
+        the same conversation.
     :param exclude_utterance_meta: utterance metadata to be ignored
     :param exclude_conversation_meta: conversation metadata to be ignored
     :param exclude_speaker_meta: speaker metadata to be ignored
     :param exclude_overall_meta: overall metadata to be ignored
+
+    :ivar meta_index: index of Corpus metadata
+    :ivar corpus_dirpath: path to the directory the corpus was loaded from
     """
 
     def __init__(self, filename: Optional[str] = None, utterances: Optional[List[Utterance]] = None,
-                 utterance_start_index: int = None, utterance_end_index: int = None, merge_lines: bool = False,
+                 vectors: List[str] = None, utterance_start_index: int = None,
+                 utterance_end_index: int = None, merge_lines: bool = False,
                  exclude_utterance_meta: Optional[List[str]] = None,
                  exclude_conversation_meta: Optional[List[str]] = None,
                  exclude_speaker_meta: Optional[List[str]] = None,
                  exclude_overall_meta: Optional[List[str]] = None):
 
         if filename is None:
-            self.original_corpus_path = None
+            self.corpus_dirpath = None
         elif os.path.isdir(filename):
-            self.original_corpus_path = filename
+            self.corpus_dirpath = filename
         else:
-            self.original_corpus_path = os.path.dirname(filename)
+            self.corpus_dirpath = os.path.dirname(filename)
 
         self.meta_index = ConvoKitIndex(self)
         self.meta = ConvoKitMeta(self.meta_index, 'corpus')
 
-        self.vectors = {}
+        # private storage
+        self._vector_matrices = dict()
 
         convos_meta = defaultdict(dict)
         if exclude_utterance_meta is None: exclude_utterance_meta = []
@@ -103,6 +111,12 @@ class Corpus:
 
             self.meta_index.enable_type_check()
 
+            # load vectors
+            for vector_name in vectors:
+                matrix = ConvoKitMatrix.from_dir(self.corpus_dirpath, vector_name)
+                if matrix is not None:
+                    self._vector_matrices[vector_name] = None
+
         elif utterances is not None:  # Construct corpus from utterances list
             self.speakers = {u.speaker.id: u.speaker for u in utterances}
             self.utterances = {u.id: u for u in utterances}
@@ -117,7 +131,19 @@ class Corpus:
         self.conversations = initialize_conversations(self, self.utterances, convos_meta)
         self.update_speakers_data()
 
+    @property
+    def vectors(self):
+        return self.meta_index.vectors
+
+    @vectors.setter
+    def vectors(self, new_vectors):
+        if not isinstance(new_vectors, type(['stringlist'])):
+            raise ValueError("The vectors being set should be a list of strings, "
+                             "where each string is the name of a vector matrix.")
+        self.meta_index.vectors = new_vectors
+
     def dump(self, name: str, base_path: Optional[str] = None,
+             exclude_vectors: List[str] = None,
              force_version: int = None,
              save_to_existing_path: bool = False,
              fields_to_skip=None) -> None:
@@ -127,6 +153,8 @@ class Corpus:
 
         :param name: name of corpus
         :param base_path: base directory to save corpus in (None to save to a default directory)
+        :param exclude_vectors: list of names of vector matrices to exclude from the dumping step. By default; all
+            vector matrices that belong to the Corpus (whether loaded or not) are dumped.
         :param force_version: version number to set for the dumped corpus
         :param save_to_existing_path: if True, save to the path you loaded the corpus from (supersedes base_path)
         :param fields_to_skip: a dictionary of {object type: list of metadata attributes to omit when writing to disk}. object types can be one of "speaker", "utterance", "conversation", "corpus".
@@ -136,7 +164,7 @@ class Corpus:
         dir_name = name
         if base_path is not None and save_to_existing_path:
             raise ValueError("Not allowed to specify both base_path and save_to_existing_path!")
-        if save_to_existing_path and self.original_corpus_path is None:
+        if save_to_existing_path and self.corpus_dirpath is None:
             raise ValueError("Cannot use save to existing path on Corpus generated from utterance list!")
         if not save_to_existing_path:
             if base_path is None:
@@ -148,7 +176,7 @@ class Corpus:
                     os.mkdir(base_path)
             dir_name = os.path.join(base_path, dir_name)
         else:
-            dir_name = os.path.join(self.original_corpus_path, name)
+            dir_name = os.path.join(self.corpus_dirpath, name)
 
         if not os.path.exists(dir_name):
             os.mkdir(dir_name)
@@ -170,7 +198,20 @@ class Corpus:
 
         # dump index
         with open(os.path.join(dir_name, "index.json"), "w") as f:
-            json.dump(self.meta_index.to_dict(force_version=force_version), f)
+            json.dump(self.meta_index.to_dict(exclude_vectors=exclude_vectors, force_version=force_version), f)
+
+        # dump vectors
+        if exclude_vectors is not None:
+            vectors_to_dump = [v for v in self.vectors if v not in set(exclude_vectors)]
+        else:
+            vectors_to_dump = self.vectors
+        for vector_name in vectors_to_dump:
+            if vector_name in self._vector_matrices:
+                self._vector_matrices[vector_name].dump(dir_name)
+            else:
+                src = os.path.join(self.corpus_dirpath, 'vectors.{}.p'.format(vector_name))
+                dest = os.path.join(dir_name, 'vectors.{}.p'.format(vector_name))
+                shutil.copy(src, dest)
 
     # with open(os.path.join(dir_name, "processed_text.index.json"), "w") as f:
     #     json.dump(list(self.processed_text.keys()), f)
@@ -873,6 +914,7 @@ class Corpus:
                 # (link speaker -> convo)
                 new_convo_speaker = self.speakers[new_convo.get_utterance(convo_id).speaker.id]
                 new_convo_speaker._add_conversation(new_convo)
+
         return self
 
     def update_speakers_data(self) -> None:
@@ -913,55 +955,36 @@ class Corpus:
         A ConvoKitMatrix object is initialized from the arguments and stored in the Corpus.
 
         :param name: descriptive name for the matrix
-        :param matrix: matrix of vectors (must be a numpy or scipy matrix)
+        :param matrix: matrix of _vector_matrices (must be a numpy or scipy matrix)
         :param ids: list of component object ids, where each entry corresponds to each row of the matrix
         :param columns: optional names for the columns of the matrix
         :return: None
         """
 
         ck_matrix = ConvoKitMatrix(name=name, matrix=matrix, ids=ids, columns=columns)
-        self.vectors[name] = ck_matrix
+        self.meta_index.vectors.append(name)
+        self._vector_matrices[name] = ck_matrix
 
     def get_vector_matrix(self, name):
         """
-        Gets the ConvoKitMatrix stored in the corpus as <name>. # TODO check what this does
+        Gets the ConvoKitMatrix stored in the corpus as `name`.
         Returns None if no such matrix exists.
 
-        :param name: name of the ConvoKitMatrix
+        :param name: name of the vector matrix
         :return: a ConvoKitMatrix object
         """
-        return self.vectors[name]
+        return self._vector_matrices.get(name, None)
 
-    def get_vect_repr(self, id, field):
+    def del_vector_matrix(self, name):
         """
-        Gets the ConvoKitMatrix stored
-        :param id: id of object
-        :param field: the name of the particular representation
-        :return: a vector representation of object <id>
-        """
-        deprecation("get_vect_repr()", "get_vector_matrix()")
+        Deletes the vector matrix stored under `name`.
 
-        vect_obj = self.vectors[field]
-        try:
-            idx = vect_obj['key_to_idx'][id]
-            return vect_obj['vects'][idx]
-        except KeyError:
-            return None
-
-    def set_vect_reprs(self, field, keys, vects):
-        """
-        stores a matrix where each row is a vector representation of an object
-
-        :param field: name of representation
-        :param keys: list of object ids, where each entry corresponds to each row of the matrix
-        :param vects: matrix of vector representations
+        :param name: name of the vector mtrix
         :return: None
         """
-        deprecation("set_vect_reprs()", "set_vector_matrix()")
-
-        vect_obj = {'vects': vects, 'keys': keys}
-        vect_obj['key_to_idx'] = {k: idx for idx, k in enumerate(vect_obj['keys'])}
-        self.vectors[field] = vect_obj
+        self.meta_index.vectors.remove(name)
+        if name in self._vector_matrices:
+            del self._vector_matrices[name]
 
     @staticmethod
     def _load_jsonlist_to_dict(filename, index_key='id', value_key='value'):
@@ -979,20 +1002,20 @@ class Corpus:
                 json.dump({index_key: k, value_key: v}, f)
                 f.write('\n')
 
-    @staticmethod
-    def _load_vectors(filename):
-        vect_obj = {}
-        with open(filename + '.keys') as f:
-            vect_obj['keys'] = [x.strip() for x in f.readlines()]
-        vect_obj['key_to_idx'] = {k: idx for idx, k in enumerate(vect_obj['keys'])}
-        vect_obj['vects'] = np.load(filename + '.npy')
-        return vect_obj
-
-    @staticmethod
-    def _dump_vectors(vect_obj, filename):
-        with open(filename + '.keys', 'w') as f:
-            f.write('\n'.join(vect_obj['keys']))
-        np.save(filename, vect_obj['vects'])
+    # @staticmethod
+    # def _load_vectors(filename):
+    #     vect_obj = {}
+    #     with open(filename + '.keys') as f:
+    #         vect_obj['keys'] = [x.strip() for x in f.readlines()]
+    #     vect_obj['key_to_idx'] = {k: idx for idx, k in enumerate(vect_obj['keys'])}
+    #     vect_obj['vects'] = np.load(filename + '.npy')
+    #     return vect_obj
+    #
+    # @staticmethod
+    # def _dump_vectors(vect_obj, filename):
+    #     with open(filename + '.keys', 'w') as f:
+    #         f.write('\n'.join(vect_obj['keys']))
+    #     np.save(filename, vect_obj['vects'])
 
     def load_info(self, obj_type, fields=None, dir_name=None):
         """
@@ -1012,10 +1035,10 @@ class Corpus:
         if fields is None:
             fields = []
 
-        if (self.original_corpus_path is None) and (dir_name is None):
-            raise ValueError('must specify a directory to read from')
+        if (self.corpus_dirpath is None) and (dir_name is None):
+            raise ValueError('Must specify a directory to read from.')
         if dir_name is None:
-            dir_name = self.original_corpus_path
+            dir_name = self.corpus_dirpath
 
         if len(fields) == 0:
             fields = [x.replace('info.', '').replace('.jsonl', '') for x in os.listdir(dir_name)
@@ -1047,11 +1070,11 @@ class Corpus:
         :return: None
         """
 
-        if (self.original_corpus_path is None) and (dir_name is None):
+        if (self.corpus_dirpath is None) and (dir_name is None):
             raise ValueError('must specify a directory to write to')
 
         if dir_name is None:
-            dir_name = self.original_corpus_path
+            dir_name = self.corpus_dirpath
         # if len(fields) == 0:
         #     fields = self.aux_info.keys()
         for field in fields:
@@ -1063,44 +1086,44 @@ class Corpus:
             #     os.path.join(dir_name, 'feat.%s.jsonl' % field))
             self._dump_jsonlist_from_dict(entries, os.path.join(dir_name, 'info.%s.jsonl' % field))
 
-    def load_vector_reprs(self, field, dir_name=None):
-        """
-        reads vector representations of Corpus objects from disk.
-
-        Will read matrices from a file called vect_info.<field>.npy and corresponding object IDs from a file called vect_info.<field>.keys,
-
-        :param field: the name of the representation
-        :param dir_name: the directory to read from; by default, or if set to None, will read from the directory that the Corpus was loaded from.
-        :return: None
-        """
-
-        if (self.original_corpus_path is None) and (dir_name is None):
-            raise ValueError('must specify a directory to read from')
-        if dir_name is None:
-            dir_name = self.original_corpus_path
-
-        self.vectors[field] = self._load_vectors(
-            os.path.join(dir_name, 'vect_info.' + field)
-        )
-
-    def dump_vector_reprs(self, field, dir_name=None):
-        """
-        writes vector representations of Corpus objects to disk.
-
-        Will write matrices to a file called vect_info.<field>.npy and corresponding object IDs to a file called vect_info.<field>.keys,
-
-        :param field: the name of the representation to write to disk
-        :param dir_name: the directory to write to. by default, or if set to None, will read from the directory that the Corpus was loaded from.
-        :return: None
-        """
-
-        if (self.original_corpus_path is None) and (dir_name is None):
-            raise ValueError('must specify a directory to write to')
-
-        if dir_name is None:
-            dir_name = self.original_corpus_path
-
-        self._dump_vectors(self.vectors[field], os.path.join(dir_name, 'vect_info.' + field))
+    # def load_vector_reprs(self, field, dir_name=None):
+    #     """
+    #     reads vector representations of Corpus objects from disk.
+    #
+    #     Will read matrices from a file called vect_info.<field>.npy and corresponding object IDs from a file called vect_info.<field>.keys,
+    #
+    #     :param field: the name of the representation
+    #     :param dir_name: the directory to read from; by default, or if set to None, will read from the directory that the Corpus was loaded from.
+    #     :return: None
+    #     """
+    #
+    #     if (self.corpus_dirpath is None) and (dir_name is None):
+    #         raise ValueError('must specify a directory to read from')
+    #     if dir_name is None:
+    #         dir_name = self.corpus_dirpath
+    #
+    #     self._vector_matrices[field] = self._load_vectors(
+    #         os.path.join(dir_name, 'vect_info.' + field)
+    #     )
+    #
+    # def dump_vector_reprs(self, field, dir_name=None):
+    #     """
+    #     writes vector representations of Corpus objects to disk.
+    #
+    #     Will write matrices to a file called vect_info.<field>.npy and corresponding object IDs to a file called vect_info.<field>.keys,
+    #
+    #     :param field: the name of the representation to write to disk
+    #     :param dir_name: the directory to write to. by default, or if set to None, will read from the directory that the Corpus was loaded from.
+    #     :return: None
+    #     """
+    #
+    #     if (self.corpus_dirpath is None) and (dir_name is None):
+    #         raise ValueError('must specify a directory to write to')
+    #
+    #     if dir_name is None:
+    #         dir_name = self.corpus_dirpath
+    #
+    #     self._dump_vectors(self._vector_matrices[field], os.path.join(dir_name, 'vect_info.' + field))
 
     def get_attribute_table(self, obj_type, attrs):
         """

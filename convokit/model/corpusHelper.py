@@ -21,7 +21,7 @@ KeyTimestamp = "timestamp"
 KeyText = "text"
 DefinedKeys = {KeyId, KeySpeaker, KeyConvoId, KeyReplyTo, KeyTimestamp, KeyText}
 KeyMeta = "meta"
-KeyVectors = "vectors"
+KeyVectors = "vector_matrices"
 
 def load_uttinfo_from_dir(dirname, utterance_start_index, utterance_end_index, exclude_utterance_meta):
     assert dirname is not None

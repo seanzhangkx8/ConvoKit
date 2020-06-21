@@ -72,7 +72,7 @@ class PairedPrediction(Transformer):
             raise ValueError("Some metadata features required for paired prediction are missing: {}. "
                              "You may need to run Pairer.transform() first.".format(required_keys))
 
-    def summarize(self, corpus: Corpus, selector: Callable[[CorpusObject], bool] = lambda x: True,
+    def summarize(self, corpus: Corpus, selector: Callable[[CorpusComponent], bool] = lambda x: True,
                   cv=KFold(n_splits=5, shuffle=True)):
         """
         Run PairedPrediction on the corpus with cross-validation and returns the mean cross-validation score.
