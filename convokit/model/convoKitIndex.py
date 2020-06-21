@@ -16,7 +16,7 @@ class ConvoKitIndex:
                         'conversation': self.conversations_index,
                         'speaker': self.speakers_index,
                         'corpus': self.overall_index}
-        self.vectors = vectors
+        self.vectors = vectors if vectors is not None else []
         self.version = version
         self.type_check = True # toggle-able to enable/disable type checks on metadata additions
 
