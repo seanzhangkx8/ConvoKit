@@ -56,7 +56,7 @@ class Corpus:
         # private storage
         self._vector_matrices = dict()
 
-        convos_meta = defaultdict(dict)
+        convos_data = defaultdict(dict)
         if exclude_utterance_meta is None: exclude_utterance_meta = []
         if exclude_conversation_meta is None: exclude_conversation_meta = []
         if exclude_speaker_meta is None: exclude_speaker_meta = []
@@ -69,8 +69,8 @@ class Corpus:
                 utterances = load_uttinfo_from_dir(filename, utterance_start_index,
                                                    utterance_end_index, exclude_utterance_meta)
 
-                speakers_meta = load_speakers_meta_from_dir(filename, exclude_speaker_meta)
-                convos_meta = load_convos_meta_from_dir(filename, exclude_conversation_meta)
+                speakers_data = load_speakers_data_from_dir(filename, exclude_speaker_meta)
+                convos_data = load_convos_data_from_dir(filename, exclude_conversation_meta)
                 load_corpus_meta_from_dir(filename, self.meta, exclude_overall_meta)
 
                 with open(os.path.join(filename, "index.json"), "r") as f:
@@ -89,25 +89,25 @@ class Corpus:
                 unpack_binary_data_for_utts(utterances, filename, self.meta_index.utterances_index,
                                             exclude_utterance_meta, KeyMeta)
                 # unpack binary data for speakers
-                unpack_binary_data(filename, speakers_meta, self.meta_index.speakers_index, "speaker",
+                unpack_binary_data(filename, speakers_data, self.meta_index.speakers_index, "speaker",
                                    exclude_speaker_meta)
 
                 # unpack binary data for conversations
-                unpack_binary_data(filename, convos_meta, self.meta_index.conversations_index, "convo",
+                unpack_binary_data(filename, convos_data, self.meta_index.conversations_index, "convo",
                                    exclude_conversation_meta)
 
                 # unpack binary data for overall corpus
                 unpack_binary_data(filename, self.meta, self.meta_index.overall_index, "overall", exclude_overall_meta)
 
             else:
-                speakers_meta = defaultdict(dict)
-                convos_meta = defaultdict(dict)
+                speakers_data = defaultdict(dict)
+                convos_data = defaultdict(dict)
                 utterances = load_from_utterance_file(filename, utterance_start_index, utterance_end_index)
 
             self.utterances = dict()
             self.speakers = dict()
 
-            initialize_speakers_and_utterances_objects(self, self.utterances, utterances, self.speakers, speakers_meta)
+            initialize_speakers_and_utterances_objects(self, self.utterances, utterances, self.speakers, speakers_data)
 
             self.meta_index.enable_type_check()
 
@@ -116,7 +116,7 @@ class Corpus:
                 for vector_name in vectors:
                     matrix = ConvoKitMatrix.from_dir(self.corpus_dirpath, vector_name)
                     if matrix is not None:
-                        self._vector_matrices[vector_name] = None
+                        self._vector_matrices[vector_name] = matrix
 
         elif utterances is not None:  # Construct corpus from utterances list
             self.speakers = {u.speaker.id: u.speaker for u in utterances}
@@ -129,7 +129,7 @@ class Corpus:
         if merge_lines:
             self.utterances = merge_utterance_lines(self.utterances)
 
-        self.conversations = initialize_conversations(self, self.utterances, convos_meta)
+        self.conversations = initialize_conversations(self, self.utterances, convos_data)
         self.update_speakers_data()
 
     @property
@@ -183,9 +183,10 @@ class Corpus:
             os.mkdir(dir_name)
 
         # dump speakers, conversations, utterances
-        dump_corpus_component(self, dir_name, "speakers.json", "speaker", "speaker", fields_to_skip)
-        dump_corpus_component(self, dir_name, "conversations.json", "conversation", "convo", fields_to_skip)
-        dump_utterances(self, dir_name, fields_to_skip)
+        dump_corpus_component(self, dir_name, "speakers.json", "speaker", "speaker", exclude_vectors, fields_to_skip)
+        dump_corpus_component(self, dir_name, "conversations.json", "conversation", "convo",
+                              exclude_vectors, fields_to_skip)
+        dump_utterances(self, dir_name, exclude_vectors, fields_to_skip)
 
         # dump corpus
         with open(os.path.join(dir_name, "corpus.json"), "w") as f:
@@ -508,6 +509,8 @@ class Corpus:
         Returns a new corpus that includes only a subset of Utterances within this Corpus. This filtering provides no
         guarantees with regard to maintaining conversational integrity and should be used with care.
 
+        Vectors are not preserved.
+
         :param selector: function for selecting which
         :return: a new Corpus with a subset of the Utterances
         """
@@ -523,6 +526,8 @@ class Corpus:
         Generates a new Corpus from current Corpus with specified list of utterance ids to use as conversation ids.
 
         The subtrees denoted by these utterance ids should be distinct and should not overlap, otherwise there may be unexpected behavior.
+
+        Vectors are not preserved.
 
         :param new_convo_roots: List of utterance ids to use as conversation ids
         :param preserve_corpus_meta: set as True to copy original Corpus metadata to new Corpus
@@ -962,9 +967,9 @@ class Corpus:
         :return: None
         """
 
-        ck_matrix = ConvoKitMatrix(name=name, matrix=matrix, ids=ids, columns=columns)
+        matrix = ConvoKitMatrix(name=name, matrix=matrix, ids=ids, columns=columns)
         self.meta_index.vectors.append(name)
-        self._vector_matrices[name] = ck_matrix
+        self._vector_matrices[name] = matrix
 
     def get_vector_matrix(self, name):
         """
@@ -974,7 +979,12 @@ class Corpus:
         :param name: name of the vector matrix
         :return: a ConvoKitMatrix object
         """
-        return self._vector_matrices.get(name, None)
+        # This is the lazy load step
+        if name in self.vectors and name not in self._vector_matrices:
+            matrix = ConvoKitMatrix.from_dir(self.corpus_dirpath, name)
+            if matrix is not None:
+                self._vector_matrices[name] = matrix
+        return self._vector_matrices[name]
 
     def del_vector_matrix(self, name):
         """

@@ -21,7 +21,7 @@ KeyTimestamp = "timestamp"
 KeyText = "text"
 DefinedKeys = {KeyId, KeySpeaker, KeyConvoId, KeyReplyTo, KeyTimestamp, KeyText}
 KeyMeta = "meta"
-KeyVectors = "vector_matrices"
+KeyVectors = "vectors"
 
 def load_uttinfo_from_dir(dirname, utterance_start_index, utterance_end_index, exclude_utterance_meta):
     assert dirname is not None
@@ -42,7 +42,6 @@ def load_uttinfo_from_dir(dirname, utterance_start_index, utterance_end_index, e
     elif os.path.exists(os.path.join(dirname, 'utterances.json')):
         with open(os.path.join(dirname, "utterances.json"), "r") as f:
             utterances = json.load(f)
-            utterances = utterances[utterance_start_index:min(len(utterances), utterance_end_index+1)]
 
     if exclude_utterance_meta:
         for utt in utterances:
@@ -52,23 +51,47 @@ def load_uttinfo_from_dir(dirname, utterance_start_index, utterance_end_index, e
     return utterances
 
 
-def load_speakers_meta_from_dir(filename, exclude_speaker_meta):
+def load_speakers_data_from_dir(filename, exclude_speaker_meta):
     speaker_file = "speakers.json" if "speakers.json" in os.listdir(filename) else "users.json"
     with open(os.path.join(filename, speaker_file), "r") as f:
-        speakers_meta = defaultdict(dict)
-        for k, v in json.load(f).items():
-            if k in exclude_speaker_meta: continue
-            speakers_meta[k] = v
-    return speakers_meta
+        id_to_speaker_data = json.load(f)
+
+        if len(id_to_speaker_data) > 0 and len(id_to_speaker_data[next(id_to_speaker_data)]) == 2:
+            # has vectors data
+            for _, speaker_data in id_to_speaker_data.items():
+                for k in exclude_speaker_meta:
+                    if k in speaker_data['meta']:
+                        del speaker_data['meta'][k]
+        else:
+            for _, speaker_data in id_to_speaker_data.items():
+                for k in exclude_speaker_meta:
+                    if k in speaker_data:
+                        del speaker_data[k]
+    return id_to_speaker_data
 
 
-def load_convos_meta_from_dir(filename, exclude_conversation_meta):
+def load_convos_data_from_dir(filename, exclude_conversation_meta):
+    """
+
+    :param filename:
+    :param exclude_conversation_meta:
+    :return: a mapping from convo id to convo meta
+    """
     with open(os.path.join(filename, "conversations.json"), "r") as f:
-        convos_meta = defaultdict(dict)
-        for k, v in json.load(f).items():
-            if k in exclude_conversation_meta: continue
-            convos_meta[k] = v
-    return convos_meta
+        id_to_convo_data = json.load(f)
+
+        if len(id_to_convo_data) > 0 and len(id_to_convo_data[next(id_to_convo_data)]) == 2:
+            # has vectors data
+            for _, convo_data in id_to_convo_data.items():
+                for k in exclude_conversation_meta:
+                    if k in convo_data['meta']:
+                        del convo_data['meta'][k]
+        else:
+            for _, convo_data in id_to_convo_data.items():
+                for k in exclude_conversation_meta:
+                    if k in convo_data:
+                        del convo_data[k]
+    return id_to_convo_data
 
 
 def load_corpus_meta_from_dir(filename, corpus_meta, exclude_overall_meta):
@@ -230,18 +253,19 @@ def dump_helper_bin(d: ConvoKitMeta, d_bin: Dict, fields_to_skip=None) -> Dict: 
     return d_out
 
 
-def dump_corpus_component(corpus, dir_name, filename, obj_type, bin_name, fields_to_skip):
+def dump_corpus_component(corpus, dir_name, filename, obj_type, bin_name, exclude_vectors, fields_to_skip):
     with open(os.path.join(dir_name, filename), "w") as f:
         d_bin = defaultdict(list)
-        objs = {u: dump_helper_bin(corpus.get_object(obj_type, u).meta, d_bin,
-                                    fields_to_skip.get(obj_type, [])) for u in corpus.get_object_ids(obj_type)}
+        objs = {u: dump_helper_bin(corpus.get_object(obj_type, u).meta, d_bin, fields_to_skip.get(obj_type, []))
+                for u in corpus.get_object_ids(obj_type)}
         json.dump(objs, f)
 
         for name, l_bin in d_bin.items():
             with open(os.path.join(dir_name, name + "-{}-bin.p".format(bin_name)), "wb") as f_pk:
                 pickle.dump(l_bin, f_pk)
 
-def dump_utterances(corpus, dir_name, fields_to_skip):
+
+def dump_utterances(corpus, dir_name, exclude_vectors, fields_to_skip):
     with open(os.path.join(dir_name, "utterances.jsonl"), "w") as f:
         d_bin = defaultdict(list)
 
@@ -254,7 +278,7 @@ def dump_utterances(corpus, dir_name, fields_to_skip):
                 KeyMeta: dump_helper_bin(ut.meta, d_bin, fields_to_skip.get('utterance', [])),
                 KeyReplyTo: ut.reply_to,
                 KeyTimestamp: ut.timestamp,
-                KeyVectors: ut.vectors
+                KeyVectors: ut.vectors if exclude_vectors is None else list(set(ut.vectors) - set(exclude_vectors))
             }
             json.dump(ut_obj, f)
             f.write("\n")
