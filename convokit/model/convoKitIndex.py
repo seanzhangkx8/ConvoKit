@@ -68,6 +68,7 @@ class ConvoKitIndex:
         speaker_index = "speakers-index" if "speakers-index" in meta_index else "users-index"
         self.speakers_index.update(meta_index[speaker_index])
         self.overall_index.update(meta_index["overall-index"])
+        self.vectors = meta_index.get('vectors', [])
         self.version = meta_index["version"]
 
     def to_dict(self, exclude_vectors: List[str] = None, force_version=None):

@@ -8,6 +8,18 @@ class ConvoKitMatrix:
     """
     A ConvoKitMatrix stores the vector representations of some set of Corpus components (i.e. Utterances,
     Conversations, Speakers).
+
+    :param name:
+    :param matrix:
+    :param ids:
+    :param columns:
+
+    :ivar name:
+    :ivar matrix:
+    :ivar ids:
+    :ivar columns:
+    :ivar ids_to_idx:
+    :ivar cols_to_idx:
     """
 
     def __init__(self, name, matrix, ids: List[str] = None, columns: Optional[List[str]] = None):
@@ -33,20 +45,34 @@ class ConvoKitMatrix:
             raise ValueError("Input matrix dimensions {} do not match "
                              "length of ids and/or columns".format(self.matrix.shape))
 
-    def get_vector(self, id: str, columns: Optional[List[str]] = None):
-        if columns is None:
-            return self.matrix[self.ids_to_idx[id]] # TODO compatible with csr?
-        else:
-            col_indices = [self.cols_to_idx[col] for col in columns]
-            return self.matrix[self.ids_to_idx[id]][col_indices]
+    # def get_vector(self, id: str, columns: Optional[List[str]] = None):
+    #     if columns is None:
+    #         return self.matrix[self.ids_to_idx[id]] # TODO compatible with csr?
+    #     else:
+    #         col_indices = [self.cols_to_idx[col] for col in columns]
+    #         return self.matrix[self.ids_to_idx[id]][col_indices]
 
-    def get_vectors(self, ids: List[str], columns: Optional[List[str]] = None):
+    def get_vectors(self, ids: List[str], as_dataframe: False, columns: Optional[List[str]] = None):
+        """
+
+        :param ids: object ids to get vectors for
+        :param as_dataframe: whether to return the vector as a dataframe (True) or in its raw array form (False). False
+            by default.
+        :param columns: optional list of named columns of the vector to include. All columns returned otherwise.
+        :return:
+        """
         indices = [self.ids_to_idx[k] for k in ids]
         if columns is None:
-            return self.matrix[indices]
+            if not as_dataframe:
+                return self.matrix[indices]
+            else:
+                matrix = self.matrix.toarray() if self.matrix.getformat() == 'csr' else self.matrix
+                return pd.DataFrame(matrix[indices], index=ids, columns=self.columns)
         else:
             col_indices = [self.cols_to_idx[col] for col in columns]
-            return self.matrix[indices][col_indices]
+            matrix = self.matrix.toarray() if self.matrix.getformat() == 'csr' else self.matrix
+            submatrix = matrix[indices, col_indices].reshape(len(indices), len(col_indices))
+            return submatrix if not as_dataframe else pd.DataFrame(submatrix, index=ids, columns=columns)
 
     def to_dict(self):
         if self.columns is None:
@@ -58,15 +84,20 @@ class ConvoKitMatrix:
         return d
 
     def to_dataframe(self):
+        """
+        Converts the matrix of vectors into a pandas DataFrame.
+
+        :return: a pandas DataFrame
+        """
         index = {idx: id_ for id_, idx in self.ids_to_idx.items()}
         sorted_ids = [index[idx] for idx in sorted(index)]
-
-        return pd.DataFrame(self.matrix, index=sorted_ids, columns=self.columns) # TODO check if this passes for None
+        matrix = self.matrix.toarray() if self.matrix.getformat() == 'csr' else self.matrix
+        return pd.DataFrame(matrix, index=sorted_ids, columns=self.columns)
 
     @staticmethod
     def from_file(filepath):
         """
-        Initialize a ConvoKitMatrix from a file of form "vector.name.p".
+        Initialize a ConvoKitMatrix from a file of form "vector.[name].p".
         
         :param filepath:
         :return:
@@ -100,11 +131,7 @@ class ConvoKitMatrix:
             pickle.dump(self, f)
 
     def __repr__(self):
-        # TODO check this. Maybe make it more consistent with usual matrices
-        return "ConvoKitMatrix('name': {}, 'matrix': {}, 'columns': {}, 'ids_to_idx': {})".format(self.name,
-                                                                                                  self.matrix,
-                                                                                                  self.columns,
-                                                                                                  self.ids_to_idx)
+        return "ConvoKitMatrix('name': {}, 'matrix': {})".format(self.name, repr(self.matrix))
 
     def __str__(self):
         return repr(self)

@@ -99,25 +99,24 @@ def extract_feats_and_label(corpus: Corpus, obj_type: str, pred_feats: List[str]
 
     return csr_matrix(X.values), np.array(y)
 
-def extract_feats_and_label_bow(corpus, objs, obj_type, vector_name,
-                                labeller, selector):
-    if ((corpus is None) and (objs is None)) or ((corpus is not None) and (objs is not None)):
-        raise ValueError("This function takes in either a Corpus or a list of speakers / utterances / conversations")
 
-    if corpus:
-        print("Using corpus objects...")
-        objs = list(corpus.iter_objs(obj_type, selector))
-    else:
-        assert objs is not None
-        print("Using input list of corpus objects...")
-    vectors = []
-    y = []
-    print()
-    for obj in objs:
-        vectors.append(obj.meta[vector_name])
-        y.append(labeller(obj))
-    X, y = vstack(vectors), np.array(y)
+def extract_vector_feats_and_label(corpus, obj_type, vector_name, columns, labeller, selector):
+    # if ((corpus is None) and (objs is None)) or ((corpus is not None) and (objs is not None)):
+    #     raise ValueError("This function takes in either a Corpus or a list of speakers / utterances / conversations")
+    #
+    # if corpus:
+    #     print("Using corpus objects...")
+    #     objs = list(corpus.iter_objs(obj_type, selector))
+    # else:
+    #     assert objs is not None
+    #     print("Using input list of corpus objects...")
+    objs = list(corpus.iter_objs(obj_type, selector))
+    obj_ids = [obj.id for obj in objs]
+    y = np.array([labeller(obj) for obj in objs])
+    X = corpus.get_vector_matrix(vector_name).get_vectors(obj_ids, columns)
+
     return X, y
+
 
 def get_coefs_helper(clf, feature_names: List[str] = None, coef_func=None):
     """

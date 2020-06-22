@@ -2,14 +2,16 @@ from convokit import Corpus, CorpusComponent, Transformer
 from typing import Callable
 from sklearn.feature_extraction.text import CountVectorizer as CV
 
+
 class BoWTransformer(Transformer):
     """
     Bag-of-Words Transformer for annotating a Corpus's objects with the bag-of-words vectorization
-    of some textual element.
+    of some textual element of the Corpus components.
 
     - For utterances, this would be the utterance text.
     - For conversations, this would be joined texts of all the utterances in the conversation
     - For speakers, this would be the joined texts of all the utterances by the speaker
+    - Custom configurations can be configured using the `text_func` argument
 
     Compatible with any type of vectorizer (e.g. bag-of-words, TF-IDF, etc)
 
@@ -58,10 +60,7 @@ class BoWTransformer(Transformer):
         :return: the fitted BoWTransformer
         """
         # collect texts for vectorization
-        docs = []
-        for obj in corpus.iter_objs(self.obj_type, selector):
-            docs.append(self.text_func(obj))
-
+        docs = [self.text_func(obj) for obj in corpus.iter_objs(self.obj_type, selector)]
         self.vectorizer.fit(docs)
         return self
 
@@ -76,11 +75,15 @@ class BoWTransformer(Transformer):
 
         :return: the target Corpus annotated
         """
-        for obj in corpus.iter_objs(self.obj_type):
-            if selector(obj):
-                obj.meta[self.vector_name] = self.vectorizer.transform([self.text_func(obj)])
-            else:
-                obj.meta[self.vector_name] = None
+        objs = list(corpus.iter_objs(self.obj_type, selector))
+        ids = [obj.id for obj in objs]
+        docs = [self.text_func(obj) for obj in objs]
+
+        matrix = self.vectorizer.transform(docs)
+        corpus.set_vector_matrix(self.vector_name, matrix=matrix, ids=ids, columns=self.vectorizer.get_feature_names())
+
+        for obj in objs:
+            obj._add_vector(self.vector_name)
 
         return corpus
 

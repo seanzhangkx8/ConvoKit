@@ -81,13 +81,14 @@ class Utterance(CorpusComponent):
             return self.__dict__ == other.__dict__
 
     def __str__(self):
-        return "Utterance('id': {}, 'conversation_id': {}, 'reply-to': {}, " \
-               "'speaker': {}, 'timestamp': {}, 'text': {}, 'meta': {})".format(repr(self.id),
-                                                                             self.conversation_id,
-                                                                             self.reply_to,
-                                                                             self.speaker,
-                                                                             self.timestamp,
-                                                                             repr(self.text),
-                                                                             self.meta)
+        return "Utterance(id: {}, conversation_id: {}, reply-to: {}, " \
+               "speaker: {}, timestamp: {}, text: {}, vectors: {}, meta: {})".format(repr(self.id),
+                                                                                    self.conversation_id,
+                                                                                    self.reply_to,
+                                                                                    self.speaker,
+                                                                                    self.timestamp,
+                                                                                    repr(self.text),
+                                                                                    self.vectors,
+                                                                                    self.meta)
 
 
