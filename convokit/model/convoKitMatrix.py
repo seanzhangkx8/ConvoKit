@@ -119,6 +119,7 @@ class ConvoKitMatrix:
                 return pickle.load(f)
         except FileNotFoundError:
             warn("Could not find vector with name: {} at {}.".format(matrix_name, dirpath))
+            return None
 
     def dump(self, dirpath):
         """

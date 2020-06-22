@@ -56,7 +56,8 @@ def load_speakers_data_from_dir(filename, exclude_speaker_meta):
     with open(os.path.join(filename, speaker_file), "r") as f:
         id_to_speaker_data = json.load(f)
 
-        if len(id_to_speaker_data) > 0 and len(id_to_speaker_data[next(id_to_speaker_data)]) == 2:
+        if len(id_to_speaker_data) > 0 and len(next(iter(id_to_speaker_data.values()))) and \
+                'vectors' in id_to_speaker_data == 2:
             # has vectors data
             for _, speaker_data in id_to_speaker_data.items():
                 for k in exclude_speaker_meta:
@@ -80,7 +81,8 @@ def load_convos_data_from_dir(filename, exclude_conversation_meta):
     with open(os.path.join(filename, "conversations.json"), "r") as f:
         id_to_convo_data = json.load(f)
 
-        if len(id_to_convo_data) > 0 and len(id_to_convo_data[next(id_to_convo_data)]) == 2:
+        if len(id_to_convo_data) > 0 and len(next(iter(id_to_convo_data.values()))) and \
+                'vectors' in id_to_convo_data == 2:
             # has vectors data
             for _, convo_data in id_to_convo_data.items():
                 for k in exclude_conversation_meta:
@@ -119,11 +121,13 @@ def unpack_binary_data_for_utts(utterances, filename, utterance_index, exclude_m
         del utterance_index[field]
 
 
-def unpack_binary_data(filename, obj_meta, object_index, obj_type, exclude_meta):
+def unpack_binary_data(filename, obj_data, object_index, obj_type, exclude_meta):
     """
     Unpack binary data for Speakers or Conversations
     """
     # unpack speaker meta
+    if len(obj_data) == 2 and 'vectors' in obj_data:
+        obj_meta = obj_data['meta'] if len(obj_data) == 2 and 'vectors' in obj_data else obj_data
     for field, field_types in object_index.items():
         if field_types[0] == "bin" and field not in exclude_meta:
             with open(os.path.join(filename, field + "-{}-bin.p".format(obj_type)), "rb") as f:
@@ -161,7 +165,7 @@ def load_from_utterance_file(filename, utterance_start_index, utterance_end_inde
     return utterances
 
 
-def initialize_speakers_and_utterances_objects(corpus, utt_dict, utterances, speakers_dict, speakers_meta):
+def initialize_speakers_and_utterances_objects(corpus, utt_dict, utterances, speakers_dict, speakers_data):
     """
     Initialize Speaker and Utterance objects
     """
@@ -173,9 +177,15 @@ def initialize_speakers_and_utterances_objects(corpus, utt_dict, utterances, spe
         u = defaultdict(lambda: None, u)
         speaker_key = u[KeySpeaker]
         if speaker_key not in speakers_dict:
-            speakers_dict[speaker_key] = Speaker(owner=corpus, id=u[KeySpeaker], meta=speakers_meta[u[KeySpeaker]])
+            if KeyMeta in speakers_data[u[KeySpeaker]]:
+                speakers_dict[speaker_key] = Speaker(owner=corpus, id=u[KeySpeaker],
+                                                     meta=speakers_data[u[KeySpeaker]][KeyMeta])
+            else:
+                speakers_dict[speaker_key] = Speaker(owner=corpus, id=u[KeySpeaker],
+                                                     meta=speakers_data[u[KeySpeaker]])
 
         speaker = speakers_dict[speaker_key]
+        speaker.vectors = speakers_data[u[KeySpeaker]].get(KeyVectors, [])
 
         # temp fix for reddit reply_to
         if "reply_to" in u:
@@ -186,7 +196,7 @@ def initialize_speakers_and_utterances_objects(corpus, utt_dict, utterances, spe
                         conversation_id=u[KeyConvoId],
                         reply_to=reply_to_data, timestamp=u[KeyTimestamp],
                         text=u[KeyText], meta=u[KeyMeta])
-
+        utt.vectors = u.get(KeyVectors, [])
         utt_dict[utt.id] = utt
 
 
@@ -211,9 +221,10 @@ def merge_utterance_lines(utt_dict):
             new_utterances[utt.id] = utt
     return new_utterances
 
-def initialize_conversations(corpus, utt_dict, convos_meta):
+
+def initialize_conversations(corpus, utt_dict, convos_data):
     """
-    Initialize Conversation objects from utterances and conversations metadata
+    Initialize Conversation objects from utterances and conversations data
     """
     # organize utterances by conversation
     convo_to_utts = defaultdict(list) # temp container identifying utterances by conversation
@@ -223,10 +234,21 @@ def initialize_conversations(corpus, utt_dict, convos_meta):
     conversations = {}
     for convo_id in convo_to_utts:
         # look up the metadata associated with this conversation, if any
-        convo_meta = convos_meta.get(convo_id, None)
+        convo_data = convos_data.get(convo_id, None)
+        if convo_data is not None:
+            if KeyMeta in convo_data:
+                convo_meta = convo_data[KeyMeta]
+            else:
+                convo_meta = convo_data
+        else:
+            convo_meta = None
+
         convo = Conversation(owner=corpus, id=convo_id,
                              utterances=convo_to_utts[convo_id],
                              meta=convo_meta)
+
+        if convo_data is not None and KeyVectors in convo_data and KeyMeta in convo_data:
+            convo.vectors = convo_data.get(KeyVectors, [])
         conversations[convo_id] = convo
     return conversations
 
@@ -256,8 +278,13 @@ def dump_helper_bin(d: ConvoKitMeta, d_bin: Dict, fields_to_skip=None) -> Dict: 
 def dump_corpus_component(corpus, dir_name, filename, obj_type, bin_name, exclude_vectors, fields_to_skip):
     with open(os.path.join(dir_name, filename), "w") as f:
         d_bin = defaultdict(list)
-        objs = {u: dump_helper_bin(corpus.get_object(obj_type, u).meta, d_bin, fields_to_skip.get(obj_type, []))
-                for u in corpus.get_object_ids(obj_type)}
+        objs = defaultdict(dict)
+        for obj_id in corpus.get_object_ids(obj_type):
+            objs[obj_id][KeyMeta] = dump_helper_bin(corpus.get_object(obj_type, obj_id).meta,
+                                                   d_bin, fields_to_skip.get(obj_type, []))
+            obj_vectors = corpus.get_object(obj_type, obj_id).vectors
+            objs[obj_id][KeyVectors] = obj_vectors if exclude_vectors is None else \
+                                      list(set(obj_vectors) - set(exclude_vectors))
         json.dump(objs, f)
 
         for name, l_bin in d_bin.items():
