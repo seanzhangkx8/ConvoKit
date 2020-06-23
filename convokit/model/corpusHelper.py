@@ -126,8 +126,7 @@ def unpack_binary_data(filename, obj_data, object_index, obj_type, exclude_meta)
     Unpack binary data for Speakers or Conversations
     """
     # unpack speaker meta
-    if len(obj_data) == 2 and 'vectors' in obj_data:
-        obj_meta = obj_data['meta'] if len(obj_data) == 2 and 'vectors' in obj_data else obj_data
+    obj_meta = obj_data['meta'] if len(obj_data) == 2 and 'vectors' in obj_data else obj_data
     for field, field_types in object_index.items():
         if field_types[0] == "bin" and field not in exclude_meta:
             with open(os.path.join(filename, field + "-{}-bin.p".format(obj_type)), "rb") as f:
