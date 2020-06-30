@@ -226,6 +226,11 @@ class Conversation(CorpusObject):
             if verbose: warn("ERROR: Found more than one Utterance replying to None.")
             return False
 
+        circular = [utt_id for utt_id, utt_reply_to in utt_reply_tos.items() if utt_id == utt_reply_to]
+        if len(circular) > 0:
+            if verbose: warn("ERROR: Found utterances with .reply_to pointing to themselves: {}".format(circular))
+            return False
+
         if verbose: print("No issues found.\n")
         return True
 
