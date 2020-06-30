@@ -167,6 +167,9 @@ Alternatively, visit our [Github Page](https://github.com/CornellNLP/Cornell-Con
 ## Documentation
 Documentation is hosted [here](https://convokit.cornell.edu/documentation/). If you are new to ConvoKit, great places to get started are the [Core Concepts tutorial](https://convokit.cornell.edu/documentation/architecture.html) for an overview of the ConvoKit "philosophy" and object model, and the [High-level tutorial](https://convokit.cornell.edu/documentation/tutorial.html) for an walkthrough of how to import ConvoKit into your project, load a Corpus, and use ConvoKit functions.
 
+For an overview, watch our SIGDIAL talk introducing the toolkit:
+[![SIGDIAL 2020: Introducing ConvoKit](http://i3.ytimg.com/vi/nofzyxM4h1k/hqdefault.jpg)](https://youtu.be/nofzyxM4h1k "SIGDIAL 2020: Introducing ConvoKit")
+
 ## Contributing
 
 We welcome community contributions. To see how you can help out, check the [contribution guidelines](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/CONTRIBUTING.md).
