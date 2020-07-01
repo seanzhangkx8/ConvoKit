@@ -22,7 +22,7 @@ A brief note
 
 This is a practical hands-on introduction ConvoKit. Read our description of ConvoKit's :doc:`architecture </architecture>` for an understanding of the higher-level design decisions for this package.
 
-We **recommend** following our `interactive Colab notebook <https://colab.research.google.com/github/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/Introduction_to_ConvoKit.ipynb>`_, which contains the same steps as this tutorial, but allows for the full range of outputs (e.g. graphs, tables) to be displayed.**
+We **recommend** following our `interactive Colab notebook <https://colab.research.google.com/github/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/Introduction_to_ConvoKit.ipynb>`_, which contains the same steps as this tutorial, but allows for the full range of outputs (e.g. graphs, tables) to be displayed.
 
 Tutorial
 ========
