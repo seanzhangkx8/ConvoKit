@@ -16,7 +16,7 @@ Contents
 .. toctree::
    :maxdepth: 2
 
-   Introductory Tutorial <tutorial.rst>
+   Introductory tutorial <tutorial.rst>
    Core Concepts <architecture.rst>
    The Corpus model <model.rst>
    Transformers <transformers.rst>
