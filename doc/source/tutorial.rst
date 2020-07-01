@@ -170,7 +170,8 @@ reddmau5
 >>> # corpus.get_utterances_dataframe()
 >>> # corpus.get_conversations_dataframe()
 >>> switchboard_corpus.get_speakers_dataframe().head()
-[DataFrame table -- not printable]
+
+.. image:: img/speakers_dataframe.png
 
 Component functionality
 -----------------------
@@ -208,7 +209,8 @@ In addition, because Conversations can be conceived of as collections of Utteran
 >>> # convo.get_utterances_dataframe()
 >>> # convo.get_speakers_dataframe()
 >>> spkr.get_utterances_dataframe().head()
-[DataFrame table -- not printable]
+
+.. image:: img/utterances_dataframe.png
 
 Conversation
 ------------
@@ -445,7 +447,6 @@ ngram zscores computed.
 We can see a summary of what it has learned using the ``summarize()`` method.
 
 >>> fw.summarize(corpus, plot=True, class1_name='r/Christianity', class2_name='r/atheism')
-<FightingWords plot -- not printable>
                 z-score           class
 ngram
 god           -9.664310       r/atheism
@@ -510,6 +511,8 @@ religious      7.605858  r/Christianity
 religion       7.769434  r/Christianity
 money          7.957425  r/Christianity
 
+.. image:: img/fightingwordsplot.png
+
 Not only do we get a visual plot summarizing the differences, we get a DataFrame mapping an n-gram to its z-score (a measure of how salient the n-gram is) and the class it belongs to.
 
 As we can see, r/Christianity is comparatively more likely to use terms like 'god', 'sin', and 'christ', while r/atheism uses terms 'money', 'religion', and 'science'.
@@ -526,7 +529,7 @@ Other Transformers follow a similar pattern:
 Other transformers can be applied in the same way, and even chained in sequence, as described in the :doc:`Core Concepts Tutorial </architecture>`.
 
 Additional notes
-----------------
+================
 
 1. Some corpora are particularly large and may not be initializable in their entirety without significant computational resources. However, it is possible to `partially load utterances from a dataset <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/convokit/tests/notebook_testers/test_corpus_partial_load.ipynb>`_ to carry out processing of large corpora sequentially.
 
