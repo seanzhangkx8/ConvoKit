@@ -150,6 +150,12 @@ Conversational dataset with intended and perceived deception labels. Over 17,000
 
 Name for download: `diplomacy-corpus`
 
+### [Group Affect and Performance (GAP) Corpus](https://convokit.cornell.edu/documentation/gap.html)
+
+A conversational dataset comprising group meetings of two to four participants that deliberate in a group decision-making exercise. This dataset contains 28 group meetings with a total of 84 participants.
+
+Name for download: `gap-corpus`
+
 ### ...And your own corpus!
 
 In addition to the provided datasets, you may also use ConvoKit with your own custom datasets by loading them into a `convokit.Corpus` object. [This example script](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/converting_movie_corpus.ipynb) shows how to construct a Corpus from custom data.
