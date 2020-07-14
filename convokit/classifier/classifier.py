@@ -57,7 +57,7 @@ class Classifier(Transformer):
         """
         obj_id_to_feats = extract_feats_dict(corpus, self.obj_type, self.pred_feats, selector)
         feats_df = pd.DataFrame.from_dict(obj_id_to_feats, orient='index').reindex(index = list(obj_id_to_feats))
-        X = csr_matrix(feats_df.values)
+        X = csr_matrix(feats_df.values.astype('float64'))
         idx_to_id = {idx: obj_id for idx, obj_id in enumerate(list(obj_id_to_feats))}
         clfs, clfs_probs = self.clf.predict(X), self.clf.predict_proba(X)[:, 1]
 
