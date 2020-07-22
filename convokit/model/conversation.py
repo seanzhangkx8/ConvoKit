@@ -116,7 +116,7 @@ class Conversation(CorpusObject):
             self._speaker_ids = set()
             for ut_id in self._utterance_ids:
                 ut = self._owner.get_utterance(ut_id)
-                self._speaker_ids.add(ut.speaker.name)
+                self._speaker_ids.add(ut.speaker.id)
         return list(self._speaker_ids)
 
     def get_speaker(self, speaker_id: str) -> Speaker:
