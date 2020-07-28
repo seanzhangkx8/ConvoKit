@@ -18,8 +18,8 @@ class Corpus:
 
     :param filename: Path to a folder containing a Corpus or to an utterances.jsonl / utterances.json file to load
     :param utterances: list of utterances to initialize Corpus from
-    :param vectors: list of names of vectors to load from directory; by default, no vectors are loaded but can be loaded
-        any time after corpus initialization (i.e. vectors are lazy-loaded).
+    :param preload_vectors: list of names of vectors to be preloaded from directory; by default,
+        no vectors are loaded but can be loaded any time after corpus initialization (i.e. vectors are lazy-loaded).
     :param utterance_start_index: if loading from directory and the corpus folder contains utterances.jsonl, specify the
         line number (zero-indexed) to begin parsing utterances from
     :param utterance_end_index: if loading from directory and the corpus folder contains utterances.jsonl, specify the
@@ -36,7 +36,7 @@ class Corpus:
     """
 
     def __init__(self, filename: Optional[str] = None, utterances: Optional[List[Utterance]] = None,
-                 vectors: List[str] = None, utterance_start_index: int = None,
+                 preload_vectors: List[str] = None, utterance_start_index: int = None,
                  utterance_end_index: int = None, merge_lines: bool = False,
                  exclude_utterance_meta: Optional[List[str]] = None,
                  exclude_conversation_meta: Optional[List[str]] = None,
@@ -111,9 +111,9 @@ class Corpus:
 
             self.meta_index.enable_type_check()
 
-            # load vectors
-            if vectors is not None:
-                for vector_name in vectors:
+            # load preload_vectors
+            if preload_vectors is not None:
+                for vector_name in preload_vectors:
                     matrix = ConvoKitMatrix.from_dir(self.corpus_dirpath, vector_name)
                     if matrix is not None:
                         self._vector_matrices[vector_name] = matrix
@@ -139,7 +139,7 @@ class Corpus:
     @vectors.setter
     def vectors(self, new_vectors):
         if not isinstance(new_vectors, type(['stringlist'])):
-            raise ValueError("The vectors being set should be a list of strings, "
+            raise ValueError("The preload_vectors being set should be a list of strings, "
                              "where each string is the name of a vector matrix.")
         self.meta_index.vectors = new_vectors
 
@@ -968,7 +968,9 @@ class Corpus:
         """
 
         matrix = ConvoKitMatrix(name=name, matrix=matrix, ids=ids, columns=columns)
-        self.meta_index.vectors.append(name)
+        if name in self.meta_index.vectors:
+            warn('Vector matrix "{}" already exists. Overwriting it with newly set vector matrix.'.format(name))
+        self.meta_index.add_vector(name)
         self._vector_matrices[name] = matrix
 
     def get_vector_matrix(self, name):

@@ -17,7 +17,7 @@ class ConvoKitIndex:
                         'conversation': self.conversations_index,
                         'speaker': self.speakers_index,
                         'corpus': self.overall_index}
-        self.vectors = vectors if vectors is not None else []
+        self.vectors = set(vectors) if vectors is not None else set()
         self.version = version
         self.type_check = True # toggle-able to enable/disable type checks on metadata additions
 
@@ -62,13 +62,19 @@ class ConvoKitIndex:
             if key in corpus_obj.meta:
                 del corpus_obj.meta[key]
 
+    def add_vector(self, vector_name):
+        self.vectors.add(vector_name)
+
+    def del_vector(self, vector_name):
+        self.vectors.remove(vector_name)
+
     def update_from_dict(self, meta_index: Dict):
         self.conversations_index.update(meta_index["conversations-index"])
         self.utterances_index.update(meta_index["utterances-index"])
         speaker_index = "speakers-index" if "speakers-index" in meta_index else "users-index"
         self.speakers_index.update(meta_index[speaker_index])
         self.overall_index.update(meta_index["overall-index"])
-        self.vectors = meta_index.get('vectors', [])
+        self.vectors = set(meta_index.get('vectors', set()))
         self.version = meta_index["version"]
 
     def to_dict(self, exclude_vectors: List[str] = None, force_version=None):
@@ -77,15 +83,16 @@ class ConvoKitIndex:
         retval["speakers-index"] = self.speakers_index
         retval["conversations-index"] = self.conversations_index
         retval["overall-index"] = self.overall_index
+
         if force_version is None:
             retval['version'] = self.version + 1
         else:
             retval['version'] = force_version
 
         if exclude_vectors is not None:
-            retval['vectors'] = [v for v in self.vectors if v not in set(exclude_vectors)]
+            retval['vectors'] = list(self.vectors - set(exclude_vectors))
         else:
-            retval['vectors'] = self.vectors
+            retval['vectors'] = list(self.vectors)
 
         return retval
 
