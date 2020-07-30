@@ -2,6 +2,7 @@ import pandas as pd
 from typing import Optional, List
 import pickle
 import os
+import numpy as np
 from convokit.util import warn
 
 class ConvoKitMatrix:
@@ -26,6 +27,8 @@ class ConvoKitMatrix:
         self.name = name
         self.matrix = matrix
         self.ids = ids
+        if columns is None:
+            columns = np.arange(matrix.shape[1])
         self.columns = columns
         self.ids_to_idx = {id: idx for idx, id in enumerate(ids)}
         self.cols_to_idx = {col: idx for idx, col in enumerate(columns)}
@@ -61,6 +64,11 @@ class ConvoKitMatrix:
         :param columns: optional list of named columns of the vector to include. All columns returned otherwise.
         :return:
         """
+        if not isinstance(ids, list):
+            is_singleton = True
+            ids = [ids]
+        else:
+            is_singleton = False
         indices = [self.ids_to_idx[k] for k in ids]
         if columns is None:
             if not as_dataframe:
@@ -72,7 +80,14 @@ class ConvoKitMatrix:
             col_indices = [self.cols_to_idx[col] for col in columns]
             matrix = self.matrix.toarray() if self.matrix.getformat() == 'csr' else self.matrix
             submatrix = matrix[indices, col_indices].reshape(len(indices), len(col_indices))
-            return submatrix if not as_dataframe else pd.DataFrame(submatrix, index=ids, columns=columns)
+            if as_dataframe:
+                return pd.DataFrame(submatrix, index=ids, columns=columns)
+            else:
+                if is_singleton:
+                    return submatrix.flatten()
+                else:
+                    return submatrix
+            # return submatrix if not as_dataframe else pd.DataFrame(submatrix, index=ids, columns=columns)
 
     def to_dict(self):
         if self.columns is None:

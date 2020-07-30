@@ -50,15 +50,7 @@ class PromptTypes(Transformer):
 		same attribute as in fit.
 	:param ref_transform_field: the name of the attribute of responses to use as input to transform; defaults to the
 		same attribute as in fit.
-	:param prompt_filter: a boolean function of signature `filter(utterance, aux_input)` that determines which
-		utterances will be considered as prompts in the fit step. defaults to using all utterances which have a response.
-	:param ref_filter: a boolean function of signature `filter(utterance, aux_input)` that determines which utterances
-		will be considered as responses in the fit step. defaults to using all utterances which are responses to a
-		prompt.
-	:param prompt_transform_filter: filter that determines which utterances will be considered as prompts in the
-		transform step. defaults to prompt_filter, the same as is used in fit.
-	:param ref_transform_filter: filter that determines which utterances will be considered as responses in the
-		transform step. defaults to ref_filter, the same as is used in fit.
+	
 	:param prompt__tfidf_min_df: the minimum frequency of prompt terms to use. can be specified as a fraction or as an
 		absolute count, defaults to 100.
 	:param prompt__tfidf_max_df: the maximum frequency of prompt terms to use. can be specified as a fraction or as an
@@ -81,8 +73,6 @@ class PromptTypes(Transformer):
 	
 	def __init__(self, prompt_field, ref_field, output_field, n_types=8,
 				prompt_transform_field=None, ref_transform_field=None,
-				prompt_filter=lambda utt, aux: True, ref_filter=lambda utt, aux: True,
-				prompt_transform_filter=None, ref_transform_filter=None,
 				prompt__tfidf_min_df=100, prompt__tfidf_max_df=.1,
 				ref__tfidf_min_df=100, ref__tfidf_max_df=.1,
 				snip_first_dim=True,
@@ -96,13 +86,9 @@ class PromptTypes(Transformer):
 		
 		self.prompt_field = prompt_field
 		self.ref_field = ref_field
-		self.prompt_filter = prompt_filter
-		self.ref_filter = ref_filter
 		
 		self.prompt_transform_field = prompt_transform_field if prompt_transform_field is not None else self.prompt_field
-		self.prompt_transform_filter = prompt_transform_filter if prompt_transform_filter is not None else self.prompt_filter
 		self.ref_transform_field = ref_transform_field if ref_transform_field is not None else self.ref_field
-		self.ref_transform_filter = ref_transform_filter if ref_transform_filter is not None else self.ref_filter
 
 		self.output_field = output_field
 		
@@ -117,13 +103,22 @@ class PromptTypes(Transformer):
 		self.max_dist = max_dist
 		self.verbosity = verbosity
 	
-	def fit(self, corpus, y=None):
+	def fit(self, corpus, y=None, prompt_filter=lambda utt, aux: True, ref_filter=lambda utt, aux: True):
 		"""
 		Fits a PromptTypes model for a corpus -- that is, learns latent representations of prompt and response terms, as well as prompt types.
 
 		:param corpus: Corpus
+		:param prompt_filter: a boolean function of signature `filter(utterance, aux_input)` that determines which
+		utterances will be considered as prompts in the fit step. defaults to using all utterances which have a response.
+		:param ref_filter: a boolean function of signature `filter(utterance, aux_input)` that determines which utterances
+			will be considered as responses in the fit step. defaults to using all utterances which are responses to a
+			prompt.
+		
 		:return: None
 		"""
+		self.prompt_filter = prompt_filter
+		self.ref_filter = ref_filter
+
 		_, prompt_input, _, ref_input = self._get_pair_input(corpus, self.prompt_field, self.ref_field,
 									self.prompt_filter, self.ref_filter)
 		self.prompt_embedding_model = fit_prompt_embedding_model(prompt_input, ref_input,
@@ -131,31 +126,40 @@ class PromptTypes(Transformer):
 								self.ref__tfidf_min_df, self.ref__tfidf_max_df,
 								self.svd__n_components, self.random_state, self.verbosity)
 		self.train_results['prompt_ids'], self.train_results['prompt_vects'],\
-			self.train_results['ref_ids'], self.train_results['ref_vects'] = self._get_embeddings(corpus) 
+			self.train_results['ref_ids'], self.train_results['ref_vects'] = self._get_embeddings(corpus, prompt_filter, ref_filter) 
 		self.refit_types(self.default_n_types, self.random_state)
 
 		
-	def transform(self, corpus):
+	def transform(self, corpus, use_fit_filter=True, prompt_filter=lambda utt, aux: True, ref_filter=lambda utt, aux: True):
 		"""
 		Computes vector representations and prompt type assignments for utterances in a corpus.
 
 		:param corpus: Corpus
+		:param use_fit_filter: defaults to True, will use the same filters as the fit step to determine which utterances will be considered as prompts and responses in the transform step.
+		:param prompt_transform_filter: filter that determines which utterances will be considered as prompts in the
+			transform step. defaults to prompt_filter, the same as is used in fit.
+		:param ref_transform_filter: filter that determines which utterances will be considered as responses in the
+			transform step. defaults to ref_filter, the same as is used in fit.
 		:return: the corpus, with per-utterance representations and type assignments.
 		"""
-
-		prompt_ids, prompt_vects, ref_ids, ref_vects = self._get_embeddings(corpus)
-		corpus.set_vect_reprs(self.output_field + '__prompt_repr', prompt_ids, prompt_vects)
-		corpus.set_vect_reprs(self.output_field + '__ref_repr', ref_ids, ref_vects)
+		if use_fit_filter:
+			prompt_filter = self.prompt_filter
+			ref_filter = self.ref_filter 
+		prompt_ids, prompt_vects, ref_ids, ref_vects = self._get_embeddings(corpus, prompt_filter, ref_filter)
+		
+		corpus.set_vector_matrix(self.output_field + '__prompt_repr', matrix=prompt_vects, ids=prompt_ids)
+		corpus.set_vector_matrix(self.output_field + '__ref_repr', matrix=ref_vects, ids=ref_ids)
 		
 		prompt_df, ref_df = self._get_type_assignments(prompt_ids, prompt_vects, ref_ids, ref_vects)
 		prompt_dists, prompt_assigns = prompt_df[prompt_df.columns[:-1]].values, prompt_df['type_id'].values
 		prompt_min_dists = prompt_dists.min(axis=1)
 		ref_dists, ref_assigns = ref_df[ref_df.columns[:-1]].values, ref_df['type_id'].values
 		ref_min_dists = ref_dists.min(axis=1)
-		corpus.set_vect_reprs(self.output_field + '__prompt_dists.%s' % self.default_n_types, 
-								prompt_df.index, prompt_dists)
-		corpus.set_vect_reprs(self.output_field + '__ref_dists.%s' % self.default_n_types, 
-								ref_df.index, ref_dists)
+		
+		corpus.set_vector_matrix(self.output_field + '__prompt_dists.%s' % self.default_n_types, 
+								ids=prompt_df.index, matrix=prompt_dists)
+		corpus.set_vector_matrix(self.output_field + '__ref_dists.%s' % self.default_n_types, 
+								ids=ref_df.index, matrix=ref_dists)
 		for id, assign, dist in zip(prompt_df.index, prompt_assigns, prompt_min_dists):
 			corpus.get_utterance(id).set_info(self.output_field + '__prompt_type.%s' % self.default_n_types, assign)
 			corpus.get_utterance(id).set_info(self.output_field + '__prompt_type_dist.%s' % self.default_n_types, float(dist))
@@ -172,10 +176,10 @@ class PromptTypes(Transformer):
 		:return: the utterance, annotated with representations and type assignments.
 		"""
 
-		if self.prompt_transform_filter(utterance, {}):
-			utterance = self._transform_utterance_side(utterance, 'prompt')
-		if self.ref_transform_filter(utterance, {}):
-			utterance = self._transform_utterance_side(utterance, 'ref')
+		# if self.prompt_transform_filter(utterance):
+		utterance = self._transform_utterance_side(utterance, 'prompt')
+		# if self.ref_transform_filter(utterance):
+		utterance = self._transform_utterance_side(utterance, 'ref')
 		return utterance
 
 
@@ -221,10 +225,10 @@ class PromptTypes(Transformer):
 		self.train_types[key] = {'prompt_df': prompt_df, 'ref_df': ref_df}
 
 		
-	def _get_embeddings(self, corpus):
+	def _get_embeddings(self, corpus, prompt_filter, ref_filter):
 		prompt_ids, prompt_inputs = self._get_input(corpus, self.prompt_transform_field, 
-													self.prompt_transform_filter)
-		ref_ids, ref_inputs = self._get_input(corpus, self.ref_transform_field, self.ref_transform_filter)
+													prompt_filter)
+		ref_ids, ref_inputs = self._get_input(corpus, self.ref_transform_field, ref_filter)
 		prompt_ids, prompt_vects = transform_embeddings(self.prompt_embedding_model, 
 														prompt_ids, prompt_inputs, 
 														side='prompt')
@@ -284,6 +288,20 @@ class PromptTypes(Transformer):
 				print(utt, corpus.get_utterance(utt).text)
 				print(corpus.get_utterance(utt).get_info(self.ref_transform_field))
 				print()
+
+	def summarize(self, corpus, type_ids=None, type_key=None, k=10):
+		if type_key is None:
+			type_key = self.default_n_types
+
+		n_types = self.type_models[type_key]['km_model'].n_clusters
+		if type_ids is None:
+			type_ids = list(range(n_types))
+		if not isinstance(type_ids, list):
+			type_ids = [type_ids]
+		for type_id in type_ids:
+			print('TYPE', type_id)
+			self.display_type(type_id, corpus, type_key, k)
+			print('====')
 	
 	def dump_model(self, model_dir, type_keys='default', dump_train_corpus=True):
 		"""
@@ -400,7 +418,7 @@ class PromptTypes(Transformer):
 		return ids, inputs
 
 	def _get_pair_input(self, corpus, prompt_field, ref_field, 
-			  prompt_filter=lambda x,y,z: True, ref_filter=lambda x,y,z: True, 
+			  prompt_filter, ref_filter, 
 			  check_nonempty=True, aux_input={}):
 		prompt_ids = []
 		prompt_utts = []
