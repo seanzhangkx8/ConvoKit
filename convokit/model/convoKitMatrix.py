@@ -4,6 +4,7 @@ import pickle
 import os
 import numpy as np
 from convokit.util import warn
+from scipy import sparse
 
 class ConvoKitMatrix:
     """
@@ -48,13 +49,6 @@ class ConvoKitMatrix:
             raise ValueError("Input matrix dimensions {} do not match "
                              "length of ids and/or columns".format(self.matrix.shape))
 
-    # def get_vector(self, id: str, columns: Optional[List[str]] = None):
-    #     if columns is None:
-    #         return self.matrix[self.ids_to_idx[id]] # TODO compatible with csr?
-    #     else:
-    #         col_indices = [self.cols_to_idx[col] for col in columns]
-    #         return self.matrix[self.ids_to_idx[id]][col_indices]
-
     def get_vectors(self, ids: List[str], as_dataframe=False, columns: Optional[List[str]] = None):
         """
 
@@ -74,11 +68,11 @@ class ConvoKitMatrix:
             if not as_dataframe:
                 return self.matrix[indices]
             else:
-                matrix = self.matrix.toarray() if self.matrix.getformat() == 'csr' else self.matrix
+                matrix = self.matrix.toarray() if sparse.issparse(self.matrix) else self.matrix
                 return pd.DataFrame(matrix[indices], index=ids, columns=self.columns)
         else:
             col_indices = [self.cols_to_idx[col] for col in columns]
-            matrix = self.matrix.toarray() if self.matrix.getformat() == 'csr' else self.matrix
+            matrix = self.matrix.toarray() if sparse.issparse(self.matrix) else self.matrix
             submatrix = matrix[indices, col_indices].reshape(len(indices), len(col_indices))
             if as_dataframe:
                 return pd.DataFrame(submatrix, index=ids, columns=columns)
@@ -106,14 +100,14 @@ class ConvoKitMatrix:
         """
         index = {idx: id_ for id_, idx in self.ids_to_idx.items()}
         sorted_ids = [index[idx] for idx in sorted(index)]
-        matrix = self.matrix.toarray() if self.matrix.getformat() == 'csr' else self.matrix
+        matrix = self.matrix.toarray() if sparse.issparse(self.matrix) else self.matrix
         return pd.DataFrame(matrix, index=sorted_ids, columns=self.columns)
 
     @staticmethod
     def from_file(filepath):
         """
         Initialize a ConvoKitMatrix from a file of form "vector.[name].p".
-        
+
         :param filepath:
         :return:
         """
@@ -143,8 +137,17 @@ class ConvoKitMatrix:
         :param dirpath: directory path to Corpus
         :return: None
         """
+        originally_dense = False
+        if not sparse.issparse(self.matrix):
+            temp = self.matrix
+            originally_dense = True
+            self.matrix = sparse.csr_matrix(self.matrix)
+
         with open(os.path.join(dirpath, 'vectors.{}.p'.format(self.name)), 'wb') as f:
             pickle.dump(self, f)
+
+        if originally_dense:
+            self.matrix = temp
 
     def __repr__(self):
         return "ConvoKitMatrix('name': {}, 'matrix': {})".format(self.name, repr(self.matrix))
