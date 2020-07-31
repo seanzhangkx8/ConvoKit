@@ -55,7 +55,7 @@ class ConvoKitMatrix:
     #         col_indices = [self.cols_to_idx[col] for col in columns]
     #         return self.matrix[self.ids_to_idx[id]][col_indices]
 
-    def get_vectors(self, ids: List[str], as_dataframe: False, columns: Optional[List[str]] = None):
+    def get_vectors(self, ids: List[str], as_dataframe=False, columns: Optional[List[str]] = None):
         """
 
         :param ids: object ids to get vectors for
