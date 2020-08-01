@@ -238,8 +238,9 @@ class FightingWords(Transformer):
 
         for obj in corpus.iter_objs(self.obj_type): # improve the efficiency of this; tricky because ngrams #TODO
             if selector(obj):
-                obj.meta['fighting_words_class1'] = [ngram for ngram in class1_ngrams if ngram in obj.text]
-                obj.meta['fighting_words_class2'] = [ngram for ngram in class2_ngrams if ngram in obj.text]
+                obj_text = self.text_func(obj)
+                obj.meta['fighting_words_class1'] = [ngram for ngram in class1_ngrams if ngram in obj_text]
+                obj.meta['fighting_words_class2'] = [ngram for ngram in class2_ngrams if ngram in obj_text]
             else:
                 obj.meta['fighting_words_class1'] = None
                 obj.meta['fighting_words_class2'] = None
