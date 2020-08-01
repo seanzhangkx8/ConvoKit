@@ -104,10 +104,10 @@ class CorpusComponent:
         if vector_name not in self.vectors:
             raise ValueError("This {} has no vector stored as '{}'.".format(self.obj_type, vector_name))
 
-        return self.owner.get_vector_matrix(vector_name).get_vectors([self.id], as_dataframe=as_dataframe,
+        return self.owner.get_vector_matrix(vector_name).get_vectors(ids=[self.id], as_dataframe=as_dataframe,
                                                                      columns=columns)
 
-    def _add_vector(self, vector_name: str):
+    def add_vector(self, vector_name: str):
         """
         Logs in the Corpus component object's internal vectors list that the component object has a vector row
         associated with it in the vector matrix named `vector_name`.
@@ -118,7 +118,19 @@ class CorpusComponent:
         :param vector_name: name of vector matrix
         :return: None
         """
-        return self.vectors.append(vector_name)
+        self.vectors.append(vector_name)
+
+    def has_vector(self, vector_name: str):
+        return vector_name in self.vectors
+
+    def del_vector(self, vector_name: str):
+        """
+        Delete a vector associated with this Corpus component object.
+
+        :param vector_name:
+        :return: None
+        """
+        self.vectors.remove(vector_name)
 
     def __str__(self):
         return "{}(id: {}, vectors: {}, meta: {})".format(self.obj_type.capitalize(), self.id, self.vectors, self.meta)
