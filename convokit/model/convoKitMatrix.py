@@ -137,17 +137,15 @@ class ConvoKitMatrix:
         :param dirpath: directory path to Corpus
         :return: None
         """
-        originally_dense = False
         if not sparse.issparse(self.matrix):
             temp = self.matrix
-            originally_dense = True
             self.matrix = sparse.csr_matrix(self.matrix)
-
-        with open(os.path.join(dirpath, 'vectors.{}.p'.format(self.name)), 'wb') as f:
-            pickle.dump(self, f)
-
-        if originally_dense:
+            with open(os.path.join(dirpath, 'vectors.{}.p'.format(self.name)), 'wb') as f:
+                pickle.dump(self, f)
             self.matrix = temp
+        else:
+            with open(os.path.join(dirpath, 'vectors.{}.p'.format(self.name)), 'wb') as f:
+                pickle.dump(self, f)
 
     def __repr__(self):
         return "ConvoKitMatrix('name': {}, 'matrix': {})".format(self.name, repr(self.matrix))
