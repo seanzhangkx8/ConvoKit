@@ -988,6 +988,11 @@ class Corpus:
                 self._vector_matrices[name] = matrix
         return self._vector_matrices[name]
 
+    def get_vectors(self, name, ids: List[str], as_dataframe=False, columns: Optional[List[str]] = None):
+
+        return self.get_vector_matrix(name).get_vectors(ids=ids, as_dataframe=as_dataframe,
+            columns=columns)
+
     def del_vector_matrix(self, name):
         """
         Deletes the vector matrix stored under `name`.
@@ -998,6 +1003,16 @@ class Corpus:
         self.meta_index.vectors.remove(name)
         if name in self._vector_matrices:
             del self._vector_matrices[name]
+
+    def dump_vectors(self, name, dir_name=None):
+
+        if (self.corpus_dirpath is None) and (dir_name is None):
+            raise ValueError('Must specify a directory to read from.')
+        if dir_name is None:
+            dir_name = self.corpus_dirpath
+
+        corpus.get_vector_matrix(name).dump(dir_name)
+
 
     @staticmethod
     def _load_jsonlist_to_dict(filename, index_key='id', value_key='value'):

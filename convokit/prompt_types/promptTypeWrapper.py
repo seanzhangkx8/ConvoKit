@@ -68,16 +68,16 @@ class PromptTypeWrapper(Transformer):
 			)
 		
 			prompt_input_field = 'question_arcs'
-			prompt_filter = lambda utt, aux: utt.meta['is_question']
-			ref_filter = lambda utt, aux: (not utt.meta['is_question']) and (utt.reply_to is not None)
+			self.prompt_filter = lambda utt, aux: utt.meta['is_question']
+			self.ref_filter = lambda utt, aux: (not utt.meta['is_question']) and (utt.reply_to is not None)
 		else:
 			prompt_input_field = 'arcs'
-			prompt_filter = lambda utt, aux: True
-			ref_filter = lambda utt, aux: True
+			self.prompt_filter = lambda utt, aux: True
+			self.ref_filter = lambda utt, aux: True
 		if use_prompt_motifs:
 			pipe.append(
 				('pm_model', PhrasingMotifs('motifs', prompt_input_field, min_support=min_support,
-						fit_filter=prompt_filter, verbosity=verbosity))
+						fit_filter=self.prompt_filter, verbosity=verbosity))
 			)
 			prompt_field = 'motifs'
 			prompt_transform_field = 'motifs__sink'
@@ -89,7 +89,6 @@ class PromptTypeWrapper(Transformer):
 									 prompt_transform_field=prompt_transform_field,
 									 output_field=output_field, n_types=n_types,
 									 svd__n_components=svd__n_components,
-									 prompt_filter=prompt_filter, ref_filter=ref_filter,
 									 prompt__tfidf_min_df=min_df,
 									 prompt__tfidf_max_df=max_df,
 									 ref__tfidf_min_df=min_df,
@@ -108,7 +107,8 @@ class PromptTypeWrapper(Transformer):
 			:return: None
 		"""
 
-		self.pipe.fit(corpus)
+		self.pipe.fit(corpus, 
+				pt_model__prompt_filter=self.prompt_filter, pt_model__ref_filter=self.ref_filter)
 	
 	def transform(self, corpus):
 		"""
@@ -185,6 +185,9 @@ class PromptTypeWrapper(Transformer):
 
 		"""
 		self.pipe.named_steps['pt_model'].display_type(type_id, corpus=corpus, type_key=type_key, k=k)
+
+	def summarize(self, corpus, type_ids=None, type_key=None, k=10):
+		self.pipe.named_steps['pt_model'].summarize(corpus=corpus, type_ids=type_ids, type_key=type_key, k=k)
 	
 	def refit_types(self, n_types, random_state=None, name=None):
 		"""

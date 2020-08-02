@@ -58,11 +58,7 @@ class ConvoKitMatrix:
         :param columns: optional list of named columns of the vector to include. All columns returned otherwise.
         :return:
         """
-        if not isinstance(ids, list):
-            is_singleton = True
-            ids = [ids]
-        else:
-            is_singleton = False
+
         indices = [self.ids_to_idx[k] for k in ids]
         if columns is None:
             if not as_dataframe:
@@ -77,10 +73,7 @@ class ConvoKitMatrix:
             if as_dataframe:
                 return pd.DataFrame(submatrix, index=ids, columns=columns)
             else:
-                if is_singleton:
-                    return submatrix.flatten()
-                else:
-                    return submatrix
+                return submatrix
             # return submatrix if not as_dataframe else pd.DataFrame(submatrix, index=ids, columns=columns)
 
     def to_dict(self):
