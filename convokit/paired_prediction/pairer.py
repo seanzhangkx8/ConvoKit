@@ -10,16 +10,25 @@ class Pairer(Transformer):
 
     Pairer sets this pairing up. For this example:
 
-    - the obj_type is 'utterance' (since we compare utterances)
-    - the pairing_func is supposed to extract the identifier that would identify the object as part of the pair. In this case, that would be the Utterance's conversation id since we want utterances from the same conversation.
-    - we need to distinguish between utterances where Rachel speaks to Monica vs. Chandler. the pos_label_func and neg_label_func is how we can specify this (e.g. lambda utt: utt.meta['target']), where positive instances might be arbitrarily refer to targetting Monica, and negative for targetting Chandler.
-    - pair_mode denotes how many pairs to use per context. For example, a Conversation will likely have Rachel address Monica and Chandler each multiple times. This means that there are multiple positive and negative instances that can be used to form pairs. We could randomly pick one pair of instances ('random'), or the first pair of instances ('first') or the maximum pairs of instances ('maximize').
+    - The obj_type is 'utterance' (since we compare utterances)
+    - The pairing_func is supposed to extract the identifier that would identify the object as part of the pair. In this case, that would be the Utterance's conversation id since we want utterances from the same conversation.
+    - We need to distinguish between utterances where Rachel speaks to Monica vs. Chandler.
+        the pos_label_func and neg_label_func is how we can specify this (e.g. lambda utt: utt.meta['target']), where positive instances might be arbitrarily refer to targetting Monica, and negative for targetting Chandler.
+    - pair_mode denotes how many pairs to use per context.
+        For example, a Conversation will likely have Rachel address Monica and Chandler each multiple times.
+        This means that there are multiple positive and negative instances that can be used to form pairs.
+        We could randomly pick one pair of instances ('random'), or the first pair of instances ('first'),
+        or the maximum pairs of instances ('maximize').
 
     Pairer saves this pairing information into the object metadata.
 
-    - pair_id is the 'id' that uniquely identifies a pair of positive and negative instances, and is the output from the pairing_func.
+    - pair_id is the 'id' that uniquely identifies a pair of positive and negative instances,
+        and is the output from the pairing_func.
     - label (or pair_obj_label) denotes whether the object is the positive or negative instance of the pair
-    - pair_orientation denotes whether to use the pair itself as a positive or negative data point in a predictive classifier. 'pos' means the difference between the objects in the pair should be computed as [+ve obj features] - [-ve obj features], and 'neg' means it should be computed as [-ve obj features] - [+ve obj features].
+    - pair_orientation denotes whether to use the pair itself as a positive or negative data point in a predictive
+        classifier. 'pos' means the difference between the objects in the pair should be computed as
+        [+ve obj features] - [-ve obj features], and 'neg' means it should be computed as
+        [-ve obj features] - [+ve obj features].
     """
 
     def __init__(self, obj_type: str,
@@ -32,7 +41,8 @@ class Pairer(Transformer):
                  pair_orientation_feat_name: str = "pair_orientation"):
 
         """
-        :param pairing_func: the Corpus object characteristic to pair on, e.g. to pair on the first 10 characters of a well-structured id, use lambda obj: obj.id[:10]
+        :param pairing_func: the Corpus object characteristic to pair on, e.g. to pair on the first 10 characters of a
+            well-structured id, use lambda obj: obj.id[:10]
         :param pos_label_func: The function to check if the object is a positive instance
         :param neg_label_func: The function to check if the object is a negative instance
         :param pair_mode: 'random': pick a single positive and negative object pair randomly (default), 'maximize': pick the maximum number of positive and negative object pairs possible randomly, or 'first': pick the first positive and negative object pair found.

@@ -3,29 +3,30 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import LeaveOneOut, cross_val_score
 from typing import List, Callable
+
 from convokit import CorpusComponent, Corpus
 from .util import *
 from .pairedPrediction import PairedPrediction
 from convokit.classifier.util import get_coefs_helper
 
 
-class PairedBoW(PairedPrediction):
+class PairedVectorPrediction(PairedPrediction):
     """
-    Transformer for doing a Paired Prediction with bag-of-words vectors.
+    Transformer for doing a Paired Prediction with vectors.
 
     :param obj_type: corpus object type to do a paired BoW on
     :param vector_name: meta key containing the BoW vector
     :param clf: optional classifier to be used in the paired prediction
-    :param pair_id_feat_name: metadata feature name to use in annotating object with pair id, default: "pair_id"
-    :param label_feat_name: metadata feature name to use in annotating object with predicted label, default: "label"
-    :param pair_orientation_feat_name: metadata feature name to use in annotating object with pair orientation, default: "pair_orientation"
+    :param pair_id_attribute_name: metadata attribute name to use in annotating object with pair id, default: "pair_id"
+    :param label_attribute_name: metadata attribute name to use in annotating object with predicted label, default: "label"
+    :param pair_orientation_attribute_name: metadata attribute name to use in annotating object with pair orientation, default: "pair_orientation"
 
     """
     def __init__(self, obj_type: str,
-                 vector_name="bow_vector",
-                 clf=None, pair_id_feat_name: str = "pair_id",
-                 label_feat_name: str = "pair_obj_label",
-                 pair_orientation_feat_name: str = "pair_orientation"):
+                 vector_name: str,
+                 clf=None, pair_id_attribute_name: str = "pair_id",
+                 label_attribute_name: str = "pair_obj_label",
+                 pair_orientation_attribute_name: str = "pair_orientation"):
 
         assert obj_type in ["speaker", "utterance", "conversation"]
         self.obj_type = obj_type
@@ -35,16 +36,19 @@ class PairedBoW(PairedPrediction):
                         ("logreg", LogisticRegression(solver='liblinear'))]) if clf is None else clf
 
         super().__init__(obj_type=obj_type, pred_feats=[],
-                         pair_id_feat_name=pair_id_feat_name,
-                         label_feat_name=label_feat_name, pair_orientation_feat_name=pair_orientation_feat_name, clf=clf)
+                         pair_id_feat_name=pair_id_attribute_name,
+                         label_feat_name=label_attribute_name,
+                         pair_orientation_feat_name=pair_orientation_attribute_name,
+                         clf=clf)
 
     def fit(self, corpus: Corpus, y=None, selector: Callable[[CorpusComponent], bool] = lambda x: True):
         # Check if Pairer.transform() needs to be run first
         self._check_for_pair_information(corpus)
-        pair_id_to_objs = generate_pair_id_to_objs(corpus, self.obj_type, selector, self.pair_orientation_feat_name,
+        pair_id_to_objs = generate_pair_id_to_objs(corpus, self.obj_type, selector,
+                                                   self.pair_orientation_feat_name,
                                                    self.label_feat_name, self.pair_id_feat_name)
 
-        X, y = generate_bow_paired_X_y(self.pair_orientation_feat_name, pair_id_to_objs, self.vector_name)
+        X, y = generate_vectors_paired_X_y(corpus, self.pair_orientation_feat_name, pair_id_to_objs, self.vector_name)
         self.clf.fit(X, y)
         return self
 
