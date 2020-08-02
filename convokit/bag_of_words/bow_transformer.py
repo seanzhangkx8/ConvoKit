@@ -83,7 +83,7 @@ class BoWTransformer(Transformer):
         corpus.set_vector_matrix(self.vector_name, matrix=matrix, ids=ids, columns=self.vectorizer.get_feature_names())
 
         for obj in objs:
-            obj._add_vector(self.vector_name)
+            obj.add_vector(self.vector_name)
 
         return corpus
 
