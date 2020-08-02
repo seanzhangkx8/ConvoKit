@@ -40,7 +40,7 @@ class FightingWords(Transformer):
     Identifies the fighting words of two groups of corpus components (e.g. two groups of utterances),
     which we define as the groups: 'class1' and 'class2'
 
-    :param obj_type: utterance, conversation, or speaker
+    :param obj_type: 'utterance', 'conversation', or 'speaker'
     :param text_func: function for getting text from the Corpus component object. By default, this assumes the Corpus
         component is an Utterance and gets the Utterance's text.
     :param cv: optional CountVectorizer. default: an sklearn CV with min_df=10, max_df=.5, and ngram_range=(1,3)
@@ -52,10 +52,23 @@ class FightingWords(Transformer):
     :ivar cv: modifiable countvectorizer
 
     """
-    def __init__(self, obj_type="utterance", text_func=lambda utt: FightingWords.clean_text(utt.text), cv=None,
+    def __init__(self, obj_type="utterance", text_func=None, cv=None,
                  ngram_range=None, prior=0.1):
+        assert obj_type in ["speaker", "utterance", "conversation"]
         self.obj_type = obj_type
-        self.text_func = text_func
+
+        if text_func is None:
+            if obj_type == 'utterance':
+                self.text_func = lambda utt: FightingWords.clean_text(utt.text)
+            elif obj_type == 'conversation':
+                self.text_func = lambda convo: \
+                    FightingWords.clean_text(' '.join([utt.text for utt in convo.iter_utterances()]))
+            else:
+                self.text_func = lambda spkr: \
+                    FightingWords.clean_text(' '.join([utt.text for utt in spkr.iter_utterances()]))
+        else:
+            self.text_func = text_func
+
         self.ngram_range = ngram_range
         self.prior = prior
         self.cv = cv
