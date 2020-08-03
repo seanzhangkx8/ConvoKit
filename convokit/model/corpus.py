@@ -1,7 +1,4 @@
 from typing import List, Collection, Callable, Set, Generator, Tuple, Optional, ValuesView, Union
-import numpy as np
-import pandas as pd
-from .corpusHelper import dump_corpus_component
 from .corpusHelper import *
 from convokit.util import deprecation, warn
 from .corpusUtil import *
@@ -973,6 +970,19 @@ class Corpus:
         self.meta_index.add_vector(name)
         self._vector_matrices[name] = matrix
 
+    def append_vector_matrix(self, matrix: ConvoKitMatrix):
+        """
+        Adds an already constructed ConvoKitMatrix to the Corpus
+
+        :param matrix: a ConvoKitMatrix object
+        :return: None
+        """
+        if matrix.name in self.meta_index.vectors:
+            warn('Vector matrix "{}" already exists. '
+                 "Overwriting it with newly appended vector matrix that has name: '{}'.".format(matrix.name, matrix.name))
+        self.meta_index.add_vector(matrix.name)
+        self._vector_matrices[matrix.name] = matrix
+
     def get_vector_matrix(self, name):
         """
         Gets the ConvoKitMatrix stored in the corpus as `name`.
@@ -988,10 +998,17 @@ class Corpus:
                 self._vector_matrices[name] = matrix
         return self._vector_matrices[name]
 
-    def get_vectors(self, name, ids: List[str], as_dataframe=False, columns: Optional[List[str]] = None):
+    def get_vectors(self, name, ids: List[str], as_dataframe: bool = False, columns: Optional[List[str]] = None):
+        """
+        Get the vectors for some corpus component objects.
 
-        return self.get_vector_matrix(name).get_vectors(ids=ids, as_dataframe=as_dataframe,
-            columns=columns)
+        :param name: name of the vector matrix
+        :param ids: list of object ids to get vectors for
+        :param as_dataframe: whether to return the vector matrix as a dataframe
+        :param columns:
+        :return: a vector matrix
+        """
+        return self.get_vector_matrix(name).get_vectors(ids=ids, as_dataframe=as_dataframe, columns=columns)
 
     def del_vector_matrix(self, name):
         """
@@ -1011,7 +1028,7 @@ class Corpus:
         if dir_name is None:
             dir_name = self.corpus_dirpath
 
-        corpus.get_vector_matrix(name).dump(dir_name)
+        self.get_vector_matrix(name).dump(dir_name)
 
 
     @staticmethod
