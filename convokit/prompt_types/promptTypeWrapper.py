@@ -187,6 +187,15 @@ class PromptTypeWrapper(Transformer):
 		self.pipe.named_steps['pt_model'].display_type(type_id, corpus=corpus, type_key=type_key, k=k)
 
 	def summarize(self, corpus, type_ids=None, type_key=None, k=10):
+		'''
+		Displays representative prompt and response terms and utterances for each type learned. 
+
+		:param corpus: corpus to display utterances for (must have `transform()` called on it)
+		:param type_ids: ID of the prompt type to display. if None, will display all types.
+		:param type_key: the name of the prompt type clustering model to use. defaults to `n_types` that the model was initialized with, but if `refit_types` is called with different number of types, can be modified to display this updated model as well.
+		:param k: the number of sample terms (or utteranceS) to display.
+		:return: None
+		'''
 		self.pipe.named_steps['pt_model'].summarize(corpus=corpus, type_ids=type_ids, type_key=type_key, k=k)
 	
 	def refit_types(self, n_types, random_state=None, name=None):

@@ -290,6 +290,15 @@ class PromptTypes(Transformer):
 				print()
 
 	def summarize(self, corpus, type_ids=None, type_key=None, k=10):
+		'''
+		Displays representative prompt and response terms and utterances for each type learned. A wrapper for `display_type`.
+
+		:param corpus: corpus to display utterances for (must have `transform()` called on it)
+		:param type_ids: ID of the prompt type to display. if None, will display all types.
+		:param type_key: the name of the prompt type clustering model to use. defaults to `n_types` that the model was initialized with, but if `refit_types` is called with different number of types, can be modified to display this updated model as well.
+		:param k: the number of sample terms (or utteranceS) to display.
+		:return: None
+		'''
 		if type_key is None:
 			type_key = self.default_n_types
 

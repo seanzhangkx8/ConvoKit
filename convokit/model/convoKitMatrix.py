@@ -49,16 +49,17 @@ class ConvoKitMatrix:
             raise ValueError("Input matrix dimensions {} do not match "
                              "length of ids and/or columns".format(self.matrix.shape))
 
-    def get_vectors(self, ids: List[str], as_dataframe=False, columns: Optional[List[str]] = None):
+    def get_vectors(self, ids: Optional[List[str]] = None, as_dataframe=False, columns: Optional[List[str]] = None):
         """
 
-        :param ids: object ids to get vectors for
+        :param ids: optional list of object ids to get vectors for. all vectors are returned if None.
         :param as_dataframe: whether to return the vector as a dataframe (True) or in its raw array form (False). False
             by default.
         :param columns: optional list of named columns of the vector to include. All columns returned otherwise.
         :return:
         """
-
+        if ids is None:
+            ids = self.ids
         indices = [self.ids_to_idx[k] for k in ids]
         if columns is None:
             if not as_dataframe:

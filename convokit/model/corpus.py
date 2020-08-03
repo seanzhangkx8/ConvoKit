@@ -998,12 +998,12 @@ class Corpus:
                 self._vector_matrices[name] = matrix
         return self._vector_matrices[name]
 
-    def get_vectors(self, name, ids: List[str], as_dataframe: bool = False, columns: Optional[List[str]] = None):
+    def get_vectors(self, name, ids: Optional[List[str]] = None, as_dataframe: bool = False, columns: Optional[List[str]] = None):
         """
         Get the vectors for some corpus component objects.
 
         :param name: name of the vector matrix
-        :param ids: list of object ids to get vectors for
+        :param ids: optional list of object ids to get vectors for. all vectors are returned if None.
         :param as_dataframe: whether to return the vector matrix as a dataframe
         :param columns:
         :return: a vector matrix
