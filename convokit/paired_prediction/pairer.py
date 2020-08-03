@@ -36,9 +36,9 @@ class Pairer(Transformer):
                  pos_label_func: Callable[[CorpusComponent], bool],
                  neg_label_func: Callable[[CorpusComponent], bool],
                  pair_mode: str = "random",
-                 pair_id_feat_name: str = "pair_id",
-                 label_feat_name: str = "pair_obj_label",
-                 pair_orientation_feat_name: str = "pair_orientation"):
+                 pair_id_attribute_name: str = "pair_id",
+                 label_attribute_name: str = "pair_obj_label",
+                 pair_orientation_attribute_name: str = "pair_orientation"):
 
         """
         :param pairing_func: the Corpus object characteristic to pair on, e.g. to pair on the first 10 characters of a
@@ -46,10 +46,9 @@ class Pairer(Transformer):
         :param pos_label_func: The function to check if the object is a positive instance
         :param neg_label_func: The function to check if the object is a negative instance
         :param pair_mode: 'random': pick a single positive and negative object pair randomly (default), 'maximize': pick the maximum number of positive and negative object pairs possible randomly, or 'first': pick the first positive and negative object pair found.
-        :param clf: optional classifier to be used in the paired prediction
-        :param pair_id_feat_name: metadata feature name to use in annotating object with pair id, default: "pair_id". The value is determined by the output of pairing_func. If pair_mode is 'maximize', the value is the output of pairing_func + "_[i]", where i is the ith pair extracted from a given context.
-        :param label_feat_name: metadata feature name to use in annotating object with whether it is positive or negative, default: "pair_obj_label"
-        :param pair_orientation_feat_name: metadata feature name to use in annotating object with pair orientation, default: "pair_orientation"
+        :param pair_id_attribute_name: metadata feature name to use in annotating object with pair id, default: "pair_id". The value is determined by the output of pairing_func. If pair_mode is 'maximize', the value is the output of pairing_func + "_[i]", where i is the ith pair extracted from a given context.
+        :param label_attribute_name: metadata feature name to use in annotating object with whether it is positive or negative, default: "pair_obj_label"
+        :param pair_orientation_attribute_name: metadata feature name to use in annotating object with pair orientation, default: "pair_orientation"
 
         """
         assert obj_type in ["speaker", "utterance", "conversation"]
@@ -58,9 +57,9 @@ class Pairer(Transformer):
         self.pos_label_func = pos_label_func
         self.neg_label_func = neg_label_func
         self.pair_mode = pair_mode
-        self.pair_id_feat_name = pair_id_feat_name
-        self.label_feat_name = label_feat_name
-        self.pair_orientation_feat_name = pair_orientation_feat_name
+        self.pair_id_attribute_name = pair_id_attribute_name
+        self.label_attribute_name = label_attribute_name
+        self.pair_orientation_attribute_name = pair_orientation_attribute_name
 
     def _get_pos_neg_objects(self, corpus: Corpus, selector):
         """
@@ -150,19 +149,19 @@ class Pairer(Transformer):
         pair_orientations = self._assign_pair_orientations(obj_pairs)
 
         for pair_id, (pos_obj, neg_obj) in obj_pairs.items():
-            pos_obj.add_meta(self.label_feat_name, "pos")
-            neg_obj.add_meta(self.label_feat_name, "neg")
-            pos_obj.add_meta(self.pair_id_feat_name, pair_id)
-            neg_obj.add_meta(self.pair_id_feat_name, pair_id)
-            pos_obj.add_meta(self.pair_orientation_feat_name, pair_orientations[pair_id])
-            neg_obj.add_meta(self.pair_orientation_feat_name, pair_orientations[pair_id])
+            pos_obj.add_meta(self.label_attribute_name, "pos")
+            neg_obj.add_meta(self.label_attribute_name, "neg")
+            pos_obj.add_meta(self.pair_id_attribute_name, pair_id)
+            neg_obj.add_meta(self.pair_id_attribute_name, pair_id)
+            pos_obj.add_meta(self.pair_orientation_attribute_name, pair_orientations[pair_id])
+            neg_obj.add_meta(self.pair_orientation_attribute_name, pair_orientations[pair_id])
 
         for obj in corpus.iter_objs(self.obj_type):
             # unlabelled objects include both objects that did not pass the selector
             # and objects that were not selected in the pairing step
-            if self.label_feat_name not in obj.meta:
-                obj.add_meta(self.label_feat_name, None)
-                obj.add_meta(self.pair_id_feat_name, None)
-                obj.add_meta(self.pair_orientation_feat_name, None)
+            if self.label_attribute_name not in obj.meta:
+                obj.add_meta(self.label_attribute_name, None)
+                obj.add_meta(self.pair_id_attribute_name, None)
+                obj.add_meta(self.pair_orientation_attribute_name, None)
 
         return corpus

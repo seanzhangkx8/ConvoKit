@@ -1,16 +1,18 @@
-from random import choice, shuffle
+from random import shuffle
 from pandas import DataFrame
 import numpy as np
 from scipy.sparse import csr_matrix, vstack, issparse
 from convokit.classifier.util import extract_feats_from_obj
 
-def generate_vectors_paired_X_y(corpus, pair_orientation_attribute_name, pair_id_to_objs, vector_name):
+
+def generate_vectors_paired_X_y(corpus, vector_name, pair_orientation_attribute_name, pair_id_to_objs):
     """
     Generate the X, y matrix for paired prediction and annotate the objects with the pair orientation.
 
+    :param corpus:
+    :param vector_name:
     :param pair_orientation_attribute_name:
     :param pair_id_to_objs:
-    :param vector_name:
     :return:
     """
     pos_orientation_pair_ids = []
@@ -40,58 +42,16 @@ def generate_vectors_paired_X_y(corpus, pair_orientation_attribute_name, pair_id
     neg_pos_vectors = corpus.get_vectors(vector_name, neg_pos_ids)
     neg_neg_vectors = corpus.get_vectors(vector_name, neg_neg_ids)
 
-    y = np.array([1*len(pos_orientation_pair_ids)] + [0 * len(neg_orientation_pair_ids)])
+    y = np.array([1]*len(pos_orientation_pair_ids) + [0] * len(neg_orientation_pair_ids))
 
     if issparse(pos_pos_vectors): # for csr_matrix
         X = vstack([pos_pos_vectors - pos_neg_vectors, neg_neg_vectors - neg_pos_vectors])
     else:
         X = np.vstack([pos_pos_vectors - pos_neg_vectors, neg_neg_vectors - neg_pos_vectors])
 
-    rng_state = np.random.get_state()
-    np.random.shuffle(X)
-    np.random.set_state(rng_state)
-    np.random.shuffle(y)
-
-    return X, y
-
-
-def generate_bow_paired_X_y(pair_orientation_feat_name, pair_id_to_objs, vector_name):
-    """
-    Generate the X, y matrix for paired prediction
-    :param pair_id_to_objs: dictionary indexed by the paired feature instance value, with the value
-    being a tuple (pos_obj, neg_obj)
-    :return: X, y matrix representing the predictive features and labels respectively
-    """
-    pos_obj_dict = dict()
-    neg_obj_dict = dict()
-    for pair_id, (pos_obj, neg_obj) in pair_id_to_objs.items():
-        pos_obj_dict[pair_id] = pos_obj.meta[vector_name]
-        neg_obj_dict[pair_id] = neg_obj.meta[vector_name]
-
-    X, y = [], []
-    pair_ids = list(pair_id_to_objs)
-    shuffle(pair_ids)
-    for pair_id in pair_ids:
-        pos_feats = pos_obj_dict[pair_id]
-        neg_feats = neg_obj_dict[pair_id]
-        orientation = pair_id_to_objs[pair_id][0].meta[pair_orientation_feat_name]
-
-        assert orientation in ["pos", "neg"]
-        if orientation == "pos":
-            y.append(1)
-            diff = pos_feats - neg_feats
-        else:
-            y.append(0)
-            diff = neg_feats - pos_feats
-
-        X.append(diff)
-
-    if issparse(X[0]): # for csr_matrix
-        X = vstack(X)
-    else: # for non-compressed numpy arrays
-        X = np.vstack(X)
-
-    return X, np.array(y)
+    indices = np.arange(X.shape[0])
+    shuffle(indices)
+    return X[indices], y[indices]
 
 
 def generate_paired_X_y(pred_feats, pair_orientation_attribute_name, pair_id_to_objs):

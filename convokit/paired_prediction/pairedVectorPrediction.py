@@ -1,7 +1,7 @@
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import LeaveOneOut, cross_val_score
+from sklearn.model_selection import cross_val_score, KFold
 from typing import List, Callable
 
 from convokit import CorpusComponent, Corpus
@@ -36,35 +36,41 @@ class PairedVectorPrediction(PairedPrediction):
                         ("logreg", LogisticRegression(solver='liblinear'))]) if clf is None else clf
 
         super().__init__(obj_type=obj_type, pred_feats=[],
-                         pair_id_feat_name=pair_id_attribute_name,
-                         label_feat_name=label_attribute_name,
-                         pair_orientation_feat_name=pair_orientation_attribute_name,
+                         pair_id_attribute_name=pair_id_attribute_name,
+                         label_attribute_name=label_attribute_name,
+                         pair_orientation_attribute_name=pair_orientation_attribute_name,
                          clf=clf)
 
     def fit(self, corpus: Corpus, y=None, selector: Callable[[CorpusComponent], bool] = lambda x: True):
         # Check if Pairer.transform() needs to be run first
         self._check_for_pair_information(corpus)
         pair_id_to_objs = generate_pair_id_to_objs(corpus, self.obj_type, selector,
-                                                   self.pair_orientation_feat_name,
-                                                   self.label_feat_name, self.pair_id_feat_name)
-
-        X, y = generate_vectors_paired_X_y(corpus, self.pair_orientation_feat_name, pair_id_to_objs, self.vector_name)
+                                                   self.pair_orientation_attribute_name,
+                                                   self.label_attribute_name, self.pair_id_attribute_name)
+        X, y = generate_vectors_paired_X_y(corpus, self.vector_name,
+                                           self.pair_orientation_attribute_name,
+                                           pair_id_to_objs)
         self.clf.fit(X, y)
         return self
 
-    def summarize(self, corpus: Corpus, selector: Callable[[CorpusComponent], bool] = lambda x: True, cv=LeaveOneOut()):
+    def summarize(self, corpus: Corpus, selector: Callable[[CorpusComponent], bool] = lambda x: True,
+                  cv=KFold(n_splits=5, shuffle=True)):
         """
         Run PairedPrediction on the corpus with cross-validation
 
         :param corpus: annoted Corpus (with pair information from PairedPrediction.transform())
         :param selector: selector (lambda) function for which objects should be included in the analysis
-        :param cv: optional CV model: default is LOOCV
+        :param cv: optional CV model: default is KFold(n_splits=5, shuffle=True)
         :return: cross-validation accuracy score
         """
-        pair_id_to_objs = generate_pair_id_to_objs(corpus, self.obj_type, selector, self.pair_orientation_feat_name,
-                                                   self.label_feat_name, self.pair_id_feat_name)
+        pair_id_to_objs = generate_pair_id_to_objs(corpus, self.obj_type, selector,
+                                                   self.pair_orientation_attribute_name,
+                                                   self.label_attribute_name, self.pair_id_attribute_name)
 
-        X, y = generate_bow_paired_X_y(self.pair_orientation_feat_name, pair_id_to_objs, self.vector_name)
+        X, y = generate_vectors_paired_X_y(corpus, self.vector_name,
+                                           self.pair_orientation_attribute_name,
+                                           pair_id_to_objs)
+
         return np.mean(cross_val_score(self.clf, X, y, cv=cv, error_score='raise'))
 
 
