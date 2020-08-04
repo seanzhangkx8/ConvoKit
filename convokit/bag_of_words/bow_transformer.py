@@ -8,25 +8,27 @@ class BoWTransformer(Transformer):
     Bag-of-Words Transformer for annotating a Corpus's objects with the bag-of-words vectorization
     of some textual element of the Corpus components.
 
+    Runs on the Corpus's Speakers, Utterances, or Conversations (as specified by `obj_type`).
+    By default, the text used for the different object types:
+
     - For utterances, this would be the utterance text.
     - For conversations, this would be joined texts of all the utterances in the conversation
     - For speakers, this would be the joined texts of all the utterances by the speaker
-    - Custom configurations can be configured using the `text_func` argument
+
+    Other custom text configurations can be configured using the `text_func` argument
 
     Compatible with any type of vectorizer (e.g. bag-of-words, TF-IDF, etc)
-
-    Runs on the Corpus's Speakers, Utterances, or Conversations (as specified by obj_type)
 
     :param obj_type: "speaker", "utterance", or "conversation"
     :param vectorizer: a sklearn vectorizer object; default is CountVectorizer(min_df=10, max_df=.5, ngram_range(1, 1),
         binary=False, max_features=15000)
     :param vector_name: the name of the metadata key to store the vector under
-    :param text_func: an optional (lambda) function to extract the textual element from the Corpus object, see
-        defaults above.
+    :param text_func: function for getting text from the Corpus component object. By default, this is configured
+        based on the `obj_type`.
 
     """
-    def __init__(self, obj_type: str, vectorizer=None, vector_name="bow_vector",
-                 text_func: Callable[[CorpusComponent], str] = None):
+    def __init__(self, obj_type: str, vector_name="bow_vector",
+                 text_func: Callable[[CorpusComponent], str] = None, vectorizer=None):
 
         if vectorizer is None:
             print("Initializing default unigram CountVectorizer...", end="")

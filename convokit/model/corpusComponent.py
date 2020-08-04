@@ -55,7 +55,7 @@ class CorpusComponent:
         """
         Retrieves a value stored under the key of the metadata of corpus object
 
-        :param key: vector_name of metadata
+        :param key: name of metadata attribute
         :return: value
         """
         return self.meta.get(key, None)
@@ -64,7 +64,8 @@ class CorpusComponent:
         """
         Adds a key-value pair to the metadata of the corpus object
 
-        :param key: vector_name of metadata
+        :param key: name of metadata attribute
+        :param value: value of metadata attribute
         :return: None
         """
         self.meta[key] = value
@@ -73,7 +74,7 @@ class CorpusComponent:
         """
         Gets attribute <key> of the corpus object. Returns None if the corpus object does not have this attribute.
 
-        :param key: vector_name of attribute
+        :param key: name of attribute
         :return: attribute <key>
         """
         deprecation("get_info()", "retrieve_meta()")
@@ -83,7 +84,7 @@ class CorpusComponent:
         """
         Sets attribute <key> of the corpus object to <value>.
 
-        :param key: vector_name of attribute
+        :param key: name of attribute
         :param value: value to set
         :return: None
         """
@@ -140,9 +141,14 @@ class CorpusComponent:
 
     def __repr__(self):
         copy = self.__dict__.copy()
-        deleted_keys = ['utterances', 'conversations', 'user']
+        deleted_keys = ['utterances', 'conversations', 'user', '_root', '_utterance_ids', '_speaker_ids']
         for k in deleted_keys:
             if k in copy:
+                del copy[k]
+
+        for k in copy:
+            if k.startswith('_'):
+                copy[k[1:]] = copy[k]
                 del copy[k]
         try:
             return self.obj_type.capitalize() + "(" + str(copy) + ")"

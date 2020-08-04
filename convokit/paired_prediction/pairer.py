@@ -2,7 +2,7 @@ from typing import Callable
 from convokit import Transformer, CorpusComponent, Corpus
 from .util import *
 from collections import defaultdict
-from random import shuffle
+from random import shuffle, choice
 
 class Pairer(Transformer):
     """

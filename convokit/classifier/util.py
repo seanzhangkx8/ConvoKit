@@ -1,10 +1,9 @@
-from convokit.model import Corpus, Conversation, Utterance, Speaker, CorpusComponent
-from typing import List, Union, Callable
+from convokit.model import Corpus, CorpusComponent
+from typing import List, Callable
 import pandas as pd
 from scipy.sparse import csr_matrix
 import numpy as np
 from convokit.util import warn
-from scipy.sparse import vstack
 
 
 def extract_feats_from_obj(obj: CorpusComponent, pred_feats: List[str]):

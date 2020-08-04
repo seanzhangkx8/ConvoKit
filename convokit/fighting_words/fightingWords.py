@@ -40,9 +40,18 @@ class FightingWords(Transformer):
     Identifies the fighting words of two groups of corpus components (e.g. two groups of utterances),
     which we define as the groups: 'class1' and 'class2'
 
+    Runs on the Corpus's Speakers, Utterances, or Conversations (as specified by `obj_type`).
+    By default, the text used for the different object types:
+
+    - For utterances, this would be the utterance text.
+    - For conversations, this would be joined texts of all the utterances in the conversation
+    - For speakers, this would be the joined texts of all the utterances by the speaker
+
+    Other custom text configurations can be configured using the `text_func` argument
+
     :param obj_type: 'utterance', 'conversation', or 'speaker'
-    :param text_func: function for getting text from the Corpus component object. By default, this assumes the Corpus
-        component is an Utterance and gets the Utterance's text.
+    :param text_func: function for getting text from the Corpus component object. By default, this is configured
+        based on the `obj_type`.
     :param cv: optional CountVectorizer. default: an sklearn CV with min_df=10, max_df=.5, and ngram_range=(1,3)
         with max 15000 features
     :param ngram_range: range of ngrams to use if using default cv

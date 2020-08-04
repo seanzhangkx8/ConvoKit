@@ -13,7 +13,8 @@ class Classifier(Transformer):
 
     :param obj_type: type of Corpus object to classify: 'conversation', 'speaker', or 'utterance'
     :param pred_feats: list of metadata keys containing the features to be used in prediction. If the key corresponds to a dictionary, all the keys of the dictionary will be included in pred_feats.
-    :param labeller: a (lambda) function that takes a Corpus object and returns True (y=1) or False (y=0) - i.e. labeller defines the y value of the object for fitting
+    :param labeller: a (lambda) function that takes a Corpus object and returns True (y=1) or False (y=0)
+        - i.e. labeller defines the y value of the object for fitting
     :param clf: optional sklearn classifier model, an SVM with linear kernel will be initialized by default
     :param clf_feat_name: the metadata key to store the classifier prediction value under; default: "prediction"
     :param clf_prob_feat_name: the metadata key to store the classifier prediction score under; default: "pred_score"

@@ -29,6 +29,7 @@ class Corpus:
     :param exclude_overall_meta: overall metadata to be ignored
 
     :ivar meta_index: index of Corpus metadata
+    :ivar vectors: the vectors stored in the Corpus
     :ivar corpus_dirpath: path to the directory the corpus was loaded from
     """
 
@@ -998,17 +999,19 @@ class Corpus:
                 self._vector_matrices[name] = matrix
         return self._vector_matrices[name]
 
-    def get_vectors(self, name, ids: Optional[List[str]] = None, as_dataframe: bool = False, columns: Optional[List[str]] = None):
+    def get_vectors(self, name, ids: Optional[List[str]] = None, columns: Optional[List[str]] = None,
+                    as_dataframe: bool = False):
         """
         Get the vectors for some corpus component objects.
 
         :param name: name of the vector matrix
-        :param ids: optional list of object ids to get vectors for. all vectors are returned if None.
-        :param as_dataframe: whether to return the vector matrix as a dataframe
-        :param columns:
-        :return: a vector matrix
+        :param ids: optional list of object ids to get vectors for; all by default
+        :param columns: optional list of named columns of the vector to include; all by default
+        :param as_dataframe: whether to return the vector as a dataframe (True) or in its raw array form (False). False
+            by default.
+        :return: a vector matrix (either np.ndarray or csr_matrix) or a pandas dataframe
         """
-        return self.get_vector_matrix(name).get_vectors(ids=ids, as_dataframe=as_dataframe, columns=columns)
+        return self.get_vector_matrix(name).get_vectors(ids=ids, columns=columns, as_dataframe=as_dataframe)
 
     def del_vector_matrix(self, name):
         """
