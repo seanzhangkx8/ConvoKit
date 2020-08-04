@@ -166,7 +166,7 @@ Alternatively, visit our [Github Page](https://github.com/CornellNLP/Cornell-Con
 **If you encounter difficulties with installation**, check out our **[Troubleshooting Guide](https://convokit.cornell.edu/documentation/troubleshooting.html)** for a list of solutions to common issues.
 
 ## Documentation
-Documentation is hosted [here](https://convokit.cornell.edu/documentation/). If you are new to ConvoKit, great places to get started are the [Core Concepts tutorial](https://convokit.cornell.edu/documentation/architecture.html) for an overview of the ConvoKit "philosophy" and object model, and the [High-level tutorial](https://convokit.cornell.edu/documentation/tutorial.html) for an walkthrough of how to import ConvoKit into your project, load a Corpus, and use ConvoKit functions.
+Documentation is hosted [here](https://convokit.cornell.edu/documentation/). If you are new to ConvoKit, great places to get started are the [Core Concepts tutorial](https://convokit.cornell.edu/documentation/architecture.html) for an overview of the ConvoKit "philosophy" and object model, and the [High-level tutorial](https://convokit.cornell.edu/documentation/tutorial.html) for a walkthrough of how to import ConvoKit into your project, load a Corpus, and use ConvoKit functions.
 
 ## Contributing
 
