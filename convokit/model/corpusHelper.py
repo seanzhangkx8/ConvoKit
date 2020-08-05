@@ -107,6 +107,15 @@ def load_corpus_meta_from_dir(filename, corpus_meta, exclude_overall_meta):
 
 
 def unpack_binary_data_for_utts(utterances, filename, utterance_index, exclude_meta, KeyMeta):
+    """
+
+    :param utterances: mapping from utterance id to {'meta': ..., 'vectors': ...}
+    :param filename: filepath containing corpus files
+    :param utterance_index: utterance meta index
+    :param exclude_meta: list of metadata attributes to exclude
+    :param KeyMeta: name of metadata key, should be 'meta'
+    :return:
+    """
     for field, field_types in utterance_index.items():
         if field_types[0] == "bin" and field not in exclude_meta:
             with open(os.path.join(filename, field + "-bin.p"), "rb") as f:
@@ -121,17 +130,29 @@ def unpack_binary_data_for_utts(utterances, filename, utterance_index, exclude_m
         del utterance_index[field]
 
 
-def unpack_binary_data(filename, obj_data, object_index, obj_type, exclude_meta):
+def unpack_binary_data(filename, objs_data, object_index, obj_type, exclude_meta):
     """
     Unpack binary data for Speakers or Conversations
+
+    :param filename: filepath containing the corpus data
+    :param objs_data: a mapping from object id to a dictionary with two keys: 'meta' and 'vectors';
+        in older versions, this is a mapping from object id to the metadata dictionary
+    :param object_index: the meta_index dictionary for the component type
+    :param obj_type: object type (i.e. speaker or conversation)
+    :param exclude_meta: list of metadata attributes to exclude
+    :return: None (mutates objs_data)
+    """
+    """
+    Unpack binary data for Speakers or Conversations
+
     """
     # unpack speaker meta
-    obj_meta = obj_data['meta'] if len(obj_data) == 2 and 'vectors' in obj_data else obj_data
     for field, field_types in object_index.items():
         if field_types[0] == "bin" and field not in exclude_meta:
             with open(os.path.join(filename, field + "-{}-bin.p".format(obj_type)), "rb") as f:
                 l_bin = pickle.load(f)
-            for obj, metadata in obj_meta.items():
+            for obj, data in objs_data.items():
+                metadata = data['meta'] if len(data) == 2 and 'vectors' in data else data
                 for k, v in metadata.items():
                     if k == field and type(v) == str and str(v).startswith(BIN_DELIM_L) and \
                             str(v).endswith(BIN_DELIM_R):
