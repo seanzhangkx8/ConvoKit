@@ -68,16 +68,16 @@ class PromptTypeWrapper(Transformer):
 			)
 		
 			prompt_input_field = 'question_arcs'
-			self.prompt_filter = lambda utt, aux: utt.meta['is_question']
-			self.ref_filter = lambda utt, aux: (not utt.meta['is_question']) and (utt.reply_to is not None)
+			self.prompt_selector = lambda utt: utt.meta['is_question']
+			self.reference_selector = lambda utt: (not utt.meta['is_question']) and (utt.reply_to is not None)
 		else:
 			prompt_input_field = 'arcs'
-			self.prompt_filter = lambda utt, aux: True
-			self.ref_filter = lambda utt, aux: True
+			self.prompt_selector = lambda utt: True
+			self.reference_selector = lambda utt: True
 		if use_prompt_motifs:
 			pipe.append(
 				('pm_model', PhrasingMotifs('motifs', prompt_input_field, min_support=min_support,
-						fit_filter=self.prompt_filter, verbosity=verbosity))
+						fit_filter=self.prompt_selector, verbosity=verbosity))
 			)
 			prompt_field = 'motifs'
 			prompt_transform_field = 'motifs__sink'
@@ -85,14 +85,14 @@ class PromptTypeWrapper(Transformer):
 			prompt_field = 'arcs'
 			prompt_transform_field = 'arcs'
 		pipe.append(
-			('pt_model', PromptTypes(prompt_field=prompt_field, ref_field='arcs', 
+			('pt_model', PromptTypes(prompt_field=prompt_field, reference_field='arcs', 
 									 prompt_transform_field=prompt_transform_field,
 									 output_field=output_field, n_types=n_types,
 									 svd__n_components=svd__n_components,
 									 prompt__tfidf_min_df=min_df,
 									 prompt__tfidf_max_df=max_df,
-									 ref__tfidf_min_df=min_df,
-									 ref__tfidf_max_df=max_df,
+									 reference__tfidf_min_df=min_df,
+									 reference__tfidf_max_df=max_df,
 									 max_dist=max_dist,
 									 random_state=random_state, verbosity=verbosity
 			))
@@ -108,7 +108,7 @@ class PromptTypeWrapper(Transformer):
 		"""
 
 		self.pipe.fit(corpus, 
-				pt_model__prompt_filter=self.prompt_filter, pt_model__ref_filter=self.ref_filter)
+				pt_model__prompt_selector=self.prompt_selector, pt_model__reference_selector=self.reference_selector)
 	
 	def transform(self, corpus):
 		"""

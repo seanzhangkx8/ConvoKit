@@ -1,5 +1,6 @@
 from convokit.transformer import Transformer
 from convokit.model import Corpus, Utterance
+from inspect import signature
 
 class TextProcessor(Transformer):
     """
@@ -17,7 +18,15 @@ class TextProcessor(Transformer):
         
         self.proc_fn = proc_fn
         self.aux_input = aux_input if aux_input is not None else {}
-        self.input_filter = input_filter if input_filter is not None else lambda utt, aux: True
+        # self.input_filter = input_filter if input_filter is not None else lambda utt, aux: True
+        # temporary fix to deal with aux_input argument to input_filter
+        if input_filter:
+            if len(signature(input_filter).parameters) == 1:
+                self.input_filter = lambda utt, aux: input_filter(utt)
+            else:
+                self.input_filter = input_filter
+        else:
+            self.input_filter = lambda utt, aux: True
         self.input_field = input_field
         self.output_field = output_field
         self.verbosity = verbosity
