@@ -30,12 +30,10 @@ class ConvoKitMatrix:
         self.name = name
         self._matrix = matrix
         self._sparse = isinstance(self._matrix, scipy.sparse.csr.csr_matrix)
-        self.ids = ids
-        if columns is None:
-            columns = np.arange(matrix.shape[1])
-        self.columns = columns
-        self.ids_to_idx = {id: idx for idx, id in enumerate(ids)}
-        self.cols_to_idx = {col: idx for idx, col in enumerate(columns)}
+        self.ids = np.arange(matrix.shape[0]) if ids is None else ids
+        self.columns = np.arange(matrix.shape[1]) if columns is None else columns
+        self.ids_to_idx = {id: idx for idx, id in enumerate(self.ids)}
+        self.cols_to_idx = {col: idx for idx, col in enumerate(self.columns)}
         self._initialization_checks()
 
     @property

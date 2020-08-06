@@ -5,13 +5,12 @@ from convokit.util import deprecation, warn
 from .corpusComponent import CorpusComponent
 from collections import defaultdict
 from .utteranceNode import UtteranceNode
-import pandas as pd
 from .corpusUtil import *
 
 
 class Conversation(CorpusComponent):
-    """Represents a discrete subset of utterances in the dataset, connected by a
-    reply-to chain.
+    """
+    Represents a discrete subset of utterances in the dataset, connected by a reply-to chain.
 
     :param owner: The Corpus that this Conversation belongs to
     :param id: The unique ID of this Conversation
@@ -44,10 +43,8 @@ class Conversation(CorpusComponent):
 
         :return: a list of IDs of Utterances in the Conversation
         """
-        # we construct a new list instead of returning self._utterance_ids in
-        # order to prevent the speaker from accidentally modifying the internal
-        # ID list (since lists are mutable)
-        return [ut_id for ut_id in self._utterance_ids]
+        # pass a copy of the list
+        return self._utterance_ids[:]
 
     def get_utterance(self, ut_id: str) -> Utterance:
         """Looks up the Utterance associated with the given ID. Raises a
@@ -326,12 +323,14 @@ class Conversation(CorpusComponent):
 
     def print_conversation_structure(self, utt_info_func: Callable[[Utterance], str] = lambda utt: utt.speaker.id, limit: int = None) -> None:
         """
-        Prints an indented representation of utterances in the Conversation with conversation reply-to structure determining the indented level. The details of each utterance to be printed can be configured.
+        Prints an indented representation of utterances in the Conversation with conversation reply-to structure
+        determining the indented level. The details of each utterance to be printed can be configured.
 
-        If limit is set to a value other than None, this will annotate utterances with an 'order' metadata indicating their temporal order in the conversation, where the first utterance in the conversation is annotated with 1.
+        If limit is set to a value other than None, this will annotate utterances with an 'order' metadata indicating
+        their temporal order in the conversation, where the first utterance in the conversation is annotated with 1.
 
         :param utt_info_func: callable function taking an utterance as input and returning a string of the desired
-                              utterance information. By default, this is a lambda function returning the utterance's speaker's id
+            utterance information. By default, this is a lambda function returning the utterance's speaker's id
         :param limit: maximum number of utterances to print out. if k, this includes the first k utterances.
         :return: None. Prints to stdout.
         """

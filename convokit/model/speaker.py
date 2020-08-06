@@ -2,6 +2,8 @@ from functools import total_ordering
 from typing import Dict, List, Optional, Callable
 from convokit.util import deprecation
 from .corpusComponent import CorpusComponent
+from .corpusUtil import *
+
 
 @total_ordering
 class Speaker(CorpusComponent):

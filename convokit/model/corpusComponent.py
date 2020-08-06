@@ -119,7 +119,8 @@ class CorpusComponent:
         :param vector_name: name of vector matrix
         :return: None
         """
-        self.vectors.append(vector_name)
+        if vector_name not in self.vectors:
+            self.vectors.append(vector_name)
 
     def has_vector(self, vector_name: str):
         return vector_name in self.vectors
