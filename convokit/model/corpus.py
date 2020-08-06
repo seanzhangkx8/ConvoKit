@@ -27,6 +27,10 @@ class Corpus:
     :param exclude_conversation_meta: conversation metadata to be ignored
     :param exclude_speaker_meta: speaker metadata to be ignored
     :param exclude_overall_meta: overall metadata to be ignored
+    :param disable_type_check: whether to do type checking when loading the Corpus from a directory.
+        Type-checking ensures that the ConvoKitIndex is initialized correctly. However, it may be unnecessary if the
+        index.json is already accurate and disabling it will allow for a faster corpus load. This parameter is set to
+        True by default, i.e. type-checking is not carried out.
 
     :ivar meta_index: index of Corpus metadata
     :ivar vectors: the vectors stored in the Corpus
@@ -39,7 +43,8 @@ class Corpus:
                  exclude_utterance_meta: Optional[List[str]] = None,
                  exclude_conversation_meta: Optional[List[str]] = None,
                  exclude_speaker_meta: Optional[List[str]] = None,
-                 exclude_overall_meta: Optional[List[str]] = None):
+                 exclude_overall_meta: Optional[List[str]] = None,
+                 disable_type_check=True):
 
         if filename is None:
             self.corpus_dirpath = None
@@ -62,7 +67,7 @@ class Corpus:
 
         # Construct corpus from file or directory
         if filename is not None:
-            self.meta_index.disable_type_check()
+            if disable_type_check: self.meta_index.disable_type_check()
             if os.path.isdir(filename):
                 utterances = load_uttinfo_from_dir(filename, utterance_start_index,
                                                    utterance_end_index, exclude_utterance_meta)
@@ -127,7 +132,9 @@ class Corpus:
         if merge_lines:
             self.utterances = merge_utterance_lines(self.utterances)
 
+        if disable_type_check: self.meta_index.disable_type_check()
         self.conversations = initialize_conversations(self, self.utterances, convos_data)
+        self.meta_index.enable_type_check()
         self.update_speakers_data()
 
     @property
