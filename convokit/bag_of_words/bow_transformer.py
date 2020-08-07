@@ -1,30 +1,34 @@
-from convokit import Corpus, CorpusObject, Transformer
+from convokit import Corpus, CorpusComponent, Transformer
 from typing import Callable
 from sklearn.feature_extraction.text import CountVectorizer as CV
+
 
 class BoWTransformer(Transformer):
     """
     Bag-of-Words Transformer for annotating a Corpus's objects with the bag-of-words vectorization
-    of some textual element.
+    of some textual element of the Corpus components.
+
+    Runs on the Corpus's Speakers, Utterances, or Conversations (as specified by `obj_type`).
+    By default, the text used for the different object types:
 
     - For utterances, this would be the utterance text.
     - For conversations, this would be joined texts of all the utterances in the conversation
     - For speakers, this would be the joined texts of all the utterances by the speaker
 
-    Compatible with any type of vectorizer (e.g. bag-of-words, TF-IDF, etc)
+    Other custom text configurations can be configured using the `text_func` argument
 
-    Runs on the Corpus's Speakers, Utterances, or Conversations (as specified by obj_type)
+    Compatible with any type of vectorizer (e.g. bag-of-words, TF-IDF, etc)
 
     :param obj_type: "speaker", "utterance", or "conversation"
     :param vectorizer: a sklearn vectorizer object; default is CountVectorizer(min_df=10, max_df=.5, ngram_range(1, 1),
         binary=False, max_features=15000)
     :param vector_name: the name of the metadata key to store the vector under
-    :param text_func: an optional (lambda) function to extract the textual element from the Corpus object, see
-        defaults above.
+    :param text_func: function for getting text from the Corpus component object. By default, this is configured
+        based on the `obj_type`.
 
     """
-    def __init__(self, obj_type: str, vectorizer=None, vector_name="bow_vector",
-                 text_func: Callable[[CorpusObject], str] = None):
+    def __init__(self, obj_type: str, vector_name="bow_vector",
+                 text_func: Callable[[CorpusComponent], str] = None, vectorizer=None):
 
         if vectorizer is None:
             print("Initializing default unigram CountVectorizer...", end="")
@@ -49,7 +53,7 @@ class BoWTransformer(Transformer):
         else:
             self.text_func = text_func
 
-    def fit(self, corpus: Corpus, y=None, selector: Callable[[CorpusObject], bool] = lambda x: True):
+    def fit(self, corpus: Corpus, y=None, selector: Callable[[CorpusComponent], bool] = lambda x: True):
         """
         Fit the Transformer's internal vectorizer on the Corpus objects' texts, with an optional selector that filters for objects to be fit on.
 
@@ -58,14 +62,11 @@ class BoWTransformer(Transformer):
         :return: the fitted BoWTransformer
         """
         # collect texts for vectorization
-        docs = []
-        for obj in corpus.iter_objs(self.obj_type, selector):
-            docs.append(self.text_func(obj))
-
+        docs = [self.text_func(obj) for obj in corpus.iter_objs(self.obj_type, selector)]
         self.vectorizer.fit(docs)
         return self
 
-    def transform(self, corpus: Corpus, selector: Callable[[CorpusObject], bool] = lambda x: True) -> Corpus:
+    def transform(self, corpus: Corpus, selector: Callable[[CorpusComponent], bool] = lambda x: True) -> Corpus:
         """
         Annotate the corpus objects with the vectorized representation of the object's text, with an optional
         selector that filters for objects to be transformed. Objects that are not selected will get a metadata value
@@ -76,15 +77,19 @@ class BoWTransformer(Transformer):
 
         :return: the target Corpus annotated
         """
-        for obj in corpus.iter_objs(self.obj_type):
-            if selector(obj):
-                obj.meta[self.vector_name] = self.vectorizer.transform([self.text_func(obj)])
-            else:
-                obj.meta[self.vector_name] = None
+        objs = list(corpus.iter_objs(self.obj_type, selector))
+        ids = [obj.id for obj in objs]
+        docs = [self.text_func(obj) for obj in objs]
+
+        matrix = self.vectorizer.transform(docs)
+        corpus.set_vector_matrix(self.vector_name, matrix=matrix, ids=ids, columns=self.vectorizer.get_feature_names())
+
+        for obj in objs:
+            obj.add_vector(self.vector_name)
 
         return corpus
 
-    def fit_transform(self, corpus: Corpus, y=None, selector: Callable[[CorpusObject], bool] = lambda x: True) -> Corpus:
+    def fit_transform(self, corpus: Corpus, y=None, selector: Callable[[CorpusComponent], bool] = lambda x: True) -> Corpus:
         self.fit(corpus, selector=selector)
         return self.transform(corpus, selector=selector)
 
