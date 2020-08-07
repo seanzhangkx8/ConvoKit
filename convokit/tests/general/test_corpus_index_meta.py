@@ -44,12 +44,12 @@ class CorpusIndexMeta(unittest.TestCase):
         self.assertEqual(corpus1.meta_index.conversations_index['convo_meta'], [str(type(1))])
         self.assertEqual(corpus1.meta_index.speakers_index['surname'], [str(type(1.0))])
 
-        # test that deleting a key from an utterance removes it from the index
+        # test that deleting an attribute from an individual utterance fails to remove it
         del corpus1.get_utterance("2").meta['hey']
-        self.assertRaises(KeyError, lambda: corpus1.meta_index.utterances_index['hey'])
+        corpus1.get_utterance("2").meta['hey']
 
-        # test that deleting a key from an utterance removes it from the index and from all other objects of same type
-        del corpus1.get_utterance("1").meta['foo']
+        # test that delete_metadata works
+        corpus1.delete_metadata('utterance', 'foo')
         self.assertRaises(KeyError, lambda: corpus1.meta_index.utterances_index['foo'])
         self.assertRaises(KeyError, lambda: corpus1.get_utterance("0").meta["foo"])
 
