@@ -16,11 +16,13 @@ class PairedPrediction(Transformer):
 
     See Pairer's documentation for more information about pairing.
 
-    :param pred_feats: List of metadata features to be used in prediction. Features can either be values or a dictionary of key-value pairs, but not a nested dictionary
+    :param pred_feats: list of metadata attributes (i.e. predictive features) to be used in prediction.
+        Features can either be values or a dictionary of key-value pairs.
     :param clf: optional classifier to be used in the paired prediction
-    :param pair_id_attribute_name: metadata feature name to use in annotating object with pair id, default: "pair_id"
-    :param label_attribute_name: metadata feature name to use in annotating object with predicted label, default: "label"
-    :param pair_orientation_attribute_name: metadata feature name to use in annotating object with pair orientation, default: "pair_orientation"
+    :param pair_id_attribute_name: metadata attribute name to use in annotating object with pair id, default: "pair_id"
+    :param label_attribute_name: metadata attribute name to use in annotating object with predicted label, default: "label"
+    :param pair_orientation_attribute_name: metadata attribute name to use in annotating object with pair orientation,
+        default: "pair_orientation"
 
     """
     def __init__(self, obj_type: str,
