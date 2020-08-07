@@ -1,6 +1,7 @@
 from convokit import Corpus, CorpusComponent, Transformer
 from typing import Callable
 from sklearn.feature_extraction.text import CountVectorizer as CV
+import numpy as np
 
 
 class BoWTransformer(Transformer):
@@ -82,7 +83,11 @@ class BoWTransformer(Transformer):
         docs = [self.text_func(obj) for obj in objs]
 
         matrix = self.vectorizer.transform(docs)
-        corpus.set_vector_matrix(self.vector_name, matrix=matrix, ids=ids, columns=self.vectorizer.get_feature_names())
+        try:
+            column_names = self.vectorizer.get_feature_names()
+        except AttributeError:
+            column_names = np.arange(matrix.shape[1])
+        corpus.set_vector_matrix(self.vector_name, matrix=matrix, ids=ids, columns=column_names)
 
         for obj in objs:
             obj.add_vector(self.vector_name)
