@@ -333,3 +333,19 @@ def dump_utterances(corpus, dir_name, exclude_vectors, fields_to_skip):
         for name, l_bin in d_bin.items():
             with open(os.path.join(dir_name, name + "-bin.p"), "wb") as f_pk:
                 pickle.dump(l_bin, f_pk)
+
+
+def load_jsonlist_to_dict(filename, index_key='id', value_key='value'):
+    entries = {}
+    with open(filename, 'r') as f:
+        for line in f:
+            entry = json.loads(line)
+            entries[entry[index_key]] = entry[value_key]
+    return entries
+
+
+def dump_jsonlist_from_dict(entries, filename, index_key='id', value_key='value'):
+    with open(filename, 'w') as f:
+        for k, v in entries.items():
+            json.dump({index_key: k, value_key: v}, f)
+            f.write('\n')

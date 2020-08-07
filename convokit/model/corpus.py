@@ -640,32 +640,6 @@ class Corpus:
                         pairs[key].append(u2)
         return pairs
 
-    def iterate_by(self, iter_type: str,
-                   is_utterance_question: Callable[[str], bool]) -> Generator[Tuple[str, str, str], None, None]:
-        """
-        Iterator for utterances.
-
-        Can give just questions, just answers or questions followed by their answers
-        """
-
-        pair_delim = '-q-a-'
-        i = -1
-        for utterance in self.utterances.values():
-            if utterance.reply_to is not None:
-                root_text = self.utterances[utterance.reply_to].text
-                if is_utterance_question(root_text):
-                    i += 1
-                    if iter_type == 'answers':
-                        pair_idx = utterance.reply_to + pair_delim + str(utterance.id)
-                        yield utterance.id, utterance.text, pair_idx
-                        continue
-                    question = self.utterances[utterance.reply_to]
-                    pair_idx = str(question.id) + pair_delim + str(utterance.id)
-                    yield question.id, question.text, pair_idx
-                    if iter_type == 'both':
-                        pair_idx = utterance.reply_to + pair_delim + str(utterance.id)
-                        yield utterance.id, utterance.text, pair_idx
-
     @staticmethod
     def _merge_utterances(utts1: List[Utterance], utts2: List[Utterance], warnings: bool) -> ValuesView[Utterance]:
         """
@@ -1040,38 +1014,6 @@ class Corpus:
 
         self.get_vector_matrix(name).dump(dir_name)
 
-
-    @staticmethod
-    def _load_jsonlist_to_dict(filename, index_key='id', value_key='value'):
-        entries = {}
-        with open(filename, 'r') as f:
-            for line in f:
-                entry = json.loads(line)
-                entries[entry[index_key]] = entry[value_key]
-        return entries
-
-    @staticmethod
-    def _dump_jsonlist_from_dict(entries, filename, index_key='id', value_key='value'):
-        with open(filename, 'w') as f:
-            for k, v in entries.items():
-                json.dump({index_key: k, value_key: v}, f)
-                f.write('\n')
-
-    # @staticmethod
-    # def _load_vectors(filename):
-    #     vect_obj = {}
-    #     with open(filename + '.keys') as f:
-    #         vect_obj['keys'] = [x.strip() for x in f.readlines()]
-    #     vect_obj['key_to_idx'] = {k: idx for idx, k in enumerate(vect_obj['keys'])}
-    #     vect_obj['vects'] = np.load(filename + '.npy')
-    #     return vect_obj
-    #
-    # @staticmethod
-    # def _dump_vectors(vect_obj, filename):
-    #     with open(filename + '.keys', 'w') as f:
-    #         f.write('\n'.join(vect_obj['keys']))
-    #     np.save(filename, vect_obj['vects'])
-
     def load_info(self, obj_type, fields=None, dir_name=None):
         """
         loads attributes of objects in a corpus from disk.
@@ -1100,11 +1042,10 @@ class Corpus:
                       if x.startswith('info')]
 
         for field in fields:
-            # self.aux_info[field] = self._load_jsonlist_to_dict(
+            # self.aux_info[field] = self.load_jsonlist_to_dict(
             #     os.path.join(dir_name, 'feat.%s.jsonl' % field))
             getter = lambda oid: self.get_object(obj_type, oid)
-            entries = self._load_jsonlist_to_dict(
-                os.path.join(dir_name, 'info.%s.jsonl' % field))
+            entries = load_jsonlist_to_dict(os.path.join(dir_name, 'info.%s.jsonl' % field))
             for k, v in entries.items():
                 try:
                     obj = getter(k)
@@ -1137,9 +1078,9 @@ class Corpus:
             #     raise ValueError("field %s not in index" % field)
             iterator = self.iter_objs(obj_type)
             entries = {obj.id: obj.get_info(field) for obj in iterator}
-            # self._dump_jsonlist_from_dict(self.aux_info[field],
+            # self.dump_jsonlist_from_dict(self.aux_info[field],
             #     os.path.join(dir_name, 'feat.%s.jsonl' % field))
-            self._dump_jsonlist_from_dict(entries, os.path.join(dir_name, 'info.%s.jsonl' % field))
+            dump_jsonlist_from_dict(entries, os.path.join(dir_name, 'info.%s.jsonl' % field))
 
     # def load_vector_reprs(self, field, dir_name=None):
     #     """
