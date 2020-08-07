@@ -20,6 +20,9 @@ class ConvoKitIndex:
         self.vectors = set(vectors) if vectors is not None else set()
         self.version = version
         self.type_check = True # toggle-able to enable/disable type checks on metadata additions
+        self.lock_metadata_deletion = {'utterance': True,
+                                       'conversation': True,
+                                       'speaker': True}
 
     def update_index(self, obj_type: str, key: str, class_type: str):
         """
@@ -56,11 +59,11 @@ class ConvoKitIndex:
         assert type(key) == str
         if key not in self.indices[obj_type]: return
         del self.indices[obj_type][key]
-
-        corpus = self.owner
-        for corpus_obj in corpus.iter_objs(obj_type):
-            if key in corpus_obj.meta:
-                del corpus_obj.meta[key]
+        #
+        # corpus = self.owner
+        # for corpus_obj in corpus.iter_objs(obj_type):
+        #     if key in corpus_obj.meta:
+        #         del corpus_obj.meta[key]
 
     def add_vector(self, vector_name):
         self.vectors.add(vector_name)

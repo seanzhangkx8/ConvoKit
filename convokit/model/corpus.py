@@ -932,6 +932,23 @@ class Corpus:
         print("Number of Utterances: {}".format(len(self.utterances)))
         print("Number of Conversations: {}".format(len(self.conversations)))
 
+    def delete_metadata(self, obj_type: str, attribute: str):
+        """
+        Delete a specified metadata attribute from all Corpus components of the specified object type.
+
+        Note that cancelling this method before it runs to completion may lead to errors in the Corpus.
+
+        :param obj_type: 'utterance', 'conversation', 'speaker'
+        :param attribute: name of metadata attribute
+        :return: None
+        """
+        self.meta_index.lock_metadata_deletion[obj_type] = False
+        for obj in self.iter_objs(obj_type):
+            if attribute in obj.meta:
+                del obj.meta[attribute]
+        self.meta_index.del_from_index(obj_type, attribute)
+        self.meta_index.lock_metadata_deletion[obj_type] = True
+
     def set_vector_matrix(self, name: str, matrix, ids: List[str], columns: List[str] = None):
         """
         Adds a vector matrix to the Corpus, where the matrix is an array of vector representations of some
@@ -994,7 +1011,7 @@ class Corpus:
         """
         return self.get_vector_matrix(name).get_vectors(ids=ids, columns=columns, as_dataframe=as_dataframe)
 
-    def del_vector_matrix(self, name):
+    def delete_vector_matrix(self, name):
         """
         Deletes the vector matrix stored under `name`.
 

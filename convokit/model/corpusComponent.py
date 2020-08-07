@@ -125,7 +125,7 @@ class CorpusComponent:
     def has_vector(self, vector_name: str):
         return vector_name in self.vectors
 
-    def del_vector(self, vector_name: str):
+    def delete_vector(self, vector_name: str):
         """
         Delete a vector associated with this Corpus component object.
 

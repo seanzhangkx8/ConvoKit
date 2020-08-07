@@ -40,8 +40,17 @@ class ConvoKitMeta(MutableMapping, dict):
         dict.__setitem__(self, key, value)
 
     def __delitem__(self, key):
-        dict.__delitem__(self, key)
-        self.index.del_from_index(self.obj_type, key)
+        if self.obj_type == 'corpus':
+            dict.__delitem__(self, key)
+            self.index.del_from_index(self.obj_type, key)
+        else:
+            if self.index.lock_metadata_deletion[self.obj_type]:
+                warn("For consistency in metadata attributes in Corpus component objects, deleting metadata attributes "
+                         "from component objects individually is not allowed. "
+                     "To delete this metadata attribute from all Corpus components of this type, "
+                         "use corpus.delete_metadata(obj_type='{}', attribute='{}') instead.".format(self.obj_type, key))
+            else:
+                dict.__delitem__(self, key)
 
     def __iter__(self):
         return dict.__iter__(self)

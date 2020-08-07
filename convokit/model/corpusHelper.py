@@ -287,11 +287,15 @@ def dump_helper_bin(d: ConvoKitMeta, d_bin: Dict, fields_to_skip=None) -> Dict: 
     d_out = {}
     for k, v in d.items():
         if k in fields_to_skip: continue
-        if obj_idx[k][0] == "bin":
-            d_out[k] = "{}{}{}".format(BIN_DELIM_L, len(d_bin[k]), BIN_DELIM_R)
-            d_bin[k].append(v)
-        else:
-            d_out[k] = v
+        try:
+            if obj_idx[k][0] == "bin":
+                d_out[k] = "{}{}{}".format(BIN_DELIM_L, len(d_bin[k]), BIN_DELIM_R)
+                d_bin[k].append(v)
+            else:
+                d_out[k] = v
+        except KeyError:
+            # fails silently (object has no such metadata that was indicated in metadata index)
+            pass
     return d_out
 
 

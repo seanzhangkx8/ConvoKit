@@ -50,7 +50,7 @@ class ConvoKitMatrix:
 
     @matrix.deleter
     def matrix(self):
-        warn("ConvoKitMatrix's internal matrix cannot be deleted. Use Corpus.del_vector_matrix() instead.")
+        warn("ConvoKitMatrix's internal matrix cannot be deleted. Use Corpus.delete_vector_matrix() instead.")
 
     def _initialization_checks(self):
         try:
