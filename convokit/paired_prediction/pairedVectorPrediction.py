@@ -14,12 +14,14 @@ class PairedVectorPrediction(PairedPrediction):
     """
     Transformer for doing a Paired Prediction with vectors.
 
-    :param obj_type: corpus object type to do a paired BoW on
-    :param vector_name: meta key containing the BoW vector
-    :param clf: optional classifier to be used in the paired prediction
+    :param obj_type: corpus component type being used for analysis: 'utterance', 'speaker', or 'conversation'
+    :param vector_name: name of the vector matrix containing the bag-of-words vectors
+    :param clf: classifier to be used in the paired prediction; by default: standard-scaled logistic regression
     :param pair_id_attribute_name: metadata attribute name to use in annotating object with pair id, default: "pair_id"
-    :param label_attribute_name: metadata attribute name to use in annotating object with predicted label, default: "label"
-    :param pair_orientation_attribute_name: metadata attribute name to use in annotating object with pair orientation, default: "pair_orientation"
+    :param label_attribute_name: metadata attribute name to use in annotating object with predicted label,
+        default: "label"
+    :param pair_orientation_attribute_name: metadata attribute name to use in annotating object with pair orientation,
+        default: "pair_orientation"
 
     """
     def __init__(self, obj_type: str,
@@ -42,6 +44,13 @@ class PairedVectorPrediction(PairedPrediction):
                          clf=clf)
 
     def fit(self, corpus: Corpus, y=None, selector: Callable[[CorpusComponent], bool] = lambda x: True):
+        """
+        Fit the internal classifier to the Corpus component objects.
+
+        :param corpus: the target Corpus
+        :param selector: selector (lambda) function for which objects should be included in the analysis
+        :return: this Transformer object with a fitted internal classifier
+        """
         # Check if Pairer.transform() needs to be run first
         self._check_for_pair_information(corpus)
         pair_id_to_objs = generate_pair_id_to_objs(corpus, self.obj_type, selector,
@@ -56,7 +65,7 @@ class PairedVectorPrediction(PairedPrediction):
     def summarize(self, corpus: Corpus, selector: Callable[[CorpusComponent], bool] = lambda x: True,
                   cv=KFold(n_splits=5, shuffle=True)):
         """
-        Run PairedPrediction on the corpus with cross-validation
+        Run PairedPrediction on the corpus with cross-validation.
 
         :param corpus: annoted Corpus (with pair information from PairedPrediction.transform())
         :param selector: selector (lambda) function for which objects should be included in the analysis
@@ -76,10 +85,12 @@ class PairedVectorPrediction(PairedPrediction):
 
     def get_coefs(self, feature_names: List[str], coef_func=None):
         """
-        Get dataframe of classifier coefficients. By default, assumes it is a pipeline with a logistic regression component.
+        Get dataframe of classifier coefficients.
+        By default, assumes it is a pipeline with a logistic regression component. For other setups, the user should
+        define a custom `coef_func`.
 
         :param feature_names: list of feature names to get coefficients for. if None, uses vectorizer vocabulary
-        :param coef_func: function for accessing the list of coefficients from the classifier model
+        :param coef_func: (optional) function for accessing the list of coefficients from the classifier model
         :return: DataFrame of features and coefficients, indexed by feature names
         """
         return get_coefs_helper(self.clf, feature_names, coef_func)

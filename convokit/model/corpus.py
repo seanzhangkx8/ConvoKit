@@ -949,7 +949,7 @@ class Corpus:
         self.meta_index.del_from_index(obj_type, attribute)
         self.meta_index.lock_metadata_deletion[obj_type] = True
 
-    def set_vector_matrix(self, name: str, matrix, ids: List[str], columns: List[str] = None):
+    def set_vector_matrix(self, name: str, matrix, ids: List[str]=None, columns: List[str] = None):
         """
         Adds a vector matrix to the Corpus, where the matrix is an array of vector representations of some
         set of Corpus components (i.e. Utterances, Conversations, Speakers).
@@ -957,9 +957,9 @@ class Corpus:
         A ConvoKitMatrix object is initialized from the arguments and stored in the Corpus.
 
         :param name: descriptive name for the matrix
-        :param matrix: matrix of _vector_matrices (must be a numpy or scipy matrix)
-        :param ids: list of component object ids, where each entry corresponds to each row of the matrix
-        :param columns: optional names for the columns of the matrix
+        :param matrix: numpy or scipy array matrix
+        :param ids: optional list of Corpus component object ids, where each id corresponds to each row of the matrix
+        :param columns: optional list of names for the columns of the matrix
         :return: None
         """
 
@@ -971,7 +971,7 @@ class Corpus:
 
     def append_vector_matrix(self, matrix: ConvoKitMatrix):
         """
-        Adds an already constructed ConvoKitMatrix to the Corpus
+        Adds an already constructed ConvoKitMatrix to the Corpus.
 
         :param matrix: a ConvoKitMatrix object
         :return: None

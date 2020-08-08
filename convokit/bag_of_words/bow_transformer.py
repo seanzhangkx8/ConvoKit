@@ -23,7 +23,7 @@ class BoWTransformer(Transformer):
     :param obj_type: "speaker", "utterance", or "conversation"
     :param vectorizer: a sklearn vectorizer object; default is CountVectorizer(min_df=10, max_df=.5, ngram_range(1, 1),
         binary=False, max_features=15000)
-    :param vector_name: the name of the metadata key to store the vector under
+    :param vector_name: name for the vector matrix generated in the transform() step
     :param text_func: function for getting text from the Corpus component object. By default, this is configured
         based on the `obj_type`.
 
@@ -56,10 +56,12 @@ class BoWTransformer(Transformer):
 
     def fit(self, corpus: Corpus, y=None, selector: Callable[[CorpusComponent], bool] = lambda x: True):
         """
-        Fit the Transformer's internal vectorizer on the Corpus objects' texts, with an optional selector that filters for objects to be fit on.
+        Fit the Transformer's internal vectorizer on the Corpus objects' texts, with an optional selector that selects
+        for objects to be fit on.
 
         :param corpus: the target Corpus
-        :param selector: a (lambda) function that takes a Corpus object and returns True or False (i.e. include / exclude). By default, the selector includes all objects of the specified type in the Corpus.
+        :param selector: a (lambda) function that takes a Corpus object and returns True or False
+            (i.e. include / exclude). By default, the selector includes all objects of the specified type in the Corpus.
         :return: the fitted BoWTransformer
         """
         # collect texts for vectorization
@@ -69,12 +71,12 @@ class BoWTransformer(Transformer):
 
     def transform(self, corpus: Corpus, selector: Callable[[CorpusComponent], bool] = lambda x: True) -> Corpus:
         """
-        Annotate the corpus objects with the vectorized representation of the object's text, with an optional
-        selector that filters for objects to be transformed. Objects that are not selected will get a metadata value
-        of 'None' instead of the vector.
+        Computes the vector matrix for the Corpus component objects and then stores it in a ConvoKitMatrix object,
+        which is saved in the Corpus as `vector_name`.
 
         :param corpus: the target Corpus
-        :param selector: a (lambda) function that takes a Corpus object and returns True or False (i.e. include / exclude). By default, the selector includes all objects of the specified type in the Corpus.
+        :param selector: a (lambda) function that takes a Corpus component object and returns True or False
+            (i.e. include / exclude). By default, the selector includes all objects of the specified type in the Corpus.
 
         :return: the target Corpus annotated
         """
@@ -95,6 +97,15 @@ class BoWTransformer(Transformer):
         return corpus
 
     def fit_transform(self, corpus: Corpus, y=None, selector: Callable[[CorpusComponent], bool] = lambda x: True) -> Corpus:
+        """
+        Fit the Transformer's internal vectorizer on the Corpus component objects' texts, and then compute
+        vector representations for them and stores it in the Corpus object as `vector_name`.
+
+        :param corpus: target Corpus
+        :param selector: a (lambda) function that takes a Corpus component object and returns True or False
+            (i.e. include / exclude). By default, the selector includes all objects of the specified type in the Corpus.
+        :return: the Corpus with the computed vector matrix stored in it
+        """
         self.fit(corpus, selector=selector)
         return self.transform(corpus, selector=selector)
 

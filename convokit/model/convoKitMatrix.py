@@ -13,20 +13,20 @@ class ConvoKitMatrix:
     A ConvoKitMatrix stores the vector representations of some set of Corpus components (i.e. Utterances,
     Conversations, Speakers).
 
-    :param name:
-    :param matrix:
-    :param ids:
-    :param columns:
+    :param name: descriptive name for the matrix
+    :param matrix: numpy or scipy array matrix
+    :param ids: optional list of Corpus component object ids, where each id corresponds to each row of the matrix
+    :param columns: optional list of names for the columns of the matrix
 
-    :ivar name:
-    :ivar matrix:
-    :ivar ids:
-    :ivar columns:
-    :ivar ids_to_idx:
-    :ivar cols_to_idx:
+    :ivar name: name of the matrix
+    :ivar matrix: the matrix data
+    :ivar ids: ids corresponding to rows
+    :ivar columns: names corresponding to columns
+    :ivar ids_to_idx: a mapping from id to the row index
+    :ivar cols_to_idx: a mapping from column name to the column index
     """
 
-    def __init__(self, name, matrix, ids: List[str] = None, columns: Optional[List[str]] = None):
+    def __init__(self, name, matrix, ids: Optional[List[str]] = None, columns: Optional[List[str]] = None):
         self.name = name
         self._matrix = matrix
         self._sparse = isinstance(self._matrix, scipy.sparse.csr.csr_matrix)

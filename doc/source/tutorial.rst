@@ -127,6 +127,10 @@ Speaker('id': 1657, 'meta': {'sex': 'FEMALE', 'education': 2, 'birth_year': 1947
  'birth_year': 1947,
  'dialect_area': 'NORTH MIDLAND'}
 
+**Vectors in ConvoKit**:
+Vector data is also easy to use in ConvoKit and we provide first-class support for integrating vector data with Corpus components.
+Read our `introduction to vectors in ConvoKit <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/vectors/vector_demo.ipynb>`_ for more details.
+
 What else can we do with the Corpus object?
 -------------------------------------------
 
@@ -524,7 +528,6 @@ Other Transformers follow a similar pattern:
 - They can ``transform()`` the corpus to annotate its components with the output of the Transformer.
 - They can ``summarize()`` their results in a more visual and easily interpreted format -- though in most cases (but not this one), this requires that the Corpus be transformed first.
 - These ``fit()``, ``transform()``, ``summarize()`` functions have ``selector`` as an argument so you can further specify subsets of the Corpus to analyze.
-- Selectors and filters are typically lambda functions in order to maximize customisability.
 
 Other transformers can be applied in the same way, and even chained in sequence, as described in the :doc:`Core Concepts Tutorial </architecture>`.
 
