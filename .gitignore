@@ -1,5 +1,6 @@
 *.json
 !/convokit/download_config.json
+!/doc/source/img/*
 *.jsonl
 *.jsonlist
 *.jsonlistx
