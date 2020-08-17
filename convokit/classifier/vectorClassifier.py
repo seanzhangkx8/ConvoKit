@@ -100,6 +100,9 @@ class VectorClassifier(Classifier):
         return corpus
 
     def transform_objs(self, objs: List[CorpusComponent]) -> List[CorpusComponent]:
+        """
+        Not implemented for VectorClassifier.
+        """
         # """
         # Run classifier on list of Corpus component objects and annotate them with their predictions and
         # prediction scores.
@@ -143,14 +146,15 @@ class VectorClassifier(Classifier):
 
     def summarize_objs(self, objs: List[CorpusComponent]):
         """
-        Generate a pandas DataFrame (indexed by object id, with prediction and prediction score columns) of
-        classification results.
-
-        Runs on a list of Corpus objects.
-
-        :param objs: list of Corpus objects
-        :return: pandas DataFrame indexed by Corpus object id
+        Not implemented for VectorClassifier.
         """
+        # Generate a pandas DataFrame (indexed by object id, with prediction and prediction score columns) of
+        # classification results.
+        #
+        # Runs on a list of Corpus objects.
+        #
+        # :param objs: list of Corpus objects
+        # :return: pandas DataFrame indexed by Corpus object id
         # objId_clf_prob = []
         # for obj in objs:
         #     objId_clf_prob.append((obj.id, obj.meta[self.clf_attribute_name], obj.meta[self.clf_prob_attribute_name]))
