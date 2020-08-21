@@ -3,7 +3,7 @@ from sklearn.metrics import confusion_matrix, classification_report
 from sklearn import svm
 from convokit.classifier.util import *
 from convokit import Transformer, CorpusComponent
-
+from convokit.util import deprecation
 
 class Classifier(Transformer):
     """
@@ -22,14 +22,22 @@ class Classifier(Transformer):
     """
     def __init__(self, obj_type: str, pred_feats: List[str],
                  labeller: Callable[[CorpusComponent], bool] = lambda x: True,
-                 clf=None, clf_attribute_name: str = "prediction", clf_prob_attribute_name: str = "pred_score"):
+                 clf=None, clf_attribute_name: str = "prediction", clf_feat_name=None,
+                 clf_prob_attribute_name: str = "pred_score", clf_prob_feat_name=None):
         self.pred_feats = pred_feats
         self.labeller = labeller
         self.obj_type = obj_type
 
         self.clf = svm.SVC(C=0.02, kernel='linear', probability=True) if clf is None else clf
-        self.clf_attribute_name = clf_attribute_name
-        self.clf_prob_attribute_name = clf_prob_attribute_name
+        self.clf_attribute_name = clf_attribute_name if clf_feat_name is None else clf_feat_name
+        self.clf_prob_attribute_name = clf_prob_attribute_name if clf_prob_feat_name is None else clf_prob_feat_name
+
+        if clf_attribute_name is not None:
+            deprecation("Classifier's clf_feat_name parameter", 'clf_attribute_name')
+
+        if clf_prob_feat_name is not None:
+            deprecation("Classifier's clf_prob_feat_name parameter", 'clf_prob_attribute_name')
+
 
     def fit(self, corpus: Corpus, y=None, selector: Callable[[CorpusComponent], bool] = lambda x: True):
         """
