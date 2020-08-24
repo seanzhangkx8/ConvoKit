@@ -9,10 +9,12 @@ class Classifier(Transformer):
     """
     Transformer that trains a classifier on the specified features of a Corpus's objects.
 
-    Runs on the Corpus's Users, Utterances, or Conversations (as specified by obj_type).
+    Runs on the Corpus's Speakers, Utterances, or Conversations (as specified by obj_type).
 
     :param obj_type: type of Corpus object to classify: 'conversation', 'speaker', or 'utterance'
-    :param pred_feats: list of metadata keys containing the features to be used in prediction. If the key corresponds to a dictionary, all the keys of the dictionary will be included in pred_feats.
+    :param pred_feats: list of metadata attributes containing the features to be used in prediction.
+        If the metadata attribute contains a dictionary, all the keys of the dictionary will be included in pred_feats.
+        Each feature used should have a numeric/boolean type.
     :param labeller: a (lambda) function that takes a Corpus object and returns True (y=1) or False (y=0)
         - i.e. labeller defines the y value of the object for fitting
     :param clf: optional sklearn classifier model, an SVM with linear kernel will be initialized by default
@@ -177,6 +179,12 @@ class Classifier(Transformer):
         print("Done.")
         return accuracy, confusion_matrix(y_true=y_test, y_pred=preds)
 
+    # def evaluate_with_cv(self, corpus: Corpus = None,
+    #                      objs: List[CorpusComponent] = None,
+    #                      cv=KFold(n_splits=5),
+    #                      selector: Callable[[CorpusComponent], bool] = lambda x: True
+    #                      ):
+    #     return
     def evaluate_with_cv(self, corpus: Corpus = None,
                          objs: List[CorpusComponent] = None,
                          cv=KFold(n_splits=5),
@@ -186,7 +194,9 @@ class Classifier(Transformer):
         Evaluate the performance of predictive features (Classifier.pred_feats) in predicting for the label,
         using cross-validation for data splitting.
 
-        Run either on a Corpus (with Classifier labeller, selector, obj_type settings) or a list of Corpus objects.
+        This method can be run on either a Corpus (passed in as the `corpus` parameter) or a list of Corpus
+        component objects (passed in as the `objs` parameter). If run on a Corpus, the cross-validation will be run
+        with the Classifier's `labeller` and `obj_type` settings, and the `selector` parameter of this function.
 
         :param corpus: target Corpus (do not pass in objs if using this)
         :param objs: target list of Corpus objects (do not pass in corpus if using this)

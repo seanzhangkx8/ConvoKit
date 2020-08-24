@@ -4,7 +4,7 @@ Conversational Analysis Modules
 These are the main offerings of ConvoKit: standalone modules implementing various functions for analyzing conversational
 behavior. Each module is a Transformer subclass.
 
-Transformers can under three categories: preprocessing, feature extraction, and analysis.
+Transformers come under three categories: preprocessing, feature extraction, and analysis.
 
 .. toctree::
    :maxdepth: 2
