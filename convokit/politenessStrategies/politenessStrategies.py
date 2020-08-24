@@ -14,9 +14,9 @@ class PolitenessStrategies(Transformer):
     Encapsulates extraction of politeness strategies from utterances in a
     Corpus.
     
-    :param strategy_attribute_name: metadata attribute name to use in annotation for politeness strategies
-    :param marker_attribute_name: metadata attribute name to use in annotation for politeness markers 
-    :param verbose: whether or not to print status messages while computing features
+    :param strategy_attribute_name: metadata attribute name to store politeness strategies features under during the `transform()` step.  Default is 'politeness_strategies'. 
+    :param marker_attribute_name: metadata attribute name to store politeness markers under during the `transform()` step. Default is 'politeness_markers'.
+    :param verbose: whether or not to print status messages while computing features.
     """
 
     def __init__(self, strategy_attribute_name="politeness_strategies", marker_attribute_name="politeness_markers", verbose: bool=False):
