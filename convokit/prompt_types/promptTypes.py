@@ -156,10 +156,11 @@ class PromptTypes(Transformer):
         reference_dists, reference_assigns = reference_df[reference_df.columns[:-1]].values, reference_df['type_id'].values
         reference_min_dists = reference_dists.min(axis=1)
 
-        corpus.set_vector_matrix(self.output_field + '__prompt_dists.%s' % self.default_n_types,
-                                ids=prompt_df.index, matrix=prompt_dists)
+        corpus.set_vector_matrix(self.output_field + '__prompt_dists.%s' % self.default_n_types, ids=prompt_df.index, matrix=prompt_dists,
+            columns=['type_%d_dist' % x for x in range(prompt_dists.shape[1])])
         corpus.set_vector_matrix(self.output_field + '__reference_dists.%s' % self.default_n_types,
-                                ids=reference_df.index, matrix=reference_dists)
+                                ids=reference_df.index, matrix=reference_dists,
+            columns=['type_%d_dist' % x for x in range(prompt_dists.shape[1])])
         for id, assign, dist in zip(prompt_df.index, prompt_assigns, prompt_min_dists):
             corpus.get_utterance(id).add_meta(self.output_field + '__prompt_type.%s' % self.default_n_types, assign)
             corpus.get_utterance(id).add_meta(self.output_field + '__prompt_type_dist.%s' % self.default_n_types, float(dist))
@@ -359,6 +360,32 @@ class PromptTypes(Transformer):
                 train_types = self.train_types[key]
                 for k in ['prompt_df', 'reference_df']:
                     train_types[k].to_csv(os.path.join(model_dir, 'train_%s.%s.tsv' % (k, key)), sep='\t')
+
+    def get_model(self, type_keys='default'):
+        """
+        Returns the model as a dictionary containing:
+            * embedding_model: stores information pertaining to the vector representations.
+                * prompt_tfidf_model: sklearn tf-idf model that converts prompt input to term-document matrix
+                * reference_tfidf_model: tf-idf model that converts response input to term-document matrix
+                * svd_model: sklearn TruncatedSVD model that produces a low-dimensional representation of responses and prompts
+                * U_prompt: vector representations of prompt terms
+                * U_reference: vector representations of response terms
+            * type_models: a dictionary mapping each type clustering model to:
+                * km_model: a sklearn KMeans model of the learned types
+                * prompt_df: distances to cluster centroids, and type assignments, of prompt terms
+                * reference_df: distances to cluster centroids, and type assignments, of reference terms
+        :param type_keys: if 'default', will return the type clustering model corresponding to the `n_types` the model was initialized with. if 'all', returns all clustering models that have been trained via calls to `refit_types`. can also take a list of clustering models.
+        :return: the prompt types model
+        """
+        if type_keys == 'default':
+            to_get = [self.default_n_types]
+        elif type_keys == 'all':
+            to_get = self.type_models.keys()
+        else:
+            to_get = type_keys
+        to_return = {'embedding_model': self.prompt_embedding_model, 
+                'type_models': {k: self.type_models[k] for k in to_get}}
+        return to_return
 
     def load_model(self, model_dir, type_keys='default', load_train_corpus=True):
         """
