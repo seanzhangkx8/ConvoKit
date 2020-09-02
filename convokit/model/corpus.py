@@ -745,45 +745,33 @@ class Corpus:
                              "Taking the latest one found".format(speaker, repr(meta_key)))
                 speaker.meta[meta_key] = meta_val
 
-    def _reinitialize_index_helper(self, new_index, old_index, obj_type):
+    def _reinitialize_index_helper(self, new_index, obj_type):
         """
         Helper for reinitializing the index of the different Corpus object types
         :param new_index: new ConvoKitIndex object
-        :param old_index: original ConvoKitIndex object
         :param obj_type: utterance, speaker, or conversation
         :return: None (mutates new_index)
         """
-        new_obj_index = new_index.indices[obj_type]
-        old_obj_index = old_index.indices[obj_type]
-
         for obj in self.iter_objs(obj_type):
             for key, value in obj.meta.items():
-                if key in new_obj_index:
-                    if new_obj_index[key] is None and value is not None:
-                        new_obj_index[key] = str(type(value))
-                else:
-                    if key in old_obj_index:
-                        new_obj_index[key] = old_obj_index[key]
-                    else:
-                        new_obj_index[key] = str(type(value))
+                ConvoKitMeta._check_type_and_update_index(new_index, obj_type, key, value)
+            obj.meta.index = new_index
 
     def reinitialize_index(self):
         """
-        Reinitialize the Corpus Index. Called during merge().
-        Re-uses original Index values where possible, and avoids having NoneType as the class-type for any key.
-        Checks metadata of all Corpus objects of each type to ensure that all keys are accounted for.
+        Reinitialize the Corpus Index from scratch.
 
-        :return: None (sets the .meta_index of Corpus)
+        :return: None (sets the .meta_index of Corpus and of the corpus component objects)
         """
         old_index = self.meta_index
         new_index = ConvoKitIndex(self)
 
-        self._reinitialize_index_helper(new_index, old_index, "utterance")
-        self._reinitialize_index_helper(new_index, old_index, "speaker")
-        self._reinitialize_index_helper(new_index, old_index, "conversation")
+        self._reinitialize_index_helper(new_index, "utterance")
+        self._reinitialize_index_helper(new_index, "speaker")
+        self._reinitialize_index_helper(new_index, "conversation")
 
         for key, value in self.meta.items():  # overall
-            new_index.overall_index[key] = str(type(value))
+            new_index.update_index('corpus', key, str(type(value)))
 
         new_index.version = old_index.version
         self.meta_index = new_index
