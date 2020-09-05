@@ -145,7 +145,7 @@ class Coordination(Transformer):
         any_speaker = next(iter(pairs))[0]
         if isinstance(any_speaker, str):
             pairs_utts = corpus.pairwise_exchanges(lambda x, y:
-                (x.name, y.name) in pairs, speaker_names_only=True)
+                (x.id, y.id) in pairs, speaker_names_only=True)
         else:
             pairs_utts = corpus.pairwise_exchanges(lambda x, y:
                 (x, y) in pairs, speaker_names_only=False)

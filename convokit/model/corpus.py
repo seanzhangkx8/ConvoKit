@@ -532,7 +532,7 @@ class Corpus:
 
         The subtrees denoted by these utterance ids should be distinct and should not overlap, otherwise there may be unexpected behavior.
 
-        Vectors are not preserved.
+        Vectors are not preserved. The original Corpus will be mutated.
 
         :param new_convo_roots: List of utterance ids to use as conversation ids
         :param preserve_corpus_meta: set as True to copy original Corpus metadata to new Corpus
