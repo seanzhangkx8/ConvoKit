@@ -48,16 +48,25 @@ def extract_dep_parse_markers(sent_parsed, sent_idx, child, parents=None, relati
     
     for i, tok in enumerate(sent_parsed):            
         
+        # if tok doesn't match
         if tok['tok'].lower() != child:
             continue 
         
+        # if relation doesn't match
         if relation is not None and tok['dep'] != relation:
             continue 
-            
+        
+        # if parant doesn't match
         if parents is not None and (tok['dep'] == 'ROOT' or sent_parsed[tok['up']]['tok'].lower() not in parents):
-            continue 
+            continue
+        
+        # if parent is not specified, only track child 
+        if parents is None: 
+            matched.append((tok['tok'], sent_idx, i))
+            
+        # keep both child and parent
         else:
-            matched.append([(tok['tok'], sent_idx, i), (sent_parsed[tok['up']]['tok'], sent_idx, tok['up'])])
+            matched.extend([(tok['tok'], sent_idx, i), (sent_parsed[tok['up']]['tok'], sent_idx, tok['up'])])
                 
     return matched 
     
