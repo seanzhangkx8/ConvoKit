@@ -23,6 +23,7 @@ class PolitenessStrategies(Transformer):
     """
 
     def __init__(self, strategy_attribute_name="politeness_strategies", marker_attribute_name="politeness_markers", strategy_collection="politeness_api", verbose: bool=False):
+        
         self.strategy_attribute_name = strategy_attribute_name
         self.marker_attribute_name = marker_attribute_name
         self.strategy_collection = strategy_collection
@@ -84,7 +85,9 @@ class PolitenessStrategies(Transformer):
         for i, sent in enumerate(utterance.meta["parsed"]):
             
             for p in sent["toks"]:
-                p["tok"] = p['tok'].lower()
+
+                # do not remove punctuations 
+                p["tok"] = p["tok"].lower()
             
         utterance.meta[self.strategy_attribute_name], marks = self.__extractor_lookup[self.strategy_collection](utterance)
 
