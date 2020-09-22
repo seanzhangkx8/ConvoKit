@@ -144,11 +144,11 @@ class Coordination(Transformer):
         pairs = set(pairs)
         any_speaker = next(iter(pairs))[0]
         if isinstance(any_speaker, str):
-            pairs_utts = corpus.pairwise_exchanges(lambda x, y:
-                (x.id, y.id) in pairs, speaker_names_only=True)
+            pairs_utts = corpus.directed_pairwise_exchanges(lambda x, y:
+                (x.id, y.id) in pairs, speaker_ids_only=True)
         else:
-            pairs_utts = corpus.pairwise_exchanges(lambda x, y:
-                (x, y) in pairs, speaker_names_only=False)
+            pairs_utts = corpus.directed_pairwise_exchanges(lambda x, y:
+                (x, y) in pairs, speaker_ids_only=False)
         all_scores = CoordinationScore()
         for (speaker, target), utterances in pairs_utts.items():
             scores = self.scores_over_utterances(corpus, [speaker], utterances, speaker_thresh, target_thresh,

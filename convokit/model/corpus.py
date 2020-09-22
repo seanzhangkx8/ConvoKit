@@ -594,20 +594,17 @@ class Corpus:
         """
         Get all directed speaking pairs (a, b) of speakers such that a replies to b at least once in the dataset.
 
-        :param selector: optional function that takes in
-            a Speaker and a replied-to Speaker and returns True to include
+        :param selector: optional function that takes in a Speaker and a replied-to Speaker and returns True to include
             the pair in the result, or False otherwise.
-        :param speaker_ids_only: if True, return just pairs of
-            speaker names rather than speaker objects.
+        :param speaker_ids_only: if True, return just pairs of speaker names rather than speaker objects.
         :type speaker_ids_only: bool
 
-        :return: Set containing all speaking pairs selected by the selector
-            function, or all speaking pairs in the dataset if no selector
-            function was used.
+        :return: Set containing all speaking pairs selected by the selector function, or all speaking pairs in the
+            dataset if no selector function was used.
         """
         pairs = set()
         for utt2 in self.iter_utterances():
-            if utt2.speaker is not None and utt2.reply_to is not None and utt2.reply_to in self.utterances:
+            if utt2.speaker is not None and utt2.reply_to is not None and self.has_utterance(utt2.reply_to):
                 utt1 = self.get_utterance(utt2.reply_to)
                 if utt1.speaker is not None:
                     if selector(utt2.speaker, utt1.speaker):
@@ -615,29 +612,29 @@ class Corpus:
                                   speaker_ids_only else (utt2.speaker, utt1.speaker))
         return pairs
 
-    def pairwise_exchanges(self, selector: Optional[Callable[[Speaker, Speaker], bool]] = None,
-                           speaker_names_only: bool = False) -> Dict[Tuple, List[Utterance]]:
+    def directed_pairwise_exchanges(self, selector: Optional[Callable[[Speaker, Speaker], bool]] = lambda speaker1, speaker2: True,
+                                    speaker_ids_only: bool = False) -> Dict[Tuple, List[Utterance]]:
         """
         Get all directed pairwise exchanges in the dataset.
 
-        :param selector: optional function that takes in a
-            speaker speaker and a replied-to speaker and returns True to include
-            the pair in the result, or False otherwise.
-        :param speaker_names_only: if True, index conversations
-            by speaker names rather than speaker objects.
-        :type speaker_names_only: bool
+        :param selector: optional function that takes in a speaking speaker and a replied-to speaker and 
+            returns True to include the pair in the result, or False otherwise.
+        :param speaker_ids_only: if True, index conversations
+            by speaker ids rather than Speaker objects.
+        :type speaker_ids_only: bool
 
         :return: Dictionary mapping (speaker, target) tuples to a list of
             utterances given by the speaker in reply to the target.
         """
         pairs = defaultdict(list)
-        for u2 in self.utterances.values():
+        for u2 in self.iter_utterances():
             if u2.speaker is not None and u2.reply_to is not None:
-                u1 = self.utterances[u2.reply_to]
+                u1 = self.get_utterance(u2.reply_to)
                 if u1.speaker is not None:
-                    if selector is None or selector(u2.speaker, u1.speaker):
-                        key = (u2.speaker.id, u1.speaker.id) if speaker_names_only else (u2.speaker, u1.speaker)
+                    if selector(u2.speaker, u1.speaker):
+                        key = (u2.speaker.id, u1.speaker.id) if speaker_ids_only else (u2.speaker, u1.speaker)
                         pairs[key].append(u2)
+
         return pairs
 
     @staticmethod
