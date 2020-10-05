@@ -5,26 +5,72 @@ from typing import Callable, Tuple, List, Dict, Optional, Collection, Union
 from .coordinationScore import CoordinationScore, CoordinationWordCategories
 
 from convokit.transformer import Transformer
+from convokit.util import deprecation
 
 class Coordination(Transformer):
     """Encapsulates computation of coordination-based features for a particular
     corpus.
+
+    Coordination is a measure of power differences between speakers in a
+    conversation, based on the propensity of a speaker to echo the same
+    function words used by another speaker in a conversation. It is defined in
+    Danescu-Niculescu-Mizil et al's "Echoes of Power: Language Effects and Power
+    Differences in Social Interaction".
+
+    This transformer contains various functions to measure coordination on
+    different conversational scales. Calling `transform()` will annotate each
+    speaker in the corpus with their coordination to all speakers they directly
+    reply to. The `score()` function is a convenience method that computes
+    aggregated coordination scores between two groups of speakers. Finally, the
+    `score_report()` function will summarize the results of `score()` in a few
+    global metrics (using the three aggregation methods defined in the paper).
     
     Note: labeling method is slightly different from that used in the paper --
     we no longer match words occurring in the middle of other words and that
-    immediately follow an apostrophe. Most notably, we no longer separately
+    immediately follow an apostrophe. Notably, we no longer separately
     count the "all" in "y'all."
+
+    :param coordination_attribute_name: metadata attribute name to store coordination scores during the `transform()` step.
+    :param speaker_thresh: Thresholds based on minimum number of times the speaker uses each coordination marker. Speakers that do not meet the threshold are excluded from computation for a given marker.
+    :param target_thresh: Thresholds based on minimum number of times the target uses each coordination marker. Targets that do not meet the threshold are excluded from computation for a given marker.
+    :param utterances_thresh: Thresholds based on the minimum number of utterances for each speaker. Speakers that do not meet the threshold are excluded from computation for a given marker.
+    :param speaker_thresh_indiv: Like `speaker_thresh` but only considers the utterances between a speaker and a single target; thresholds whether the utterances for a single target should be considered for a particular speaker.
+    :param target_thresh_indiv: Like `target_thresh` but thresholds whether a single target's utterances should be considered for a particular speaker.
+    :param utterances_thresh_indiv: Like `utterances_thresh` but thresholds whether a single target's utterances should be considered for a particular speaker.
     """
 
-    def __init__(self, **thresh):
-        self.thresh = thresh
+    def __init__(self, coordination_attribute_name: str = "coord", 
+        speaker_thresh: int = 0, target_thresh: int = 3,
+        utterances_thresh: int = 0, speaker_thresh_indiv: int = 0,
+        target_thresh_indiv: int = 0, utterances_thresh_indiv: int = 0,
+        utterance_thresh_func: Optional[Callable[[Tuple[Utterance, Utterance]], bool]] = None):
+        if utterance_thresh_func is not None:
+            deprecation("Coordination's utterance_thresh_func parameter",
+                "speaker, target and utterance threshold parameters")
+        self.speaker_thresh = speaker_thresh
+        self.target_thresh = target_thresh
+        self.utterances_thresh = utterances_thresh
+        self.speaker_thresh_indiv = speaker_thresh_indiv
+        self.target_thresh_indiv = target_thresh_indiv
+        self.utterances_thresh_indiv = utterances_thresh_indiv
+        self.utterance_thresh_func = utterance_thresh_func
         self.corpus = None
         self.precomputed = False
+        self.coordination_attribute_name = coordination_attribute_name
 
     def fit(self, corpus: Corpus, y=None):
         """Learn coordination information for the given corpus."""
         self.corpus = corpus
-        self.precompute(corpus)
+
+        #if not self.precomputed:
+        self._compute_liwc_reverse_dict()
+        self._annot_liwc_cats(corpus)
+        self.precomputed = True
+
+    def precompute(self, corpus: Corpus):
+        """Deprecated. Use fit() instead."""
+        deprecation("Coordination's precompute function", "fit")
+        self.fit(corpus)
 
     def transform(self, corpus: Corpus) -> Corpus:
         """Generate coordination scores for the corpus you called fit on."""
@@ -33,26 +79,27 @@ class Coordination(Transformer):
         if not self.precomputed:
             raise Exception("Must fit before calling transform")
 
-        pair_scores = self.pairwise_scores(corpus, corpus.speaking_pairs(), **self.thresh)
+        pair_scores = self.pairwise_scores(corpus, corpus.speaking_pairs(),
+            speaker_thresh=self.speaker_thresh,
+            target_thresh=self.target_thresh,
+            utterances_thresh=self.utterances_thresh,
+            speaker_thresh_indiv=self.speaker_thresh_indiv,
+            target_thresh_indiv=self.target_thresh_indiv,
+            utterances_thresh_indiv=self.utterances_thresh_indiv,
+            utterance_thresh_func=self.utterance_thresh_func)
+
         for (speaker, target), score in pair_scores.items():
-            if "coord-score" not in speaker.meta:
-                speaker.meta["coord-score"] = {}
-            speaker.meta["coord-score"][target.id] = score
+            if self.coordination_attribute_name not in speaker.meta:
+                speaker.meta[self.coordination_attribute_name] = {}
+            speaker.meta[self.coordination_attribute_name][target.id] = score
 
             assert isinstance(speaker, Speaker)
 
-
         return corpus
 
-    def precompute(self, corpus) -> None:
-        """Call this to run the time-consuming annotation process explicitly.
-        For example, this lets you save the annotated coordination object as a
-        pickle to cache the precomputation results."""
-
-        if not self.precomputed:
-            self._compute_liwc_reverse_dict()
-            self._annot_liwc_cats(corpus)
-            self.precomputed = True
+    def fit_transform(self, corpus: Corpus, y=None) -> Corpus:
+        self.fit(corpus)
+        return self.transform(corpus)
 
     def score(self, corpus: Corpus, speakers: Collection[Union[Speaker, str]],
               group: Collection[Union[Speaker, str]], focus: str = "speakers",
