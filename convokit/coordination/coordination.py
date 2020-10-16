@@ -101,16 +101,29 @@ class Coordination(Transformer):
         self.fit(corpus)
         return self.transform(corpus)
 
-    def score(self, corpus: Corpus, speakers: Collection[Union[Speaker, str]],
+    def summarize(self, corpus: Corpus, speakers: Collection[Union[Speaker, str]],
               group: Collection[Union[Speaker, str]], focus: str = "speakers",
-              speaker_thresh: int = 0, target_thresh: int = 3,
-              utterances_thresh: int = 0, speaker_thresh_indiv: int = 0,
-              target_thresh_indiv: int = 0,
-              utterances_thresh_indiv: int = 0,
+              summary_report: bool = False,
+              speaker_thresh: int = -1, target_thresh: int = -1,
+              utterances_thresh: int = -1, speaker_thresh_indiv: int = -1,
+              target_thresh_indiv: int = -1,
+              utterances_thresh_indiv: int = -1,
               utterance_thresh_func: Optional[Callable[[Tuple[Utterance, Utterance]], bool]] = None,
               split_by_attribs: Optional[List[str]] = None,
               speaker_attribs: Optional[Dict] = None, target_attribs: Optional[Dict] = None) -> CoordinationScore:
-        """Computes the coordination scores for each speaker, given a set of speakers and a group of targets.
+        """Computes a summary of the coordination scores by giving an
+        aggregated score between two groups of speakers.
+
+        The threshold parameters may be used to override the thresholds set in
+        the constructor. If a threshold parameter is not explicitly set, it
+        will take on the value provided in the constructor.
+
+        Additionally, this method provides optional options to tweak the method
+        by which scores are aggregated. The `focus` parameter is used to
+        aggregate scores relative to either speakers or targets.
+        `split_by_attribs`, `speaker_attribs` and `target_attribs` are used to
+        specify whether to summarize scores for particular subgroups of
+        speakers or targets.
 
         :param corpus: Corpus to compute scores on
         :param speakers: A collection of speaker ids or speaker objects corresponding
@@ -122,7 +135,11 @@ class Coordination(Transformer):
             concatenate all of their utterances); the returned dictionary will
             have speakers as keys. If "targets", treat the set of
             speakers for a particular target as a single person; the returned
-            dictionary will have targets as keys.
+            dictionary will have targets as keys. See the example notebook for
+            typical usage.
+        :param summary_report: if True, return a dictionary of key global
+        coordination statistics. Otherwise, return a dictionary of speaker
+        scores.
         :param speaker_thresh: Thresholds based on minimum number of times the speaker uses each coordination marker.
         :param target_thresh: Thresholds based on minimum number of times the target uses each coordination marker.
         :param utterances_thresh: Thresholds based on the minimum number of utterances for each speaker.
@@ -134,7 +151,15 @@ class Coordination(Transformer):
         :param speaker_attribs: attribute names and values the speaker must have
         :param target_attribs: attribute names and values the target must have
 
-        :return: A :class:`CoordinationScore` object corresponding to the coordination scores for each speaker.
+        :return: If summary_report=True, returns a :class:`CoordinationScore`
+        object corresponding to the coordination scores for each speaker. This
+        object is a dictionary mapping each speaker to its aggregated
+        coordination score to all speakers in the opposite group. If
+        summary_report=False, returns a dictionary of summary statistics for
+        the coordination scores across each marker, the overall coordination
+        score under each of three aggregation methods (described in the paper),
+        and the count (sample size) for the statistics under the various
+        aggregation methods.
         """
         if corpus != self.corpus:
             raise Exception("Coordination: must fit and score on same corpus")
@@ -145,7 +170,16 @@ class Coordination(Transformer):
         if speaker_attribs is None: speaker_attribs = dict()
         if target_attribs is None: target_attribs = dict()
 
-        #self.precompute()
+        if speaker_thresh == -1: speaker_thresh = self.speaker_thresh
+        if target_thresh == -1: target_thresh = self.target_thresh
+        if utterances_thresh == -1: utterances_thresh = self.utterances_thresh
+        if speaker_thresh_indiv == -1:
+            speaker_thresh_indiv = self.speaker_thresh_indiv
+        if target_thresh_indiv == -1:
+            target_thresh_indiv = self.target_thresh_indiv
+        if utterances_thresh_indiv == -1:
+            utterances_thresh_indiv = self.utterances_thresh_indiv
+
         speakers = set(speakers)
         group = set(group)
 
@@ -158,11 +192,34 @@ class Coordination(Transformer):
                     target = reply_to.speaker
                     if target in group:
                         utterances.append(utt)
-        return self.scores_over_utterances(corpus, speakers, utterances,
+        scores = self._scores_over_utterances(corpus, speakers, utterances,
             speaker_thresh, target_thresh, utterances_thresh,
             speaker_thresh_indiv, target_thresh_indiv,
             utterances_thresh_indiv, utterance_thresh_func,
             focus, split_by_attribs, speaker_attribs, target_attribs)
+
+        if summary_report:
+            return self._summarize_score_report(scores)
+        else:
+            return scores
+
+    def _summarize_score_report(self, scores: CoordinationScore):
+        marker_a1 = scores.averages_by_marker(strict_thresh=True)  
+        marker = scores.averages_by_marker()
+        agg1 = scores.aggregate(method=1)
+        agg2 = scores.aggregate(method=2)
+        agg3 = scores.aggregate(method=3)
+        return {
+            "marker_agg1": marker_a1,
+            "marker_agg2": marker,
+            "marker_agg3": marker,
+            "agg1": agg1,
+            "agg2": agg2,
+            "agg3": agg3,
+            "count_agg1": len([s for s in scores if len(scores[s]) == 8]),
+            "count_agg2": len(scores),
+            "count_agg3": len(scores),
+        }
 
     def pairwise_scores(self, corpus: Corpus,
                         pairs: Collection[Tuple[Union[Speaker, str], Union[Speaker, str]]],
@@ -198,7 +255,7 @@ class Coordination(Transformer):
                 (x, y) in pairs, speaker_ids_only=False)
         all_scores = CoordinationScore()
         for (speaker, target), utterances in pairs_utts.items():
-            scores = self.scores_over_utterances(corpus, [speaker], utterances, speaker_thresh, target_thresh,
+            scores = self._scores_over_utterances(corpus, [speaker], utterances, speaker_thresh, target_thresh,
                                                  utterances_thresh, speaker_thresh_indiv, target_thresh_indiv,
                                                  utterances_thresh_indiv, utterance_thresh_func)
             if len(scores) > 0: # scores.values() will be length 0 or 1
@@ -206,33 +263,9 @@ class Coordination(Transformer):
         return all_scores
 
     def score_report(self, corpus: Corpus, scores: CoordinationScore):
-        """Create a "score report" of aggregate scores given a score output
-        produced by `score` or `pairwise_scores`.
-
-        - aggregate 1: average scores only over speakers with a score for each
-            coordination marker.
-        - aggregate 2: fill in missing scores for a speaker by using the group
-            score for each missing marker. (assumes different people in a group
-            coordinate the same way.)
-        - aggregate 3: fill in missing scores for a speaker by using the average
-            score over the markers we can compute coordination for for that 
-            speaker. (assumes a speaker coordinates the same way across different
-            coordination markers.)
-
-        :param corpus: Corpus to compute scores on
-        :param scores: Scores to produce a report for.
-        :type scores: CoordinationScore
-
-        :return: A tuple (marker_a1, marker, agg1, agg2, agg3):
-
-            - marker_a1 is a dictionary of aggregate scores by marker,
-                using the scores only over speakers included in Aggregate 1.
-            - marker is a dictionary of aggregate scores by marker,
-                using the scores of all speakers with a coordination score for
-                that marker.
-            - agg1, agg2 and agg3 are Aggregate 1, 2 and 3 scores respectively.
-
-        """
+        """Deprecated. Use `summarize()` instead."""
+        deprecation("Coordination's score_report()",
+            "Coordination's summarize()")
         if corpus != self.corpus:
             raise Exception("Coordination: must fit and score on same corpus")
         if not self.precomputed:
@@ -314,7 +347,7 @@ class Coordination(Transformer):
                 return False
         return True
 
-    def scores_over_utterances(self, corpus: Corpus, speakers: Collection[Union[Speaker, str]], utterances,
+    def _scores_over_utterances(self, corpus: Corpus, speakers: Collection[Union[Speaker, str]], utterances,
                                speaker_thresh: int, target_thresh: int,
                                utterances_thresh: int, speaker_thresh_indiv: int,
                                target_thresh_indiv: int, utterances_thresh_indiv: int,
