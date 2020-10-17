@@ -1,5 +1,5 @@
 import pkg_resources
-from convokit.model import Corpus, Speaker, Utterance
+from convokit.model import Corpus, Speaker, Utterance, CorpusComponent
 from collections import defaultdict
 from typing import Callable, Tuple, List, Dict, Optional, Collection, Union
 from .coordinationScore import CoordinationScore, CoordinationWordCategories
@@ -101,8 +101,10 @@ class Coordination(Transformer):
         self.fit(corpus)
         return self.transform(corpus)
 
-    def summarize(self, corpus: Corpus, speakers: Collection[Union[Speaker, str]],
-              group: Collection[Union[Speaker, str]], focus: str = "speakers",
+    def summarize(self, corpus: Corpus,
+              speaker_selector: Callable[[CorpusComponent], bool] = lambda obj: True,
+              target_selector: Callable[[CorpusComponent], bool] = lambda obj: True,
+              focus: str = "speakers",
               summary_report: bool = False,
               speaker_thresh: Optional[int] = None,
               target_thresh: Optional[int] = None,
@@ -112,6 +114,8 @@ class Coordination(Transformer):
               utterances_thresh_indiv: Optional[int] = None,
               utterance_thresh_func: Optional[Callable[[Tuple[Utterance, Utterance]], bool]] = None,
               split_by_attribs: Optional[List[str]] = None,
+              speaker_utterance_selector: Callable[[CorpusComponent], bool] = lambda obj: True,
+              target_utterance_selector: Callable[[CorpusComponent], bool] = lambda obj: True,
               speaker_attribs: Optional[Dict] = None, target_attribs: Optional[Dict] = None) -> CoordinationScore:
         """Computes a summary of the coordination scores by giving an
         aggregated score between two groups of speakers.
@@ -128,10 +132,12 @@ class Coordination(Transformer):
         speakers or targets.
 
         :param corpus: Corpus to compute scores on
-        :param speakers: A collection of speaker ids or speaker objects corresponding
-            to the speakers we want to compute scores for.
-        :param group: A collection of speaker ids or speaker objects corresponding to
-            the group of targets.
+        :param speaker_selector: A lambda function that takes a speaker and
+            returns True or False depending on whether the speaker should be
+            included in the group of speakers we want to compute scores for.
+        :param target_selector: A lambda function that takes a speaker and
+            returns True or False depending on whether the speaker should be
+            included in the group of targets.
         :param focus: Either "speakers" or "targets". If "speakers", treat the
             set of targets for a particular speaker as a single person (i.e.
             concatenate all of their utterances); the returned dictionary will
@@ -150,8 +156,12 @@ class Coordination(Transformer):
         :param utterances_thresh_indiv: Like `utterances_thresh` but thresholds whether a single target's utterances should be considered for a particular speaker.
         :param utterance_thresh_func: Optional utterance-level threshold function that takes in a speaker `Utterance` and the `Utterance` the speaker replied to, and returns a `bool` corresponding to whether or not to include the utterance in scoring.
         :param split_by_attribs: Utterance meta attributes to split speakers by when tallying coordination (e.g. in supreme court transcripts, you may want to treat the same lawyer as a different person across different cases --- see coordination examples)
-        :param speaker_attribs: attribute names and values the speaker must have
-        :param target_attribs: attribute names and values the target must have
+        :param speaker_utterance_selector: A lambda function returning True or
+        False for whether a speaker utterance should be considered. Useful for
+        filtering the set of utterances before processing.
+        :param target_utterance_selector: A lambda function returning True or
+        False for whether a target utterance should be considered. Useful for
+        filtering the set of utterances before processing.
 
         :return: If summary_report=True, returns a :class:`CoordinationScore`
         object corresponding to the coordination scores for each speaker. This
@@ -169,8 +179,18 @@ class Coordination(Transformer):
             raise Exception("Must fit before calling score")
 
         if split_by_attribs is None: split_by_attribs = []
-        if speaker_attribs is None: speaker_attribs = dict()
-        if target_attribs is None: target_attribs = dict()
+        if speaker_attribs is None:
+            speaker_attribs = dict()
+        else:
+            deprecation("Coordination's speaker_attribs parameter",
+                'speaker_utterance_selector')
+            raise ValueError
+        if target_attribs is None:
+            target_attribs = dict()
+        else:
+            deprecation("Coordination's target_attribs parameter",
+                'target_utterance_selector')
+            raise ValueError
 
         if speaker_thresh is None: speaker_thresh = self.speaker_thresh
         if target_thresh is None: target_thresh = self.target_thresh
@@ -182,6 +202,8 @@ class Coordination(Transformer):
         if utterances_thresh_indiv is None:
             utterances_thresh_indiv = self.utterances_thresh_indiv
 
+        speakers = [s for s in corpus.iter_speakers() if speaker_selector(s)]
+        group = [s for s in corpus.iter_speakers() if target_selector(s)]
         speakers = set(speakers)
         group = set(group)
 
@@ -198,7 +220,8 @@ class Coordination(Transformer):
             speaker_thresh, target_thresh, utterances_thresh,
             speaker_thresh_indiv, target_thresh_indiv,
             utterances_thresh_indiv, utterance_thresh_func,
-            focus, split_by_attribs, speaker_attribs, target_attribs)
+            focus, split_by_attribs, speaker_utterance_selector,
+            target_utterance_selector)
 
         if summary_report:
             return self._summarize_score_report(scores)
@@ -356,14 +379,12 @@ class Coordination(Transformer):
                                utterance_thresh_func: Optional[Callable[[Tuple[Utterance, Utterance]], bool]]=None,
                                focus: str="speakers",
                                split_by_attribs: Optional[List[str]]=None,
-                               speaker_attribs: Optional[Dict]=None,
-                               target_attribs: Optional[Dict]=None) -> CoordinationScore:
+                               speaker_utterance_selector: Callable[[CorpusComponent], bool] = lambda obj: True,
+                               target_utterance_selector: Callable[[CorpusComponent], bool] = lambda obj: True) -> CoordinationScore:
         assert not isinstance(speakers, str)
         assert focus == "speakers" or focus == "targets"
 
         if split_by_attribs is None: split_by_attribs = []
-        if speaker_attribs is None: speaker_attribs = {}
-        if target_attribs is None: target_attribs = {}
 
         tally = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
         cond_tally = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
@@ -381,10 +402,12 @@ class Coordination(Transformer):
                 speaker, target = Coordination._annot_speaker(speaker, utt2, split_by_attribs), \
                                   Coordination._annot_speaker(target, utt1, split_by_attribs)
 
-                speaker_has_attribs = Coordination._utterance_has_attribs(utt2, speaker_attribs)
-                target_has_attribs = Coordination._utterance_has_attribs(utt1, target_attribs)
+                #speaker_has_attribs = Coordination._utterance_has_attribs(utt2, speaker_attribs)
+                #target_has_attribs = Coordination._utterance_has_attribs(utt1, target_attribs)
+                speaker_filter = speaker_utterance_selector(utt2)
+                target_filter = target_utterance_selector(utt1)
 
-                if not speaker_has_attribs or not target_has_attribs: continue
+                if not speaker_filter or not target_filter: continue
 
                 real_speakers.add(speaker)
 
