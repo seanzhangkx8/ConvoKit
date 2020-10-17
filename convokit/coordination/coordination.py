@@ -104,12 +104,12 @@ class Coordination(Transformer):
     def summarize(self, corpus: Corpus, speakers: Collection[Union[Speaker, str]],
               group: Collection[Union[Speaker, str]], focus: str = "speakers",
               summary_report: bool = False,
-              speaker_thresh: Optional[int] = -1,
-              target_thresh: Optional[int] = -1,
-              utterances_thresh: Optional[int] = -1,
-              speaker_thresh_indiv: Optional[int] = -1,
-              target_thresh_indiv: Optional[int] = -1,
-              utterances_thresh_indiv: Optional[int] = -1,
+              speaker_thresh: Optional[int] = None,
+              target_thresh: Optional[int] = None,
+              utterances_thresh: Optional[int] = None,
+              speaker_thresh_indiv: Optional[int] = None,
+              target_thresh_indiv: Optional[int] = None,
+              utterances_thresh_indiv: Optional[int] = None,
               utterance_thresh_func: Optional[Callable[[Tuple[Utterance, Utterance]], bool]] = None,
               split_by_attribs: Optional[List[str]] = None,
               speaker_attribs: Optional[Dict] = None, target_attribs: Optional[Dict] = None) -> CoordinationScore:
@@ -172,14 +172,14 @@ class Coordination(Transformer):
         if speaker_attribs is None: speaker_attribs = dict()
         if target_attribs is None: target_attribs = dict()
 
-        if speaker_thresh == -1: speaker_thresh = self.speaker_thresh
-        if target_thresh == -1: target_thresh = self.target_thresh
-        if utterances_thresh == -1: utterances_thresh = self.utterances_thresh
-        if speaker_thresh_indiv == -1:
+        if speaker_thresh is None: speaker_thresh = self.speaker_thresh
+        if target_thresh is None: target_thresh = self.target_thresh
+        if utterances_thresh is None: utterances_thresh = self.utterances_thresh
+        if speaker_thresh_indiv is None:
             speaker_thresh_indiv = self.speaker_thresh_indiv
-        if target_thresh_indiv == -1:
+        if target_thresh_indiv is None:
             target_thresh_indiv = self.target_thresh_indiv
-        if utterances_thresh_indiv == -1:
+        if utterances_thresh_indiv is None:
             utterances_thresh_indiv = self.utterances_thresh_indiv
 
         speakers = set(speakers)
