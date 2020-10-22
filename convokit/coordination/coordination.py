@@ -1,5 +1,5 @@
 import pkg_resources
-from convokit.model import Corpus, Speaker, Utterance, CorpusComponent
+from convokit.model import Corpus, Speaker, Utterance
 from collections import defaultdict
 from typing import Callable, Tuple, List, Dict, Optional, Collection, Union
 from .coordinationScore import CoordinationScore, CoordinationWordCategories
@@ -102,8 +102,8 @@ class Coordination(Transformer):
         return self.transform(corpus)
 
     def summarize(self, corpus: Corpus,
-              speaker_selector: Callable[[CorpusComponent], bool] = lambda obj: True,
-              target_selector: Callable[[CorpusComponent], bool] = lambda obj: True,
+              speaker_selector: Callable[[Speaker], bool] = lambda obj: True,
+              target_selector: Callable[[Speaker], bool] = lambda obj: True,
               focus: str = "speakers",
               summary_report: bool = False,
               speaker_thresh: Optional[int] = None,
@@ -114,8 +114,8 @@ class Coordination(Transformer):
               utterances_thresh_indiv: Optional[int] = None,
               utterance_thresh_func: Optional[Callable[[Tuple[Utterance, Utterance]], bool]] = None,
               split_by_attribs: Optional[List[str]] = None,
-              speaker_utterance_selector: Callable[[CorpusComponent], bool] = lambda obj: True,
-              target_utterance_selector: Callable[[CorpusComponent], bool] = lambda obj: True,
+              speaker_utterance_selector: Callable[[Utterance], bool] = lambda obj: True,
+              target_utterance_selector: Callable[[Utterance], bool] = lambda obj: True,
               speaker_attribs: Optional[Dict] = None, target_attribs: Optional[Dict] = None) -> CoordinationScore:
         """Computes a summary of the coordination scores by giving an
         aggregated score between two groups of speakers.
@@ -204,10 +204,8 @@ class Coordination(Transformer):
         if utterances_thresh_indiv is None:
             utterances_thresh_indiv = self.utterances_thresh_indiv
 
-        speakers = [s for s in corpus.iter_speakers() if speaker_selector(s)]
-        group = [s for s in corpus.iter_speakers() if target_selector(s)]
-        speakers = set(speakers)
-        group = set(group)
+        speakers = set(corpus.iter_speakers(speaker_selector))
+        group = set(corpus.iter_speakers(target_selector))
 
         utterances = []
         for utt in corpus.iter_utterances():
@@ -381,8 +379,8 @@ class Coordination(Transformer):
                                utterance_thresh_func: Optional[Callable[[Tuple[Utterance, Utterance]], bool]]=None,
                                focus: str="speakers",
                                split_by_attribs: Optional[List[str]]=None,
-                               speaker_utterance_selector: Callable[[CorpusComponent], bool] = lambda obj: True,
-                               target_utterance_selector: Callable[[CorpusComponent], bool] = lambda obj: True) -> CoordinationScore:
+                               speaker_utterance_selector: Callable[[Utterance], bool] = lambda obj: True,
+                               target_utterance_selector: Callable[[Utterance], bool] = lambda obj: True) -> CoordinationScore:
         assert not isinstance(speakers, str)
         assert focus == "speakers" or focus == "targets"
 
