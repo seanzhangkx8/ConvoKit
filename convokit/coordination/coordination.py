@@ -184,13 +184,15 @@ class Coordination(Transformer):
         else:
             deprecation("Coordination's speaker_attribs parameter",
                 'speaker_utterance_selector')
-            raise ValueError
+            speaker_utterance_selector = lambda utt: (
+                Coordination._utterance_has_attribs(utt, speaker_attribs))
         if target_attribs is None:
             target_attribs = dict()
         else:
             deprecation("Coordination's target_attribs parameter",
                 'target_utterance_selector')
-            raise ValueError
+            target_utterance_selector = lambda utt: (
+                Coordination._utterance_has_attribs(utt, target_attribs))
 
         if speaker_thresh is None: speaker_thresh = self.speaker_thresh
         if target_thresh is None: target_thresh = self.target_thresh
