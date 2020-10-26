@@ -1,4 +1,4 @@
-Oyez Supreme Court Cases Dataset
+Oyez Supreme Court Oral Arguments Dataset
 ==============================
 
 A collection of cases from the U.S. Supreme Court, along with transcripts of oral arguments. Extends a `smaller dataset <https://convokit.cornell.edu/documentation/supreme.html>`_ of oral arguments previously released. Contains approximately 1,700,000 utterances over 8,000 oral arguments transcripts from 7,700 cases.
