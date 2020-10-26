@@ -104,19 +104,15 @@ Case information
 * url: the url of the Oyez listing
 * court: the court that saw the case (corresponding to a particular roster of justices)
 * decided_date: the date the case was decided, according to Oyez
-* win_side: whether the petitioning party won; also included in the corpus. See the ` corresponding listing <http://scdb.wustl.edu/documentation.php?var=partyWinning>`_ in SCDB for details. -1 if no information available.
-* win_side_detail: finer-grained label of case outcome. See the ` corresponding listing <http://scdb.wustl.edu/documentation.php?var=caseDisposition>`_ in SCDB for details. -1 if no information available.
+* win_side: whether the petitioning party won; also included in the corpus. See the `corresponding listing <http://scdb.wustl.edu/documentation.php?var=partyWinning>`_ in SCDB for details. -1 if no information available.
+* win_side_detail: finer-grained label of case outcome. See the `corresponding listing <http://scdb.wustl.edu/documentation.php?var=caseDisposition>`_ in SCDB for details. -1 if no information available.
 * advocates: the advocates participating in the case. 
 * adv_sides_inferred: While most Oyez transcripts explicitly list advocates and their roles, some don't, so we fill this information in via a set of heuristics. This field is True if at least one advocate had information that was filled in in this way.
-* votes: a dictionary of justice to whether they voted with the majority or dissented. See the ` corresponding listing <http://scdb.wustl.edu/documentation.php?var=majority>`_ in SCDB for details. -1 if no information available. 
-* votes_detail: a dictionary of justice to their vote in the case. See the ` corresponding listing <http://scdb.wustl.edu/documentation.php?var=vote>`_ in SCDB for details. -1 if no information available. 
+* votes: a dictionary of justice to whether they voted with the majority or dissented. See the `corresponding listing <http://scdb.wustl.edu/documentation.php?var=majority>`_ in SCDB for details. -1 if no information available. 
+* votes_detail: a dictionary of justice to their vote in the case. See the `corresponding listing <http://scdb.wustl.edu/documentation.php?var=vote>`_ in SCDB for details. -1 if no information available. 
 * votes_side: a dictionary of justice to whether they voted for the petitioning party, derived from the win_side and votes_detail information. -1 if no information available; in particular, note that if the vote was equally divided, we cannot infer which side the justice voted for. Also included in the corpus.
 * transcripts: a list of transcript names, URLs and IDs (corresponding to the IDs of conversations in the corpus). 
 
-Additional notes
----------------
-
-Code to scrape and process Oyez is forthcoming.
 
 Contact
 ^^^^^^^
