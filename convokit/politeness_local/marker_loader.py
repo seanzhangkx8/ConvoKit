@@ -14,7 +14,6 @@ NGRAM_FILE = pkg_resources.resource_filename("convokit",
 START_FILE = pkg_resources.resource_filename("convokit",
     os.path.join("politeness_local/lexicons", "start_strategies.json"))
 
-# TODO not all are relevant
 MODE_FILE = pkg_resources.resource_filename("convokit",
     os.path.join("politeness_local/lexicons", "marker_mode.json"))
 

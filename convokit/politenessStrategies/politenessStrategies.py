@@ -2,10 +2,11 @@ from typing import Callable, Optional
 from convokit.model import Utterance
 from convokit.politeness_api.features.politeness_strategies import get_politeness_strategy_features
 from convokit.politeness_local.marker_extractor import get_local_politeness_strategy_features
-from convokit.text_processing import process_text
+from convokit.text_processing.textParser import process_text
 from convokit.transformer import Transformer
 from convokit.model import Corpus
 import re
+import spacy
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
@@ -64,7 +65,6 @@ class PolitenessStrategies(Transformer):
     
     
     def transform_utterance(self, utterance, spacy_nlp = None, markers = False):
-        
         """
         Extract politeness strategies for raw string inputs. 
         
