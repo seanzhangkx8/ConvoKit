@@ -114,9 +114,9 @@ class Coordination(Transformer):
               utterances_thresh_indiv: Optional[int] = None,
               utterance_thresh_func: Optional[Callable[[Tuple[Utterance, Utterance]], bool]] = None,
               split_by_attribs: Optional[List[str]] = None,
-              speaker_utterance_selector: Callable[[Utterance], bool] = lambda obj: True,
-              target_utterance_selector: Callable[[Utterance], bool] = lambda obj: True,
-              speaker_attribs: Optional[Dict] = None, target_attribs: Optional[Dict] = None) -> CoordinationScore:
+              speaker_utterance_selector: Callable[[Utterance], bool] = lambda utt1, utt2: True,
+              target_utterance_selector: Callable[[Utterance], bool] = lambda
+              utt1, utt2: True, speaker_attribs: Optional[Dict] = None, target_attribs: Optional[Dict] = None) -> CoordinationScore:
         """Computes a summary of the coordination scores by giving an
         aggregated score between two groups of speakers.
 
@@ -184,14 +184,14 @@ class Coordination(Transformer):
         else:
             deprecation("Coordination's speaker_attribs parameter",
                 'speaker_utterance_selector')
-            speaker_utterance_selector = lambda utt: (
+            speaker_utterance_selector = lambda utt, _: (
                 Coordination._utterance_has_attribs(utt, speaker_attribs))
         if target_attribs is None:
             target_attribs = dict()
         else:
             deprecation("Coordination's target_attribs parameter",
                 'target_utterance_selector')
-            target_utterance_selector = lambda utt: (
+            target_utterance_selector = lambda _, utt: (
                 Coordination._utterance_has_attribs(utt, target_attribs))
 
         if speaker_thresh is None: speaker_thresh = self.speaker_thresh
@@ -379,8 +379,10 @@ class Coordination(Transformer):
                                utterance_thresh_func: Optional[Callable[[Tuple[Utterance, Utterance]], bool]]=None,
                                focus: str="speakers",
                                split_by_attribs: Optional[List[str]]=None,
-                               speaker_utterance_selector: Callable[[Utterance], bool] = lambda obj: True,
-                               target_utterance_selector: Callable[[Utterance], bool] = lambda obj: True) -> CoordinationScore:
+                               speaker_utterance_selector:
+                               Callable[[Utterance], bool] = lambda utt1, utt2: True,
+                               target_utterance_selector: Callable[[Utterance],
+                                   bool] = lambda utt1, utt2: True) -> CoordinationScore:
         assert not isinstance(speakers, str)
         assert focus == "speakers" or focus == "targets"
 
@@ -404,8 +406,8 @@ class Coordination(Transformer):
 
                 #speaker_has_attribs = Coordination._utterance_has_attribs(utt2, speaker_attribs)
                 #target_has_attribs = Coordination._utterance_has_attribs(utt1, target_attribs)
-                speaker_filter = speaker_utterance_selector(utt2)
-                target_filter = target_utterance_selector(utt1)
+                speaker_filter = speaker_utterance_selector(utt2, utt1)
+                target_filter = target_utterance_selector(utt2, utt1)
 
                 if not speaker_filter or not target_filter: continue
 
