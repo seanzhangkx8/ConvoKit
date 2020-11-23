@@ -114,9 +114,9 @@ class Coordination(Transformer):
               utterances_thresh_indiv: Optional[int] = None,
               utterance_thresh_func: Optional[Callable[[Tuple[Utterance, Utterance]], bool]] = None,
               split_by_attribs: Optional[List[str]] = None,
-              speaker_utterance_selector: Callable[[Utterance], bool] = lambda utt1, utt2: True,
-              target_utterance_selector: Callable[[Utterance], bool] = lambda
-              utt1, utt2: True, speaker_attribs: Optional[Dict] = None, target_attribs: Optional[Dict] = None) -> CoordinationScore:
+              speaker_utterance_selector: Callable[[Tuple[Utterance, Utterance]], bool] = lambda utt1, utt2: True,
+              target_utterance_selector: Callable[[Tuple[Utterance, Utterance]], bool] = lambda utt1, utt2: True,
+              speaker_attribs: Optional[Dict] = None, target_attribs: Optional[Dict] = None) -> CoordinationScore:
         """Computes a summary of the coordination scores by giving an
         aggregated score between two groups of speakers.
 
@@ -156,11 +156,13 @@ class Coordination(Transformer):
         :param utterances_thresh_indiv: Like `utterances_thresh` but thresholds whether a single target's utterances should be considered for a particular speaker.
         :param utterance_thresh_func: Optional utterance-level threshold function that takes in a speaker `Utterance` and the `Utterance` the speaker replied to, and returns a `bool` corresponding to whether or not to include the utterance in scoring.
         :param split_by_attribs: Utterance meta attributes to split speakers by when tallying coordination (e.g. in supreme court transcripts, you may want to treat the same lawyer as a different person across different cases --- see coordination examples)
-        :param speaker_utterance_selector: A lambda function returning True or
-        False for whether a speaker utterance should be considered. Useful for
+        :param speaker_utterance_selector: A lambda function that takes a
+        speaker and target utterance pair and returns True or
+        False for whether the speaker utterance should be considered. Useful for
         filtering the set of utterances before processing.
-        :param target_utterance_selector: A lambda function returning True or
-        False for whether a target utterance should be considered. Useful for
+        :param target_utterance_selector: A lambda function that takes a
+        speaker and target utterance pair and returns True or
+        False for whether the target utterance should be considered. Useful for
         filtering the set of utterances before processing.
 
         :return: If summary_report=True, returns a :class:`CoordinationScore`
@@ -379,10 +381,9 @@ class Coordination(Transformer):
                                utterance_thresh_func: Optional[Callable[[Tuple[Utterance, Utterance]], bool]]=None,
                                focus: str="speakers",
                                split_by_attribs: Optional[List[str]]=None,
-                               speaker_utterance_selector:
-                               Callable[[Utterance], bool] = lambda utt1, utt2: True,
-                               target_utterance_selector: Callable[[Utterance],
-                                   bool] = lambda utt1, utt2: True) -> CoordinationScore:
+                               speaker_utterance_selector: Callable[[Tuple[Utterance, Utterance]], bool] = lambda utt1, utt2: True,
+                               target_utterance_selector: Callable[[Tuple[Utterance, Utterance]], bool] = lambda utt1, utt2: True
+                                   ) -> CoordinationScore:
         assert not isinstance(speakers, str)
         assert focus == "speakers" or focus == "targets"
 
