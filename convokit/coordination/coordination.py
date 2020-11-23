@@ -8,8 +8,14 @@ from convokit.transformer import Transformer
 from convokit.util import deprecation
 
 class Coordination(Transformer):
-    """Encapsulates computation of coordination-based features for a particular
-    corpus.
+    """Linguistic coordination is a measure of the propensity of a
+    speaker to echo the language of another speaker in a
+    conversation, as defined in "Echoes of Power: Language Effects
+    and Power Differences in Social Interaction"
+    (http://www.cs.cornell.edu/~cristian/Echoes_of_power.html)
+    
+    This Transformer encapsulates computation of coordination-based features
+    for a particular corpus.
 
     Coordination is a measure of power differences between speakers in a
     conversation, based on the propensity of a speaker to echo the same
@@ -20,10 +26,8 @@ class Coordination(Transformer):
     This transformer contains various functions to measure coordination on
     different conversational scales. Calling `transform()` will annotate each
     speaker in the corpus with their coordination to all speakers they directly
-    reply to. The `score()` function is a convenience method that computes
-    aggregated coordination scores between two groups of speakers. Finally, the
-    `score_report()` function will summarize the results of `score()` in a few
-    global metrics (using the three aggregation methods defined in the paper).
+    reply to. The `summarize()` function is a convenience method that computes
+    aggregated coordination scores between two groups of speakers.
     
     Note: labeling method is slightly different from that used in the paper --
     we no longer match words occurring in the middle of other words and that
