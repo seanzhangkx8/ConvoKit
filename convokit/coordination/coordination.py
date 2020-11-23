@@ -77,7 +77,10 @@ class Coordination(Transformer):
         self.fit(corpus)
 
     def transform(self, corpus: Corpus) -> Corpus:
-        """Generate coordination scores for the corpus you called fit on."""
+        """Generate coordination scores for the corpus you called fit on.
+        
+        Each speaker's coordination attribute will be a dictionary from targets
+        to coordination scores between that speaker and target."""
         if corpus != self.corpus:
             raise Exception("Coordination: must fit and transform on same corpus")
         if not self.precomputed:
