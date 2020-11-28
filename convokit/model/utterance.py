@@ -1,5 +1,5 @@
 from typing import Dict, Optional
-from convokit.util import deprecation
+from convokit.util import deprecation, warn
 from .corpusComponent import CorpusComponent
 from .speaker import Speaker
 
@@ -33,8 +33,13 @@ class Utterance(CorpusComponent):
         super().__init__(obj_type="utterance", owner=owner, id=id, meta=meta)
         speaker_ = speaker if speaker is not None else user
         self.speaker = speaker_
+        if self.speaker is None:
+            raise ValueError("No Speaker found: Utterance must be initialized with a Speaker.")
         self.user = speaker # for backwards compatbility
         self.conversation_id = conversation_id if conversation_id is not None else root
+        if not isinstance(self.conversation_id, str):
+            warn("conversation_id must be a string. ID input has been casted to a string.".format(self.obj_type))
+            self.conversation_id = str(self.conversation_id)
         self._root = self.conversation_id
         self.reply_to = reply_to
         self.timestamp = timestamp # int(timestamp) if timestamp is not None else timestamp
