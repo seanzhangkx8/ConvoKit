@@ -37,8 +37,8 @@ class Utterance(CorpusComponent):
             raise ValueError("No Speaker found: Utterance must be initialized with a Speaker.")
         self.user = speaker # for backwards compatbility
         self.conversation_id = conversation_id if conversation_id is not None else root
-        if not isinstance(self.conversation_id, str):
-            warn("conversation_id must be a string. ID input has been casted to a string.".format(self.obj_type))
+        if self.conversation_id is not None and not isinstance(self.conversation_id, str):
+            warn("conversation_id must be a string. conversation_id has been casted to a string.".format(self.obj_type))
             self.conversation_id = str(self.conversation_id)
         self._root = self.conversation_id
         self.reply_to = reply_to
