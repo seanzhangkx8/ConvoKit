@@ -182,7 +182,7 @@ class Corpus:
                     os.mkdir(base_path)
             dir_name = os.path.join(base_path, dir_name)
         else:
-            dir_name = os.path.join(self.corpus_dirpath, name)
+            dir_name = os.path.join(self.corpus_dirpath)
 
         if not os.path.exists(dir_name):
             os.mkdir(dir_name)
