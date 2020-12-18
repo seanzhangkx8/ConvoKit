@@ -5,7 +5,7 @@ A collection of cases from the U.S. Supreme Court, along with transcripts of ora
 
 The data comes from two sources: transcripts were scraped from the `Oyez <https://www.oyez.org/>`_ website, while voting information comes from the `Supreme Court Database <http://scdb.wustl.edu/index.php>`_ (SCDB). 
 
-The corpus is split up into different years spanning 1955 to 2019, each named "oyez_(year)". Additional metadata are also included for each case `here <https://zissou.infosci.cornell.edu/convokit/datasets/oyez-corpus/cases.jsonl>`_. 
+Along with the entire corpus, we release another version split up into different years spanning 1955 to 2019, each named "oyez_(year)". Additional metadata are also included for each case `here <https://zissou.infosci.cornell.edu/convokit/datasets/oyez-corpus/cases.jsonl>`_. 
 
 An example of how this corpus is used can be found `here <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/tree/master/examples/orientation>`_.
 
@@ -21,6 +21,11 @@ SCDB makes finer distinctions about justice votes and case outcomes than whether
 
 Usage
 -----
+
+To download the entire corpus:
+
+>>> from convokit import Corpus, download
+>>> corpus = Corpus(filename=download("oyez-corpus"))
 
 To download a particular year:
 
