@@ -1,13 +1,19 @@
-Oyez Supreme Court Oral Arguments Dataset
+Supreme Court Oral Arguments Corpus
 ==============================
 
-A collection of cases from the U.S. Supreme Court, along with transcripts of oral arguments. Extends a `smaller dataset <https://convokit.cornell.edu/documentation/supreme.html>`_ of oral arguments previously released. Contains approximately 1,700,000 utterances over 8,000 oral arguments transcripts from 7,700 cases.
+THIS FILE SHOULD REPLACE supreme.rst troughout the documentation.  The name should be changed to "Supreme Court Oral Arguments Corpus"
+
+A collection of cases from the U.S. Supreme Court, along with transcripts of oral arguments. Contains approximately 1,700,000 utterances over 8,000 oral arguments transcripts from 7,700 cases.
 
 The data comes from two sources: transcripts were scraped from the `Oyez <https://www.oyez.org/>`_ website, while voting information comes from the `Supreme Court Database <http://scdb.wustl.edu/index.php>`_ (SCDB). 
 
-Along with the entire corpus, we release another version split up into different years spanning 1955 to 2019, each named "oyez_(year)". Additional metadata are also included for each case `here <https://zissou.infosci.cornell.edu/convokit/datasets/oyez-corpus/cases.jsonl>`_. 
+Along with the entire corpus, we release another version split up into different years spanning 1955 to 2019, each named "supreme_(year)". Additional metadata are also included for each case `here <https://zissou.infosci.cornell.edu/convokit/datasets/supreme-corpus/cases.jsonl>`_. 
+FIX LINKS (to keep the "supreme" name)
 
 An example of how this corpus is used can be found `here <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/tree/master/examples/orientation>`_.
+ADD COORDINATION DEMO EXAMPLE
+
+FiX COORDINATION EXAMPLE TO USE THE SUPREME* prefix
 
 Some considerations regarding case and voting information
 -------------------------------------------------
@@ -25,13 +31,14 @@ Usage
 To download the entire corpus:
 
 >>> from convokit import Corpus, download
->>> corpus = Corpus(filename=download("oyez-corpus"))
+>>> corpus = Corpus(filename=download("supreme-corpus"))
 
 To download a particular year:
 
 >>> from convokit import Corpus, download
->>> corpus = Corpus(filename=download("oyez_2019"))
+>>> corpus = Corpus(filename=download("supreme_2019"))
 
+FIX filenames accordinglyu with supreme prefix
 
 Dataset details
 ---------------
@@ -78,6 +85,7 @@ For each utterance, we provide:
 
 * id
 * text. Oyez seems to separate different sentences into different paragraphs to facilitate its audio-to-text  matching; we've retained this segmentation in the data (a formal check of this is forthcoming). 
+HERE YOU THE SEGMENTATION IS DONE BY NEWLINES? IF SO, PLEASE CLARIFY
 * speaker. Note that some utterances have "<INAUDIBLE>" speakers, corresponding to turns listed in the Oyez transcripts without any speaker information, where an interjection was audible but the identity of the speaker couldn't be discerned.
 * conversation_id
 * case_id: the ID of the case in which the oral argument took place.
@@ -85,6 +93,8 @@ For each utterance, we provide:
 * side: the speaker's side (see above, Conversation-level information, and note that this is sometimes inferred from the data if not explicitly listed)
 * start_times: the timestamp (as listed in Oyez) of when each sentence in the text starts. There is one entry per sentence, corresponding to newlines in the text.
 * stop_times: the timestamp of when each sentence ends.
+
+REPLY_TO MISSING?  TIMESTAMP MISSING? (USE THE FIRST START TIMESTAMP).  
 
 We also provide dependency parses for each utterance, which can be loaded as:
 
@@ -96,7 +106,7 @@ Note that at present, each sentence of a parse contains an extra space at the en
 Case information
 ^^^^^^^^^^^^^^^^^^^^^
 
-`This file <https://zissou.infosci.cornell.edu/convokit/datasets/oyez-corpus/case.jsonl>`_ is a list of json objects containing some information about each case, pulled from Oyez and SCDB. 
+`This file <https://zissou.infosci.cornell.edu/convokit/datasets/supreme-corpus/case.jsonl>`_ is a list of json objects containing some information about each case, pulled from Oyez and SCDB. 
 
 * id: generally formatted as <year of case>_<docket no>
 * year
@@ -118,8 +128,14 @@ Case information
 * votes_side: a dictionary of justice to whether they voted for the petitioning party, derived from the win_side and votes_detail information. -1 if no information available; in particular, note that if the vote was equally divided, we cannot infer which side the justice voted for. Also included in the corpus.
 * transcripts: a list of transcript names, URLs and IDs (corresponding to the IDs of conversations in the corpus). 
 
+Citation and other versions
+^^^^^^^^^^^^^
+
+This corpus extends a `smaller dataset <https://confluence.cornell.edu/display/llresearch/Supreme+Court+Dialogs+Corpus>`_ of oral arguments that we previously released together with `Echoes of power: Language effects and power differences in social interaction <https://www.cs.cornell.edu/~cristian/Echoes_of_power.html>`_. Cristian Danescu-Niculescu-Mizil, Bo Pang, Lillian Lee and Jon Kleinberg. WWW 2012.  Please cite the Echoes of Powers paper if you use either version of the corpus.  If you use the ConviKit version please additionally cite: `ConvoKit: A Toolkit for the Analysis of Conversations <https://www.cs.cornell.edu/~cristian/ConvoKit_Demo_Paper_files/convokit-demo-paper.pdf>"`_.Jonathan P. Chang, Caleb Chiam, Liye Fu, Andrew Wang, Justine Zhang, Cristian Danescu-Niculescu-Mizil. Proceedings of SIGDIAL. 2020.
+
 
 Contact
 ^^^^^^^
 
 Please email any questions to: jz727@cornell.edu (Justine Zhang).
+
