@@ -25,7 +25,7 @@ Classifier
 
 Coordination
 ------------
-- `Exploring the balance of power in the US Supreme Court <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/coordination/examples.ipynb>`_
+- `Exploring the balance of power in Wikipedia and the US Supreme Court <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/coordination/examples.ipynb>`_
 
 Fighting Words
 --------------
