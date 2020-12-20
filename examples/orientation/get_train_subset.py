@@ -11,13 +11,12 @@ warnings.filterwarnings('ignore')
 
 from multiprocessing import Pool
 
-# DATA_DIR = '/kitchen/experimental_justine/scotus/demo_data'
 # replace with the directory you will write corpora to.
 DATA_DIR = '<YOUR DIRECTORY>'
 # False if you don't want to download the corpus but are instead reading from an existing directory.
 TO_DOWNLOAD = True
 
-# the years spanned by the Oyez corpus. decrease this range if you're only interested in a subset.
+# the years spanned by the Supreme Court corpus. decrease this range if you're only interested in a subset.
 MIN_YEAR = 1955
 MAX_YEAR = 2019
 
@@ -113,6 +112,6 @@ def process_corpus(corpus_name, to_download=TO_DOWNLOAD,
 	target_df.to_csv(os.path.join(data_dir, corpus_name + '.target.tsv'), sep='\t')
 
 if __name__ == '__main__':
-	corpus_names = ['oyez_%s' % year for year in range(MIN_YEAR, MAX_YEAR + 1)]
+	corpus_names = ['supreme-%s' % year for year in range(MIN_YEAR, MAX_YEAR + 1)]
 	pool = Pool(N_JOBS)
 	pool.map(process_corpus, corpus_names)
