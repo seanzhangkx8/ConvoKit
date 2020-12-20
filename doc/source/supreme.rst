@@ -6,9 +6,10 @@ A collection of cases from the U.S. Supreme Court, along with transcripts of ora
 
 The data comes from two sources: transcripts were scraped from the `Oyez <https://www.oyez.org/>`_ website, while voting information comes from the `Supreme Court Database <http://scdb.wustl.edu/index.php>`_ (SCDB). 
 
-Along with the entire corpus, we release another version split up into different years spanning 1955 to 2019, each named "supreme_(year)". Additional metadata are also included for each case `here <https://zissou.infosci.cornell.edu/convokit/datasets/supreme-corpus/cases.jsonl>`_. 
+Along with the entire corpus, we release another version split up into different years spanning 1955 to 2019, each named "supreme-(year)". Additional metadata are also included for each case `here <https://zissou.infosci.cornell.edu/convokit/datasets/supreme-corpus/cases.jsonl>`_. 
 
 The following examples use this corpus: 
+
 * `computing the orientation of utterances <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/tree/master/examples/orientation>`_ 
 * `computing linguistic coordination <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/coordination/examples.ipynb>`_
 
