@@ -15,7 +15,7 @@ As we can see from this example, the Corpus contains Conversations, Utterances, 
 * Conversations, Utterances, and Speakers are identified by IDs. An ID can be any arbitrary string, as long as there is a unique ID for each Conversation and Utterance.
 * A Speaker can be part of multiple Conversations
 
-Each class in the hierarchy also stores useful information for analysis purposes. For instance, each Utterance object stores the text (what was said) and timestamp (when it was said) of the Utterance. A full listing of basic properties stored by each class can be found in the full documentation (see :doc:`model`). In practice, however, when you use ConvoKit for your own task, you will probably need to keep track of additional task-specific properties beyond the basic ones. ConvoKit provides a mechanism for doing this: *metadata*.
+Each class in the hierarchy also stores useful information for analysis purposes. For instance, each Utterance object stores the text (what was said) and timestamp (when it was said) of the Utterance. A full listing of basic properties stored by each class can be found in the full documentation (see :doc:`model`). In practice, however, when you use ConvoKit for your own task, you will probably need to keep track of additional task-specific properties beyond the basic ones. ConvoKit provides capability for doing this via *metadata* and *vectors*.
 
 Metadata
 ^^^^^^^^
@@ -25,6 +25,12 @@ In everyday usage, "metadata" simply refers to information for identifying and o
 Each of the four classes in the hierarchy contains a ``.meta`` field, which is a dictionary that maps from metadata name to value. In the previous example, you would want a Speaker-level metadata entry called something like "start-date". So, if ``spkr`` is an instance of Speaker representing a Reddit user who joined on April 1, 2008, ``spkr.meta`` would be a dictionary looking like ``{"start-date": "04-01-2008"}``. While for simplicity we have represented the start date as a string, in practice there are no restrictions on what kinds of objects can be stored as metadata, so you could have chosen a fancier representation, like a Pandas timestamp.
 
 Note that all of the datasets that ship with ConvoKit have some metadata already present, usually related to the task that the dataset was originally designed for. To learn what metadata is present in a Corpus, you can access its ``meta_index`` attribute.
+
+Vectors
+^^^^^^^
+
+Additionally, ConvoKit provides support for vector data that may be associated with corpus components (Conversation, Utterance, or Speaker class objects). More information about vectors in ConvoKit can be found in the following `introductory tutorial <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/vectors/vector_demo.ipynb>`_.
+
 
 Transformer
 -----------
