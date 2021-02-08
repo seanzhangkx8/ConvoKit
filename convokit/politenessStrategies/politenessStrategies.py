@@ -77,7 +77,7 @@ class PolitenessStrategies(Transformer):
             utterance = Utterance(text=utterance)
         
         if spacy_nlp is None:
-            spacy_nlp = spacy.load('en', disable=['ner'])
+            spacy_nlp = spacy.load('en_core_web_sm', disable=['ner'])
             
         utterance.meta['parsed'] = process_text(utterance.text, spacy_nlp=spacy_nlp)
         

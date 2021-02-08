@@ -1,5 +1,5 @@
-from spacy.tests.util import get_doc
-from spacy.util import get_lang_class
+import spacy
+from spacy.tokens import Doc
 
 from convokit.model import Corpus, Utterance, Speaker
 
@@ -16,11 +16,11 @@ BURR_SIR_SENTENCE_4 = 'Who\'s asking?'
 
 
 def en_vocab():
-    return get_lang_class('en').Defaults.create_vocab()
+    return spacy.load('en_core_web_sm').vocab
 
 
 def fox_doc():
-    return get_doc(
+    return Doc(
         vocab=en_vocab(),
         words=['A', 'quick', 'brown', 'fox', 'jumps', 'over', 'the', 'lazy', 'dog'],
         heads=[4, 3, 2, 1, 0, -1, 2, 1, -3],
@@ -30,7 +30,7 @@ def fox_doc():
 
 
 def buffalo_doc():
-    return get_doc(
+    return Doc(
         vocab=en_vocab(),
         words=['Buffalo', 'buffalo', 'Buffalo', 'buffalo', 'buffalo', 'buffalo', 'Buffalo', 'buffalo'],
         heads=[1, 0, 1, 1, 1, 0, 1, 0],
@@ -40,7 +40,7 @@ def buffalo_doc():
 
 
 def fox_buffalo_doc():
-    return get_doc(
+    return Doc(
         vocab=en_vocab(),
         words=['A', 'quick', 'brown', 'fox', 'jumps', 'over', 'the', 'lazy', 'dog', '.', 'Buffalo', 'buffalo', 'Buffalo', 'buffalo', 'buffalo', 'buffalo', 'Buffalo', 'buffalo'],
         heads=[4, 3, 2, 1, 0, -1, 2, 1, -3, -5, 1, 0, 1, 1, 1, 0, 1, 0],
@@ -120,7 +120,7 @@ def parsed_burr_sir_corpus():
 
 
 def burr_sir_doc_1():
-    return get_doc(
+    return Doc(
         vocab=en_vocab(),
         words=['Pardon', 'me', '.', 'Are', 'you', 'Aaron', 'Burr', ',', 'sir', '?'],
         heads=[0, -1, -2, 0, -1, 1, -3, -4, -5, -6],
@@ -130,7 +130,7 @@ def burr_sir_doc_1():
 
 
 def burr_sir_doc_2():
-    return get_doc(
+    return Doc(
         vocab=en_vocab(),
         words=['That', 'depends', '.', 'Who', "'s", 'asking', '?'],
         heads=[1, 0, -1, 2, 1, 0, -1],
@@ -140,7 +140,7 @@ def burr_sir_doc_2():
 
 
 def burr_sir_sentence_doc_1():
-    return get_doc(
+    return Doc(
         vocab=en_vocab(),
         words=['Pardon', 'me', '.'],
         heads=[0, -1, -2],
@@ -150,7 +150,7 @@ def burr_sir_sentence_doc_1():
 
 
 def burr_sir_sentence_doc_2():
-    return get_doc(
+    return Doc(
         vocab=en_vocab(),
         words=['Are', 'you', 'Aaron', 'Burr', ',', 'sir', '?'],
         heads=[0, -1, 1, -3, -4, -5, -6],
@@ -160,7 +160,7 @@ def burr_sir_sentence_doc_2():
 
 
 def burr_sir_sentence_doc_3():
-    return get_doc(
+    return Doc(
         vocab=en_vocab(),
         words=['That', 'depends', '.'],
         heads=[1, 0, -1],
@@ -170,7 +170,7 @@ def burr_sir_sentence_doc_3():
 
 
 def burr_sir_sentence_doc_4():
-    return get_doc(
+    return Doc(
         vocab=en_vocab(),
         words=['Who', "'s", 'asking', '?'],
         heads=[2, 1, 0, -1],
