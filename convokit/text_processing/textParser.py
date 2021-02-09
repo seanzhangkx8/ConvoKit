@@ -55,7 +55,7 @@ class TextParser(TextProcessor):
 				elif mode == 'tokenize':
 					aux_input['spacy_nlp'] = spacy.load('en_core_web_sm', disable=['ner','parser', 'tagger'])
 			except OSError:
-				print("Convokit requires a SpaCy English model to be installed. Run `python -m spacy download en` and retry.")
+				print("Convokit requires a SpaCy English model to be installed. Run `python -m spacy download en_core_web_sm` and retry.")
 				sys.exit()
 		else:
 			aux_input['spacy_nlp'] = spacy_nlp
