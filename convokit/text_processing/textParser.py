@@ -58,6 +58,7 @@ class TextParser(TextProcessor):
 					aux_input['spacy_nlp'] = spacy.load('en_core_web_sm', disable=['ner','parser'])
 				elif mode == 'tokenize':
 					aux_input['spacy_nlp'] = spacy.load('en_core_web_sm', disable=['ner','parser', 'tagger', 'lemmatizer'])
+
 			except OSError:
                 
 				print("Convokit requires a SpaCy model to be installed. Run `python -m spacy download MODEL_NAME` and retry.")
@@ -80,8 +81,7 @@ class TextParser(TextProcessor):
             
 				# For other languages, use spaCy's rule-based sentencizer 
 				elif 'sentencizer' not in aux_input['spacy_nlp'].pipe_names:
-					sentencizer = spacy_nlp.create_pipe("sentencizer")
-					aux_input['spacy_nlp'].add_pipe(sentencizer)
+					aux_input['spacy_nlp'].add_pipe('sentencizer')
                 
 			else:
 				aux_input['sent_tokenizer'] = sent_tokenizer
@@ -138,8 +138,7 @@ def process_text(text, mode='parse', sent_tokenizer=None, spacy_nlp=None):
             
 			# add sentencizing to spacy's pipeline
 			if 'sentencizer' not in spacy_nlp.pipe_names:
-				sentencizer = spacy_nlp.create_pipe("sentencizer")
-				spacy_nlp.add_pipe(sentencizer)
+				spacy_nlp.add_pipe('sentencizer')
 	
 	if mode == 'parse' or sent_tokenizer is None:
 		sents = spacy_nlp(text).sents
