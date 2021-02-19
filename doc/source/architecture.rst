@@ -29,7 +29,7 @@ Note that all of the datasets that ship with ConvoKit have some metadata already
 Vectors
 ^^^^^^^
 
-Additionally, ConvoKit provides support for adding vector data (e.g. GloVe representations) to corpus components (Conversation, Utterance, or Speaker class objects). More information about vectors in ConvoKit can be found in the following `introductory tutorial <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/vectors/vector_demo.ipynb>`_.
+Additionally, ConvoKit provides support for adding vector data (e.g. GloVe representations, BERT representations) to corpus components (Conversation, Utterance, or Speaker class objects). More information about vectors in ConvoKit can be found in the following `introductory tutorial <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/vectors/vector_demo.ipynb>`_.
 
 
 Transformer
