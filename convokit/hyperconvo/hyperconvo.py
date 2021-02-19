@@ -66,7 +66,7 @@ class HyperConvo(Transformer):
                  invalid_val: float = np.nan):
         self.prefix_len = prefix_len
         self.min_convo_len = min_convo_len
-        self.vector_name = vector_name if feat_name is not None else feat_name
+        self.vector_name = vector_name if feat_name is None else feat_name
         if feat_name is not None: deprecation("HyperConvo's feat_name parameter", "vector_name")
 
         self.invalid_val = invalid_val
