@@ -11,7 +11,7 @@ If you haven't already,
 
 #. Download the toolkit: ``pip3 install convokit``
 
-#. Download Spacy's English model: ``python3 -m spacy download en``
+#. Download Spacy's English model: ``python3 -m spacy download en_core_web_sm``
 
 #. Download nltk's punkt tokenizer: ``import nltk; nltk.download('punkt')`` (in a ``python`` interactive session)
 
