@@ -154,7 +154,7 @@ A conversational dataset comprising group meetings of two to four participants t
 
 Name for download: `gap-corpus`
 
-### [Wikipedia Articles for Deletion Corpus](https://convokit.cornell.edu/documentation/wiki_afd.html)
+### [Wikipedia Articles for Deletion Corpus](https://convokit.cornell.edu/documentation/wiki-articles-for-deletion-corpus.html)
 
 A collection of Wikipedia's Articles for Deletion editor debates that occurred between January 1, 2005 and December 31, 2018. This corpus contains about 3,200,000 contributions by approximately 150,000 Wikipedia editors across almost 400,000 debates.
 
