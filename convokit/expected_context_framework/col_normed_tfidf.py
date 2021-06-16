@@ -10,7 +10,14 @@ import json
 from convokit.transformer import Transformer
 
 class ColNormedTfidfWrapper(Transformer):
-    
+    """
+    Transformer that derives tf-idf reweighted representations of utterances,
+    which are normalized by column, i.e., per term. This may be helpful in deriving downstream representations that are less sensitive to relative term frequency; for instance, it could be used to derive input representations to `ExpectedContextModelWrapper`. 
+
+    :param input_field: the name of the attribute of utterances to use as input to fit. note that unless `token_pattern` is specified as an additional argument, this attribute must be a string consisting of whitespace-separated features.
+    :param output_field: the name of the attribute to write to in teh transform step.
+    :param kwargs: other keyword arguments used to initialize the underlying `TfidfVectorizer` from scikit-learn, see that documentation for details.
+    """
     def __init__(self, input_field, output_field='col_normed_tfidf', **kwargs):
         self.tfidf_obj = ColNormedTfidf(**kwargs)
         self.input_field = input_field
@@ -21,11 +28,28 @@ class ColNormedTfidfWrapper(Transformer):
             self.text_func = lambda x: x.meta[self.input_field]
     
     def fit(self, corpus, y=None, selector=lambda x: True):
+        """
+        Fits a transformer over training data.
+
+        :param corpus: Corpus
+        :param selector: which utterances to fit the transformer over. a boolean function of the form filter(utterance) that defaults to True (i.e., all utterances).
+        :return: None
+        """
         docs = [self.text_func(ut) for ut in corpus.iter_utterances(selector=selector)]
         self.tfidf_obj.fit(docs)
         return self
     
     def transform(self, corpus, selector=lambda x: True): 
+        """
+        Computes column-normalized tf-idf representations for utterances in a corpus, stored in the corpus as `<output_field>`. Also annotates each utterance with a metadata field, 
+        `<output_field>__n_feats`, indicating the number of terms in the vocabulary that utterance contains.
+
+
+        :param corpus: Corpus
+        :param selector: which utterances to transform
+
+        :return: corpus, with per-utterance representations and vocabulary counts
+        """
         ids = []
         docs = []
         for ut in corpus.iter_utterances(selector=selector):
@@ -45,15 +69,35 @@ class ColNormedTfidfWrapper(Transformer):
         return self.transform(corpus, selector)
     
     def get_vocabulary(self):
+        """
+        :return: array of feature names
+        """
         return self.tfidf_obj.get_feature_names()
     
     def load_model(self, dirname):
+        """
+        Loads model from disk.
+
+        :param dirname: directory to load from
+        :return: None
+        """
         self.tfidf_obj.load(dirname)
     
     def dump_model(self, dirname):
+        """
+        Dumps model to disk.
+
+        :param dirname: directory to write to
+        :return: None
+        """
         self.tfidf_obj.dump(dirname)
 
 class ColNormedTfidf(TransformerMixin):
+
+    """
+    Model that derives tf-idf reweighted representations of utterances,
+    which are normalized by column. Can be used in ConvoKit through the `ColNormedTfidfWrapper` transformer; see documentation of that transformer for further details.
+    """
     
     def __init__(self, **kwargs):
         if 'token_pattern' in kwargs:
@@ -85,11 +129,11 @@ class ColNormedTfidf(TransformerMixin):
     
     def load(self, dirname):
         self.tfidf_model = joblib.load(os.path.join(dirname, 'tfidf_model.joblib'))
-        self.col_norms = np.load(os.path.join(dirname, 'col_norms.npy'))
+        self.col_norms = np.load(os.path.join(dirname, 'tfidf_col_norms.npy'))
     
     def dump(self, dirname):
         try:
             os.mkdir(dirname)
         except: pass
-        np.save(os.path.join(dirname, 'col_norms.npy'), self.col_norms)
+        np.save(os.path.join(dirname, 'tfidf_col_norms.npy'), self.col_norms)
         joblib.dump(self.tfidf_model, os.path.join(dirname, 'tfidf_model.joblib'))  
