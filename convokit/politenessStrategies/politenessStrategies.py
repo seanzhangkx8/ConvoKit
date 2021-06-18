@@ -131,10 +131,10 @@ class PolitenessStrategies(Transformer):
 
         if plot:
             plt.figure(dpi=200, figsize=(9, 6))
-            plt.bar(list(range(len(scores))), scores.values(), tick_label = list(scores.keys()), align="edge")
-            plt.xticks(np.arange(.4, len(scores)+.4), rotation=45, ha="right")
-            plt.ylabel("Occurrences per Utterance", size=20)
-            plt.yticks(size=15)
+            plt.bar(list(range(len(scores))), scores.values(), align="edge")
+            plt.xticks(np.arange(.4, len(scores)+.4), rotation=45, ha="right", labels=list(scores.keys()))
+            plt.ylabel("Occurrences per Utterance", size=14)
+            plt.yticks(size=10)
             if y_lim != None:
                 plt.ylim(0, y_lim)
             plt.show()
