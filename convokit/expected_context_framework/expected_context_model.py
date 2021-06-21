@@ -500,7 +500,7 @@ class ExpectedContextModel:
         return self._snip(context_utt_vects * self.context_V / self.context_s, self.snip_first_dim)  
     
     def fit_clusters(self, n_clusters='default', random_state='default', utt_ids=None, context_utt_ids=None):
-        if n_clusters = 'default':
+        if n_clusters == 'default':
             n_clusters = self.n_clusters
         if random_state == 'default':
             random_state = self.cluster_random_state
