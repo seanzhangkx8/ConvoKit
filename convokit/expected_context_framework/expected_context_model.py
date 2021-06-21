@@ -196,7 +196,7 @@ class ExpectedContextModelWrapper(Transformer):
             corpus.get_utterance(id).meta[self.output_prefix + '_range'] = r
         return corpus
     
-    def transform_context_utts(self, corpus, selector=lambda x: True):
+    def transform_context_utt(self, corpus, selector=lambda x: True):
         """
         Computes representations of context utterances, along with cluster assignments. 
 
@@ -214,17 +214,19 @@ class ExpectedContextModelWrapper(Transformer):
         self.compute_clusters(corpus, selector, is_context=True)
         return corpus
     
-    def fit_clusters(self, n_clusters, random_state='default'):
+    def fit_clusters(self, n_clusters='default', random_state='default'):
         """
         Infers a clustering of term or utterance representations (specified by the `cluster_on` argument used to initialize the transformer).
             on the training data originally used to fit the transformer.
         Can be called to infer a different number of clusters than what was initially specified.
 
-        :param n_clusters: number of clusters to infer
+        :param n_clusters: number of clusters to infer. defaults to the number of clusters specified when initializing the transformer.
         :param random_state: random seed used to infer clusters. defaults to the random seed used to initialize the transformer.
 
         :return: None
         """
+        if n_clusters=='default':
+            n_clusters = self.ec_model.n_clusters
         if random_state == 'default':
             random_state = self.ec_model.cluster_random_state
         self.ec_model.fit_clusters(n_clusters, random_state)
@@ -472,7 +474,7 @@ class ExpectedContextModel:
         self.term_reprs_full = utt_vect_subset.T * context_repr_subset / self.context_s
         self.term_reprs = self._snip(self.term_reprs_full, snip_first_dim=self.snip_first_dim)
         self.train_utt_reprs = self.transform(utt_vects)
-        
+
         full_dists = cosine_distances(
                 self.term_reprs,
                 self._snip(context_repr_subset, snip_first_dim=self.snip_first_dim)
@@ -497,7 +499,9 @@ class ExpectedContextModel:
     def transform_context_utts(self, context_utt_vects):
         return self._snip(context_utt_vects * self.context_V / self.context_s, self.snip_first_dim)  
     
-    def fit_clusters(self, n_clusters=8, random_state='default', utt_ids=None, context_utt_ids=None):
+    def fit_clusters(self, n_clusters='default', random_state='default', utt_ids=None, context_utt_ids=None):
+        if n_clusters = 'default':
+            n_clusters = self.n_clusters
         if random_state == 'default':
             random_state = self.cluster_random_state
         km_obj = ClusterWrapper(n_clusters=n_clusters, random_state=random_state)
@@ -522,6 +526,41 @@ class ExpectedContextModel:
 
     def get_cluster_names(self):
         return self.clustering['km_obj'].cluster_names
+
+    def print_clusters(self, k=10, max_chars=1000, text_df=None):
+        n_clusters = self.n_clusters
+        cluster_obj = self.clustering
+        cluster_names = self.get_cluster_names()
+        for i in range(n_clusters):
+            print('CLUSTER', i, cluster_names[i])
+            print('---')
+            print('terms')
+            term_subset = cluster_obj['terms'][cluster_obj['terms'].cluster_id_ == i].sort_values('cluster_dist').head(k)
+            print(term_subset[['cluster_dist']])
+            print()
+            print('context terms')
+            context_term_subset = cluster_obj['context_terms'][cluster_obj['context_terms'].cluster_id_ == i].sort_values('cluster_dist').head(k)
+            print(context_term_subset[['cluster_dist']])
+            print()
+            if text_df is None: continue
+            print()
+            print('utterances')
+            utt_subset = cluster_obj['utts'][cluster_obj['utts'].cluster_id_ == i].drop_duplicates('cluster_dist').sort_values('cluster_dist').head(k)
+            for id, row in utt_subset.iterrows():
+                print('>', id, '%.3f' % row.cluster_dist, text_df.loc[id].text[:max_chars])
+            print()
+            print('context utterances')
+            context_utt_subset = cluster_obj['context_utts'][cluster_obj['context_utts'].cluster_id_ == i].drop_duplicates('cluster_dist').sort_values('cluster_dist').head(k)
+            for id, row in context_utt_subset.iterrows():
+                print('>>', id, '%.3f' % row.cluster_dist, text_df.loc[id].text[:max_chars])
+            print('\n====\n')
+
+    def print_cluster_stats(self):
+        cluster_obj = self.clustering
+        return pd.concat([
+            cluster_obj[k].cluster.value_counts(normalize=True).rename(k).sort_index()
+            for k in ['utts', 'terms', 'context_utts', 'context_terms']
+        ], axis=1)
     
     def load(self, dirname):
         with open(os.path.join(dirname, 'meta.json')) as f:
