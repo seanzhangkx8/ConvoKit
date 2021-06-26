@@ -9,7 +9,7 @@ import json
 
 from convokit.transformer import Transformer
 
-class ColNormedTfidfWrapper(Transformer):
+class ColNormedTfidfTransformer(Transformer):
     """
     Transformer that derives tf-idf reweighted representations of utterances,
     which are normalized by column, i.e., per term. This may be helpful in deriving downstream representations that are less sensitive to relative term frequency; for instance, it could be used to derive input representations to `ExpectedContextModelWrapper`. 

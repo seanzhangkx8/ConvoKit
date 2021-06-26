@@ -14,22 +14,22 @@ import json
 
 from convokit.transformer import Transformer
 
-class ExpectedContextModelWrapper(Transformer):
+class ExpectedContextModelTransformer(Transformer):
     """
     Transformer that derives representations of terms and utterances in terms of their conversational context, i.e.,
-    context utterances that occur near an utterance, or utterances containing a term. Typically, the conversational
+    context-utterances that occur near an utterance, or utterances containing a term. Typically, the conversational
     context consists of immediate replies ("forwards context") or predecessors ("backwards context"), though
     this can be specified by the user via the `context_field` argument. 
 
     The underlying model in the transformer, implemented as the `ExpectedContextModel` class, is fitted given input training
-    data consisting of pairs of utterances and context utterances, represented as feature vectors (e.g., tf-idf reweighted
+    data consisting of pairs of utterances and context-utterances, represented as feature vectors (e.g., tf-idf reweighted
     term-document matrices), specified via the `vect_field` and `context_vect_field` arguments. This model is stored as the `ec_model` attribute of the transformer, and can be accessed as such.
     In the fit step, the model, which is based off of latent semantic analysis (LSA), computes the following:
     * representations of terms and utterances in the training data, with respect to the context, 
     along with representations of the context (which are derived in the underlying LSA step). the dimensionality of these
     representations is specified via the `n_svd_dims` argument (see also the `snip_first_dim` and `random_state` arguments). these can
     be accessed via various `get` functions that the transformer provides.
-    * a term-level statistic, "range", measuring the variation in context utterances associated with a term. One interpretation of 
+    * a term-level statistic, "range", measuring the variation in context-utterances associated with a term. One interpretation of 
     this statistic is that it quantifies the "strengths of our expectations" of what reply a term typically gets, or what predecessors
     it typically follows.
     * a clustering of utterance, term and context representations. The resultant clusters can help interpret the representations the model
@@ -51,16 +51,16 @@ class ExpectedContextModelWrapper(Transformer):
     * clustering.cluster_id_: the numerical ID (0-# of clusters) of the cluster the utterance has been assigned to 
     * clustering.cluster_dist: the distance between the utterance representation and the centroid of its cluster
 
-    :param context_field: the name of an utterance-level attribute containing the ID of the corresponding context utterance.
+    :param context_field: the name of an utterance-level attribute containing the ID of the corresponding context-utterance.
     in particular, to use immediate predecessors as context, set `context_field` to `'reply_to'`. as another example,
     to use immediate replies, provided that utterances contain an attribute `next_id` containing the ID of their reply, 
     set `context_field` to `'next_id'`.
     :param output_prefix: the name of the attributes and vectors to write to in the transform step. the transformer outputs several 
     fields, which will be prefixed with `output_prefix`.
-    :param vect_field: the name of the vectors to use as input vector representation for utterances.
-    :param context_vect_field: the name of the vectors to use as input vector representations for context utterances. by default,
+    :param vect_field: the name of the vectors to use as input vector representation for utterances, as stored in a corpus.
+    :param context_vect_field: the name of the vectors to use as input vector representations for context-utterances, as stored in a corpus. by default,
     the transformer will use the same vector representations as utterances, specified in `vect_field`. if you expect that utterances
-    and context utterances will differ in some way (e.g., they come from speakers in a conversation who play clearly delineated roles),
+    and context-utterances will differ in some way (e.g., they come from speakers in a conversation who play clearly delineated roles),
     then it's a good idea to use a different input representation.
     :param n_svd_dims: the dimensionality of the representations to derive (via LSA/SVD).
     :param snip_first_dim: whether or not to remove the first dimension of the derived representations. by default this is set to `True`, since we've 
@@ -68,10 +68,10 @@ class ExpectedContextModelWrapper(Transformer):
     then in practice, we output `n_svd_dims-1`-dimensional representations.
     :param n_clusters: the number of clusters to infer.
     :param cluster_on: whether to cluster on utterance or term representations, (corresponding to values `'utts'` or `'terms'`). By default, we infer clusters
-    based on representations of the utterances from the training data, and then assign term and context utterance representations to the resultant clusters. 
+    based on representations of the utterances from the training data, and then assign term and context-utterance representations to the resultant clusters. 
     In some cases (e.g., if utterances are highly unstructured and lengthy) it might
     be better to cluster term representations first.
-    :param model: an existing, fitted `ExpectedContextModelWrapper` object to initialize with (optional)
+    :param model: an existing, fitted `ExpectedContextModelTransformer` object to initialize with (optional)
     :param random_state: the random seed to use in the LSA step (which calls a randomized implementation of SVD)
     :param cluster_random_state: the random seed to use to infer clusters.
 
@@ -97,18 +97,18 @@ class ExpectedContextModelWrapper(Transformer):
         self.context_vect_field = context_vect_field
         if self.context_vect_field is None:
             self.context_vect_field = vect_field
-    
+
     ### fit functionality
 
     def fit(self, corpus, y=None, selector=lambda x: True, context_selector=lambda x: True):
         """
-        Fits an `ExpectedContextModelWrapper` transformer over training data: derives representations of terms, utterances and contexts, 
+        Fits an `ExpectedContextModelTransformer` transformer over training data: derives representations of terms, utterances and contexts, 
         range statistics for terms, and a clustering of the resultant representations.
 
         :param corpus: Corpus containing training data
         :param selector: a boolean function of signature `filter(utterance)` that determines which utterances
             will be considered in the fit step. defaults to using all utterances.
-        :param context_selector: a boolean function of signature `filter(utterance)` that determines which context utterances
+        :param context_selector: a boolean function of signature `filter(utterance)` that determines which context-utterances
             will be considered in the fit step. defaults to using all utterances.
         :return: None
         """
@@ -198,7 +198,7 @@ class ExpectedContextModelWrapper(Transformer):
     
     def transform_context_utt(self, corpus, selector=lambda x: True):
         """
-        Computes representations of context utterances, along with cluster assignments. 
+        Computes representations of context-utterances, along with cluster assignments. 
 
         :param corpus: Corpus
         :param selector: determines which utterances to compute representations for.
@@ -237,7 +237,7 @@ class ExpectedContextModelWrapper(Transformer):
         
         :param corpus: Corpus
         :param selector: determines which utterances to compute clusterings for
-        :param is_context: whether to treat input data as utterances, or context utterances
+        :param is_context: whether to treat input data as utterances, or context-utterances
         
         :return: a DataFrame containing cluster assignment information for each utterance.
         """
@@ -276,13 +276,13 @@ class ExpectedContextModelWrapper(Transformer):
     
     def print_clusters(self, k=10, max_chars=1000, corpus=None):
         """
-        Prints representative terms, utterances and context utterances for each inferred type. Can be inspected to help interpret the transformer's output.
+        Prints representative terms, utterances and context-utterances for each inferred type. Can be inspected to help interpret the transformer's output.
         By default, will only print out terms and context terms; if the corpus containing the training data is passed in, will output utterances
-        and context utterances as well.
+        and context-utterances as well.
 
         :param k: number of examples to print out.
-        :max_chars: maximum number of characters per utterance/context utterance to print. Can be toggled to control the size of the output.
-        :corpus: optional, the corpus that the transformer was trained on.
+        :max_chars: maximum number of characters per utterance/context-utterance to print. Can be toggled to control the size of the output.
+        :corpus: optional, the corpus that the transformer was trained on. if set, will print example utterances and context-utterances as well as terms.
 
         :return: None
         """
@@ -306,7 +306,7 @@ class ExpectedContextModelWrapper(Transformer):
             for id, row in utt_subset.iterrows():
                 print('>', id, '%.3f' % row.cluster_dist, corpus.get_utterance(id).text[:max_chars])
             print()
-            print('context utterances')
+            print('context-utterances')
             context_utt_subset = cluster_obj['context_utts'][cluster_obj['context_utts'].cluster_id_ == i].drop_duplicates('cluster_dist').sort_values('cluster_dist').head(k)
             for id, row in context_utt_subset.iterrows():
                 print('>>', id, '%.3f' % row.cluster_dist, corpus.get_utterance(id).text[:max_chars])
@@ -314,7 +314,7 @@ class ExpectedContextModelWrapper(Transformer):
     
     def print_cluster_stats(self):
         """
-        Returns a Pandas dataframe containing the % of terms, context terms, and training utterances/context utterances that have been assigned to each cluster.
+        Returns a Pandas dataframe containing the % of terms, context terms, and training utterances/context-utterances that have been assigned to each cluster.
 
         :return: dataframe containing cluster statistics
         """
@@ -323,6 +323,20 @@ class ExpectedContextModelWrapper(Transformer):
             cluster_obj[k].cluster.value_counts(normalize=True).rename(k).sort_index()
             for k in ['utts', 'terms', 'context_utts', 'context_terms']
         ], axis=1)
+
+    def summarize(self, k=10, max_chars=1000, corpus=None):
+        """
+        Wrapper function to print inferred clusters and statistics about their sizes.
+        :param k: number of examples to print out.
+        :max_chars: maximum number of characters per utterance/context-utterance to print. Can be toggled to control the size of the output.
+        :corpus: optional, the corpus that the transformer was trained on. if set, will print example utterances and context-utterances as well as terms.
+
+        :return: None
+        """
+        print('STATS')
+        print(self.print_cluster_stats())
+        print('\nCLUSTERS')
+        self.print_clusters(k=k, max_chars=max_chars,  corpus=corpus)
     
     ### getters for representations from training data
 
@@ -372,7 +386,7 @@ class ExpectedContextModelWrapper(Transformer):
         * `km_obj`: the fitted KMeans object
         * `utts`: a Pandas dataframe of cluster assignments for utterances from the training data
         * `terms`: a dataframe of cluster assignments for terms
-        * `context_utts`: dataframe of cluster assignments for context utterances from the training data
+        * `context_utts`: dataframe of cluster assignments for context-utterances from the training data
         * `context_terms`: dataframe of cluster assignments for terms.
 
         :return: dictionary containing clustering information
@@ -402,9 +416,9 @@ class ExpectedContextModelWrapper(Transformer):
 class ExpectedContextModel:
     """
     Model that derives representations of terms and utterances in terms of their conversational context, i.e.,
-    context utterances that occur near an utterance, or utterances containing a term. Typically, the conversational
+    context-utterances that occur near an utterance, or utterances containing a term. Typically, the conversational
     context consists of immediate replies ("forwards context") or predecessors ("backwards context"), though
-    this can be specified by the user. Can be used in ConvoKit through the `ExpectedContextModelWrapper` transformer;
+    this can be specified by the user. Can be used in ConvoKit through the `ExpectedContextModelTransformer` transformer;
     see documentation of that transformer for further details.
     """
 
@@ -424,14 +438,15 @@ class ExpectedContextModel:
         if (context_U is None) and (model is None):
             self.fitted_context = False
         elif (model is not None):
-            self.fitted_context = True
-            self.n_svd_dims = model.n_svd_dims
-            self.context_U = model.context_U
-            self.train_context_reprs = self._snip(self.context_U, self.snip_first_dim)
-            self.context_V = model.context_V
-            self.context_term_reprs = self._snip(self.context_V, self.snip_first_dim)
-            self.context_s = model.context_s
-            self.context_terms = self._get_default_ids(model.context_terms, len(self.context_V))
+            self.set_model(model)
+            # self.fitted_context = True
+            # self.n_svd_dims = model.n_svd_dims
+            # self.context_U = model.context_U
+            # self.train_context_reprs = self._snip(self.context_U, self.snip_first_dim)
+            # self.context_V = model.context_V
+            # self.context_term_reprs = self._snip(self.context_V, self.snip_first_dim)
+            # self.context_s = model.context_s
+            # self.context_terms = self._get_default_ids(model.context_terms, len(self.context_V))
         elif (context_U is not None):
             self.fitted_context = True
             self.n_svd_dims = context_U.shape[1]
@@ -446,6 +461,16 @@ class ExpectedContextModel:
 
         self.terms = None 
         self.clustering = {}
+
+    def set_model(self, model):
+        self.fitted_context = True
+        self.n_svd_dims = model.n_svd_dims
+        self.context_U = model.context_U
+        self.train_context_reprs = self._snip(self.context_U, self.snip_first_dim)
+        self.context_V = model.context_V
+        self.context_term_reprs = self._snip(self.context_V, self.snip_first_dim)
+        self.context_s = model.context_s
+        self.context_terms = self._get_default_ids(model.context_terms, len(self.context_V))
             
     def fit_context_utts(self, context_utt_vects, 
                     context_terms=None):
@@ -549,7 +574,7 @@ class ExpectedContextModel:
             for id, row in utt_subset.iterrows():
                 print('>', id, '%.3f' % row.cluster_dist, text_df.loc[id].text[:max_chars])
             print()
-            print('context utterances')
+            print('context-utterances')
             context_utt_subset = cluster_obj['context_utts'][cluster_obj['context_utts'].cluster_id_ == i].drop_duplicates('cluster_dist').sort_values('cluster_dist').head(k)
             for id, row in context_utt_subset.iterrows():
                 print('>>', id, '%.3f' % row.cluster_dist, text_df.loc[id].text[:max_chars])
