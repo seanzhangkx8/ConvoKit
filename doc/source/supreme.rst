@@ -91,17 +91,19 @@ For each utterance, we provide:
 * timestamp: the timestamp of the first sentence in the utterance.
 * reply_to: the ID of the preceding utterance.
 
-We also provide dependency parses for each utterance, which can be loaded as:
+The dataset also comes with the following processed fields, which can be loaded separately via `corpus.load_info('utterance',[list of fields])`:
 
->>> corpus.load_info('utterance',['parsed'])
+* parsed: dependency parse of each utterance
+* arcs: dependency parse arcs for each utterance
+* tokens: processed tokens of each utterance
 
-Note that at present, each sentence of a parse contains an extra space at the end, due to how Oyez segments different sentences into paragraphs. A todo is to check  that the Oyez segmentation indeed corresponds to sentence breaks (such that the additional newlines can be safely removed).
+.. Note that at present, each sentence of a parse contains an extra space at the end, due to how Oyez segments different sentences into paragraphs. A todo is to check  that the Oyez segmentation indeed corresponds to sentence breaks (such that the additional newlines can be safely removed).
 
 
 Case information
 ^^^^^^^^^^^^^^^^^^^^^
 
-`This file <https://zissou.infosci.cornell.edu/convokit/datasets/supreme-corpus/case.jsonl>`_ is a list of json objects containing some information about each case, pulled from Oyez and SCDB. 
+`This file <https://zissou.infosci.cornell.edu/convokit/datasets/supreme-corpus/cases.jsonl>`_ is a list of json objects containing some information about each case, pulled from Oyez and SCDB. 
 
 * id: generally formatted as <year of case>_<docket no>
 * year
@@ -126,7 +128,7 @@ Case information
 Citation and other versions
 ^^^^^^^^^^^^^
 
-This corpus extends a `smaller dataset <https://confluence.cornell.edu/display/llresearch/Supreme+Court+Dialogs+Corpus>`_ of oral arguments that we previously released together with `Echoes of power: Language effects and power differences in social interaction <https://www.cs.cornell.edu/~cristian/Echoes_of_power.html>`_. Cristian Danescu-Niculescu-Mizil, Bo Pang, Lillian Lee and Jon Kleinberg. WWW 2012.  Please cite the Echoes of Powers paper if you use either version of the corpus.  If you use the ConvoKit version please additionally cite: `ConvoKit\: A Toolkit for the Analysis of Conversations <https://www.cs.cornell.edu/~cristian/ConvoKit_Demo_Paper_files/convokit-demo-paper.pdf>`_. Jonathan P. Chang, Caleb Chiam, Liye Fu, Andrew Wang, Justine Zhang, Cristian Danescu-Niculescu-Mizil. Proceedings of SIGDIAL. 2020.
+This corpus extends a `smaller dataset <https://confluence.cornell.edu/display/llresearch/Supreme+Court+Dialogs+Corpus>`_ of oral arguments that we previously released together with `Echoes of power\: Language effects and power differences in social interaction <https://www.cs.cornell.edu/~cristian/Echoes_of_power.html>`_. Cristian Danescu-Niculescu-Mizil, Bo Pang, Lillian Lee and Jon Kleinberg. WWW 2012.  Please cite the Echoes of Powers paper if you use either version of the corpus.  If you use the ConvoKit version 	please additionally cite: `ConvoKit\: A Toolkit for the Analysis of Conversations <https://www.cs.cornell.edu/~cristian/ConvoKit_Demo_Paper_files/convokit-demo-paper.pdf>`_. Jonathan P. Chang, Caleb Chiam, Liye Fu, Andrew Wang, Justine Zhang, Cristian Danescu-Niculescu-Mizil. Proceedings of SIGDIAL. 2020.
 
 
 Contact

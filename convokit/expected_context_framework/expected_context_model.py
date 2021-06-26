@@ -45,7 +45,7 @@ class ExpectedContextModelTransformer(Transformer):
 
     The transfomer contains various functions to access term-level characterizations. In the transform step, it outputs 
     vector representations of utterances, stored as `<output_prefix>_repr` in the corpus. It also outputs various attributes
-    of utterances (names prefixed with `<output_prefix>_`), stored as metadata fields:
+    of utterances (names prefixed with `<output_prefix>_`), stored as metadata fields in each transformed utterance:
     * range: the range of the utterance
     * clustering.cluster: the name of the cluster the utterance has been assigned to
     * clustering.cluster_id_: the numerical ID (0-# of clusters) of the cluster the utterance has been assigned to 
@@ -56,7 +56,7 @@ class ExpectedContextModelTransformer(Transformer):
     to use immediate replies, provided that utterances contain an attribute `next_id` containing the ID of their reply, 
     set `context_field` to `'next_id'`.
     :param output_prefix: the name of the attributes and vectors to write to in the transform step. the transformer outputs several 
-    fields, which will be prefixed with `output_prefix`.
+    fields, which will be prefixed with the given string.
     :param vect_field: the name of the vectors to use as input vector representation for utterances, as stored in a corpus.
     :param context_vect_field: the name of the vectors to use as input vector representations for context-utterances, as stored in a corpus. by default,
     the transformer will use the same vector representations as utterances, specified in `vect_field`. if you expect that utterances

@@ -6,10 +6,14 @@ In these conversations, callers question receivers on provided topics, such as c
 440 speakers participate in these 1,155 conversations, producing 221,616 utterances (we combine consecutive utterances by the same person into one utterance, so our corpus has 122,646 utterances).
 
 This is a Convokit-formatted version of the Switchboard Dialog Act Corpus (SwDA), originally distributed together with the following paper: Andreas Stolcke, Klaus Ries, Noah Coccaro, Elizabeth Shriberg, Rebecca Bates, Daniel Jurafsky, Paul Taylor, Rachel Martin, Carol Van Ess-Dykema, and Marie Meteer. `Dialogue act modeling for automatic tagging and recognition of conversational speech <https://www.aclweb.org/anthology/J00-3003.pdf>`_. Computational Linguistics, Volume 26, Number 3, September 2000.
-
-
 The original dataset and additional information can be found `here <http://compprag.christopherpotts.net/swda.html>`_. 
 
+Processed dataset 
+------------------
+
+We also release a processed version of the corpus that removes disfluencies and backchannels. This version is intended to be used for quick back-of-the-envelope analyses, where we want to sidestep challenges arising from using transcribed speech data. In sidestepping these challenges, we emphasize that the version omits a lot of important information, and should only be used for experimentation.
+
+In particular, disfluencies are removed via regex, and backchannels are assumed to be utterances with fewer than 5 tokens; successive turns by the same speaker that are broken up by these inferred-backchannels are merged together, and their tags are merged as well.
 
 Dataset details
 ---------------
@@ -43,6 +47,13 @@ Additional metadata includes:
 
 * tag: a list of [text segment, tag] pairs, where tag refers to the `DAMSL speech act tag <https://web.stanford.edu/~jurafsky/ws97/manual.august1.html>`_. 
 
+In the processed dataset, metadata includes:
+
+* alpha_text: version of the text containing alphabetical tokens only
+* full_tags: all tags associated with the utterance (including those collected across multiple merged utterances)
+* tags: processed, deduplicated version of full_tags
+* next_id: id of the utterance replying to this one (None if the utterance has no reply)
+
 
 Conversation-level information
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -74,6 +85,9 @@ For some quick stats:
 Number of Speakers: 440
 Number of Utterances: 122646
 Number of Conversations: 1155
+
+The processed dataset can be accessed as:
+>>> corpus = Corpus(filename=download("switchboard-processed-corpus"))
 
 
 Additional note
