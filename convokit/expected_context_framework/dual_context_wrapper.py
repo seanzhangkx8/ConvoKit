@@ -1,5 +1,6 @@
 from sklearn.metrics.pairwise import paired_distances
 import pandas as pd
+import numpy as np
 import json, os
 
 from convokit.expected_context_framework import ExpectedContextModelTransformer
@@ -113,7 +114,33 @@ class DualContextWrapper(Transformer):
                                      corpus.get_vectors(self.output_prefixes[1] + '_repr'))
         for id, shift in zip(corpus.get_vector_matrix(self.output_prefixes[0] + '_repr').ids, utt_shifts):
             corpus.get_utterance(id).meta[shift_field] = shift
-    
+
+    def transform_utterance(self, utt):
+        """
+        Computes vector representations, ranges, and cluster assignments for an utterance, using the two `ExpectedContextModelTransformer` instances. Also computes utterance-level orientation and shift. Note that the utterance must contain the input representation as a metadata field, specified by what was passed into the constructor as the `vect_field` argument.
+        Will write all of these characterizations (including vectors) to the utterance's metadata.
+
+        :param utt: Utterance
+        :return: the utterance, with per-utterance attributes.
+        """
+        utt = self.ec_models[0].transform_utterance(utt)
+        utt = self.ec_models[1].transform_utterance(utt)
+        if self.wrapper_output_prefix == '':
+            orn_field = 'orn'
+            shift_field = 'shift'
+        else:
+            orn_field = self.wrapper_output_prefix + '_orn'
+            shift_field = self.wrapper_output_prefix + '_shift'
+
+        utt.meta[orn_field] = utt.meta[self.output_prefixes[0] + '_range'] \
+            - utt.meta[self.output_prefixes[1] + '_range']
+
+        utt.meta[shift_field] = float(paired_distances(
+                            np.array([utt.meta[self.output_prefixes[0] + '_repr']]),
+                            np.array([utt.meta[self.output_prefixes[1] + '_repr']])
+                        )[0])
+        return utt
+
     def _compute_term_stats(self):
         self.term_orientations = self.ec_models[0].get_term_ranges() - self.ec_models[1].get_term_ranges()
         self.term_shifts = paired_distances(self.ec_models[0].get_term_reprs(), self.ec_models[1].get_term_reprs())

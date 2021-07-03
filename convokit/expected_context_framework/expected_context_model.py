@@ -181,6 +181,30 @@ class ExpectedContextModelTransformer(Transformer):
         self.compute_clusters(corpus, selector)
         return corpus
     
+    def transform_utterance(self, utt):
+        """
+        Computes vector representation, range, and cluster assignment for a single utterance. Note that the utterance must contain the input representation as a metadata field, specified by what was passed into the constructor as the `vect_field` argument.
+        Will write all of these characterizations (including vectors) to the utterance's metadata; attribute names are prefixed with the `output_prefix` constructor argument.
+
+        :param utt: Utterance
+        :return: the utterance, with per-utterance representation, range and cluster assignments.
+        """
+
+        utt_vect = np.array([utt.meta[self.vect_field]])
+        utt_repr = np.array(self.ec_model.transform(utt_vect))
+        utt.meta[self.output_prefix + '_repr'] = [float(x) for x in utt_repr[0]]
+        utt.meta[self.output_prefix + '_range'] = float(self.ec_model.compute_utt_ranges(utt_vect)[0])
+        cluster_df = self.ec_model.transform_clusters(utt_repr)
+        for col in cluster_df.columns:
+            if col == 'cluster_dist':
+                utt.meta[self.output_prefix + '_clustering.' + col] = \
+                    float(cluster_df.iloc[0][col])
+            else:
+                utt.meta[self.output_prefix + '_clustering.' + col] = \
+                    cluster_df.iloc[0][col]
+        return utt
+
+
     def compute_utt_ranges(self, corpus, selector=lambda x: True):
         """
         Computes utterance ranges.
@@ -196,7 +220,7 @@ class ExpectedContextModelTransformer(Transformer):
             corpus.get_utterance(id).meta[self.output_prefix + '_range'] = r
         return corpus
     
-    def transform_context_utt(self, corpus, selector=lambda x: True):
+    def transform_context_utts(self, corpus, selector=lambda x: True):
         """
         Computes representations of context-utterances, along with cluster assignments. 
 
@@ -602,7 +626,7 @@ class ExpectedContextModel:
         self.context_s = np.load(os.path.join(dirname, 'context_s.npy'))
         self.context_terms = np.load(os.path.join(dirname, 'context_terms.npy'))
         self.terms = np.load(os.path.join(dirname, 'terms.npy'))
-        self.term_reprs_full = np.load(os.path.join(dirname, 'term_reprs.npy'))
+        self.term_reprs_full = np.matrix(np.load(os.path.join(dirname, 'term_reprs.npy')))
         self.term_reprs = self._snip(self.term_reprs_full, self.snip_first_dim)
         self.term_ranges = np.load(os.path.join(dirname, 'term_ranges.npy'))
         self.train_utt_reprs = np.load(os.path.join(dirname, 'train_utt_reprs.npy'))

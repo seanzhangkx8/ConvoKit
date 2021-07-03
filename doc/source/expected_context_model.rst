@@ -12,3 +12,6 @@ exploration of Switchboard dialog acts corpus `using ExpectedContextModelTransfo
 
 .. automodule:: convokit.expected_context_framework.dual_context_wrapper
 	:members:
+
+.. automodule:: convokit.expected_context_framework.expected_context_model_pipeline
+	:members:

@@ -15,18 +15,25 @@ class ColNormedTfidfTransformer(Transformer):
     which are normalized by column, i.e., per term. This may be helpful in deriving downstream representations that are less sensitive to relative term frequency; for instance, it could be used to derive input representations to `ExpectedContextModelWrapper`. 
 
     :param input_field: the name of the attribute of utterances to use as input to fit. note that unless `token_pattern` is specified as an additional argument, this attribute must be a string consisting of whitespace-separated features.
-    :param output_field: the name of the attribute to write to in teh transform step.
+    :param output_field: the name of the attribute to write to in the transform step.
+    :param model: optional, an exisitng `ColNormedTfidfTransformer`
     :param kwargs: other keyword arguments used to initialize the underlying `TfidfVectorizer` from scikit-learn, see that documentation for details.
     """
-    def __init__(self, input_field, output_field='col_normed_tfidf', **kwargs):
-        self.tfidf_obj = ColNormedTfidf(**kwargs)
+    def __init__(self, input_field, output_field='col_normed_tfidf',
+        model=None, **kwargs):
+
+        if model is not None:
+            self.tfidf_obj = model.tfidf_obj
+        else:
+            self.tfidf_obj = ColNormedTfidf(**kwargs)
         self.input_field = input_field
         self.output_field = output_field
         if self.input_field == 'text':
             self.text_func = lambda x: x.text
         else:
             self.text_func = lambda x: x.meta[self.input_field]
-    
+
+
     def fit(self, corpus, y=None, selector=lambda x: True):
         """
         Fits a transformer over training data.
@@ -61,8 +68,24 @@ class ColNormedTfidfTransformer(Transformer):
         corpus.set_vector_matrix(self.output_field, matrix=vects, ids=ids, columns=column_names)
         n_feats = np.array((vects>0).sum(axis=1)).flatten()
         for id, n in zip(ids, n_feats):
-            corpus.get_utterance(id).meta[self.output_field + '__n_feats'] = n
+            corpus.get_utterance(id).meta[self.output_field + '__n_feats'] = int(n)
         return corpus
+
+    def transform_utterance(self, utt):
+        """
+        Computes tf-idf representations for a single utterance. Representation is stored in the utterance as `<output_field>__vect`; 
+        number of vocabulary terms that utterance contains is stored as `<output_field>__n_feats`
+
+        :param utt: Utterance
+
+        :return: utterance, with representation and vocabulary count
+        """
+        docs = [self.text_func(utt)]
+        vect_ = np.array(self.tfidf_obj.transform(docs))
+        n_feats = np.array((vect_>0).sum(axis=1)).flatten()
+        utt.meta[self.output_field] = [float(x) for x in vect_[0]]
+        utt.meta[self.output_field + '__n_feats'] = int(n_feats[0])
+        return utt
     
     def fit_transform(self, corpus, y=None, selector=lambda x: True):
         self.fit(corpus, y, selector)
@@ -74,7 +97,7 @@ class ColNormedTfidfTransformer(Transformer):
         """
         return self.tfidf_obj.get_feature_names()
     
-    def load_model(self, dirname):
+    def load(self, dirname):
         """
         Loads model from disk.
 
@@ -83,7 +106,7 @@ class ColNormedTfidfTransformer(Transformer):
         """
         self.tfidf_obj.load(dirname)
     
-    def dump_model(self, dirname):
+    def dump(self, dirname):
         """
         Dumps model to disk.
 
