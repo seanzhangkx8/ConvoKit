@@ -14,7 +14,6 @@ Speaker-level information
 Speakers in this dataset are Wikipedia editors; their account names are taken as the speaker names. Additional information include:
 
 * is-admin: whether the speaker is an admin
-* gender: gender of the speaker
 * edit-count: total number of edits the speaker has made
 
 
@@ -33,7 +32,11 @@ For each utterance, we provide:
 Metadata for each utterance include:
 
 * is-admin: whether the utterance is from an admin
-* parsed: parsed version of the utterance text, represented as a SpaCy Doc
+
+The dataset also comes with the following processed fields, which can be loaded separately via `corpus.load_info('utterance',[list of fields])`:
+
+* parsed: SpaCy dependency parse
+* arcs_censored: dependency parse arcs, without nouns
 
 
 Usage

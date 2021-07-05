@@ -11,3 +11,4 @@ These are the transformers related to extracting features from the corpus and it
    PhrasingMotifs <phrasingMotifs.rst>
    PolitenessStrategies <politenessStrategies.rst>
    PromptTypes <promptTypes.rst>
+   ExpectedContextModel <expected_context_model.rst>
