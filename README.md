@@ -29,7 +29,7 @@ Example: [understanding the (mis)use of politeness strategies in conversations g
 
 ### [Expected Conversational Context Framework](https://tisjune.github.io/research/dissertation) <sub><sup>[(API)](https://convokit.cornell.edu/documentation/expected_context_model.html)</sup></sub>
 
-A framework for characterizing utterances and terms based on their expected conversational context.
+A framework for characterizing utterances and terms based on their expected conversational context, consisting of model implementations and wrapper pipelines.
 Examples: [deriving question types and other characterizations in British parliamentary question periods](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/convokit/expected_context_framework/demos/parliament_demo.ipynb), 
 [exploration of Switchboard dialog acts corpus](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/convokit/expected_context_framework/demos/switchboard_exploration_demo.ipynb)  [examining Wikipedia talk page discussions](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/convokit/expected_context_framework/demos/wiki_awry_demo.ipynb) and [computing the orientation of justice utterances in the US Supreme Court](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/convokit/expected_context_framework/demos/scotus_orientation_demo.ipynb)
 
