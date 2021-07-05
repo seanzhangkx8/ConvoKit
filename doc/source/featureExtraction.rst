@@ -7,6 +7,7 @@ These are the transformers related to extracting features from the corpus and it
    :maxdepth: 2
 
    Bag-of-words <bow.rst>
+   Column-normalized tf-idf <col_normed_tfidf.rst>
    Hyperconvo <hyperconvo.rst>
    PhrasingMotifs <phrasingMotifs.rst>
    PolitenessStrategies <politenessStrategies.rst>

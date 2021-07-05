@@ -10,18 +10,16 @@ import os
 class ExpectedContextModelPipeline(Transformer):
     """
     Wrapper class implementing a pipeline that derives characterizations of terms and utterances in terms of their conversational context. The pipeline handles the following steps:
+
     * processing input text (via a pipeline supplied by the user in the `text_pipe` argument);
     * transforming text to input representation (via `ColNormedTfidfTransformer`);
     * deriving characterizations (via `ExpectedContextModelTransformer`)
 
-    The `ColNormTfidfTransformer` components are stored as the `tfidf_model` and `context_tfidf_model` attributes of the class; the `ExpectedContextModelTransformer` is stored as the `ec_model` attribute.
+    The `ColNormedTfidfTransformer` components are stored as the `tfidf_model` and `context_tfidf_model` attributes of the class; the `ExpectedContextModelTransformer` is stored as the `ec_model` attribute.
     
     For further details, see the `ColNormedTfidfTransformer` and `ExpectedContextModelTransformer` classes.
 
-    :param context_field: the name of an utterance-level attribute containing the ID of the corresponding context-utterance.
-    in particular, to use immediate predecessors as context, set `context_field` to `'reply_to'`. as another example,
-    to use immediate replies, provided that utterances contain an attribute `next_id` containing the ID of their reply, 
-    set `context_field` to `'next_id'`.
+    :param context_field: the name of an utterance-level attribute containing the ID of the corresponding context-utterance. in particular, to use immediate predecessors as context, set `context_field` to `'reply_to'`. as another example, to use immediate replies, provided that utterances contain an attribute `next_id` containing the ID of their reply, set `context_field` to `'next_id'`.
     :param output_prefix: the name of the attributes and vectors to write to in the transform step. the transformer outputs several fields, which will be prefixed with the given string.
     :param text_field: the  name of the utterance-level attribute containing the text to use as input.
     :param context_text_field: the  name of the utterance-level attribute containing the text to use as input for context-utterances. by default, is equivalent to `text_field`.
@@ -33,14 +31,9 @@ class ExpectedContextModelPipeline(Transformer):
     :param min_terms: the minimum number of terms in the vocabulary, derived by `ColNormedTfidfTransformer`, that an utterance must contain for it to be considered in fitting and transforming the underlying `ExpectedContextModelTransformer` object. defaults to 0, meaning the transformer will consider all utterances.
     :param context_min_terms: minimum number of terms in the vocabulary for a context-utterance to be considered in fitting and transforming the underlying `ExpectedContextModelTransformer` object. equivalent to `min_terms` by default.
     :param n_svd_dims: the dimensionality of the representations to derive (via LSA/SVD).
-    :param snip_first_dim: whether or not to remove the first dimension of the derived representations. by default this is set to `True`, since we've 
-    found that the first dimension tends to reflect term frequency, making the output less informative. Note that if `snip_first_dim=True`
-    then in practice, we output `n_svd_dims-1`-dimensional representations.
+    :param snip_first_dim: whether or not to remove the first dimension of the derived representations. by default this is set to `True`, since we've found that the first dimension tends to reflect term frequency, making the output less informative. Note that if `snip_first_dim=True` then in practice, we output `n_svd_dims-1`-dimensional representations.
     :param n_clusters: the number of clusters to infer.
-    :param cluster_on: whether to cluster on utterance or term representations, (corresponding to values `'utts'` or `'terms'`). By default, we infer clusters
-    based on representations of the utterances from the training data, and then assign term and context-utterance representations to the resultant clusters. 
-    In some cases (e.g., if utterances are highly unstructured and lengthy) it might
-    be better to cluster term representations first.
+    :param cluster_on: whether to cluster on utterance or term representations, (corresponding to values `'utts'` or `'terms'`). By default, we infer clusters based on representations of the utterances from the training data, and then assign term and context-utterance representations to the resultant clusters. In some cases (e.g., if utterances are highly unstructured and lengthy) it might be better to cluster term representations first.
     :param ec_model: an existing, fitted `ExpectedContextModelPipeline` object to initialize with (optional)
     :param random_state: the random seed to use in the LSA step (which calls a randomized implementation of SVD)
     :param cluster_random_state: the random seed to use to infer clusters.
@@ -132,10 +125,8 @@ class ExpectedContextModelPipeline(Transformer):
         range statistics for terms, and a clustering of the resultant representations.
 
         :param corpus: Corpus containing training data
-        :param selector: a boolean function of signature `filter(utterance)` that determines which utterances
-            will be considered in the fit step. defaults to using all utterances, subject to `min_terms` parameter passed at initialization.
-        :param context_selector: a boolean function of signature `filter(utterance)` that determines which context-utterances
-            will be considered in the fit step. defaults to using all utterances, subject to `context_min_terms` parameter passed at initialization.
+        :param selector: a boolean function of signature `filter(utterance)` that determines which utterances will be considered in the fit step. defaults to using all utterances, subject to `min_terms` parameter passed at initialization.
+        :param context_selector: a boolean function of signature `filter(utterance)` that determines which context-utterances will be considered in the fit step. defaults to using all utterances, subject to `context_min_terms` parameter passed at initialization.
         :return: None
         """
 
@@ -156,8 +147,7 @@ class ExpectedContextModelPipeline(Transformer):
         Computes vector representations, ranges, and cluster assignments for utterances in a corpus.
 
         :param corpus: Corpus
-        :param selector: a boolean function of signature `filter(utterance)` that determines which utterances
-            to transform. 
+        :param selector: a boolean function of signature `filter(utterance)` that determines which utterances to transform. 
         :return: the Corpus, with per-utterance representations, ranges and cluster assignments.
         """
         _ = self.text_pipe.transform(corpus)
@@ -183,9 +173,10 @@ class ExpectedContextModelPipeline(Transformer):
     def summarize(self, k=10, max_chars=1000, corpus=None):
         """
         Prints inferred clusters and statistics about their sizes.
+
         :param k: number of examples to print out.
-        :max_chars: maximum number of characters per utterance/context-utterance to print. Can be toggled to control the size of the output.
-        :corpus: optional, the corpus that the transformer was trained on. if set, will print example utterances and context-utterances as well as terms.
+        :param max_chars: maximum number of characters per utterance/context-utterance to print. Can be toggled to control the size of the output.
+        :param corpus: optional, the corpus that the transformer was trained on. if set, will print example utterances and context-utterances as well as terms.
 
         :return: None
         """
@@ -253,18 +244,16 @@ class ExpectedContextModelPipeline(Transformer):
 class DualContextPipeline(Transformer):
     """
     Wrapper class implementing a pipeline that derives characterizations of terms and utterances in terms of two choices of conversational context. The pipeline handles the following steps:
+
     * processing input text (via a pipeline supplied by the user in the `text_pipe` argument);
     * transforming text to input representation (via `ColNormedTfidfTransformer`);
     * deriving characterizations (via `DualContextWrapper`)
 
-    The `ColNormTfidfTransformer` components are stored as the `tfidf_model` and `context_tfidf_model` attributes of the class; the `DualContextWrapper` is stored as the `dualmodel` attribute.
+    The `ColNormedTfidfTransformer` components are stored as the `tfidf_model` and `context_tfidf_model` attributes of the class; the `DualContextWrapper` is stored as the `dualmodel` attribute.
     
     For further details, see the `ColNormedTfidfTransformer` and `DualContextWrapper` classes.
 
-    :param context_field: the name of an utterance-level attribute containing the ID of the corresponding context-utterance.
-    in particular, to use immediate predecessors as context, set `context_field` to `'reply_to'`. as another example,
-    to use immediate replies, provided that utterances contain an attribute `next_id` containing the ID of their reply, 
-    set `context_field` to `'next_id'`.
+    :param context_field: the name of an utterance-level attribute containing the ID of the corresponding context-utterance. in particular, to use immediate predecessors as context, set `context_field` to `'reply_to'`. as another example, to use immediate replies, provided that utterances contain an attribute `next_id` containing the ID of their reply, set `context_field` to `'next_id'`.
     :param output_prefixes: list containing the name of the attributes and vectors that the `DualContextWrapper` component will write to in the transform step.
     :param text_field: the  name of the utterance-level attribute containing the text to use as input.
     :param context_text_field: the  name of the utterance-level attribute containing the text to use as input for context-utterances. by default, is equivalent to `text_field`.
@@ -277,14 +266,9 @@ class DualContextPipeline(Transformer):
     :param min_terms: the minimum number of terms in the vocabulary, derived by `ColNormedTfidfTransformer`, that an utterance must contain for it to be considered in fitting and transforming the underlying `ExpectedContextModelTransformer` object. defaults to 0, meaning the transformer will consider all utterances.
     :param context_min_terms: minimum number of terms in the vocabulary for a context-utterance to be considered in fitting and transforming the underlying `ExpectedContextModelTransformer` object. equivalent to `min_terms` by default.
     :param n_svd_dims: the dimensionality of the representations to derive (via LSA/SVD).
-    :param snip_first_dim: whether or not to remove the first dimension of the derived representations. by default this is set to `True`, since we've 
-    found that the first dimension tends to reflect term frequency, making the output less informative. Note that if `snip_first_dim=True`
-    then in practice, we output `n_svd_dims-1`-dimensional representations.
+    :param snip_first_dim: whether or not to remove the first dimension of the derived representations. by default this is set to `True`, since we've found that the first dimension tends to reflect term frequency, making the output less informative. Note that if `snip_first_dim=True` then in practice, we output `n_svd_dims-1`-dimensional representations.
     :param n_clusters: the number of clusters to infer.
-    :param cluster_on: whether to cluster on utterance or term representations, (corresponding to values `'utts'` or `'terms'`). By default, we infer clusters
-    based on representations of the utterances from the training data, and then assign term and context-utterance representations to the resultant clusters. 
-    In some cases (e.g., if utterances are highly unstructured and lengthy) it might
-    be better to cluster term representations first.
+    :param cluster_on: whether to cluster on utterance or term representations, (corresponding to values `'utts'` or `'terms'`). By default, we infer clusters based on representations of the utterances from the training data, and then assign term and context-utterance representations to the resultant clusters. In some cases (e.g., if utterances are highly unstructured and lengthy) it might  be better to cluster term representations first.
     :param random_state: the random seed to use in the LSA step (which calls a randomized implementation of SVD)
     :param cluster_random_state: the random seed to use to infer clusters.
 
@@ -370,10 +354,8 @@ class DualContextPipeline(Transformer):
         Fits the model over training data.
 
         :param corpus: Corpus containing training data
-        :param selector: a boolean function of signature `filter(utterance)` that determines which utterances
-            will be considered in the fit step. defaults to using all utterances, subject to `min_terms` parameter passed at initialization.
-        :param context_selector: a boolean function of signature `filter(utterance)` that determines which context-utterances
-            will be considered in the fit step. defaults to using all utterances, subject to `context_min_terms` parameter passed at initialization.
+        :param selector: a boolean function of signature `filter(utterance)` that determines which utterances will be considered in the fit step. defaults to using all utterances, subject to `min_terms` parameter passed at initialization.
+        :param context_selector: a boolean function of signature `filter(utterance)` that determines which context-utterances will be considered in the fit step. defaults to using all utterances, subject to `context_min_terms` parameter passed at initialization.
         :return: None
         """
         self.text_pipe.fit_transform(corpus)
@@ -393,8 +375,7 @@ class DualContextPipeline(Transformer):
         Computes vector representations, and statistics for utterances in a corpus, using the `DualContextWrapper` component. 
 
         :param corpus: Corpus
-        :param selector: a boolean function of signature `filter(utterance)` that determines which utterances
-            to transform. defaults to all utterances.
+        :param selector: a boolean function of signature `filter(utterance)` that determines which utterances to transform. defaults to all utterances.
         :return: the Corpus, with per-utterance attributes.
         """
         _ = self.text_pipe.transform(corpus)
@@ -421,9 +402,10 @@ class DualContextPipeline(Transformer):
     def summarize(self, k=10, max_chars=1000, corpus=None):
         """
         Prints inferred clusters and statistics about their sizes, for each component in the underlying `DualContextWrapper`.
+
         :param k: number of examples to print out.
-        :max_chars: maximum number of characters per utterance/context-utterance to print. Can be toggled to control the size of the output.
-        :corpus: optional, the corpus that the transformer was trained on. if set, will print example utterances and context-utterances as well as terms.
+        :param max_chars: maximum number of characters per utterance/context-utterance to print. Can be toggled to control the size of the output.
+        :param corpus: optional, the corpus that the transformer was trained on. if set, will print example utterances and context-utterances as well as terms.
 
         :return: None
         """

@@ -48,8 +48,7 @@ class ColNormedTfidfTransformer(Transformer):
     
     def transform(self, corpus, selector=lambda x: True): 
         """
-        Computes column-normalized tf-idf representations for utterances in a corpus, stored in the corpus as `<output_field>`. Also annotates each utterance with a metadata field, 
-        `<output_field>__n_feats`, indicating the number of terms in the vocabulary that utterance contains.
+        Computes column-normalized tf-idf representations for utterances in a corpus, stored in the corpus as `<output_field>`. Also annotates each utterance with a metadata field, `<output_field>__n_feats`, indicating the number of terms in the vocabulary that utterance contains.
 
 
         :param corpus: Corpus
@@ -119,7 +118,7 @@ class ColNormedTfidf(TransformerMixin):
 
     """
     Model that derives tf-idf reweighted representations of utterances,
-    which are normalized by column. Can be used in ConvoKit through the `ColNormedTfidfWrapper` transformer; see documentation of that transformer for further details.
+    which are normalized by column. Can be used in ConvoKit through the `ColNormedTfidfTransformer` transformer; see documentation of that transformer for further details.
     """
     
     def __init__(self, **kwargs):

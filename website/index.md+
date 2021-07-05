@@ -10,7 +10,7 @@
     <img src="https://img.shields.io/pypi/pyversions/convokit" alt="versions"></a>    
 </p>
 
-This toolkit contains tools to extract conversational features and analyze social phenomena in conversations, using a [single unified interface](https://convokit.cornell.edu/documentation/architecture.html) inspired by (and compatible with) scikit-learn.  Several large [conversational datasets](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit#datasets) are included together with scripts exemplifying the use of the toolkit on these datasets. The latest version is [2.4.3](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/releases/tag/v2.4) (released 30 Oct 2020); follow the [project on GitHub](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit) to keep track of updates.
+This toolkit contains tools to extract conversational features and analyze social phenomena in conversations, using a [single unified interface](https://convokit.cornell.edu/documentation/architecture.html) inspired by (and compatible with) scikit-learn.  Several large [conversational datasets](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit#datasets) are included together with scripts exemplifying the use of the toolkit on these datasets. The latest version is [2.5](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/releases/tag/v2.5) (released 06 Jul 2021); follow the [project on GitHub](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit) to keep track of updates.
 
 Read our [documentation](https://convokit.cornell.edu/documentation) or try ConvoKit in our [interactive tutorial](https://colab.research.google.com/github/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/Introduction_to_ConvoKit.ipynb).
 
@@ -26,12 +26,18 @@ Example: [exploring the balance of power in the U.S. Supreme Court](https://gith
 A set of lexical and parse-based features correlating with politeness and impoliteness.  
 Example: [understanding the (mis)use of politeness strategies in conversations gone awry on Wikipedia](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/conversations-gone-awry/Conversations_Gone_Awry_Prediction.ipynb).
 
-### [Prompt types](http://www.cs.cornell.edu/~cristian/Asking_too_much.html) <sub><sup>[(API)](https://convokit.cornell.edu/documentation/promptTypes.html)</sup></sub>
+### [Expected Conversational Context Framework](https://tisjune.github.io/research/dissertation) <sub><sup>[(API)](https://convokit.cornell.edu/documentation/expected_context_model.html)</sup></sub>
+
+A framework for characterizing utterances and terms based on their expected conversational context, consisting of model implementations and wrapper pipelines.
+Examples: [deriving question types and other characterizations in British parliamentary question periods](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/convokit/expected_context_framework/demos/parliament_demo.ipynb), 
+[exploration of Switchboard dialog acts corpus](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/convokit/expected_context_framework/demos/switchboard_exploration_demo.ipynb),  [examining Wikipedia talk page discussions](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/convokit/expected_context_framework/demos/wiki_awry_demo.ipynb) and [computing the orientation of justice utterances in the US Supreme Court](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/convokit/expected_context_framework/demos/scotus_orientation_demo.ipynb)
+
+<!-- ### [Prompt types](http://www.cs.cornell.edu/~cristian/Asking_too_much.html) <sub><sup>[(API)](https://convokit.cornell.edu/documentation/promptTypes.html)</sup></sub>
 
 An unsupervised method for grouping utterances and utterance features by their rhetorical role.
 Examples: [extracting question types in the U.K. parliament](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/prompt-types/prompt-type-wrapper-demo.ipynb), [extended version demonstrating additional functionality](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/prompt-types/prompt-type-demo.ipynb), [understanding the use of conversational prompts in conversations gone awry on Wikipedia](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/conversations-gone-awry/Conversations_Gone_Awry_Prediction.ipynb).
 
-Also includes functionality to extract surface motifs to represent utterances, used in the above paper [(API)](https://convokit.cornell.edu/documentation/phrasingMotifs.html).
+Also includes functionality to extract surface motifs to represent utterances, used in the above paper [(API)](https://convokit.cornell.edu/documentation/phrasingMotifs.html). -->
 
 ### [Hypergraph conversation representation](http://www.cs.cornell.edu/~cristian/Patterns_of_participant_interactions.html) <sub><sup>[(API)](https://convokit.cornell.edu/documentation/hyperconvo.html)</sup></sub>
 A method for extracting structural features of conversations through a hypergraph representation.  
@@ -45,9 +51,7 @@ Example: [speaker conversation attributes and diversity example on ChangeMyView]
 A neural model for forecasting future outcomes of conversations (e.g., derailment into personal attacks) as they develop.  
 Available as an interactive notebook: [full version (fine-tuning + inference)](https://colab.research.google.com/drive/1SH4iMEHdoH4IovN-b9QOSK4kG4DhAwmb) or [inference-only](https://colab.research.google.com/drive/1GvICZN0VwZQSWw3pJaEVY-EQGoO-L5lH).
 
-### [Orientation (coming soon)](https://www.cs.cornell.edu/~cristian/Orientation.html)
 
-A method to quantify the degree to which an utterance is intended to direct the flow of the conversation forwards or backwards.
 
 ## Datasets
 ConvoKit ships with several datasets ready for use "out-of-the-box".
@@ -154,6 +158,12 @@ Name for download: `diplomacy-corpus`
 A conversational dataset comprising group meetings of two to four participants that deliberate in a group decision-making exercise. This dataset contains 28 group meetings with a total of 84 participants.
 
 Name for download: `gap-corpus`
+
+### [Wikipedia Articles for Deletion Corpus](https://convokit.cornell.edu/documentation/wiki-articles-for-deletion-corpus.html)
+
+A collection of Wikipedia's Articles for Deletion editor debates that occurred between January 1, 2005 and December 31, 2018. This corpus contains about 3,200,000 contributions by approximately 150,000 Wikipedia editors across almost 400,000 debates.
+
+Name for download: `wiki-articles-for-deletion-corpus`
 
 ### ...And your own corpus!
 

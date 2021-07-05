@@ -25,16 +25,10 @@ class ExpectedContextModelTransformer(Transformer):
     data consisting of pairs of utterances and context-utterances, represented as feature vectors (e.g., tf-idf reweighted
     term-document matrices), specified via the `vect_field` and `context_vect_field` arguments. This model is stored as the `ec_model` attribute of the transformer, and can be accessed as such.
     In the fit step, the model, which is based off of latent semantic analysis (LSA), computes the following:
-    * representations of terms and utterances in the training data, with respect to the context, 
-    along with representations of the context (which are derived in the underlying LSA step). the dimensionality of these
-    representations is specified via the `n_svd_dims` argument (see also the `snip_first_dim` and `random_state` arguments). these can
-    be accessed via various `get` functions that the transformer provides.
-    * a term-level statistic, "range", measuring the variation in context-utterances associated with a term. One interpretation of 
-    this statistic is that it quantifies the "strengths of our expectations" of what reply a term typically gets, or what predecessors
-    it typically follows.
-    * a clustering of utterance, term and context representations. The resultant clusters can help interpret the representations the model
-    derives, by highlighting salient groupings that emerge. The number of clusters is specified via the `n_clusters` argument;
-    the `print_clusters` function can be called to inspect this output. (see also the `cluster_on` and `cluster_random_state` arguments)
+
+    * representations of terms and utterances in the training data, with respect to the context, along with representations of the context (which are derived in the underlying LSA step). the dimensionality of these representations is specified via the `n_svd_dims` argument (see also the `snip_first_dim` and `random_state` arguments). these can be accessed via various `get` functions that the transformer provides.
+    * a term-level statistic, "range", measuring the variation in context-utterances associated with a term. One interpretation of this statistic is that it quantifies the "strengths of our expectations" of what reply a term typically gets, or what predecessors it typically follows.
+    * a clustering of utterance, term and context representations. The resultant clusters can help interpret the representations the model derives, by highlighting salient groupings that emerge. The number of clusters is specified via the `n_clusters` argument; the `print_clusters` function can be called to inspect this output. (see also the `cluster_on` and `cluster_random_state` arguments)
     
 
     
@@ -46,31 +40,20 @@ class ExpectedContextModelTransformer(Transformer):
     The transfomer contains various functions to access term-level characterizations. In the transform step, it outputs 
     vector representations of utterances, stored as `<output_prefix>_repr` in the corpus. It also outputs various attributes
     of utterances (names prefixed with `<output_prefix>_`), stored as metadata fields in each transformed utterance:
-    * range: the range of the utterance
-    * clustering.cluster: the name of the cluster the utterance has been assigned to
-    * clustering.cluster_id_: the numerical ID (0-# of clusters) of the cluster the utterance has been assigned to 
-    * clustering.cluster_dist: the distance between the utterance representation and the centroid of its cluster
 
-    :param context_field: the name of an utterance-level attribute containing the ID of the corresponding context-utterance.
-    in particular, to use immediate predecessors as context, set `context_field` to `'reply_to'`. as another example,
-    to use immediate replies, provided that utterances contain an attribute `next_id` containing the ID of their reply, 
-    set `context_field` to `'next_id'`.
-    :param output_prefix: the name of the attributes and vectors to write to in the transform step. the transformer outputs several 
-    fields, which will be prefixed with the given string.
+    * `range`: the range of the utterance
+    * `clustering.cluster`: the name of the cluster the utterance has been assigned to
+    * `clustering.cluster_id_`: the numerical ID (0-# of clusters) of the cluster the utterance has been assigned to 
+    * `clustering.cluster_dist`: the distance between the utterance representation and the centroid of its cluster
+
+    :param context_field: the name of an utterance-level attribute containing the ID of the corresponding context-utterance. in particular, to use immediate predecessors as context, set `context_field` to `'reply_to'`. as another example, to use immediate replies, provided that utterances contain an attribute `next_id` containing the ID of their reply, set `context_field` to `'next_id'`.
+    :param output_prefix: the name of the attributes and vectors to write to in the transform step. the transformer outputs several fields, which will be prefixed with the given string.
     :param vect_field: the name of the vectors to use as input vector representation for utterances, as stored in a corpus.
-    :param context_vect_field: the name of the vectors to use as input vector representations for context-utterances, as stored in a corpus. by default,
-    the transformer will use the same vector representations as utterances, specified in `vect_field`. if you expect that utterances
-    and context-utterances will differ in some way (e.g., they come from speakers in a conversation who play clearly delineated roles),
-    then it's a good idea to use a different input representation.
+    :param context_vect_field: the name of the vectors to use as input vector representations for context-utterances, as stored in a corpus. by default, the transformer will use the same vector representations as utterances, specified in `vect_field`. if you expect that utterances and context-utterances will differ in some way (e.g., they come from speakers in a conversation who play clearly delineated roles), then it's a good idea to use a different input representation.
     :param n_svd_dims: the dimensionality of the representations to derive (via LSA/SVD).
-    :param snip_first_dim: whether or not to remove the first dimension of the derived representations. by default this is set to `True`, since we've 
-    found that the first dimension tends to reflect term frequency, making the output less informative. Note that if `snip_first_dim=True`
-    then in practice, we output `n_svd_dims-1`-dimensional representations.
+    :param snip_first_dim: whether or not to remove the first dimension of the derived representations. by default this is set to `True`, since we've found that the first dimension tends to reflect term frequency, making the output less informative. Note that if `snip_first_dim=True` then in practice, we output `n_svd_dims-1`-dimensional representations.
     :param n_clusters: the number of clusters to infer.
-    :param cluster_on: whether to cluster on utterance or term representations, (corresponding to values `'utts'` or `'terms'`). By default, we infer clusters
-    based on representations of the utterances from the training data, and then assign term and context-utterance representations to the resultant clusters. 
-    In some cases (e.g., if utterances are highly unstructured and lengthy) it might
-    be better to cluster term representations first.
+    :param cluster_on: whether to cluster on utterance or term representations, (corresponding to values `'utts'` or `'terms'`). By default, we infer clusters based on representations of the utterances from the training data, and then assign term and context-utterance representations to the resultant clusters. In some cases (e.g., if utterances are highly unstructured and lengthy) it might be better to cluster term representations first.
     :param model: an existing, fitted `ExpectedContextModelTransformer` object to initialize with (optional)
     :param random_state: the random seed to use in the LSA step (which calls a randomized implementation of SVD)
     :param cluster_random_state: the random seed to use to infer clusters.
@@ -240,9 +223,7 @@ class ExpectedContextModelTransformer(Transformer):
     
     def fit_clusters(self, n_clusters='default', random_state='default'):
         """
-        Infers a clustering of term or utterance representations (specified by the `cluster_on` argument used to initialize the transformer).
-            on the training data originally used to fit the transformer.
-        Can be called to infer a different number of clusters than what was initially specified.
+        Infers a clustering of term or utterance representations (specified by the `cluster_on` argument used to initialize the transformer) on the training data originally used to fit the transformer. Can be called to infer a different number of clusters than what was initially specified.
 
         :param n_clusters: number of clusters to infer. defaults to the number of clusters specified when initializing the transformer.
         :param random_state: random seed used to infer clusters. defaults to the random seed used to initialize the transformer.
@@ -305,8 +286,8 @@ class ExpectedContextModelTransformer(Transformer):
         and context-utterances as well.
 
         :param k: number of examples to print out.
-        :max_chars: maximum number of characters per utterance/context-utterance to print. Can be toggled to control the size of the output.
-        :corpus: optional, the corpus that the transformer was trained on. if set, will print example utterances and context-utterances as well as terms.
+        :param max_chars: maximum number of characters per utterance/context-utterance to print. Can be toggled to control the size of the output.
+        :param corpus: optional, the corpus that the transformer was trained on. if set, will print example utterances and context-utterances as well as terms.
 
         :return: None
         """
@@ -351,9 +332,10 @@ class ExpectedContextModelTransformer(Transformer):
     def summarize(self, k=10, max_chars=1000, corpus=None):
         """
         Wrapper function to print inferred clusters and statistics about their sizes.
+
         :param k: number of examples to print out.
-        :max_chars: maximum number of characters per utterance/context-utterance to print. Can be toggled to control the size of the output.
-        :corpus: optional, the corpus that the transformer was trained on. if set, will print example utterances and context-utterances as well as terms.
+        :param max_chars: maximum number of characters per utterance/context-utterance to print. Can be toggled to control the size of the output.
+        :param corpus: optional, the corpus that the transformer was trained on. if set, will print example utterances and context-utterances as well as terms.
 
         :return: None
         """
@@ -407,6 +389,7 @@ class ExpectedContextModelTransformer(Transformer):
     def get_clustering(self):
         """
         Returns a dictionary containing various objects pertaining to the inferred clustering, with fields as follows:
+
         * `km_obj`: the fitted KMeans object
         * `utts`: a Pandas dataframe of cluster assignments for utterances from the training data
         * `terms`: a dataframe of cluster assignments for terms
