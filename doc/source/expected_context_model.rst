@@ -19,9 +19,12 @@ Example usage:
 
 .. automodule:: convokit.expected_context_framework.expected_context_model
 	:members:
+	:member-order: bysource
 
 .. automodule:: convokit.expected_context_framework.dual_context_wrapper
 	:members:
+	:member-order: bysource
 
 .. automodule:: convokit.expected_context_framework.expected_context_model_pipeline
 	:members:
+	:member-order: bysource
