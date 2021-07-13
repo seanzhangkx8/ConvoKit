@@ -27,7 +27,8 @@ setup(
                 "convokit.text_processing",
                 "convokit.speaker_convo_helpers",
                 "convokit.speakerConvoDiversity",
-                "convokit.expected_context_framework"
+                "convokit.expected_context_framework",
+                "convokit.surprise"
               ],
     package_data={"convokit": ["data/*.txt", "politeness_local/lexicons/*.json"]},
     install_requires=[
