@@ -27,6 +27,15 @@ Coordination
 ------------
 - `Exploring the balance of power in Wikipedia and the US Supreme Court <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/coordination/examples.ipynb>`_
 
+
+Expected Conversational Context Framework
+-----------------------------------------
+- `deriving question types and other characterizations in British parliamentary question periods <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/convokit/expected_context_framework/demos/parliament_demo.ipynb>`_
+- exploration of Switchboard dialog acts corpus `using ExpectedContextModelTransformer <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/convokit/expected_context_framework/demos/switchboard_exploration_demo.ipynb>`_, and `using DualContextWrapper <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/convokit/expected_context_framework/demos/switchboard_exploration_dual_demo.ipynb>`_
+- `examining Wikipedia talk page discussions <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/convokit/expected_context_framework/demos/wiki_awry_demo.ipynb>`_
+- `computing the orientation of justice utterances in the US Supreme Court <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/convokit/expected_context_framework/demos/scotus_orientation_demo.ipynb>`_
+
+
 Fighting Words
 --------------
 - `Examining the Fighting Words of mixed-gender vs. single-gender conversations in movies <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/sigdial-demo.ipynb>`_
@@ -42,10 +51,10 @@ Hyperconvo
 - `Categorizing and analyzing subreddits using Hyperconvo features <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/hyperconvo/demo.ipynb>`_
 - `Using Hyperconvo features to predict conversation growth on Reddit in a paired setting <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/hyperconvo/predictive_tasks.ipynb>`_
 
-Prompt Types
-------------
-- `Exploring common types of questioning in the UK Parliament <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/prompt-types/prompt-type-demo.ipynb>`_
-- `Using prompt types and politeness strategies to predict Wikipedia conversations going awry <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/conversations-gone-awry/Conversations_Gone_Awry_Prediction.ipynb>`_
+.. Prompt Types
+.. ------------
+.. - `Exploring common types of questioning in the UK Parliament <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/prompt-types/prompt-type-demo.ipynb>`_
+.. - `Using prompt types and politeness strategies to predict Wikipedia conversations going awry <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/conversations-gone-awry/Conversations_Gone_Awry_Prediction.ipynb>`_
 
 Politeness Strategies
 ---------------------
