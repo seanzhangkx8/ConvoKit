@@ -24,3 +24,5 @@ Datasets
    Group Affect and Performance (GAP) Corpus <gap.rst>
    Supreme Court Oral Arguments Dataset <supreme.rst>
    Wikipedia Articles for Deletion Dataset <wiki-articles-for-deletion-corpus.rst>
+   CaSiNo Corpus <casino-corpus.rst>
+

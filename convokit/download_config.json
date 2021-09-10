@@ -26,7 +26,8 @@
     "winning-args-corpus": 1,
     "supreme-corpus": 2,
     "supreme": 1,
-    "wiki-articles-for-deletion-corpus": 1
+    "wiki-articles-for-deletion-corpus": 1,
+    "casino-corpus": 1
   },
     "DatasetURLs": {
     "chromium-corpus": "http://zissou.infosci.cornell.edu/convokit/datasets/chromium-corpus/chromium-corpus.zip",
@@ -87,6 +88,7 @@
     "wikipedia-politeness-corpus": "http://zissou.infosci.cornell.edu/convokit/datasets/wikipedia-politeness-corpus/wikipedia-politeness-corpus.zip",
     "winning-args-corpus": "http://zissou.infosci.cornell.edu/convokit/datasets/winning-args-corpus/winning-args-corpus.zip",
     "supreme-corpus": "https://zissou.infosci.cornell.edu/convokit/datasets/supreme-corpus/supreme-corpus.zip",
-    "wiki-articles-for-deletion-corpus": "https://zissou.infosci.cornell.edu/convokit/datasets/wiki-articles-for-deletion-corpus/wiki-articles-for-deletion-corpus.zip"
+    "wiki-articles-for-deletion-corpus": "https://zissou.infosci.cornell.edu/convokit/datasets/wiki-articles-for-deletion-corpus/wiki-articles-for-deletion-corpus.zip",
+    "casino-corpus": "https://zissou.infosci.cornell.edu/convokit/datasets/casino-corpus.zip"
   }
 }
