@@ -167,7 +167,7 @@ A collection of Wikipedia's Articles for Deletion editor debates that occurred b
 Name for download: `wiki-articles-for-deletion-corpus`
 
 ### [CaSiNo Corpus](https://convokit.cornell.edu/documentation/casino-corpus.html)
-CaSiNo (stands for CampSite Negotiations) is a novel dataset of 1030 negotiation dialogues. Two participants take the role of campsite neighbors and negotiate for Food, Water, and Firewood packages, based on their individual preferences and requirements. This design keeps the task tractable, while still facilitating linguistically rich and personal conversations. This helps to overcome the limitations of prior negotiation datasets such as Deal or No Deal and Craigslist Bargain. Each dialogue consists of rich meta-data including participant demographics, personality, and their subjective evaluation of the negotiation in terms of satisfaction and opponent likeness.
+CaSiNo (stands for CampSite Negotiations) is a novel dataset of 1030 negotiation dialogues. Two participants take the role of campsite neighbors and negotiate for Food, Water, and Firewood packages, based on their individual preferences and requirements.
 
 Name for download: `casino-corpus`
 
