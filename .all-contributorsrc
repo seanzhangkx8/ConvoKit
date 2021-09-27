@@ -279,6 +279,15 @@
         "doc",
         "review"
       ]
+    },
+    {
+      "login": "Ap1075",
+      "name": "Armaan Puri",
+      "avatar_url": "https://avatars.githubusercontent.com/u/25790092?v=4",
+      "profile": "https://github.com/Ap1075",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
