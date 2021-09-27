@@ -6,6 +6,90 @@
   "commit": false,
   "contributors": [
     {
+      "login": "cristiandnm",
+      "name": "Cristian Danescu-Niculescu-Mizil",
+      "avatar_url": "https://avatars.githubusercontent.com/u/8700563?v=4",
+      "profile": "https://github.com/cristiandnm",
+      "contributions": [
+        "code",
+        "data",
+        "ideas",
+        "maintenance",
+        "doc",
+        "review"
+      ]
+    },
+    {
+      "login": "qema",
+      "name": "Andrew Wang",
+      "avatar_url": "https://avatars.githubusercontent.com/u/4683423?v=4",
+      "profile": "http://wanganzhou.com",
+      "contributions": [
+        "code",
+        "data",
+        "ideas",
+        "maintenance",
+        "doc",
+        "review"
+      ]
+    },
+    {
+      "login": "tisjune",
+      "name": "Justine Zhang",
+      "avatar_url": "https://avatars.githubusercontent.com/u/8534072?v=4",
+      "profile": "http://tisjune.github.io",
+      "contributions": [
+        "code",
+        "data",
+        "ideas",
+        "maintenance",
+        "doc",
+        "review"
+      ]
+    },
+    {
+      "login": "jpwchang",
+      "name": "Jonathan Chang",
+      "avatar_url": "https://avatars.githubusercontent.com/u/989906?v=4",
+      "profile": "http://cs.cornell.edu/~jpchang",
+      "contributions": [
+        "code",
+        "data",
+        "ideas",
+        "maintenance",
+        "doc",
+        "review"
+      ]
+    },
+    {
+      "login": "liye",
+      "name": "Liye Fu",
+      "avatar_url": "https://avatars.githubusercontent.com/u/12224673?v=4",
+      "profile": "http://www.cs.cornell.edu/~liye/",
+      "contributions": [
+        "code",
+        "data",
+        "ideas",
+        "maintenance",
+        "doc",
+        "review"
+      ]
+    },
+    {
+      "login": "calebchiam",
+      "name": "calebchiam",
+      "avatar_url": "https://avatars.githubusercontent.com/u/14286996?v=4",
+      "profile": "https://github.com/calebchiam",
+      "contributions": [
+        "code",
+        "data",
+        "ideas",
+        "maintenance",
+        "doc",
+        "review"
+      ]
+    },
+    {
       "login": "rgangela99",
       "name": "rgangela99",
       "avatar_url": "https://avatars.githubusercontent.com/u/35738132?v=4",
@@ -194,90 +278,6 @@
       "profile": "https://github.com/KaminskyJ",
       "contributions": [
         "code"
-      ]
-    },
-    {
-      "login": "cristiandnm",
-      "name": "Cristian Danescu-Niculescu-Mizil",
-      "avatar_url": "https://avatars.githubusercontent.com/u/8700563?v=4",
-      "profile": "https://github.com/cristiandnm",
-      "contributions": [
-        "code",
-        "data",
-        "ideas",
-        "maintenance",
-        "doc",
-        "review"
-      ]
-    },
-    {
-      "login": "qema",
-      "name": "Andrew Wang",
-      "avatar_url": "https://avatars.githubusercontent.com/u/4683423?v=4",
-      "profile": "http://wanganzhou.com",
-      "contributions": [
-        "code",
-        "data",
-        "ideas",
-        "maintenance",
-        "doc",
-        "review"
-      ]
-    },
-    {
-      "login": "tisjune",
-      "name": "Justine Zhang",
-      "avatar_url": "https://avatars.githubusercontent.com/u/8534072?v=4",
-      "profile": "http://tisjune.github.io",
-      "contributions": [
-        "code",
-        "data",
-        "ideas",
-        "maintenance",
-        "doc",
-        "review"
-      ]
-    },
-    {
-      "login": "jpwchang",
-      "name": "Jonathan Chang",
-      "avatar_url": "https://avatars.githubusercontent.com/u/989906?v=4",
-      "profile": "http://cs.cornell.edu/~jpchang",
-      "contributions": [
-        "code",
-        "data",
-        "ideas",
-        "maintenance",
-        "doc",
-        "review"
-      ]
-    },
-    {
-      "login": "liye",
-      "name": "Liye Fu",
-      "avatar_url": "https://avatars.githubusercontent.com/u/12224673?v=4",
-      "profile": "http://www.cs.cornell.edu/~liye/",
-      "contributions": [
-        "code",
-        "data",
-        "ideas",
-        "maintenance",
-        "doc",
-        "review"
-      ]
-    },
-    {
-      "login": "calebchiam",
-      "name": "calebchiam",
-      "avatar_url": "https://avatars.githubusercontent.com/u/14286996?v=4",
-      "profile": "https://github.com/calebchiam",
-      "contributions": [
-        "code",
-        "data",
-        "ideas",
-        "maintenance",
-        "doc",
-        "review"
       ]
     },
     {
