@@ -1307,6 +1307,7 @@ class Corpus:
 
         for (df_type, df) in [('utterances', utterances_df), ('conversations', conversations_df),
                               ('speakers', speakers_df)]:
+            if df is None: continue
             if 'id' not in df.columns:
                 print(f'ID column is not present in {df_type} dataframe, generated ID column from dataframe index...')
             df['id'] = df.index
