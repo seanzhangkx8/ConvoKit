@@ -1224,7 +1224,7 @@ class Corpus:
 
     def get_speaker_convo_attribute_table(self, attrs):
         """
-        returns a table where each row lists a (speaker, convo) level aggregate for each attribute in attrs.
+        Returns a table where each row lists a (speaker, convo) level aggregate for each attribute in attrs.
 
         :param attrs: list of (speaker, convo) attribute names
         :return: DataFrame containing all speaker,convo attributes.
@@ -1232,7 +1232,6 @@ class Corpus:
 
         table_entries = []
         for speaker in self.iter_speakers():
-
             if 'conversations' not in speaker.meta: continue
             for convo_id, convo_dict in speaker.meta['conversations'].items():
                 entry = {'id': '%s__%s' % (speaker.id, convo_id),
@@ -1271,22 +1270,39 @@ class Corpus:
         c_df.columns = [x + convo_suffix for x in c_df.columns]
         return uc_df.join(u_df, on='speaker').join(c_df, on='convo_id')
 
+    def update_metadata_from_df(self, obj_type, df):
+        assert obj_type in ['utterance', 'speaker', 'conversation']
+        meta_cols = extract_meta_from_df(df)
+        df.columns = [col.replace('meta.', '') for col in df.columns]
+        for obj in self.iter_objs(obj_type):
+            obj_meta = df[df['id'] == obj.id][meta_cols].to_dict(orient='records')[0] if meta_cols else None
+            if obj_meta is not None:
+                obj.meta.update(obj_meta)
+        return self
+
     @staticmethod
-    def from_pandas(speakers_df: DataFrame, utterances_df: DataFrame, conversations_df: DataFrame) -> 'Corpus':
-        
+    def from_pandas(utterances_df: DataFrame, speakers_df: Optional[DataFrame] = None,
+                    conversations_df: Optional[DataFrame] = None) -> 'Corpus':
         """
-        Generates a Corpus from speakers, utterances and conversations dataframes.
-        If the 'id' column is absent, the dataframe index will be used as the id.
-         
-        Arguments:
-            speakers_df {DataFrame} -- speakers data, in a pandas Dataframe, with metadata optional
-            utterances_df {DataFrame} -- utterances data, in a pandas Dataframe. All primary data fields expected, with metadata optional
-            conversations_df {DataFrame} -- conversations data, in a pandas Dataframe, with metadata optional
-        
-        Returns:
-            Corpus -- the generated corpus
+        Generates a Corpus from utterances, speakers, and conversations dataframes.
+        For each dataframe, if the 'id' column is absent, the dataframe index will be used as the id.
+        Metadata should be denoted with a 'meta.<key>' column in the dataframe. For example, if an utterance is to have
+        a metadata key 'score', then the 'meta.score' column must be present in dataframe.
+
+        `speakers_df` and `conversations_df` are optional, as their IDs can be inferred from `utterances_df`, and so
+         their main purpose is to hold speaker / conversation metadata. They should only be included if there exists
+         etadata for the speakers / conversations respectively.
+
+        Metadata values that are not basic Python data structures (i.e. lists, dicts, tuples) may be included in the
+        dataframes but may lead to unexpected behavior, depending on how `pandas` serializes / deserializes those values.
+        Note that as metadata can be added to the Corpus after it is constructed, there is no need to include all
+        metadata keys in the dataframe if it would be inconvenient.
+
+        :param utterances_df: utterances data in a pandas Dataframe, all primary data fields expected, with metadata optional
+        :param speakers_df: (optional) speakers data in a pandas Dataframe
+        :param conversations_df: (optional) conversations data in a pandas Dataframe
+        :return: Corpus constructed from the dataframe(s)
         """
-        #dict containing all primary fields expected in utterance dataframe
         columns = ['speaker', 'id', 'timestamp', 'conversation_id', 'reply_to', 'text']
 
         for (df_type, df) in [('utterances', utterances_df), ('conversations', conversations_df),
@@ -1299,35 +1315,30 @@ class Corpus:
         assert pd.Series(columns).isin(utterances_df.columns).all(), "Utterances dataframe must contain all primary data fields"
 
         utterance_meta_cols = extract_meta_from_df(utterances_df)
-        speaker_meta_cols = extract_meta_from_df(speakers_df)
-        speakers_df.columns = [col.replace('meta.', '') for col in speakers_df.columns]
 
         utterance_list = []
         for index, row in tqdm(utterances_df.iterrows()):
-            
-            # extracting utterance metadata
             if utterance_meta_cols:
                 metadata = {}
                 for meta_col in utterance_meta_cols:
                     metadata[meta_col] = row['meta.' + meta_col]
             else: 
                 metadata = None
-            
-            # extracting speaker metadata from speakers_df
-            speaker_meta = speakers_df[speakers_df['id'] == row['speaker']][speaker_meta_cols].to_dict(orient='records')[0] if speaker_meta_cols else None
-            
+
             # adding utterance in utterance list
-            utterance_list.append(Utterance(id=str(row['id']), speaker=Speaker(id=row['speaker'], meta=speaker_meta),
+            utterance_list.append(Utterance(id=str(row['id']), speaker=Speaker(id=row['speaker']),
                                             conversation_id=row['conversation_id'], reply_to=row['reply_to'],
                                             timestamp=row['timestamp'], text=row['text'],
                                             meta=metadata))
+
         # initializing corpus using utterance_list
-        corpus_from_pandas = Corpus(utterances=utterance_list)
-        
-        # updating conversation metadata in corpus
-        corpus_from_pandas = add_conv_meta_df(conversations_df, corpus_from_pandas)
-        
-        return corpus_from_pandas
+        corpus = Corpus(utterances=utterance_list)
+        if speakers_df is not None:
+            corpus.update_metadata_from_df('speaker', speakers_df)
+        if conversations_df is not None:
+            corpus.update_metadata_from_df('conversation', conversations_df)
+
+        return corpus
 
 # def __repr__(self):
 # def __eq__(self, other):

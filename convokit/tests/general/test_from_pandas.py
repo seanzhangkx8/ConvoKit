@@ -9,7 +9,7 @@ class CorpusFromPandas(unittest.TestCase):
         utt_df = self.corpus.get_utterances_dataframe()
         convo_df = self.corpus.get_conversations_dataframe()
         speaker_df = self.corpus.get_speakers_dataframe()
-        self.new_corpus = Corpus.from_pandas(speaker_df, utt_df, convo_df)
+        self.new_corpus = Corpus.from_pandas(utt_df, speaker_df, convo_df)
 
     def test_reconstruction_stats(self):
         """
