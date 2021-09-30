@@ -1310,7 +1310,7 @@ class Corpus:
             if df is None: continue
             if 'id' not in df.columns:
                 print(f'ID column is not present in {df_type} dataframe, generated ID column from dataframe index...')
-            df['id'] = df.index
+                df['id'] = df.index
 
         #checking if dataframes contain their respective required columns
         assert pd.Series(columns).isin(utterances_df.columns).all(), "Utterances dataframe must contain all primary data fields"
@@ -1327,8 +1327,9 @@ class Corpus:
                 metadata = None
 
             # adding utterance in utterance list
-            utterance_list.append(Utterance(id=str(row['id']), speaker=Speaker(id=row['speaker']),
-                                            conversation_id=row['conversation_id'], reply_to=row['reply_to'],
+            reply_to = None if row['reply_to'] == "None" else row['reply_to']
+            utterance_list.append(Utterance(id=str(row['id']), speaker=Speaker(id=str(row['speaker'])),
+                                            conversation_id=str(row['conversation_id']), reply_to=reply_to,
                                             timestamp=row['timestamp'], text=row['text'],
                                             meta=metadata))
 
