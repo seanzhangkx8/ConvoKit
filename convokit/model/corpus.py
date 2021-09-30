@@ -1274,8 +1274,9 @@ class Corpus:
         assert obj_type in ['utterance', 'speaker', 'conversation']
         meta_cols = extract_meta_from_df(df)
         df.columns = [col.replace('meta.', '') for col in df.columns]
+        df = df.set_index('id')
         for obj in self.iter_objs(obj_type):
-            obj_meta = df[df['id'] == obj.id][meta_cols].to_dict(orient='records')[0] if meta_cols else None
+            obj_meta = df.loc[obj.id][meta_cols].to_dict() if meta_cols else None
             if obj_meta is not None:
                 obj.meta.update(obj_meta)
         return self
