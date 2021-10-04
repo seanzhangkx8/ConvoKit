@@ -1292,7 +1292,7 @@ class Corpus:
 
         `speakers_df` and `conversations_df` are optional, as their IDs can be inferred from `utterances_df`, and so
          their main purpose is to hold speaker / conversation metadata. They should only be included if there exists
-         etadata for the speakers / conversations respectively.
+         metadata for the speakers / conversations respectively.
 
         Metadata values that are not basic Python data structures (i.e. lists, dicts, tuples) may be included in the
         dataframes but may lead to unexpected behavior, depending on how `pandas` serializes / deserializes those values.
