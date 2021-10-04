@@ -8,7 +8,7 @@ Cornell Conversational Analysis Toolkit (ConvoKit) Documentation
 
 This toolkit contains tools to extract conversational features and analyze social phenomena in conversations, using a `single unified interface <https://convokit.cornell.edu/documentation/architecture.html>`_ inspired by (and compatible with) scikit-learn.
 Several large `conversational datasets <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit#datasets>`_ are included together with scripts exemplifying the use of the toolkit on these datasets.
-More information can be found at our `website <https://convokit.cornell.edu>`_. The latest version is `2.5 <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/releases/tag/v2.5>`_ (released 06 Jul 2021).
+More information can be found at our `website <https://convokit.cornell.edu>`_. The latest version is `2.5.1 <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/releases/tag/v2.5>`_ (released 04 Oct 2021).
 
 Contents
 --------
