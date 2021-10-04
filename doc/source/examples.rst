@@ -8,7 +8,9 @@ Be sure to take a look at the `introductory tutorial <https://convokit.cornell.e
 General ConvoKit usage (starting resource)
 ------------------------------------------
 - `Introductory tutorial to ConvoKit <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/Introduction_to_ConvoKit.ipynb>`_
-- `Creating a ConvoKit Corpus from existing data <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/converting_movie_corpus.ipynb>`_
+- Creating a ConvoKit Corpus from existing data:
+   - `Converting custom dataset into ConvoKit format corpus <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/converting_movie_corpus.ipynb>`_
+   - `Constructing ConvoKit format corpus from pandas dataframe <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/corpus_from_pandas.ipynb>`_
 - `Using vector data in ConvoKit <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/vectors/vector_demo.ipynb>`_
 - `Pre-processing text, e.g. computing dependency parses <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/text-processing/text_preprocessing_demo.ipynb>`_
 
