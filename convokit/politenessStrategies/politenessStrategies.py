@@ -21,7 +21,11 @@ class PolitenessStrategies(Transformer):
     
     :param strategy_attribute_name: metadata attribute name to store politeness strategies features under during the `transform()` step.  Default is 'politeness_strategies'. 
     :param marker_attribute_name: metadata attribute name to store politeness markers under during the `transform()` step. Default is 'politeness_markers'.
-    :param strategy_collection: collection of politeness strategies to extract. Default is "politeness_api". 
+    :param strategy_collection: collection of politeness strategies to extract. Options include:
+        "politeness_api": English politeness strategies proposed in A computational approach to politeness with application to social factors (https://www.cs.cornell.edu/~cristian/Politeness.html)
+        "politeness_local": English politeness strategies realized through local markers as used in Facilitating the Communication of Politeness through Fine-Grained Paraphrasing (https://www.cs.cornell.edu/~cristian/Politeness_Paraphrasing.html)
+        "politeness_cscw_zh":  Chinese politeness strategies adapted from `Studying Politeness across Cultures using English Twitter and Mandarin Weibo (https://dl.acm.org/doi/abs/10.1145/3415190)
+        Default is "politeness_api". 
     :param verbose: whether or not to print status messages while computing features.
     """
 
