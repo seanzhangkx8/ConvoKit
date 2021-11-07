@@ -178,7 +178,7 @@ F = [please, please_start, has_hedge, btw, hashedges, factuality, deference, gra
 fnc2feature_name = lambda f, keys: [key + "_==%s==" % f.__name__.replace(" ","_") for key in keys]
 
 
-def get_politeness_strategy_features(utt):
+def get_politeness_strategy_features(parses):
     """
     :param utt- the utterance to be processed
     :type utterance- Object with attributes including text and meta
@@ -208,7 +208,6 @@ def get_politeness_strategy_features(utt):
             marker_name: list of [token, sentence index, word index]
         }
     """
-    parsed = [x["toks"] for x in utt.meta["parsed"]]
     
     #build dictionary
     features = {}
@@ -219,7 +218,7 @@ def get_politeness_strategy_features(utt):
         markers[f[1]] = []
         
     # runs lambda functions
-    for sent_ind, sentence in enumerate(parsed):
+    for sent_ind, sentence in enumerate(parses):
         for fnc in F:
             feature, marker = fnc(sentence)
             f = fnc2feature_name(fnc, ["feature_politeness", "politeness_markers"])

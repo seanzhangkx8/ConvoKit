@@ -6,6 +6,12 @@ from convokit.politeness_collections.politeness_local.marker_loader import load_
 UNIGRAM_MARKERS, START_MARKERS, NGRAM_MARKERS = load_basic_markers()
 MARKER_MODE = load_marker_mode()
 
+STRATEGIES = ['Actually','Adverb.Just','Affirmation','Apology', 
+              'By.The.Way','Conj.Start','Filler','For.Me','For.You',
+              'Gratitude','Greeting','Hedges','Indicative',
+              'Please','Please.Start','Reassurance',
+              'Subjunctive','Swearing']
+
 ############# Helper functions and variables #################
 
 def extract_unigram_markers(sent_parsed, sent_idx, unigram_markers):
@@ -146,13 +152,11 @@ def extract_markers_from_sent(sent_parsed, sent_idx,\
     return sent_summary
 
 
-def get_local_politeness_strategy_features(utt):
+def get_local_politeness_strategy_features(parses):
     
-    markers = defaultdict(list)
-    parsed = [x["toks"] for x in utt.meta["parsed"]]
-    
+    markers = {k:0 for k in STRATEGIES}   
 
-    for sent_idx, sent_parsed in enumerate(parsed):
+    for sent_idx, sent_parsed in enumerate(parses):
 
         sent_markers = extract_markers_from_sent(sent_parsed, sent_idx)
         # update markers 
