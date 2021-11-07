@@ -6,7 +6,7 @@ from convokit.model import Corpus, Utterance, Speaker
 
 from convokit.politeness_collections.politeness_api.features.politeness_strategies import get_politeness_strategy_features
 from convokit.politeness_collections.politeness_local.marker_extractor import get_local_politeness_strategy_features
-from convokit.politeness_collections.chinese_strategies.strategy_extractor import get_chinese_politeness_strategy_features
+from convokit.politeness_collections.politeness_cscw_zh.strategy_extractor import get_chinese_politeness_strategy_features
 
 import re
 import spacy
@@ -25,16 +25,17 @@ class PolitenessStrategies(Transformer):
     :param verbose: whether or not to print status messages while computing features.
     """
 
-    def __init__(self, strategy_attribute_name="politeness_strategies", marker_attribute_name="politeness_markers", strategy_collection="politeness_api", verbose: bool=False):
+    def __init__(self, parse_attribute_name='parsed',strategy_attribute_name="politeness_strategies", marker_attribute_name="politeness_markers", strategy_collection="politeness_api", verbose: bool=False):
         
+        self.parse_attribute_name = parse_attribute_name
         self.strategy_attribute_name = strategy_attribute_name
         self.marker_attribute_name = marker_attribute_name
         self.strategy_collection = strategy_collection
         self.verbose = verbose
         
-        self.__extractor_lookup = {"politeness_api": get_politeness_strategy_features, \
-                                   "politeness_local": get_local_politeness_strategy_features, \
-                                   "politeness_chinese": get_chinese_politeness_strategy_features}
+        self._extractor_lookup = {"politeness_api": get_politeness_strategy_features, \
+                                  "politeness_local": get_local_politeness_strategy_features, \
+                                  "politeness_cscw_zh": get_chinese_politeness_strategy_features}
 
     def transform(self, corpus: Corpus, selector: Optional[Callable[[Utterance], bool]] = lambda utt: True,
                   markers: bool = False):
@@ -49,23 +50,30 @@ class PolitenessStrategies(Transformer):
         :param markers: whether or not to add politeness occurrence markers
         """
     
-        for utt in corpus.iter_utterances():
-            if selector(utt):
-                
-                for i, sent in enumerate(utt.meta["parsed"]):
-                    
+        total_utts = len(corpus.utterances)
+        
+        for idx, utt in enumerate(corpus.iter_utterances()):
+            
+            if self.verbose > 0 and idx > 0 and idx % self.verbose == 0:
+                print('%03d/%03d utterances processed' % (idx, total_utts))
+            
+            if selector(utt):    
+                parsed = utt.retrieve_meta(self.parse_attribute_name)
+                for i, sent in enumerate(parsed):
                     for p in sent["toks"]:
                         # p["tok"] = re.sub("[^a-z,.:;]", "", p["tok"].lower())
                         p["tok"] = p['tok'].lower()
-    
-                utt.meta[self.strategy_attribute_name], marks = self.__extractor_lookup[self.strategy_collection](utt)
+                
+                parses = [x["toks"] for x in utt.retrieve_meta(self.parse_attribute_name)]
+            
+                utt.meta[self.strategy_attribute_name], marks = self._extractor_lookup[self.strategy_collection](parses)
 
                 if markers:
                     utt.meta[self.marker_attribute_name] = marks
             else:
                 utt.meta[self.strategy_attribute_name] = None
                 utt.meta[self.marker_attribute_name] = None
-
+            
         return corpus
     
     
@@ -84,52 +92,46 @@ class PolitenessStrategies(Transformer):
         if spacy_nlp is None:
             raise ValueError('spacy object required')
         
-        if "parsed" not in utterance.meta:
-            utterance.meta['parsed'] = process_text(utterance.text, spacy_nlp=spacy_nlp)
+        if self.parse_attribute_name not in utterance.meta:
+            parses = process_text(utterance.text, spacy_nlp=spacy_nlp)
+            utteranc.add_meta(self.parse_attribute_name, parses)
         
-        for i, sent in enumerate(utterance.meta["parsed"]):
-            
+        parses = [x["toks"] for x in utt.retrieve_meta(self.parse_attribute_name)]
+        for i, sent in enumerate(parses):
             for p in sent["toks"]:
-
-                # do not remove punctuations 
-                p["tok"] = p["tok"].lower()
-            
-        utterance.meta[self.strategy_attribute_name], marks = self.__extractor_lookup[self.strategy_collection](utterance)
+                p["tok"] = p['tok'].lower()
+        
+        utterance.meta[self.strategy_attribute_name], marks = self._extractor_lookup[self.strategy_collection](parses)
 
         if markers:
             utterance.meta[self.marker_attribute_name] = marks
         
         return utterance
     
-
-    def _get_scores(self, corpus: Corpus, selector: Optional[Callable[[Utterance], bool]] = lambda utt: True):
+    
+    def _get_feat_df(self, corpus: Corpus, selector: Optional[Callable[[Utterance], bool]] = lambda utt: True):
         """
-        Calculates average occurrence per utterance. Used in summarize()
+        Construct binary feature dataframe. Used in summarize()
 
         :param corpus: the target Corpus
         :param selector: (lambda) function specifying whether the utterance should be included
         """
 
         utts = list(corpus.iter_utterances(selector))
-        if self.marker_attribute_name not in utts[0].meta:
-            print("Could not find politeness markers metadata. Running transform() on corpus first...", end="")
-            self.transform(corpus, markers=True)
+
+        if self.strategy_attribute_name not in utts[0].meta:
+            print("Could not find politeness strategies metadata. Running transform() on corpus first...", end="")
+            self.transform(corpus)
             print("Done.")
 
-        counts = {k: 0 for k in utts[0].meta[self.marker_attribute_name].keys()}
+        df_feat = pd.DataFrame.from_dict({utt.id: utt.meta['politeness_strategies'] for utt in utts}, orient='index')
 
-        for utt in utts:
-            for k, v in utt.meta[self.marker_attribute_name].items():
-                
-                # TODO fix this 
-                counts[k] += len(v)
-        scores = {k: v/len(utts) for k, v in counts.items()}
-        return scores
-
+        return df_feat
+    
+    
     def summarize(self, corpus: Corpus, selector: Callable[[Utterance], bool] = lambda utt: True, plot: bool = False, y_lim = None):
         """
-        Calculates average occurrence per utterance and outputs graph if plot == True, with an optional selector
-        that specifies which utterances to include in the analysis
+        Calculates strategy prevalence and plot graph if plot == True, with an optional selector that specifies which utterances to include in the analysis. 
 
         :param corpus: the target Corpus
         :param selector: a function (typically, a lambda function) that takes an Utterance and returns True or False (i.e. include / exclude).
@@ -137,16 +139,19 @@ class PolitenessStrategies(Transformer):
         :param plot: whether or not to output graph.
         :return: a pandas DataFrame of scores with graph optionally outputted
         """
-        scores = self._get_scores(corpus, selector)
+        
+        df_feat = self._get_feat_df(corpus, selector)
+        proportions = df_feat.sum(axis=0) / len(df_feat)
 
         if plot:
             plt.figure(dpi=200, figsize=(9, 6))
-            plt.bar(list(range(len(scores))), scores.values(), align="edge")
-            plt.xticks(np.arange(.4, len(scores)+.4), rotation=45, ha="right", labels=list(scores.keys()))
-            plt.ylabel("Occurrences per Utterance", size=14)
-            plt.yticks(size=10)
+            plt.bar(proportions.index, proportions.values)
+            plt.xticks(np.arange(.4, num_strategies+.4), rotation=45, ha="right")
+            plt.ylabel("% utterance using strategy", size=20)
+            plt.yticks(size=15)
+
             if y_lim != None:
                 plt.ylim(0, y_lim)
             plt.show()
 
-        return pd.DataFrame.from_dict(scores, orient='index', columns=["Averages"])
+        return proportions
