@@ -135,7 +135,7 @@ class PolitenessStrategies(Transformer):
 
         :param corpus: the target Corpus
         :param selector: a function (typically, a lambda function) that takes an Utterance and returns True or False (i.e. include / exclude).
-		By default, the selector includes all Utterances in the Corpus.
+        By default, the selector includes all Utterances in the Corpus.
         :param plot: whether or not to output graph.
         :return: a pandas DataFrame of scores with graph optionally outputted
         """
