@@ -19,6 +19,7 @@ class PolitenessStrategies(Transformer):
     Encapsulates extraction of politeness strategies from utterances in a
     Corpus.
     
+    :param parse_attribute_name: metadata attribute name to read parses from. Default is 'parsed'.
     :param strategy_attribute_name: metadata attribute name to store politeness strategies features under during the `transform()` step.  Default is 'politeness_strategies'. 
     :param marker_attribute_name: metadata attribute name to store politeness markers under during the `transform()` step. Default is 'politeness_markers'.
     :param strategy_collection: collection of politeness strategies to extract. Options include:

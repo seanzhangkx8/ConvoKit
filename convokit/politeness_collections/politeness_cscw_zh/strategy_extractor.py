@@ -7,7 +7,7 @@ from collections import defaultdict
 
 from convokit.politeness_collections.marker_utils import * 
 
-LEXICON_DIR = "politeness_collections/chinese_strategies/lexicons"
+LEXICON_DIR = "politeness_collections/politeness_cscw_zh/lexicons"
 
 UNIGRAM_FILE = pkg_resources.resource_filename("convokit",
     os.path.join(LEXICON_DIR, "unigram_strategies.json"))
@@ -25,7 +25,7 @@ UNIGRAM_MARKERS, START_MARKERS, NGRAM_MARKERS = load_basic_markers(unigram_path=
 
 
 PRAISE_PATTERN = re.compile(r'([真好]?\s?(厉害|棒|强|牛|美|漂亮))\s|(干\s?[得的]\s?真?\s?(好|漂亮))\s')
-PLEASE_PATTERN = re.compile(r'([烦劳还]?\s?请)|([烦劳]\s?您)')
+PLEASE_PATTERN = re.compile(r'([烦劳还]?\s?请)|([烦劳]?\s您)')
 CAN_YOU_PATTERN = re.compile(r'[你您]\s?[是可想觉要].+?[吗呢呀？]')
 COULD_YOU_PATTERN = re.compile(r'[你您]\s?(?P<A>[可想觉要])不(?P=A)')
 
@@ -51,16 +51,14 @@ def find_regex_strategies(pattern, tokens, sent_idx):
     return marker_pos
     
 
-def get_chinese_politeness_strategy_features(utt, unigram_markers = UNIGRAM_MARKERS,  \
+def get_chinese_politeness_strategy_features(parses, unigram_markers = UNIGRAM_MARKERS,  \
                                              start_markers = START_MARKERS, \
                                              ngram_markers = NGRAM_MARKERS,
                                              patterns = PATTERNS):
     
     markers = defaultdict(list)
-    parsed = [x["toks"] for x in utt.meta["parsed"]]
     
-    
-    for sent_idx, sent_parsed in enumerate(parsed):
+    for sent_idx, sent_parsed in enumerate(parses):
 
         sent_markers = extract_markers_from_sent(sent_parsed, sent_idx, \
                                                  unigram_markers, start_markers, ngram_markers)
