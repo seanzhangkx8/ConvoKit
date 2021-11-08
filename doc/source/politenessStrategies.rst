@@ -14,7 +14,7 @@ Example usage:
 
 * `extracting politeness features and markers <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/politeness-strategies/Politeness_Marker_and_Summarize_Demo.ipynb>`_, 
 * `understanding the (mis)use of politeness strategies in conversations gone awry on Wikipedia <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/conversations-gone-awry/Conversations_Gone_Awry_Prediction.ipynb>`_,
-* `assessing the permeability of politeness markers in machine-translated communication <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/politeness-strategies/Politeness_Strategies_in_MT-mediated_Communication.ipynb>`
+* `assessing the permeability of politeness markers in machine-translated communication <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/politeness-strategies/Politeness_Strategies_in_MT-mediated_Communication.ipynb>`_
 
 .. automodule:: convokit.politenessStrategies.politenessStrategies
     :members:
