@@ -20,7 +20,7 @@ setup(
                 "convokit.phrasing_motifs",
                 "convokit.politeness_collections.politeness_api",
                 "convokit.politeness_collections.politeness_local",
-                "convokit.politeness_collections.chinese_strategies",
+                "convokit.politeness_collections.politeness_cscw_zh",
                 "convokit.politeness_collections.politeness_api.features",
                 "convokit.politenessStrategies",
                 "convokit.prompt_types",
@@ -33,7 +33,7 @@ setup(
               ],
     package_data={"convokit": ["data/*.txt", 
                                "politeness_collections/politeness_local/lexicons/*.json",  
-                               "politeness_collections/chinese_strategies/lexicons/*.json"]},
+                               "politeness_collections/politeness_cscw_zh/lexicons/*.json"]},
     install_requires=[
         "matplotlib>=3.0.0",
         "pandas>=0.23.4",
