@@ -3,7 +3,6 @@ from spacy.tokens import Doc
 
 from convokit.model import Corpus, Utterance, Speaker
 
-
 FOX_TEXT = 'A quick brown fox jumps over the lazy dog.'
 BUFFALO_TEXT = 'Buffalo buffalo Buffalo buffalo buffalo buffalo Buffalo buffalo'
 FOX_BUFFALO_TEXT = 'A quick brown fox jumps over the lazy dog. Buffalo buffalo Buffalo buffalo buffalo buffalo Buffalo buffalo'
