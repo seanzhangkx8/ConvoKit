@@ -21,6 +21,7 @@ non_starter_path = pkg_resources.resource_filename("convokit",
 
 
 PLEASE_PATTERN = re.compile(r'([烦劳还]?\s?请)|([烦劳]您)')
+START_QN_PATTERN = re.compile(r'^\W*([为凭]什么\s?|几\s?|哪\s?|多少\s?|怎\s?|谁\s?|咋\s?)')
 CAN_YOU_PATTERN = re.compile(r'[你您]\s?[是可想觉要].+?[吗呢呀？]')
 COULD_YOU_PATTERN = re.compile(r'[你您]\s?(?P<A>[可想觉要])\s?不\s?(?P=A)')
 
@@ -29,6 +30,10 @@ def please(sent_parsed: List[Dict], sent_idx: int) -> Dict[str, List]:
     tokens = [x['tok'] for x in sent_parsed]
     return extract_regex_strategies(PLEASE_PATTERN, tokens, sent_idx, offset=1)
 
+def start_question(sent_parsed: List[Dict], sent_idx: int) -> Dict[str, List]:
+    tokens = [x['tok'] for x in sent_parsed]
+    return extract_regex_strategies(START_QN_PATTERN, tokens, sent_idx)
+
 def can_you(sent_parsed: List[Dict], sent_idx: int) -> Dict[str, List]:
     tokens = [x['tok'] for x in sent_parsed]
     return extract_regex_strategies(CAN_YOU_PATTERN, tokens, sent_idx)
@@ -36,8 +41,7 @@ def can_you(sent_parsed: List[Dict], sent_idx: int) -> Dict[str, List]:
 def could_you(sent_parsed: List[Dict], sent_idx: int) -> Dict[str, List]:
     tokens = [x['tok'] for x in sent_parsed]
     return extract_regex_strategies(COULD_YOU_PATTERN, tokens, sent_idx)
-
-
+    
 
 # full list of strategies
 STRATEGIES = ['apologetic','best_wishes','can_you', 'could_you',
@@ -53,7 +57,7 @@ STRATEGIES = ['apologetic','best_wishes','can_you', 'could_you',
 NGRAMS = load_ngram_markers(ngram_path)
 STARTERS = load_ngram_markers(starter_path)
 NON_STARTERS = load_ngram_markers(non_starter_path)
-MARKER_FNS = [please, can_you, could_you]
+MARKER_FNS = [please, start_question, can_you, could_you]
 
 
 def get_chinese_politeness_strategy_features(parses: List[List]) -> Tuple[Dict[str, int], Dict[str, List[Tuple]]]:
