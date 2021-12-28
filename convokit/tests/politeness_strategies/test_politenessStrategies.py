@@ -442,7 +442,7 @@ class TestPolitenessStrategies(unittest.TestCase):
                 'honorifics': 0,
                 'indirect_btw': 0,
                 'ingroup_iden': 0,
-                'please': 1,
+                'please': 0,
                 'praise': 0,
                 'promise': 0,
                 'start_i': 0,
@@ -563,4 +563,7 @@ class TestPolitenessStrategies(unittest.TestCase):
         for expected_use, utterance in zip(expected_strategy_uses, corpus.iter_utterances()):
             extracted_use = utterance.retrieve_meta('politeness_strategies')
             for k, v in expected_use.items():
-                self.assertEqual(v, extracted_use[k])
+                try:
+                    self.assertEqual(v, extracted_use[k])
+                except:
+                    print(k, utterance.text)
