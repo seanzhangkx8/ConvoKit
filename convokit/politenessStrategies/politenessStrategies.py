@@ -69,7 +69,7 @@ class PolitenessStrategies(Transformer):
                         # p["tok"] = re.sub("[^a-z,.:;]", "", p["tok"].lower())
                         p["tok"] = p['tok'].lower()
                 
-                parses = [x["toks"] for x in utt.retrieve_meta(self.parse_attribute_name)]
+                parses = [x["toks"] for x in parsed]
             
                 utt.meta[self.strategy_attribute_name], marks = self._extractor_lookup[self.strategy_collection](parses)
 
@@ -102,6 +102,7 @@ class PolitenessStrategies(Transformer):
             utteranc.add_meta(self.parse_attribute_name, parses)
         
         parses = [x["toks"] for x in utt.retrieve_meta(self.parse_attribute_name)]
+        
         for i, sent in enumerate(parses):
             for p in sent["toks"]:
                 p["tok"] = p['tok'].lower()

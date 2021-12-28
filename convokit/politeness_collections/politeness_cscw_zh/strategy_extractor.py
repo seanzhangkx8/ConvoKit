@@ -4,74 +4,75 @@ import re
 from itertools import chain 
 import pkg_resources
 from collections import defaultdict
+from typing import Dict, List, Tuple
 
-from convokit.politeness_collections.marker_utils import * 
+from convokit.politeness_collections.marker_utils import load_ngram_markers, extract_regex_strategies, extract_markers_from_sent
 
 LEXICON_DIR = "politeness_collections/politeness_cscw_zh/lexicons"
 
-UNIGRAM_FILE = pkg_resources.resource_filename("convokit",
-    os.path.join(LEXICON_DIR, "unigram_strategies.json"))
+ngram_path = pkg_resources.resource_filename("convokit",
+    os.path.join(LEXICON_DIR, "ngram_markers.json"))
 
-NGRAM_FILE = pkg_resources.resource_filename("convokit",
-    os.path.join(LEXICON_DIR, "ngram_strategies.json"))
+starter_path = pkg_resources.resource_filename("convokit",
+    os.path.join(LEXICON_DIR, "starter_markers.json"))
 
-START_FILE = pkg_resources.resource_filename("convokit",
-    os.path.join(LEXICON_DIR, "start_strategies.json"))
-
-
-UNIGRAM_MARKERS, START_MARKERS, NGRAM_MARKERS = load_basic_markers(unigram_path=UNIGRAM_FILE, \
-                                                                   ngram_path=NGRAM_FILE, \
-                                                                   start_path=START_FILE)
+non_starter_path = pkg_resources.resource_filename("convokit",
+    os.path.join(LEXICON_DIR, "non_starter_markers.json"))
 
 
-PRAISE_PATTERN = re.compile(r'([真好]?\s?(厉害|棒|强|牛|美|漂亮))\s|(干\s?[得的]\s?真?\s?(好|漂亮))\s')
-PLEASE_PATTERN = re.compile(r'([烦劳还]?\s?请)|([烦劳]?\s您)')
+PLEASE_PATTERN = re.compile(r'([烦劳还]?\s?请)|([烦劳]您)')
 CAN_YOU_PATTERN = re.compile(r'[你您]\s?[是可想觉要].+?[吗呢呀？]')
-COULD_YOU_PATTERN = re.compile(r'[你您]\s?(?P<A>[可想觉要])不(?P=A)')
+COULD_YOU_PATTERN = re.compile(r'[你您]\s?(?P<A>[可想觉要])\s?不\s?(?P=A)')
+
+# strategy functions (regex)
+def please(sent_parsed: List[Dict], sent_idx: int) -> Dict[str, List]:
+    tokens = [x['tok'] for x in sent_parsed]
+    return extract_regex_strategies(PLEASE_PATTERN, tokens, sent_idx, offset=1)
+
+def can_you(sent_parsed: List[Dict], sent_idx: int) -> Dict[str, List]:
+    tokens = [x['tok'] for x in sent_parsed]
+    return extract_regex_strategies(CAN_YOU_PATTERN, tokens, sent_idx)
+
+def could_you(sent_parsed: List[Dict], sent_idx: int) -> Dict[str, List]:
+    tokens = [x['tok'] for x in sent_parsed]
+    return extract_regex_strategies(COULD_YOU_PATTERN, tokens, sent_idx)
 
 
-PATTERNS = {"praise": PRAISE_PATTERN, "please": PLEASE_PATTERN, \
-            "can_you": CAN_YOU_PATTERN, "could_you": COULD_YOU_PATTERN}
+
+# full list of strategies
+STRATEGIES = ['apologetic','best_wishes','can_you', 'could_you',
+              'emergency','factuality',
+              'first_person_plural','first_person_singular',
+              'gratitude','greeting','hedge','honorifics',
+              'indirect_btw','ingroup_iden','praise','promise','please', 
+              'start_i','start_please','start_question','start_so','start_you',
+              'taboo','together','you_direct','you_honorific']
 
 
-############# Strategies that require regex matching #################
+# different types of markers 
+NGRAMS = load_ngram_markers(ngram_path)
+STARTERS = load_ngram_markers(starter_path)
+NON_STARTERS = load_ngram_markers(non_starter_path)
+MARKER_FNS = [please, can_you, could_you]
 
-def find_regex_strategies(pattern, tokens, sent_idx):
+
+def get_chinese_politeness_strategy_features(parses: List[List]) -> Tuple[Dict[str, int], Dict[str, List[Tuple]]]:
     
-    # find matches 
-    sent = " ".join(tokens)
-    matches = [match.span() for match in re.finditer(pattern, sent)]
-            
-    marker_pos = []
-    for match_start, match_end in matches:
-        tok_start = len(sent[0:match_start].split())
-        tok_end = len(sent[0:match_end].split()) 
-        marker_pos.extend([(tok, tok_start+i, sent_idx) for i, tok in enumerate(tokens[tok_start:tok_end])])
-
-    return marker_pos
+    """
+        Extract strategies given a parsed utterance 
+    """
     
-
-def get_chinese_politeness_strategy_features(parses, unigram_markers = UNIGRAM_MARKERS,  \
-                                             start_markers = START_MARKERS, \
-                                             ngram_markers = NGRAM_MARKERS,
-                                             patterns = PATTERNS):
-    
-    markers = defaultdict(list)
+    markers = {k:[] for k in STRATEGIES}
     
     for sent_idx, sent_parsed in enumerate(parses):
-
         sent_markers = extract_markers_from_sent(sent_parsed, sent_idx, \
-                                                 unigram_markers, start_markers, ngram_markers)
-        
-        # regex strategies
-        tokens = [tok['tok'] for tok in sent_parsed]
-        for name, pattern in patterns.items():
-            sent_markers.update({name: find_regex_strategies(pattern, tokens, sent_idx)})
-        
-        # update markers 
-        markers = {k:list(chain(markers[k], v)) for k,v in sent_markers.items()}
-        
-        
+                                                 NGRAMS, STARTERS, NON_STARTERS, \
+                                                 MARKER_FNS)
+        # update markers
+        for k,v in sent_markers.items():
+            markers[k].extend(v)
+    
+    # binary features 
     features = {k: int(len(marker_list) > 0) for k, marker_list in markers.items()}
     
     return features, markers

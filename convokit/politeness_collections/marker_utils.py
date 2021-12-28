@@ -1,130 +1,141 @@
-import json 
-import pkg_resources
-import os
+import json
+import re
 from collections import defaultdict
+from typing import Dict, List, Callable, Pattern, Optional
 
-# TODO： consider to raise error when path not provided 
-UNIGRAM_FILE = pkg_resources.resource_filename("convokit",
-    os.path.join("politeness_local/lexicons", "unigram_strategies.json"))
-
-NGRAM_FILE = pkg_resources.resource_filename("convokit",
-    os.path.join("politeness_local/lexicons", "ngram_strategies.json"))
+STOP_TOK = "*"
 
 
-START_FILE = pkg_resources.resource_filename("convokit",
-    os.path.join("politeness_local/lexicons", "start_strategies.json"))
+def load_ngram_markers(ngram_path: str) -> Dict[str, Dict]:
+    """
+        Load ngram markers from file
+    """
+
+    # load markers
+    with open(ngram_path, 'r') as f:
+        data = json.load(f)
+
+    # organize markers into a trie
+    trie = defaultdict(dict)
+    for strategy, ngrams in data.items():
+        for ngram in ngrams:
+            words = ngram.split()
+            # insert
+            curr = trie
+            for word in words:
+                curr = curr.setdefault(word, {})
+            # end with strategy name
+            curr[STOP_TOK] = strategy
+
+    return trie
 
 
+def extract_ngram_markers_given_start(words: List[str], \
+                                      sent_idx: int, i: int, \
+                                      ngrams: Dict[str, Dict]) -> Dict[str, List]:
+    """
+        Extract ngram markers starting from given position
+    """
+    strategies = defaultdict(list)
+    curr, j = ngrams, i
 
-# Loading basic markers 
-def load_basic_markers(unigram_path=None, ngram_path=None, start_path=None):
-    
-    # load unigram markers 
-    if unigram_path is None:
-        unigram_path = UNIGRAM_FILE
-    
-    if ngram_path is None:
-        ngram_path = NGRAM_FILE
-    
-    if start_path is None:
-        start_path = START_FILE
-    
-    with open(unigram_path, "r") as f:
-        unigram_dict = json.load(f)
+    while j < len(words):
+        word = words[j]
+        if word not in curr:
+            break
+        curr = curr[word]
+        if STOP_TOK in curr:
+            extracted = [(words[k], sent_idx, k) for k in range(i, j+1)]
+            strategies[curr[STOP_TOK]].append(extracted)
+        j += 1
 
-    with open(ngram_path, "r") as f:
-        ngram_dict = json.load(f)
-
-    # load phrase markers 
-    with open(start_path, "r") as f:
-        start_dict = json.load(f)
-    
-    return unigram_dict, start_dict, ngram_dict
+    return strategies
 
 
+def extract_ngram_markers(words: List[str], sent_idx: int, \
+                          ngrams: Dict[str, Dict], offset: int = 0) -> Dict[str, List]:
+    """
+        Extract strategy use (with marker positions) from the parse of a sentence
+    """
+    strategies = defaultdict(list)    
+    for i in range(offset, len(words)):
+        extracted = extract_ngram_markers_given_start(words, sent_idx, i, ngrams)
+        for k, v in extracted.items():
+            strategies[k].extend(v)
 
-############# Helper functions and variables #################
-
-def extract_unigram_markers(sent_parsed, sent_idx, unigram_markers):
-    
-    return [(info['tok'], sent_idx, idx) for idx, info in enumerate(sent_parsed) if info['tok'].lower() in unigram_markers]
-
-
-def extract_ngram_markers(sent_parsed, sent_idx, ngram_markers):
-    
-    ngrams_used = []
-    words = [info['tok'].lower() for info in sent_parsed]
-        
-    for i, info in enumerate(sent_parsed[0:-1]):
-        
-        for ngram in ngram_markers:
-            
-            ngram_words = ngram.split()
-
-            if words[i:i+len(ngram_words)] == ngram_words:
-                
-                start_idx = i
-                ngrams_used.extend([(tok, sent_idx, start_idx+k) for k, tok in enumerate(ngram_words)])
-                
-    return ngrams_used
+    return strategies
 
 
-def extract_starter_markers(sent_parsed, sent_idx, starter_markers):
-    
-    start_tok = sent_parsed[0]['tok'].lower()
-    
-    if start_tok in starter_markers:
-        return [(start_tok, sent_idx, 0)]
-    else:
-        return []
+def extract_starter_markers(words: List[str], sent_idx: int, 
+                            ngrams: Dict[str, Dict]) -> Dict[str, List]:
+    """
+        Extract markers for sentence-starting strategies
+    """
+    return extract_ngram_markers_given_start(words, sent_idx, 0, ngrams)
 
-    
 
-def extract_markers_from_sent(sent_parsed, sent_idx,\
-                              unigram_markers, start_markers, ngram_markers,
-                              marker_fns = None):
+def extract_regex_strategies(pattern: Pattern, tokens: List[str],
+                          sent_idx: int, offset: int = 0):
+
+    # find matches
+    sent = " ".join(tokens[offset:])
+    matches = [match.span() for match in re.finditer(pattern, sent)]
+
+    extracted = []
+    for match_start, match_end in matches:
+        # idx of starting token of the matched span
+        tok_start = len(sent[0: match_start].split())
+        # idx of ending token
+        tok_end = len(sent[0: match_end].split())
+        extracted_toks = [(tokens[i+offset], sent_idx, i+offset) for i in range(tok_start, tok_end)]
+        extracted.append(extracted_toks)
+
+    return extracted
+
+
+def extract_markers_from_sent(sent_parsed: List[Dict], sent_idx: int,
+                              ngrams: Optional[Dict[str, Dict]] = None,
+                              starters: Optional[Dict[str, Dict]] = None,
+                              non_starters: Optional[Dict[str, Dict]] = None,
+                              marker_fns: Optional[List[Callable[..., Dict[str, List]]]] = None):
     '''
-    Extracting markers from a parsed sentence 
-    
-    :param sent_parsed: parsed sentence 
-    :param sent_idx: idx of the current sentence in the utterance 
-    :param unigram_markers: set of unigram lexicon-based markers
-    :param start_markers: set of lexicon-based markers at beginning of sentences 
-    :param ngram_markers: set of ngram lexicon-based markers
-    :param marker_fns: list of special functions to extract strategies not covered by lexicons 
-    
+    Extracting markers from a parsed sentence
+
+    :param sent_parsed: parsed sentence
+    :param sent_idx: idx of the current sentence in the utterance
+    :param ngrams: ngram markers
+    :param starters: starter markers
+    :param non_starters: 
+    :param marker_fns: list of functions to extract strategies not covered by lexicons
     '''
-    
-    
+
     sent_summary = defaultdict(list)
-    
-    if marker_fns:
-        marker_fns_names = [fn.__name__ for fn in marker_fns]
-    else:
-        marker_fns_names = None
-    
-    # unigram
-    for k, unigrams in unigram_markers.items():
-        
-        if marker_fns_names is None or k not in marker_fns_names:
-            sent_summary[k].extend(extract_unigram_markers(sent_parsed, sent_idx, unigrams))
+    words = [x['tok'].lower() for x in sent_parsed]
 
-    # ngrams
-    for k, ngrams in ngram_markers.items():
-        
-        if marker_fns_names is None or k not in marker_fns_names:
-            sent_summary[k].extend(extract_ngram_markers(sent_parsed, sent_idx, ngrams))
-    
-    # starter
-    for k in start_markers:
-        if marker_fns_names is None or k not in marker_fns_names:
-            sent_summary[k].extend(extract_starter_markers(sent_parsed, sent_idx, start_markers[k]))
-    
+    # ngrams markers
+    if ngrams:
+        ngram_markers = extract_ngram_markers(words, sent_idx, ngrams)
+        for k, ngrams in ngram_markers.items():
+            sent_summary[k].extend(ngrams)
+
+    # starter markers
+    if starters:
+        starter_markers = extract_starter_markers(words, sent_idx, starters)
+        for k, starters in starter_markers.items():
+            sent_summary[k].extend(starters)
+
+    # non-starter strategies
+    if non_starters:
+        non_starters = extract_ngram_markers(words, sent_idx, non_starters, offset = 1)
+        for k, starters in non_starters.items():
+            sent_summary[k].extend(starters)
     
     # strategy by functions
     if marker_fns:
-        for fn in marker_fns:
-            sent_summary.update({fn.__name__: fn(sent_parsed, sent_idx)})
+        names = [fn.__name__ for fn in marker_fns]
+        for name, fn in zip(names, marker_fns):
+            extracted = fn(sent_parsed, sent_idx)
+            for markers in extracted:
+                sent_summary[name].extend(markers)
 
-    
     return sent_summary
