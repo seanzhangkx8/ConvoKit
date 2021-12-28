@@ -5,11 +5,12 @@ from convokit.transformer import Transformer
 from convokit.model import Corpus, Utterance, Speaker
 
 from convokit.politeness_collections.politeness_api.features.politeness_strategies import get_politeness_strategy_features
-from convokit.politeness_collections.politeness_local.marker_extractor import get_local_politeness_strategy_features
+from convokit.politeness_collections.politeness_local.strategy_extractor import get_local_politeness_strategy_features
 from convokit.politeness_collections.politeness_cscw_zh.strategy_extractor import get_chinese_politeness_strategy_features
 
 import re
 import spacy
+from spacy.tokens import Doc
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
@@ -27,10 +28,10 @@ class PolitenessStrategies(Transformer):
         "politeness_local": English politeness strategies realized through local markers as used in Facilitating the Communication of Politeness through Fine-Grained Paraphrasing (https://www.cs.cornell.edu/~cristian/Politeness_Paraphrasing.html)
         "politeness_cscw_zh":  Chinese politeness strategies adapted from `Studying Politeness across Cultures using English Twitter and Mandarin Weibo (https://dl.acm.org/doi/abs/10.1145/3415190)
         Default is "politeness_api". 
-    :param verbose: whether or not to print status messages while computing features.
+    :param verbose: whether and how often to print status messages while computing features.
     """
 
-    def __init__(self, parse_attribute_name='parsed',strategy_attribute_name="politeness_strategies", marker_attribute_name="politeness_markers", strategy_collection="politeness_api", verbose: bool=False):
+    def __init__(self, parse_attribute_name:str='parsed',strategy_attribute_name:str="politeness_strategies", marker_attribute_name:str="politeness_markers", strategy_collection:str="politeness_api", verbose:int=0):
         
         self.parse_attribute_name = parse_attribute_name
         self.strategy_attribute_name = strategy_attribute_name
@@ -82,37 +83,38 @@ class PolitenessStrategies(Transformer):
         return corpus
     
     
-    def transform_utterance(self, utterance, spacy_nlp = None, markers = False):
+    def transform_utterance(self, utt: Utterance, spacy_nlp: Callable[[str], Doc] = None, markers: bool = False):
         """
         Extract politeness strategies for raw string inputs (or individual utterances)
         
-        :param utterance: the utterance to be annotated with politeness strategies. 
+        :param utt: the utterance to be annotated with politeness strategies. 
         :spacy_nlp: if provided, will use this SpaCy object to do parsing; otherwise will initialize an object via `load('en')`.
         :return: the utterance with politeness annotations.
         """
         
-        if isinstance(utterance, str):
-            utterance = Utterance(text=utterance, speaker=Speaker(id='speaker'))
+        if isinstance(utt, str):
+            utt = Utterance(text=utt, speaker=Speaker(id='speaker'))
         
-        if spacy_nlp is None:
-            raise ValueError('spacy object required')
+        if self.parse_attribute_name not in utt.meta:
+            
+            if spacy_nlp is None:
+                raise ValueError('spacy object required')
+            
+            parses = process_text(utt.text, spacy_nlp=spacy_nlp)
+            utt.add_meta(self.parse_attribute_name, parses)
         
-        if self.parse_attribute_name not in utterance.meta:
-            parses = process_text(utterance.text, spacy_nlp=spacy_nlp)
-            utteranc.add_meta(self.parse_attribute_name, parses)
-        
-        parses = [x["toks"] for x in utt.retrieve_meta(self.parse_attribute_name)]
-        
-        for i, sent in enumerate(parses):
+        parsed = utt.retrieve_meta(self.parse_attribute_name)
+        for i, sent in enumerate(parsed):
             for p in sent["toks"]:
                 p["tok"] = p['tok'].lower()
+        parses = [x["toks"] for x in parsed]
         
-        utterance.meta[self.strategy_attribute_name], marks = self._extractor_lookup[self.strategy_collection](parses)
+        utt.meta[self.strategy_attribute_name], marks = self._extractor_lookup[self.strategy_collection](parses)
 
         if markers:
-            utterance.meta[self.marker_attribute_name] = marks
+            utt.meta[self.marker_attribute_name] = marks
         
-        return utterance
+        return utt
     
     
     def _get_feat_df(self, corpus: Corpus, selector: Optional[Callable[[Utterance], bool]] = lambda utt: True):

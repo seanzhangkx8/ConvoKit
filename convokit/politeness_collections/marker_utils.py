@@ -34,7 +34,7 @@ def extract_ngram_markers_given_start(words: List[str], \
                                       sent_idx: int, i: int, \
                                       ngrams: Dict[str, Dict]) -> Dict[str, List]:
     """
-        Extract ngram markers starting from given position
+        Extract strategies based on ngram markers, starting from the given position
     """
     strategies = defaultdict(list)
     curr, j = ngrams, i
@@ -55,7 +55,7 @@ def extract_ngram_markers_given_start(words: List[str], \
 def extract_ngram_markers(words: List[str], sent_idx: int, \
                           ngrams: Dict[str, Dict], offset: int = 0) -> Dict[str, List]:
     """
-        Extract strategy use (with marker positions) from the parse of a sentence
+        Extract strategies uses (with marker positions) from the parse of a sentence
     """
     strategies = defaultdict(list)    
     for i in range(offset, len(words)):
@@ -77,6 +77,10 @@ def extract_starter_markers(words: List[str], sent_idx: int,
 def extract_regex_strategies(pattern: Pattern, tokens: List[str],
                           sent_idx: int, offset: int = 0):
 
+    """
+        Extract markers for a given strategy based on regex patterns
+    """
+    
     # find matches
     sent = " ".join(tokens[offset:])
     matches = [match.span() for match in re.finditer(pattern, sent)]
@@ -97,7 +101,8 @@ def extract_markers_from_sent(sent_parsed: List[Dict], sent_idx: int,
                               ngrams: Optional[Dict[str, Dict]] = None,
                               starters: Optional[Dict[str, Dict]] = None,
                               non_starters: Optional[Dict[str, Dict]] = None,
-                              marker_fns: Optional[List[Callable[..., Dict[str, List]]]] = None):
+                              marker_fns: Optional[List[Callable[..., Dict[str, List]]]] = None,
+                              names: Optional[List[str]] = None) -> Dict[str, List]:
     '''
     Extracting markers from a parsed sentence
 
@@ -130,9 +135,10 @@ def extract_markers_from_sent(sent_parsed: List[Dict], sent_idx: int,
         for k, starters in non_starters.items():
             sent_summary[k].extend(starters)
     
-    # strategy by functions
+    # update results for strategies that have other special conditions 
     if marker_fns:
-        names = [fn.__name__ for fn in marker_fns]
+        if not names:
+            names = [fn.__name__ for fn in marker_fns]
         for name, fn in zip(names, marker_fns):
             extracted = fn(sent_parsed, sent_idx)
             for markers in extracted:

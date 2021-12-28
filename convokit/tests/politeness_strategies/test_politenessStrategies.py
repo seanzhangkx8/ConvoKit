@@ -563,7 +563,4 @@ class TestPolitenessStrategies(unittest.TestCase):
         for expected_use, utterance in zip(expected_strategy_uses, corpus.iter_utterances()):
             extracted_use = utterance.retrieve_meta('politeness_strategies')
             for k, v in expected_use.items():
-                try:
-                    self.assertEqual(v, extracted_use[k])
-                except:
-                    print(k, utterance.text)
+                self.assertEqual(v, extracted_use[k])
