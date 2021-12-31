@@ -63,16 +63,16 @@ def adv_just(sent_parsed: List[Dict], sent_idx: int) -> Dict[str, List]:
 
 def apology(sent_parsed: List[Dict], sent_idx: int) -> Dict[str, List]:
     cond1 =  extract_dep_parse_markers(sent_parsed, sent_idx, "me", \
-                                       parents=['forgive', 'excuse'], relation='dobj')
+                                       parents={'forgive', 'excuse'}, relation='dobj')
     cond2 = extract_dep_parse_markers(sent_parsed, sent_idx,'i', \
-                                      parents=['apologize'], relation="nsubj")
+                                      parents={'apologize'}, relation="nsubj")
     return cond1 + cond2 
 
 
 def gratitude(sent_parsed: List[Dict], sent_idx: int) -> Dict[str, List]:
     
-    return extract_dep_parse_markers(sent_parsed, sent_idx, "i", parents=['appreciate']) + \
-           extract_dep_parse_markers(sent_parsed, sent_idx, "we", parents=['appreciate'])
+    return extract_dep_parse_markers(sent_parsed, sent_idx, "i", parents={'appreciate'}) + \
+           extract_dep_parse_markers(sent_parsed, sent_idx, "we", parents={'appreciate'})
     
     
 def swearing(sent_parsed: List[Dict], sent_idx: int) -> Dict[str, List]:
