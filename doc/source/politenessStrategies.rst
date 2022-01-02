@@ -18,3 +18,4 @@ Example usage:
 
 .. automodule:: convokit.politenessStrategies.politenessStrategies
     :members:
+    :member-order: bysource

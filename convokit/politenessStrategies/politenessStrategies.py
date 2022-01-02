@@ -150,6 +150,7 @@ class PolitenessStrategies(Transformer):
         
         df_feat = self._get_feat_df(corpus, selector)
         proportions = df_feat.sum(axis=0) / len(df_feat)
+        num_strategies = len(proportions)
 
         if plot:
             plt.figure(dpi=200, figsize=(9, 6))
