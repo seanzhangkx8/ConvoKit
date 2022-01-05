@@ -154,7 +154,7 @@ def process_text(text, mode='parse', sent_tokenizer=None, spacy_nlp=None):
 # 			if len(alt_sent) > 0:
 # 				sents.append(alt_sent[0])
 	else:
-		sents = [spacy_nlp(x) for x in (sent_tokenizer.tokenize(text))]
+		sents = [spacy_nlp(x) for x in (sent_tokenizer.tokenize(text.strip()))]
 
 
 	sentences = []
