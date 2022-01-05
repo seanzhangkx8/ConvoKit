@@ -95,15 +95,16 @@ class TextParser(TextProcessor):
 						aux_input.get('sent_tokenizer',None), aux_input.get('spacy_nlp',None))
 
 # these could in principle live in a separate text_utils.py file.
-def _process_token(token_obj, root_obj_i, mode='parse', offset=0):
-# def _process_token(token_obj, mode='parse', offset=0):
+# def _process_token(token_obj, root_obj_i, mode='parse', offset=0):
+def _process_token(token_obj, mode='parse', offset=0):
 	if mode == 'tokenize':
 		token_info = {'tok': token_obj.text}
 	else:
 		token_info = {'tok': token_obj.text, 'tag': token_obj.tag_}
 	if mode == 'parse':
 		token_info['dep'] = token_obj.dep_
-		if token_obj.i != root_obj_i:
+		if len([s for s in token_obj.ancestors]) > 0:
+		# if token_obj.i != root_obj_i:
 		# if token_info['dep'] != 'ROOT':
 			token_info['up'] = next(token_obj.ancestors).i - offset
 		token_info['dn'] = [x.i - offset for x in token_obj.children]
@@ -112,8 +113,8 @@ def _process_token(token_obj, root_obj_i, mode='parse', offset=0):
 def _process_sentence(sent_obj, mode='parse', offset=0):
 	tokens = []
 	for token_obj in sent_obj:
-		tokens.append(_process_token(token_obj, sent_obj.root.i, mode, offset))
-		# tokens.append(_process_token(token_obj, mode, offset))
+		# tokens.append(_process_token(token_obj, sent_obj.root.i, mode, offset))
+		tokens.append(_process_token(token_obj, mode, offset))
 	if mode == 'parse':
 		return {'rt': sent_obj.root.i - offset, 'toks': tokens}
 	else:
