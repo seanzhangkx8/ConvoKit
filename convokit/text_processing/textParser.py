@@ -110,7 +110,6 @@ def _process_token(token_obj, mode='parse', offset=0):
 def _process_sentence(sent_obj, mode='parse', offset=0):
 	tokens = []
 	for token_obj in sent_obj:
-		# tokens.append(_process_token(token_obj, sent_obj.root.i, mode, offset))
 		tokens.append(_process_token(token_obj, mode, offset))
 	if mode == 'parse':
 		return {'rt': sent_obj.root.i - offset, 'toks': tokens}
