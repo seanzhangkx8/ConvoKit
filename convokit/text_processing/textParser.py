@@ -147,12 +147,12 @@ def process_text(text, mode='parse', sent_tokenizer=None, spacy_nlp=None):
 				spacy_nlp.add_pipe('sentencizer', first=True)
 
 	if mode == 'parse' or sent_tokenizer is None:
-		# sents = spacy_nlp(text).sents
-		sents = []
-		for sent in spacy_nlp(text).sents:
-			alt_sent = [s for s in spacy_nlp(str(sent).strip()).sents]
-			if len(alt_sent) > 0:
-				sents.append(alt_sent[0])
+		sents = spacy_nlp(text.strip()).sents
+# 		sents = []
+# 		for sent in spacy_nlp(text).sents:
+# 			alt_sent = [s for s in spacy_nlp(str(sent).strip()).sents]
+# 			if len(alt_sent) > 0:
+# 				sents.append(alt_sent[0])
 	else:
 		sents = [spacy_nlp(x) for x in (sent_tokenizer.tokenize(text))]
 
