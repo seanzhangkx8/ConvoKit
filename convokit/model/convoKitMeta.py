@@ -1,4 +1,7 @@
-from collections import MutableMapping
+try:
+    from collections.abc import MutableMapping
+except:
+    from collections import MutableMapping
 from convokit.util import warn
 from .convoKitIndex import ConvoKitIndex
 import json
