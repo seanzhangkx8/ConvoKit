@@ -2,6 +2,17 @@ CaSiNo Corpus
 =============
 CaSiNo (stands for CampSite Negotiations) is a novel dataset of 1030 negotiation dialogues. Two participants take the role of campsite neighbors and negotiate for Food, Water, and Firewood packages, based on their individual preferences and requirements. This design keeps the task tractable, while still facilitating linguistically rich and personal conversations. This helps to overcome the limitations of prior negotiation datasets such as Deal or No Deal and Craigslist Bargain. Each dialogue consists of rich meta-data including participant demographics, personality, and their subjective evaluation of the negotiation in terms of satisfaction and opponent likeness.
 
+A full description of the dataset can be found here:
+`Kushal Chawla, Jaysa Ramirez, Rene Clever, Gale Lucas, Jonathan May, and Jonathan Gratch. 2021. CaSiNo: A Corpus of Campsite Negotiation Dialogues for Automatic Negotiation Systems. In Proceedings of the 2021 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies, pages 3167–3185, Online. Association for Computational Linguistics. <https://aclanthology.org/2021.naacl-main.254/>`_
+
+Please cite this paper when using it in your research:
+
+| @inproceedings{chawla2021casino,
+| 	title={CaSiNo: A Corpus of Campsite Negotiation Dialogues for Automatic Negotiation Systems}, 
+| 	author={Chawla, Kushal and Ramirez, Jaysa and Clever, Rene and Lucas, Gale and May, Jonathan and Gratch, Jonathan}, 
+| 	booktitle={Proceedings of the 2021 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies},
+| 	pages={3167–3185}, 
+| 	year={2021}}
 
 Dataset details
 ---------------
@@ -86,27 +97,14 @@ Statistics about the dataset:
 * Number of utterances: 14,297
 * Avg length of an utterance: 22 tokens
 
-
+Additional note
+---------------
 Data License
-------------
+^^^^^^^^^^^^
+The project is licensed under the `Creative Commons Attribution 4.0 International (CC BY 4.0) license <https://creativecommons.org/licenses/by/4.0/>`_.
 
-The project is licensed under CC-by-4.0
-
-Publication to be cited with the dataset (if any):
-
-The dataset was published at NAACL 2021. Here is the complete citation:
-
-@inproceedings{chawla2021casino,
-  title={CaSiNo: A Corpus of Campsite Negotiation Dialogues for Automatic Negotiation Systems},
-  author={Chawla, Kushal and Ramirez, Jaysa and Clever, Rene and Lucas, Gale and May, Jonathan and Gratch, Jonathan},
-  booktitle={Proceedings of the 2021 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies},
-  pages={3167--3185},
-  year={2021}
-}
-
-
-Contact information
--------------------
+Contact
+^^^^^^^
 
 Name: Kushal Chawla (Corresponding Author)
 
