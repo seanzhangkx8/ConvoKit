@@ -14,7 +14,7 @@ class PairedPrediction(Transformer):
     see Cheng et al. 2014 for an illustrated example of PairedPrediction in research.
     (https://cs.stanford.edu/people/jure/pubs/disqus-icwsm14.pdf)
 
-    See Pairer's documentation for more information about pairing.
+    See :doc:`Pairer's documentation <pairer>`) for more information about pairing.
 
     :param pred_feats: list of metadata attributes (i.e. predictive features) to be used in prediction.
         Features can either be values or a dictionary of key-value pairs.
