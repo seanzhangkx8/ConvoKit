@@ -10,6 +10,7 @@ from convokit import Transformer, CorpusComponent, Corpus
 class Pairer(Transformer):
     """
     Pairer transformer sets up pairing to be used for paired prediction analyses.
+    
     :param obj_type: type of Corpus object to classify: ‘conversation’, ‘speaker’, or ‘utterance’
     :param pairing_func: the Corpus object characteristic to pair on, e.g. to pair on the first 10 characters of a
         well-structured id, use lambda obj: obj.id[:10]
