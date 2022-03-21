@@ -13,6 +13,7 @@ These are the transformers related to generating some analysis of the Corpus.
    Forecaster <forecaster.rst>
    ThreadEmbedder <threadEmbedder.rst>
    CommunityEmbedder <communityEmbedder.rst>
+   Pairer <pairer.rst>
    PairedPrediction <pairedprediction.rst>
    Ranker <ranker.rst>
    SpeakerConvoDiversity <speakerConvoDiversity.rst>
