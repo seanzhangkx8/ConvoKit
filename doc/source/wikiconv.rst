@@ -8,6 +8,7 @@ Summary
 -------
 Organize the conversations of the Wikiconv Dataset to mirror the most up-to-date version of the conversation at the time of data collection. This most up-to-date version of the conversation reflects the "final" state of each utterance (the utterance after all edits at time of data collection have been performed on the utterance) in the conversation. 
 
+Due to the large number of conversations in WikiConv, the data is distributed as multiple Corpuses, with each Corpus corresponding to one year of data.
 
 Dataset Details
 ---------------
@@ -61,8 +62,22 @@ Metadata for each conversation include:
 - Example: "287020584.2938.0": {"page_id": "378580", "page_title": "Eric Harris and Dylan Klebold", "page_type": "talk"}
 
 
-Additional notes
-----------------
+Usage
+-----
+Each Corpus is named as "wikiconv-<year>". For example, the Corpus containing the WikiConv data from year 2003 can be downloaded as follows: 
+
+>>> from convokit import Corpus, download
+>>> corpus = Corpus(filename=download("wikiconv-2003"))
+
+For some quick stats on this subreddit:
+
+>>> corpus.print_summary_stats()
+Number of Speakers: 9168
+Number of Utterances: 140265
+Number of Conversations: 91787
+
+Combining different years
+^^^^^^^^^^^^^^^^^^^^^^^^^
 A common use case for the WikiConv corpora might be to combine corpora from different years for further analysis. This is straightforward with the Corpus's merge functionality, which we demonstrate below.
 
 >>> from convokit import Corpus, download
