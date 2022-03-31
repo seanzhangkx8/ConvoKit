@@ -1,4 +1,4 @@
-import numpy as np
+import numpy as np 
 from sklearn.feature_extraction.text import CountVectorizer as CV
 from convokit import Transformer
 from convokit.model import Corpus, CorpusComponent
@@ -281,7 +281,7 @@ class FightingWords(Transformer):
         Get z-score of a given ngram.
 
         :param ngram: ngram of interest
-        :return: z-score value, None if zgram not in vocabulary
+        :return: z-score value, None if ngram not in vocabulary
         """
         if self.ngram_zscores is None:
             raise ValueError("fit() must be run on a corpus first.")
