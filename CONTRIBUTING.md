@@ -16,7 +16,7 @@ Feature requests and/or suggestions can also be submitted through the GitHub iss
 
 ## Contributing new datasets
 
-If you want to contribute directly to the toolkit, one way of doing so that doesn't require extensive coding knowledge is to supply new datasets for inclusion in the next release. ConvoKit provides methods for converting raw conversation data into its own Corpus format; see the [example script](https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/converting_movie_corpus.ipynb) for a walkthrough of how to do this.
+If you want to contribute directly to the toolkit, one way of doing so that doesn't require extensive coding knowledge is to supply new datasets for inclusion in the next release. ConvoKit provides methods for converting raw conversation data into its own Corpus format; see the [example script](https://github.com/CornellNLP/ConvoKit/blob/master/examples/converting_movie_corpus.ipynb) for a walkthrough of how to do this.
 
 Once you have created a Corpus representation of your dataset, follow these steps to request its inclusion in ConvoKit:
 

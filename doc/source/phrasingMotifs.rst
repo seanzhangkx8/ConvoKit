@@ -3,7 +3,7 @@ Phrasing Motifs
 
 Extracts phrasing motifs from text, as described in this `paper <http://www.cs.cornell.edu/~cristian/Asking_too_much.html>`_.
 
-Example usage: `using phrasing motifs as features in a prompt types model <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/prompt-types/prompt-type-demo.ipynb>`_.
+Example usage: `using phrasing motifs as features in a prompt types model <https://github.com/CornellNLP/ConvoKit/blob/master/examples/prompt-types/prompt-type-demo.ipynb>`_.
 
 .. automodule:: convokit.phrasing_motifs.phrasingMotifs
 	:members:

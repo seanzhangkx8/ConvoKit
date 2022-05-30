@@ -10,8 +10,8 @@ Along with the entire corpus, we release another version split up into different
 
 The following examples use this corpus: 
 
-* `computing the orientation of utterances <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/tree/master/examples/orientation>`_ 
-* `computing linguistic coordination <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/coordination/examples.ipynb>`_
+* `computing the orientation of utterances <https://github.com/CornellNLP/ConvoKit/tree/master/examples/orientation>`_
+* `computing linguistic coordination <https://github.com/CornellNLP/ConvoKit/blob/master/examples/coordination/examples.ipynb>`_
 
 Some considerations regarding case and voting information
 -------------------------------------------------

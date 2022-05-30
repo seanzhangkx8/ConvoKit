@@ -88,4 +88,4 @@ Number of Conversations: 216894
 Additional note
 ---------------
 
-See this `example notebook <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/convokit/expected_context_framework/demos/parliament_demo.ipynb>`_ for an example of how to group questions in this dataset according to their rhetorical roles.  
+See this `example notebook <https://github.com/CornellNLP/ConvoKit/blob/master/convokit/expected_context_framework/demos/parliament_demo.ipynb>`_ for an example of how to group questions in this dataset according to their rhetorical roles.

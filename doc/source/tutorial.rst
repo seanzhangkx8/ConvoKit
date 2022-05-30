@@ -22,7 +22,7 @@ A brief note
 
 This is a practical hands-on introduction ConvoKit. Read our description of ConvoKit's :doc:`architecture </architecture>` for an understanding of the higher-level design decisions for this package.
 
-We **recommend** following our `interactive Colab notebook <https://colab.research.google.com/github/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/Introduction_to_ConvoKit.ipynb>`_, which contains the same steps as this tutorial, but allows for the full range of outputs (e.g. graphs, tables) to be displayed.
+We **recommend** following our `interactive Colab notebook <https://colab.research.google.com/github/CornellNLP/ConvoKit/blob/master/examples/Introduction_to_ConvoKit.ipynb>`_, which contains the same steps as this tutorial, but allows for the full range of outputs (e.g. graphs, tables) to be displayed.
 
 Tutorial
 ========
@@ -129,7 +129,7 @@ Speaker('id': 1657, 'meta': {'sex': 'FEMALE', 'education': 2, 'birth_year': 1947
 
 **Vectors in ConvoKit**:
 Vector data is also easy to use in ConvoKit and we provide first-class support for integrating vector data with Corpus components.
-Read our `introduction to vectors in ConvoKit <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/vectors/vector_demo.ipynb>`_ for more details.
+Read our `introduction to vectors in ConvoKit <https://github.com/CornellNLP/ConvoKit/blob/master/examples/vectors/vector_demo.ipynb>`_ for more details.
 
 What else can we do with the Corpus object?
 -------------------------------------------
@@ -534,8 +534,8 @@ Other transformers can be applied in the same way, and even chained in sequence,
 Additional notes
 ================
 
-1. Some corpora are particularly large and may not be initializable in their entirety without significant computational resources. However, it is possible to `partially load utterances from a dataset <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/convokit/tests/notebook_testers/test_corpus_partial_load.ipynb>`_ to carry out processing of large corpora sequentially.
+1. Some corpora are particularly large and may not be initializable in their entirety without significant computational resources. However, it is possible to `partially load utterances from a dataset <https://github.com/CornellNLP/ConvoKit/blob/master/convokit/tests/notebook_testers/test_corpus_partial_load.ipynb>`_ to carry out processing of large corpora sequentially.
 
-2. It is possible to `merge two different Corpora (even when there are overlaps or conflicts in Corpus data) <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/merging/corpus_merge_demo.ipynb>`_
+2. It is possible to `merge two different Corpora (even when there are overlaps or conflicts in Corpus data) <https://github.com/CornellNLP/ConvoKit/blob/master/examples/merging/corpus_merge_demo.ipynb>`_
 
 3. See :doc:`examples` for more illustrations of Corpus and Transformer functionality.

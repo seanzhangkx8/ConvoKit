@@ -67,7 +67,7 @@ Number of Speakers: 34911
 Number of Utterances: 293297
 Number of Conversations: 3051
 
-We provide a `Jupyter notebook <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/datasets/winning-args-corpus/stats.ipynb>`_ that demonstrates how to subset the data into successful and unsuccessful arguments (as described in Section 4 of the original paper) and provides basic statistics about their respective comments.
+We provide a `Jupyter notebook <https://github.com/CornellNLP/ConvoKit/blob/master/datasets/winning-args-corpus/stats.ipynb>`_ that demonstrates how to subset the data into successful and unsuccessful arguments (as described in Section 4 of the original paper) and provides basic statistics about their respective comments.
 
 Additional notes
 ----------------

@@ -18,7 +18,7 @@ for differences between these paired sets of utterances.
 
 Documentation for the two transformers that do paired prediction task is presented below. PairedPrediction transformer uses corpus object’s metadata features for predictions, while PairedVectorPrediction transformer utilizes vector data associated with the object. Also, see the documentation for :doc:`Pairer transformer <pairer>`, which sets up the pairs needed in paired prediction analysis. 
 
-Example usage: `Using Hyperconvo features to predict conversation growth on Reddit in a paired setting <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/hyperconvo/predictive_tasks.ipynb>`_
+Example usage: `Using Hyperconvo features to predict conversation growth on Reddit in a paired setting <https://github.com/CornellNLP/ConvoKit/blob/master/examples/hyperconvo/predictive_tasks.ipynb>`_
 
 .. automodule:: convokit.paired_prediction.pairedPrediction
     :members:

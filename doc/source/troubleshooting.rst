@@ -4,7 +4,7 @@ Troubleshooting FAQ
 General checks
 ^^^^^^^^^^^^^^
 - Check that you are using the latest version of ConvoKit
-- Verify that your installed package dependencies for ConvoKit satisfy `ConvoKit's versioning requirements <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/requirements.txt>`_
+- Verify that your installed package dependencies for ConvoKit satisfy `ConvoKit's versioning requirements <https://github.com/CornellNLP/ConvoKit/blob/master/requirements.txt>`_
 - If possible, use a Unix system, i.e. Mac OS or the Linux distros. We advise against using Windows, but Windows speakers may consider using the Windows subsystem for Linux (WSL) instead.
 
 Issues

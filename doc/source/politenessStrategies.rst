@@ -12,9 +12,9 @@ Currently offering three strategy collections covering two languages:
 
 Example usage:
 
-* `extracting politeness features and markers <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/politeness-strategies/Politeness_Marker_and_Summarize_Demo.ipynb>`_, 
-* `understanding the (mis)use of politeness strategies in conversations gone awry on Wikipedia <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/conversations-gone-awry/Conversations_Gone_Awry_Prediction.ipynb>`_,
-* `assessing the permeability of politeness markers in machine-translated communication <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/politeness-strategies/Politeness_Strategies_in_MT-mediated_Communication.ipynb>`_
+* `extracting politeness features and markers <https://github.com/CornellNLP/ConvoKit/blob/master/examples/politeness-strategies/Politeness_Marker_and_Summarize_Demo.ipynb>`_,
+* `understanding the (mis)use of politeness strategies in conversations gone awry on Wikipedia <https://github.com/CornellNLP/ConvoKit/blob/master/examples/conversations-gone-awry/Conversations_Gone_Awry_Prediction.ipynb>`_,
+* `assessing the permeability of politeness markers in machine-translated communication <https://github.com/CornellNLP/ConvoKit/blob/master/examples/politeness-strategies/Politeness_Strategies_in_MT-mediated_Communication.ipynb>`_
 
 .. automodule:: convokit.politenessStrategies.politenessStrategies
     :members:

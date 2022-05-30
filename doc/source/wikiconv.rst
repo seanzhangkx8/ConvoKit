@@ -104,4 +104,4 @@ However, the number of Speakers and Conversations is not the sum of those of the
 
 Examples
 --------
-`Jupyter Notebook containing examples of talk pages with their representations in Wikiconv form <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/examples/dataset-examples/wikiconv/Create_Conversations_Script.ipynb>`_
+`Jupyter Notebook containing examples of talk pages with their representations in Wikiconv form <https://github.com/CornellNLP/ConvoKit/blob/master/examples/dataset-examples/wikiconv/Create_Conversations_Script.ipynb>`_

@@ -5,7 +5,7 @@ Based on Monroe et al.'s `Fightin’ Words: Lexical Feature Selection and Evalua
 
 Implementation adapted from `Jack Hessel's implementation <https://github.com/jmhessel/FightingWords>`_.
 
-Example usage: `finding the fighting words of r/atheism and r/Christianity <https://github.com/CornellNLP/Cornell-Conversational-Analysis-Toolkit/blob/master/convokit/fighting_words/demos/fightingwords_demo.ipynb>`_.
+Example usage: `finding the fighting words of r/atheism and r/Christianity <https://github.com/CornellNLP/ConvoKit/blob/master/convokit/fighting_words/demos/fightingwords_demo.ipynb>`_.
 
 .. automodule:: convokit.fighting_words.fightingWords
     :members:
