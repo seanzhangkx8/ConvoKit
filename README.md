@@ -3,16 +3,10 @@
 [![All Contributors](https://img.shields.io/badge/all_contributors-28-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
-<p>
-<a href="https://convokit.cornell.edu/documentation/">
-    <img src="https://img.shields.io/badge/docs-stable-blue.svg" alt="Docs"/></a>
-<a href="https://github.com/CornellNLP/ConvoKit/blob/master/LICENSE.md">
-    <img src="https://img.shields.io/github/license/mashape/apistatus.svg" alt="License" /></a> 
-<a href="https://github.com/CornellNLP/ConvoKit/actions?query=workflow%3ACI">
-    <img src="https://img.shields.io/github/workflow/status/bus-stop/x-terminal/CI?logo=github" alt="actions status"></a>
-<a href="https://pypi.python.org/pypi/convokit/">
-    <img src="https://img.shields.io/pypi/pyversions/convokit" alt="versions"></a>    
-</p>
+[![pypi](https://img.shields.io/pypi/v/convokit.svg)](https://pypi.org/pypi/convokit/)
+[![py\_versions](https://img.shields.io/badge/python-3.6%2B-blue)](https://pypi.org/pypi/convokit/)
+[![license](https://img.shields.io/badge/license-MIT-green)](https://github.com/CornellNLP/ConvoKit/blob/master/LICENSE.md)
+[![Slack Community](https://img.shields.io/static/v1?logo=slack&style=flat&color=red&label=slack&message=community)](https://join.slack.com/t/convokit/shared_invite/zt-1axq34qrp-1hDXQrvSXClIbJOqw4S03Q)
 
 This toolkit contains tools to extract conversational features and analyze social phenomena in conversations, using a [single unified interface](https://convokit.cornell.edu/documentation/architecture.html) inspired by (and compatible with) scikit-learn.  Several large [conversational datasets](https://github.com/CornellNLP/ConvoKit#datasets) are included together with scripts exemplifying the use of the toolkit on these datasets. The latest version is [2.5.3](https://github.com/CornellNLP/ConvoKit/releases/tag/v2.5.2) (released 16 Jan 2022); follow the [project on GitHub](https://github.com/CornellNLP/ConvoKit) to keep track of updates.
 
