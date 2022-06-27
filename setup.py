@@ -6,7 +6,7 @@ setup(
     author_email="cristian@cs.cornell.edu",
     url="https://github.com/CornellNLP/ConvoKit",
     description="ConvoKit",
-    version="2.5.3",
+    version="2.6.0",
     packages=["convokit",
                 "convokit.bag_of_words",
                 "convokit.classifier",
