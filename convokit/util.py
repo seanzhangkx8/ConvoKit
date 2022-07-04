@@ -1,11 +1,13 @@
-import urllib.request
-import shutil
-import os
-import zipfile
 import json
-from typing import Dict
-import requests
+import os
+import shutil
+import urllib.request
 import warnings
+import zipfile
+from typing import Dict
+
+import requests
+
 
 # returns a path to the dataset file
 def download(name: str, verbose: bool = True, data_dir: str = None, use_newest_version: bool = True,
@@ -73,7 +75,7 @@ def download(name: str, verbose: bool = True, data_dir: str = None, use_newest_v
     if use_local:
         return download_local(name, data_dir)
 
-    dataset_config = requests.get('https://zissou.infosci.cornell.edu/convokit/datasets/download_config.json').json()
+    dataset_config = requests.get('https://raw.githubusercontent.com/CornellNLP/ConvoKit/master/download_config.json').json()
 
     cur_version = dataset_config['cur_version']
     DatasetURLs = dataset_config['DatasetURLs']
