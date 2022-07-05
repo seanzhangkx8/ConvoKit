@@ -13,8 +13,9 @@ class ConvoKitMeta(MutableMapping, dict):
     """
     ConvoKitMeta is a dictlike object that stores the metadata attributes of a corpus component
     """
+
     def __init__(self, owner, convokit_index, obj_type):
-        self.owner = owner # Corpus or CorpusComponent
+        self.owner = owner  # Corpus or CorpusComponent
         self.index: ConvoKitIndex = convokit_index
         self.obj_type = obj_type
 
@@ -65,7 +66,7 @@ class ConvoKitMeta(MutableMapping, dict):
         self._get_storage().update_data("meta", self.storage_key, key, value)
 
     def __delitem__(self, key):
-        if self.obj_type == 'corpus':
+        if self.obj_type == "corpus":
             self.index.del_from_index(self.obj_type, key)
             self._get_storage().delete_data("meta", self.storage_key, key)
         else:
@@ -89,7 +90,7 @@ class ConvoKitMeta(MutableMapping, dict):
 
     def __contains__(self, x):
         return self._get_storage().get_data("meta", self.storage_key).__contains__(x)
-    
+
     def __repr__(self) -> str:
         return "ConvoKitMeta(" + self.to_dict().__repr__() + ")"
 

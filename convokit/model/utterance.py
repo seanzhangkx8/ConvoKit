@@ -25,11 +25,19 @@ class Utterance(CorpusComponent):
         utterance-level metadata.
     """
 
-    def __init__(self, owner=None, id: Optional[str] = None, speaker: Optional[Speaker] = None,
-                 user: Optional[Speaker] = None, conversation_id: Optional[str] = None,
-                 root: Optional[str] = None, reply_to: Optional[str] = None,
-                 timestamp: Optional[int] = None, text: str = '',
-                 meta: Optional[Dict] = None):
+    def __init__(
+        self,
+        owner=None,
+        id: Optional[str] = None,
+        speaker: Optional[Speaker] = None,
+        user: Optional[Speaker] = None,
+        conversation_id: Optional[str] = None,
+        root: Optional[str] = None,
+        reply_to: Optional[str] = None,
+        timestamp: Optional[int] = None,
+        text: str = "",
+        meta: Optional[Dict] = None,
+    ):
         # check arguments that have alternate naming due to backwards compatibility
         if speaker is None:
             if user is not None:
@@ -40,26 +48,30 @@ class Utterance(CorpusComponent):
             conversation_id = root
 
         if conversation_id is not None and not isinstance(conversation_id, str):
-            warn("Utterance conversation_id must be a string: conversation_id of utterance with ID: {} "
-                 "has been casted to a string.".format(id))
+            warn(
+                "Utterance conversation_id must be a string: conversation_id of utterance with ID: {} "
+                "has been casted to a string.".format(id)
+            )
             conversation_id = str(conversation_id)
         if not isinstance(text, str):
-            warn("Utterance text must be a string: text of utterance with ID: {} "
-                 "has been casted to a string.".format(id))
-            text = '' if text is None else str(text)
+            warn(
+                "Utterance text must be a string: text of utterance with ID: {} "
+                "has been casted to a string.".format(id)
+            )
+            text = "" if text is None else str(text)
 
         props = {
-            'speaker': speaker.id,
-            'conversation_id': conversation_id,
-            'reply_to': reply_to,
-            'timestamp': timestamp,
-            'text': text
+            "speaker_id": speaker.id,
+            "conversation_id": conversation_id,
+            "reply_to": reply_to,
+            "timestamp": timestamp,
+            "text": text,
         }
         super().__init__(obj_type="utterance", owner=owner, id=id, initial_data=props, meta=meta)
         self.speaker_ = speaker
 
     ############################################################################
-    ## directly-accessible class properties (roughly equivalent to keys in the 
+    ## directly-accessible class properties (roughly equivalent to keys in the
     ## JSON, plus aliases for compatibility)
     ############################################################################
 
@@ -68,6 +80,7 @@ class Utterance(CorpusComponent):
 
     def _set_speaker(self, val):
         self.speaker_ = val
+        self.set_data("speaker_id", self.speaker.id)
 
     speaker = property(_get_speaker, _set_speaker)
 
@@ -134,6 +147,18 @@ class Utterance(CorpusComponent):
         """
 
         return self.speaker
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "conversation_id": self.conversation_id,
+            "reply_to": self.reply_to,
+            "speaker": self.speaker,
+            "timestamp": self.timestamp,
+            "text": self.text,
+            "vectors": self.vectors,
+            "meta": self.meta if type(self.meta) == dict else self.meta.to_dict(),
+        }
 
     def __hash__(self):
         return super().__hash__()

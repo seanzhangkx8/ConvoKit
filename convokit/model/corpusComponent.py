@@ -4,28 +4,31 @@ from typing import List, Optional
 
 
 class CorpusComponent:
-
     def __init__(
-        self, 
-        obj_type: str, 
-        owner=None, 
-        id=None, 
-        initial_data=None, 
-        vectors: List[str]=None, 
-        meta=None
+        self,
+        obj_type: str,
+        owner=None,
+        id=None,
+        initial_data=None,
+        vectors: List[str] = None,
+        meta=None,
     ):
         self.obj_type = obj_type  # utterance, speaker, conversation
         self._owner = owner
         self._id = id
         self.vectors = vectors if vectors is not None else []
-        
+
         # if the CorpusComponent is initialized with an owner set up an entry
         # in the owner's storage; if it is not initialized with an owner
         # (i.e. it is a standalone object) set up a dict-based temp storage
         if self.owner is None:
             self._temp_storage = initial_data if initial_data is not None else {}
         else:
-            self.owner.storage.initialize_data_for_component(self.obj_type, self._id, initial_value=(initial_data if initial_data is not None else {}))
+            self.owner.storage.initialize_data_for_component(
+                self.obj_type,
+                self._id,
+                initial_value=(initial_data if initial_data is not None else {}),
+            )
 
         if meta is None:
             meta = dict()
@@ -42,8 +45,14 @@ class CorpusComponent:
             # (1) transfer this component's data to the new owner's StorageManager
             # (2) avoid duplicates by removing the data from the old owner (or temp storage if there was no prior owner)
             # (3) reinitialize the metadata instance
-            data_dict = dict(previous_owner.storage.get_data(self.id)) if previous_owner is not None else self._temp_storage
-            self.owner.storage.initialize_data_for_component(self.obj_type, self.id, initial_value=data_dict)
+            data_dict = (
+                dict(previous_owner.storage.get_data(self.id))
+                if previous_owner is not None
+                else self._temp_storage
+            )
+            self.owner.storage.initialize_data_for_component(
+                self.obj_type, self.id, initial_value=data_dict
+            )
             if previous_owner is not None:
                 previous_owner.storage.delete_data(self.obj_type, self.id)
             else:
@@ -179,6 +188,13 @@ class CorpusComponent:
         :return: None
         """
         self.vectors.remove(vector_name)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "vectors": self.vectors,
+            "meta": self.meta if type(self.meta) == dict else self.meta.to_dict(),
+        }
 
     def __str__(self):
         return "{}(id: {}, vectors: {}, meta: {})".format(
