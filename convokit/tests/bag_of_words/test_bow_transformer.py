@@ -9,15 +9,11 @@ from convokit.tests.util import burr_sir_corpus, BURR_SIR_TEXT_1, BURR_SIR_TEXT_
 
 
 def burr_sir_sentence_1_vector():
-    return coo_matrix([
-        [1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1]
-    ]).tocsr()
+    return coo_matrix([[1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1]]).tocsr()
 
 
 def burr_sir_sentence_2_vector():
-    return coo_matrix([
-        [0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 0]
-    ]).tocsr()
+    return coo_matrix([[0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 0]]).tocsr()
 
 
 def assert_sparse_matrices_equal(matrix1, matrix2):
@@ -31,27 +27,24 @@ class FakeVectorizer:
         assert texts[0] == BURR_SIR_TEXT_1
         assert texts[1] == BURR_SIR_TEXT_2
 
-        return coo_matrix([
-            [1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1],
-            [0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 0]
-        ]).tocsr()
+        return coo_matrix(
+            [[1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1], [0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 0]]
+        ).tocsr()
 
     def fit(self, docs):
         pass
 
+
 class TestBoWTransformer(TestCase):
     def test_transform_utterances(self):
         corpus = burr_sir_corpus()
-        transformer = BoWTransformer(obj_type='utterance', vectorizer=FakeVectorizer())
+        transformer = BoWTransformer(obj_type="utterance", vectorizer=FakeVectorizer())
         corpus = transformer.fit_transform(corpus)
 
-        expected_vectors = [
-            burr_sir_sentence_1_vector(),
-            burr_sir_sentence_2_vector()
-        ]
+        expected_vectors = [burr_sir_sentence_1_vector(), burr_sir_sentence_2_vector()]
 
         for expected_vector, utterance in zip(expected_vectors, corpus.iter_utterances()):
-            actual_vector = utterance.get_vector('bow_vector')
+            actual_vector = utterance.get_vector("bow_vector")
             assert_sparse_matrices_equal(expected_vector, actual_vector)
 
 

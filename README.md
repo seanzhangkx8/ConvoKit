@@ -5,8 +5,10 @@
 
 [![pypi](https://img.shields.io/pypi/v/convokit.svg)](https://pypi.org/pypi/convokit/)
 [![py\_versions](https://img.shields.io/badge/python-3.6%2B-blue)](https://pypi.org/pypi/convokit/)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![license](https://img.shields.io/badge/license-MIT-green)](https://github.com/CornellNLP/ConvoKit/blob/master/LICENSE.md)
 [![Slack Community](https://img.shields.io/static/v1?logo=slack&style=flat&color=red&label=slack&message=community)](https://join.slack.com/t/convokit/shared_invite/zt-1axq34qrp-1hDXQrvSXClIbJOqw4S03Q)
+
 
 This toolkit contains tools to extract conversational features and analyze social phenomena in conversations, using a [single unified interface](https://convokit.cornell.edu/documentation/architecture.html) inspired by (and compatible with) scikit-learn.  Several large [conversational datasets](https://github.com/CornellNLP/ConvoKit#datasets) are included together with scripts exemplifying the use of the toolkit on these datasets. The latest version is [2.5.3](https://github.com/CornellNLP/ConvoKit/releases/tag/v2.5.2) (released 16 Jan 2022); follow the [project on GitHub](https://github.com/CornellNLP/ConvoKit) to keep track of updates.
 
@@ -16,18 +18,18 @@ The toolkit currently implements features for:
 
 ### [Linguistic coordination](https://www.cs.cornell.edu/~cristian/Echoes_of_power.html) <sub><sup>[(API)](https://convokit.cornell.edu/documentation/coordination.html)</sup></sub>
 
-A measure of linguistic influence (and relative power) between individuals or groups based on their use of function words.  
+A measure of linguistic influence (and relative power) between individuals or groups based on their use of function words.
 Example: [exploring the balance of power in the U.S. Supreme Court](https://github.com/CornellNLP/ConvoKit/blob/master/examples/coordination/examples.ipynb).
 
 ### [Politeness strategies](https://www.cs.cornell.edu/~cristian/Politeness.html) <sub><sup>[(API)](https://convokit.cornell.edu/documentation/politenessStrategies.html)</sup></sub>
 
-A set of lexical and parse-based features correlating with politeness and impoliteness.  
+A set of lexical and parse-based features correlating with politeness and impoliteness.
 Example: [understanding the (mis)use of politeness strategies in conversations gone awry on Wikipedia](https://github.com/CornellNLP/ConvoKit/blob/master/examples/conversations-gone-awry/Conversations_Gone_Awry_Prediction.ipynb).
 
 ### [Expected Conversational Context Framework](https://tisjune.github.io/research/dissertation) <sub><sup>[(API)](https://convokit.cornell.edu/documentation/expected_context_model.html)</sup></sub>
 
 A framework for characterizing utterances and terms based on their expected conversational context, consisting of model implementations and wrapper pipelines.
-Examples: [deriving question types and other characterizations in British parliamentary question periods](https://github.com/CornellNLP/ConvoKit/blob/master/convokit/expected_context_framework/demos/parliament_demo.ipynb), 
+Examples: [deriving question types and other characterizations in British parliamentary question periods](https://github.com/CornellNLP/ConvoKit/blob/master/convokit/expected_context_framework/demos/parliament_demo.ipynb),
 [exploration of Switchboard dialog acts corpus](https://github.com/CornellNLP/ConvoKit/blob/master/convokit/expected_context_framework/demos/switchboard_exploration_demo.ipynb),  [examining Wikipedia talk page discussions](https://github.com/CornellNLP/ConvoKit/blob/master/convokit/expected_context_framework/demos/wiki_awry_demo.ipynb) and [computing the orientation of justice utterances in the US Supreme Court](https://github.com/CornellNLP/ConvoKit/blob/master/convokit/expected_context_framework/demos/scotus_orientation_demo.ipynb)
 
 <!-- ### [Prompt types](http://www.cs.cornell.edu/~cristian/Asking_too_much.html) <sub><sup>[(API)](https://convokit.cornell.edu/documentation/promptTypes.html)</sup></sub>
@@ -38,15 +40,15 @@ Examples: [extracting question types in the U.K. parliament](https://github.com/
 Also includes functionality to extract surface motifs to represent utterances, used in the above paper [(API)](https://convokit.cornell.edu/documentation/phrasingMotifs.html). -->
 
 ### [Hypergraph conversation representation](http://www.cs.cornell.edu/~cristian/Patterns_of_participant_interactions.html) <sub><sup>[(API)](https://convokit.cornell.edu/documentation/hyperconvo.html)</sup></sub>
-A method for extracting structural features of conversations through a hypergraph representation.  
+A method for extracting structural features of conversations through a hypergraph representation.
 Example: [hypergraph creation and feature extraction, visualization and interpretation on a subsample of Reddit](https://github.com/CornellNLP/ConvoKit/blob/master/examples/hyperconvo/demo_new.ipynb).
 
 ### [Linguistic diversity in conversations](http://www.cs.cornell.edu/~cristian/Finding_your_voice__linguistic_development.html) <sub><sup>[(API)](https://convokit.cornell.edu/documentation/speakerConvoDiversity.html)</sup></sub>
-A method to compute the linguistic diversity of individuals within their own conversations, and between other individuals in a population.  
+A method to compute the linguistic diversity of individuals within their own conversations, and between other individuals in a population.
 Example: [speaker conversation attributes and diversity example on ChangeMyView](https://github.com/CornellNLP/ConvoKit/blob/master/examples/speaker-convo-attributes/speaker-convo-diversity-demo.ipynb)
 
 ### [CRAFT: Online forecasting of conversational outcomes](https://arxiv.org/abs/1909.01362) <sub><sup>[(API)](https://convokit.cornell.edu/documentation/forecaster.html)</sup></sub>
-A neural model for forecasting future outcomes of conversations (e.g., derailment into personal attacks) as they develop.  
+A neural model for forecasting future outcomes of conversations (e.g., derailment into personal attacks) as they develop.
 Available as an interactive notebook: [full version (fine-tuning + inference)](https://colab.research.google.com/drive/1SH4iMEHdoH4IovN-b9QOSK4kG4DhAwmb) or [inference-only](https://colab.research.google.com/drive/1GvICZN0VwZQSWw3pJaEVY-EQGoO-L5lH).
 
 
@@ -57,39 +59,39 @@ These datasets can be downloaded using the `convokit.download()` [helper functio
 
 ### [Conversations Gone Awry Dataset](https://convokit.cornell.edu/documentation/awry.html)
 
-Two related corpora of conversations that derail into antisocial behavior. One corpus consists of Wikipedia talk page conversations that derail into personal attacks as labeled by crowdworkers (4,188 conversations containing 30.021 comments). The other consists of discussion threads on the subreddit ChangeMyView (CMV) that derail into rule-violating behavior as determined by the presence of a moderator intervention (6,842 conversations containing 42,964 comments).  
+Two related corpora of conversations that derail into antisocial behavior. One corpus consists of Wikipedia talk page conversations that derail into personal attacks as labeled by crowdworkers (4,188 conversations containing 30.021 comments). The other consists of discussion threads on the subreddit ChangeMyView (CMV) that derail into rule-violating behavior as determined by the presence of a moderator intervention (6,842 conversations containing 42,964 comments).
 Name for download: `conversations-gone-awry-corpus` (Wikipedia version) or `conversations-gone-awry-cmv-corpus` (Reddit CMV version)
 
 ### [Cornell Movie-Dialogs Corpus](https://convokit.cornell.edu/documentation/movie.html)
 
-A large metadata-rich collection of fictional conversations extracted from raw movie scripts. (220,579 conversational exchanges between 10,292 pairs of movie characters in 617 movies). 
+A large metadata-rich collection of fictional conversations extracted from raw movie scripts. (220,579 conversational exchanges between 10,292 pairs of movie characters in 617 movies).
 Name for download: `movie-corpus`
 
 ### [Parliament Question Time Corpus](https://convokit.cornell.edu/documentation/parliament.html)
 
-Parliamentary question periods from May 1979 to December 2016 (216,894 question-answer pairs).  
+Parliamentary question periods from May 1979 to December 2016 (216,894 question-answer pairs).
 Name for download: `parliament-corpus`
 
 ### [Supreme Court Corpus](https://convokit.cornell.edu/documentation/supreme.html)
 
-A collection of conversations from the U.S. Supreme Court Oral Arguments.  
+A collection of conversations from the U.S. Supreme Court Oral Arguments.
 Name for download: `supreme-corpus`
 
 ### [Wikipedia Talk Pages Corpus](https://convokit.cornell.edu/documentation/wiki.html)
 
-A medium-size collection of conversations from Wikipedia editors' talk pages.  
+A medium-size collection of conversations from Wikipedia editors' talk pages.
 Name for download: `wiki-corpus`
 
 ### [Tennis Interviews](https://convokit.cornell.edu/documentation/tennis.html)
 
-Transcripts for tennis singles post-match press conferences for major tournaments between 2007 to 2015 (6,467 post-match press conferences).  
+Transcripts for tennis singles post-match press conferences for major tournaments between 2007 to 2015 (6,467 post-match press conferences).
 Name for download: `tennis-corpus`
 
 ### [Reddit Corpus](https://convokit.cornell.edu/documentation/subreddit.html)
 
-Reddit conversations from over 900k subreddits, arranged by subreddit. A [small subset](https://convokit.cornell.edu/documentation/reddit-small.html) sampled from 100 highly active subreddits is also available. 
- 
-Name for download: `subreddit-<name_of_subreddit>` for the by-subreddit data, `reddit-corpus-small` for the small subset. 
+Reddit conversations from over 900k subreddits, arranged by subreddit. A [small subset](https://convokit.cornell.edu/documentation/reddit-small.html) sampled from 100 highly active subreddits is also available.
+
+Name for download: `subreddit-<name_of_subreddit>` for the by-subreddit data, `reddit-corpus-small` for the small subset.
 
 ### [WikiConv Corpus](https://convokit.cornell.edu/documentation/wikiconv.html)
 
@@ -179,7 +181,7 @@ This toolkit requires Python >= 3.6.
 2. Download Spacy's English model: `python3 -m spacy download en`
 3. Download NLTK's 'punkt' model: `import nltk; nltk.download('punkt')` (in Python interpreter)
 
-Alternatively, visit our [Github Page](https://github.com/CornellNLP/ConvoKit) to install from source. 
+Alternatively, visit our [Github Page](https://github.com/CornellNLP/ConvoKit) to install from source.
 
 **If you encounter difficulties with installation**, check out our **[Troubleshooting Guide](https://convokit.cornell.edu/documentation/troubleshooting.html)** for a list of solutions to common issues.
 

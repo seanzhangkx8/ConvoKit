@@ -13,7 +13,7 @@ threads_feats = dict()
 convos = corpus.iter_conversations()
 
 for convo in convos:
-    threads_feats.update(convo.meta['hyperconvo'])
+    threads_feats.update(convo.meta["hyperconvo"])
 
 feat_names = list(sorted(threads_feats[list(threads_feats.keys())[0]].keys()))
 
@@ -60,8 +60,7 @@ print("TOP FEATURES")
 for d in range(7):
     print("dimension {}".format(d))
     print("- most negative features")
-    ranked = list(sorted(zip(feat_names, np.transpose(components)),
-        key=lambda x: x[1][d]))
+    ranked = list(sorted(zip(feat_names, np.transpose(components)), key=lambda x: x[1][d]))
     for label, x in ranked[:10]:
         print("\t{}  {:.4f}".format(label, x[d]))
     print("- most positive features")

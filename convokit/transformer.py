@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from .model import Corpus
 
+
 class Transformer(ABC):
     """
     Abstract base class for modules that take in a Corpus and modify the Corpus
@@ -8,7 +9,7 @@ class Transformer(ABC):
     Transformer API. Exposes ``fit()`` and ``transform()`` methods. ``fit()`` performs any
     necessary precomputation (or “training” in machine learning parlance) while
     ``transform()`` does the work of actually computing the modification and
-    applying it to the corpus. 
+    applying it to the corpus.
 
     All subclasses must implement ``transform()``;
     subclasses that require precomputation should also override ``fit()``, which by
@@ -25,7 +26,7 @@ class Transformer(ABC):
         later perform the actual transformation step.
 
         :param corpus: the Corpus to use for fitting
-        
+
         :return: the fitted Transformer
         """
         return self
@@ -37,7 +38,7 @@ class Transformer(ABC):
 
         :param corpus: the Corpus to transform
 
-        :return: modified version of the input Corpus. Note that unlike the 
+        :return: modified version of the input Corpus. Note that unlike the
             scikit-learn equivalent, ``transform()`` operates inplace on the Corpus
             (though for convenience and compatibility with scikit-learn, it also
             returns the modified Corpus).

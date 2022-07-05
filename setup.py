@@ -46,15 +46,16 @@ setup(
         "dill>=0.2.9",
         "joblib>=0.13.2",
         "clean-text>=0.1.1",
-        "unidecode>=1.1.1"
+        "unidecode>=1.1.1",
+        "tqdm>=4.64.0",
     ],
     extras_require={
-        'craft': ["torch>=0.12"],
+        "craft": ["torch>=0.12"],
     },
     classifiers=[
         "Programming Language :: Python",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
-    ]
+    ],
 )

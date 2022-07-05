@@ -8,6 +8,7 @@ from convokit.classifier.util import *
 from convokit import Transformer, CorpusComponent
 from convokit.util import deprecation
 
+
 class Classifier(Transformer):
     """
     Transformer that trains a classifier on the specified features of a Corpus's objects.
@@ -25,30 +26,44 @@ class Classifier(Transformer):
     :param clf_prob_attribute_name: the metadata attribute name to store the classifier prediction score under; default: "pred_score"
 
     """
-    def __init__(self, obj_type: str, pred_feats: List[str],
-                 labeller: Callable[[CorpusComponent], bool] = lambda x: True,
-                 clf=None, clf_attribute_name: str = "prediction", clf_feat_name=None,
-                 clf_prob_attribute_name: str = "pred_score", clf_prob_feat_name=None,
-                 ):
+
+    def __init__(
+        self,
+        obj_type: str,
+        pred_feats: List[str],
+        labeller: Callable[[CorpusComponent], bool] = lambda x: True,
+        clf=None,
+        clf_attribute_name: str = "prediction",
+        clf_feat_name=None,
+        clf_prob_attribute_name: str = "pred_score",
+        clf_prob_feat_name=None,
+    ):
         self.pred_feats = pred_feats
         self.labeller = labeller
         self.obj_type = obj_type
         if clf is None:
-            clf = Pipeline([("standardScaler", StandardScaler(with_mean=False)),
-                            ("logreg", LogisticRegression(solver='liblinear'))])
+            clf = Pipeline(
+                [
+                    ("standardScaler", StandardScaler(with_mean=False)),
+                    ("logreg", LogisticRegression(solver="liblinear")),
+                ]
+            )
             print("Initialized default classification model (standard scaled logistic regression).")
         self.clf = clf
         self.clf_attribute_name = clf_attribute_name if clf_feat_name is None else clf_feat_name
-        self.clf_prob_attribute_name = clf_prob_attribute_name if clf_prob_feat_name is None else clf_prob_feat_name
+        self.clf_prob_attribute_name = (
+            clf_prob_attribute_name if clf_prob_feat_name is None else clf_prob_feat_name
+        )
 
         if clf_feat_name is not None:
-            deprecation("Classifier's clf_feat_name parameter", 'clf_attribute_name')
+            deprecation("Classifier's clf_feat_name parameter", "clf_attribute_name")
 
         if clf_prob_feat_name is not None:
-            deprecation("Classifier's clf_prob_feat_name parameter", 'clf_prob_attribute_name')
+            deprecation("Classifier's clf_prob_feat_name parameter", "clf_prob_attribute_name")
 
-
-    def fit(self, corpus: Corpus, y=None, selector: Callable[[CorpusComponent], bool] = lambda x: True):
+    def fit(
+        self, corpus: Corpus, y=None, selector: Callable[[CorpusComponent], bool] = lambda x: True
+    ):
         """
         Trains the Transformer's classifier model, with an optional selector that filters for objects to be fit on.
 
@@ -57,11 +72,15 @@ class Classifier(Transformer):
             By default, the selector includes all objects of the specified type in the Corpus.
         :return: the fitted Classifier Transformer
         """
-        X, y = extract_feats_and_label(corpus, self.obj_type, self.pred_feats, self.labeller, selector)
+        X, y = extract_feats_and_label(
+            corpus, self.obj_type, self.pred_feats, self.labeller, selector
+        )
         self.clf.fit(X, y)
         return self
 
-    def transform(self, corpus: Corpus, selector: Callable[[CorpusComponent], bool] = lambda x: True) -> Corpus:
+    def transform(
+        self, corpus: Corpus, selector: Callable[[CorpusComponent], bool] = lambda x: True
+    ) -> Corpus:
         """
         Run classifier on given corpus's objects and annotate them with the predictions and prediction scores,
         with an optional selector that filters for objects to be classified. Objects that are not selected will get
@@ -74,8 +93,10 @@ class Classifier(Transformer):
         :return: annotated Corpus
         """
         obj_id_to_feats = extract_feats_dict(corpus, self.obj_type, self.pred_feats, selector)
-        feats_df = pd.DataFrame.from_dict(obj_id_to_feats, orient='index').reindex(index = list(obj_id_to_feats))
-        X = csr_matrix(feats_df.values.astype('float64'))
+        feats_df = pd.DataFrame.from_dict(obj_id_to_feats, orient="index").reindex(
+            index=list(obj_id_to_feats)
+        )
+        X = csr_matrix(feats_df.values.astype("float64"))
         idx_to_id = {idx: obj_id for idx, obj_id in enumerate(list(obj_id_to_feats))}
         clfs, clfs_probs = self.clf.predict(X), self.clf.predict_proba(X)[:, 1]
 
@@ -91,7 +112,9 @@ class Classifier(Transformer):
 
         return corpus
 
-    def fit_transform(self, corpus: Corpus, y=None, selector: Callable[[CorpusComponent], bool] = lambda x: True) -> Corpus:
+    def fit_transform(
+        self, corpus: Corpus, y=None, selector: Callable[[CorpusComponent], bool] = lambda x: True
+    ) -> Corpus:
         self.fit(corpus, selector=selector)
         return self.transform(corpus, selector=selector)
 
@@ -114,7 +137,9 @@ class Classifier(Transformer):
 
         return objs
 
-    def summarize(self, corpus: Corpus, selector: Callable[[CorpusComponent], bool] = lambda x: True):
+    def summarize(
+        self, corpus: Corpus, selector: Callable[[CorpusComponent], bool] = lambda x: True
+    ):
         """
         Generate a pandas DataFrame (indexed by object id, with prediction and prediction score columns) of classification results.
 
@@ -128,10 +153,18 @@ class Classifier(Transformer):
         objId_clf_prob = []
 
         for obj in corpus.iter_objs(self.obj_type, selector):
-            objId_clf_prob.append((obj.id, obj.meta[self.clf_attribute_name], obj.meta[self.clf_prob_attribute_name]))
+            objId_clf_prob.append(
+                (obj.id, obj.meta[self.clf_attribute_name], obj.meta[self.clf_prob_attribute_name])
+            )
 
-        return pd.DataFrame(list(objId_clf_prob),
-                            columns=['id', self.clf_attribute_name, self.clf_prob_attribute_name]).set_index('id').sort_values(self.clf_prob_attribute_name)
+        return (
+            pd.DataFrame(
+                list(objId_clf_prob),
+                columns=["id", self.clf_attribute_name, self.clf_prob_attribute_name],
+            )
+            .set_index("id")
+            .sort_values(self.clf_prob_attribute_name)
+        )
 
     def summarize_objs(self, objs: List[CorpusComponent]):
         """
@@ -144,15 +177,26 @@ class Classifier(Transformer):
         """
         objId_clf_prob = []
         for obj in objs:
-            objId_clf_prob.append((obj.id, obj.meta[self.clf_attribute_name], obj.meta[self.clf_prob_attribute_name]))
+            objId_clf_prob.append(
+                (obj.id, obj.meta[self.clf_attribute_name], obj.meta[self.clf_prob_attribute_name])
+            )
 
-        return pd.DataFrame(list(objId_clf_prob),
-                            columns=['id', self.clf_attribute_name, self.clf_prob_attribute_name]).set_index('id').sort_values(self.clf_prob_attribute_name)
+        return (
+            pd.DataFrame(
+                list(objId_clf_prob),
+                columns=["id", self.clf_attribute_name, self.clf_prob_attribute_name],
+            )
+            .set_index("id")
+            .sort_values(self.clf_prob_attribute_name)
+        )
 
-    def evaluate_with_train_test_split(self, corpus: Corpus = None,
-                                       objs: List[CorpusComponent] = None,
-                                       selector: Callable[[CorpusComponent], bool] = lambda x: True,
-                                       test_size: float = 0.2):
+    def evaluate_with_train_test_split(
+        self,
+        corpus: Corpus = None,
+        objs: List[CorpusComponent] = None,
+        selector: Callable[[CorpusComponent], bool] = lambda x: True,
+        test_size: float = 0.2,
+    ):
         """
         Evaluate the performance of predictive features (Classifier.pred_feats) in predicting for the label,
         using a train-test split.
@@ -166,15 +210,21 @@ class Classifier(Transformer):
         :return: accuracy and confusion matrix
         """
         if ((corpus is None) and (objs is None)) or ((corpus is not None) and (objs is not None)):
-            raise ValueError("This function takes in either a Corpus or a list of speakers / utterances / conversations")
+            raise ValueError(
+                "This function takes in either a Corpus or a list of speakers / utterances / conversations"
+            )
 
         if corpus:
             print("Using corpus objects...")
-            X, y = extract_feats_and_label(corpus, self.obj_type, self.pred_feats, self.labeller, selector)
+            X, y = extract_feats_and_label(
+                corpus, self.obj_type, self.pred_feats, self.labeller, selector
+            )
         else:
             assert objs is not None
             print("Using input list of corpus objects...")
-            X = np.array([list(extract_feats_from_obj(obj, self.pred_feats).values()) for obj in objs])
+            X = np.array(
+                [list(extract_feats_from_obj(obj, self.pred_feats).values()) for obj in objs]
+            )
             y = np.array([self.labeller(obj) for obj in objs])
 
         print("Running a train-test-split evaluation...")
@@ -191,11 +241,13 @@ class Classifier(Transformer):
     #                      selector: Callable[[CorpusComponent], bool] = lambda x: True
     #                      ):
     #     return
-    def evaluate_with_cv(self, corpus: Corpus = None,
-                         objs: List[CorpusComponent] = None,
-                         cv=KFold(n_splits=5, shuffle=True),
-                         selector: Callable[[CorpusComponent], bool] = lambda x: True
-                         ):
+    def evaluate_with_cv(
+        self,
+        corpus: Corpus = None,
+        objs: List[CorpusComponent] = None,
+        cv=KFold(n_splits=5, shuffle=True),
+        selector: Callable[[CorpusComponent], bool] = lambda x: True,
+    ):
         """
         Evaluate the performance of predictive features (Classifier.pred_feats) in predicting for the label,
         using cross-validation for data splitting.
@@ -214,15 +266,21 @@ class Classifier(Transformer):
         :return: cross-validated accuracy score
         """
         if ((corpus is None) and (objs is None)) or ((corpus is not None) and (objs is not None)):
-            raise ValueError("This function takes in either a Corpus or a list of speakers / utterances / conversations")
+            raise ValueError(
+                "This function takes in either a Corpus or a list of speakers / utterances / conversations"
+            )
 
         if corpus:
             print("Using corpus objects...")
-            X, y = extract_feats_and_label(corpus, self.obj_type, self.pred_feats, self.labeller, selector)
+            X, y = extract_feats_and_label(
+                corpus, self.obj_type, self.pred_feats, self.labeller, selector
+            )
         else:
             assert objs is not None
             print("Using input list of corpus objects...")
-            X = np.array([list(extract_feats_from_obj(obj, self.pred_feats).values()) for obj in objs])
+            X = np.array(
+                [list(extract_feats_from_obj(obj, self.pred_feats).values()) for obj in objs]
+            )
             y = np.array([self.labeller(obj) for obj in objs])
 
         print("Running a cross-validated evaluation...")
@@ -230,7 +288,9 @@ class Classifier(Transformer):
         print("Done.")
         return score
 
-    def confusion_matrix(self, corpus, selector: Callable[[CorpusComponent], bool] = lambda x: True):
+    def confusion_matrix(
+        self, corpus, selector: Callable[[CorpusComponent], bool] = lambda x: True
+    ):
         """
         Generate confusion matrix for transformed corpus using labeller for y_true and clf_attribute_name as y_pred
 
@@ -256,7 +316,7 @@ class Classifier(Transformer):
         """
         y_true, y_pred = self.get_y_true_pred(corpus, selector)
         all_true_accuracy = np.array(y_true).mean()
-        return max(all_true_accuracy, 1-all_true_accuracy)
+        return max(all_true_accuracy, 1 - all_true_accuracy)
 
     def accuracy(self, corpus, selector: Callable[[CorpusComponent], bool] = lambda x: True):
         """
@@ -285,7 +345,9 @@ class Classifier(Transformer):
 
         return y_true, y_pred
 
-    def classification_report(self, corpus, selector: Callable[[CorpusComponent], bool] = lambda x: True):
+    def classification_report(
+        self, corpus, selector: Callable[[CorpusComponent], bool] = lambda x: True
+    ):
         """
         Generate classification report for transformed corpus using labeller for y_true and clf_attribute_name as y_pred
 

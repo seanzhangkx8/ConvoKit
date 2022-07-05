@@ -1,6 +1,6 @@
 {
   "cur_version": {
-    "chromium-corpus": 0, 
+    "chromium-corpus": 0,
     "conversations-gone-awry-cmv-corpus": 1,
     "conversations-gone-awry-corpus": 4,
     "diplomacy-corpus": 2,
@@ -20,16 +20,18 @@
     "tennis-corpus": 3,
     "wiki-corpus": 4,
     "wiki-politeness-annotated": 0,
-    "wikiconv": 0,
-    "wikiconv-corpus": 1,
+    "wikiconv": 2,
+    "wikiconv-corpus": 2,
     "wikipedia-politeness-corpus": 1,
     "winning-args-corpus": 1,
     "supreme-corpus": 2,
     "supreme": 1,
     "wiki-articles-for-deletion-corpus": 1,
-    "casino-corpus": 1
+    "casino-corpus": 1,
+    "wiki-sampled-en-corpus": 0,
+    "wiki-sampled-zh-corpus": 0
   },
-    "DatasetURLs": {
+  "DatasetURLs": {
     "chromium-corpus": "http://zissou.infosci.cornell.edu/convokit/datasets/chromium-corpus/chromium-corpus.zip",
     "conversations-gone-awry-cmv-corpus": "http://zissou.infosci.cornell.edu/convokit/datasets/conversations-gone-awry-cmv-corpus/full.zip",
     "conversations-gone-awry-corpus": "http://zissou.infosci.cornell.edu/convokit/datasets/conversations-gone-awry-corpus/conversations-gone-awry-corpus.zip",
@@ -89,6 +91,8 @@
     "winning-args-corpus": "http://zissou.infosci.cornell.edu/convokit/datasets/winning-args-corpus/winning-args-corpus.zip",
     "supreme-corpus": "https://zissou.infosci.cornell.edu/convokit/datasets/supreme-corpus/supreme-corpus.zip",
     "wiki-articles-for-deletion-corpus": "https://zissou.infosci.cornell.edu/convokit/datasets/wiki-articles-for-deletion-corpus/wiki-articles-for-deletion-corpus.zip",
-    "casino-corpus": "https://zissou.infosci.cornell.edu/convokit/datasets/casino-corpus/casino-corpus.zip"
+    "casino-corpus": "https://zissou.infosci.cornell.edu/convokit/datasets/casino-corpus/casino-corpus.zip",
+    "wiki-sampled-en-corpus": "https://zissou.infosci.cornell.edu/convokit/datasets/wiki-sampled-en-corpus/wiki-sampled-en-corpus.zip",
+    "wiki-sampled-zh-corpus": "https://zissou.infosci.cornell.edu/convokit/datasets/wiki-sampled-zh-corpus/wiki-sampled-zh-corpus.zip"
   }
 }

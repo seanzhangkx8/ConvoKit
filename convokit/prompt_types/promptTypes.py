@@ -9,6 +9,7 @@ import joblib
 
 from convokit.transformer import Transformer
 
+
 class PromptTypes(Transformer):
     """
     Model that infers a vector representation of utterances in terms of the responses that similar utterances tend to
@@ -71,13 +72,24 @@ class PromptTypes(Transformer):
     :param verbosity: frequency of status messages.
     """
 
-    def __init__(self, prompt_field, reference_field, output_field, n_types=8,
-                prompt_transform_field=None, reference_transform_field=None,
-                prompt__tfidf_min_df=100, prompt__tfidf_max_df=.1,
-                reference__tfidf_min_df=100, reference__tfidf_max_df=.1,
-                snip_first_dim=True,
-                svd__n_components=25, max_dist=.9,
-                random_state=None, verbosity=0):
+    def __init__(
+        self,
+        prompt_field,
+        reference_field,
+        output_field,
+        n_types=8,
+        prompt_transform_field=None,
+        reference_transform_field=None,
+        prompt__tfidf_min_df=100,
+        prompt__tfidf_max_df=0.1,
+        reference__tfidf_min_df=100,
+        reference__tfidf_max_df=0.1,
+        snip_first_dim=True,
+        svd__n_components=25,
+        max_dist=0.9,
+        random_state=None,
+        verbosity=0,
+    ):
 
         self.prompt_embedding_model = {}
         self.type_models = {}
@@ -87,8 +99,14 @@ class PromptTypes(Transformer):
         self.prompt_field = prompt_field
         self.reference_field = reference_field
 
-        self.prompt_transform_field = prompt_transform_field if prompt_transform_field is not None else self.prompt_field
-        self.reference_transform_field = reference_transform_field if reference_transform_field is not None else self.reference_field
+        self.prompt_transform_field = (
+            prompt_transform_field if prompt_transform_field is not None else self.prompt_field
+        )
+        self.reference_transform_field = (
+            reference_transform_field
+            if reference_transform_field is not None
+            else self.reference_field
+        )
 
         self.output_field = output_field
 
@@ -103,7 +121,9 @@ class PromptTypes(Transformer):
         self.max_dist = max_dist
         self.verbosity = verbosity
 
-    def fit(self, corpus, y=None, prompt_selector=lambda utt: True, reference_selector=lambda utt: True):
+    def fit(
+        self, corpus, y=None, prompt_selector=lambda utt: True, reference_selector=lambda utt: True
+    ):
         """
         Fits a PromptTypes model for a corpus -- that is, learns latent representations of prompt and response terms, as well as prompt types.
 
@@ -119,18 +139,40 @@ class PromptTypes(Transformer):
         self.prompt_selector = prompt_selector
         self.reference_selector = reference_selector
 
-        _, prompt_input, _, reference_input = self._get_pair_input(corpus, self.prompt_field, self.reference_field,
-                                    self.prompt_selector, self.reference_selector)
-        self.prompt_embedding_model = fit_prompt_embedding_model(prompt_input, reference_input,
-                                self.snip_first_dim, self.prompt__tfidf_min_df, self.prompt__tfidf_max_df,
-                                self.reference__tfidf_min_df, self.reference__tfidf_max_df,
-                                self.svd__n_components, self.random_state, self.verbosity)
-        self.train_results['prompt_ids'], self.train_results['prompt_vects'],\
-            self.train_results['reference_ids'], self.train_results['reference_vects'] = self._get_embeddings(corpus, prompt_selector, reference_selector)
+        _, prompt_input, _, reference_input = self._get_pair_input(
+            corpus,
+            self.prompt_field,
+            self.reference_field,
+            self.prompt_selector,
+            self.reference_selector,
+        )
+        self.prompt_embedding_model = fit_prompt_embedding_model(
+            prompt_input,
+            reference_input,
+            self.snip_first_dim,
+            self.prompt__tfidf_min_df,
+            self.prompt__tfidf_max_df,
+            self.reference__tfidf_min_df,
+            self.reference__tfidf_max_df,
+            self.svd__n_components,
+            self.random_state,
+            self.verbosity,
+        )
+        (
+            self.train_results["prompt_ids"],
+            self.train_results["prompt_vects"],
+            self.train_results["reference_ids"],
+            self.train_results["reference_vects"],
+        ) = self._get_embeddings(corpus, prompt_selector, reference_selector)
         self.refit_types(self.default_n_types, self.random_state)
 
-
-    def transform(self, corpus, use_fit_selectors=True, prompt_selector=lambda utt: True, reference_selector=lambda utt: True):
+    def transform(
+        self,
+        corpus,
+        use_fit_selectors=True,
+        prompt_selector=lambda utt: True,
+        reference_selector=lambda utt: True,
+    ):
         """
         Computes vector representations and prompt type assignments for utterances in a corpus.
 
@@ -145,28 +187,57 @@ class PromptTypes(Transformer):
         if use_fit_selectors:
             prompt_selector = self.prompt_selector
             reference_selector = self.reference_selector
-        prompt_ids, prompt_vects, reference_ids, reference_vects = self._get_embeddings(corpus, prompt_selector, reference_selector)
+        prompt_ids, prompt_vects, reference_ids, reference_vects = self._get_embeddings(
+            corpus, prompt_selector, reference_selector
+        )
 
-        corpus.set_vector_matrix(self.output_field + '__prompt_repr', matrix=prompt_vects, ids=prompt_ids)
-        corpus.set_vector_matrix(self.output_field + '__reference_repr', matrix=reference_vects, ids=reference_ids)
+        corpus.set_vector_matrix(
+            self.output_field + "__prompt_repr", matrix=prompt_vects, ids=prompt_ids
+        )
+        corpus.set_vector_matrix(
+            self.output_field + "__reference_repr", matrix=reference_vects, ids=reference_ids
+        )
 
-        prompt_df, reference_df = self._get_type_assignments(prompt_ids, prompt_vects, reference_ids, reference_vects)
-        prompt_dists, prompt_assigns = prompt_df[prompt_df.columns[:-1]].values, prompt_df['type_id'].values
+        prompt_df, reference_df = self._get_type_assignments(
+            prompt_ids, prompt_vects, reference_ids, reference_vects
+        )
+        prompt_dists, prompt_assigns = (
+            prompt_df[prompt_df.columns[:-1]].values,
+            prompt_df["type_id"].values,
+        )
         prompt_min_dists = prompt_dists.min(axis=1)
-        reference_dists, reference_assigns = reference_df[reference_df.columns[:-1]].values, reference_df['type_id'].values
+        reference_dists, reference_assigns = (
+            reference_df[reference_df.columns[:-1]].values,
+            reference_df["type_id"].values,
+        )
         reference_min_dists = reference_dists.min(axis=1)
 
-        corpus.set_vector_matrix(self.output_field + '__prompt_dists.%s' % self.default_n_types, ids=prompt_df.index, matrix=prompt_dists,
-            columns=['type_%d_dist' % x for x in range(prompt_dists.shape[1])])
-        corpus.set_vector_matrix(self.output_field + '__reference_dists.%s' % self.default_n_types,
-                                ids=reference_df.index, matrix=reference_dists,
-            columns=['type_%d_dist' % x for x in range(prompt_dists.shape[1])])
+        corpus.set_vector_matrix(
+            self.output_field + "__prompt_dists.%s" % self.default_n_types,
+            ids=prompt_df.index,
+            matrix=prompt_dists,
+            columns=["type_%d_dist" % x for x in range(prompt_dists.shape[1])],
+        )
+        corpus.set_vector_matrix(
+            self.output_field + "__reference_dists.%s" % self.default_n_types,
+            ids=reference_df.index,
+            matrix=reference_dists,
+            columns=["type_%d_dist" % x for x in range(prompt_dists.shape[1])],
+        )
         for id, assign, dist in zip(prompt_df.index, prompt_assigns, prompt_min_dists):
-            corpus.get_utterance(id).add_meta(self.output_field + '__prompt_type.%s' % self.default_n_types, assign)
-            corpus.get_utterance(id).add_meta(self.output_field + '__prompt_type_dist.%s' % self.default_n_types, float(dist))
+            corpus.get_utterance(id).add_meta(
+                self.output_field + "__prompt_type.%s" % self.default_n_types, assign
+            )
+            corpus.get_utterance(id).add_meta(
+                self.output_field + "__prompt_type_dist.%s" % self.default_n_types, float(dist)
+            )
         for id, assign, dist in zip(reference_df.index, reference_assigns, reference_min_dists):
-            corpus.get_utterance(id).add_meta(self.output_field + '__reference_type.%s' % self.default_n_types, assign)
-            corpus.get_utterance(id).add_meta(self.output_field + '__reference_type_dist.%s' % self.default_n_types, float(dist))
+            corpus.get_utterance(id).add_meta(
+                self.output_field + "__reference_type.%s" % self.default_n_types, assign
+            )
+            corpus.get_utterance(id).add_meta(
+                self.output_field + "__reference_type_dist.%s" % self.default_n_types, float(dist)
+            )
         return corpus
 
     def transform_utterance(self, utterance):
@@ -178,31 +249,41 @@ class PromptTypes(Transformer):
         """
 
         # if self.prompt_transform_filter(utterance):
-        utterance = self._transform_utterance_side(utterance, 'prompt')
+        utterance = self._transform_utterance_side(utterance, "prompt")
         # if self.reference_transform_filter(utterance):
-        utterance = self._transform_utterance_side(utterance, 'reference')
+        utterance = self._transform_utterance_side(utterance, "reference")
         return utterance
 
-
     def _transform_utterance_side(self, utterance, side):
-        if side == 'prompt':
+        if side == "prompt":
             input_field = self.prompt_transform_field
-        elif side == 'reference':
+        elif side == "reference":
             input_field = self.reference_transform_field
         utt_id = utterance.id
         utt_input = utterance.retrieve_meta(input_field)
         if isinstance(utt_input, list):
-            utt_input = '\n'.join(utt_input)
-        utt_ids, utt_vects = transform_embeddings(self.prompt_embedding_model, [utt_id], [utt_input], side=side)
-        assign_df = assign_prompt_types(self.type_models[self.default_n_types], utt_ids, utt_vects, self.max_dist)
+            utt_input = "\n".join(utt_input)
+        utt_ids, utt_vects = transform_embeddings(
+            self.prompt_embedding_model, [utt_id], [utt_input], side=side
+        )
+        assign_df = assign_prompt_types(
+            self.type_models[self.default_n_types], utt_ids, utt_vects, self.max_dist
+        )
         vals = assign_df.values[0]
         dists = vals[:-1]
         min_dist = min(dists)
         assign = vals[-1]
-        utterance.add_meta(self.output_field + '__%s_type.%s' % (side, self.default_n_types), assign)
-        utterance.add_meta(self.output_field + '__%s_type_dist.%s' % (side, self.default_n_types), float(min_dist))
-        utterance.add_meta(self.output_field + '__%s_dists.%s' % (side, self.default_n_types), [float(x) for x in dists])
-        utterance.add_meta(self.output_field + '__%s_repr' % side, [float(x) for x in utt_vects[0]])
+        utterance.add_meta(
+            self.output_field + "__%s_type.%s" % (side, self.default_n_types), assign
+        )
+        utterance.add_meta(
+            self.output_field + "__%s_type_dist.%s" % (side, self.default_n_types), float(min_dist)
+        )
+        utterance.add_meta(
+            self.output_field + "__%s_dists.%s" % (side, self.default_n_types),
+            [float(x) for x in dists],
+        )
+        utterance.add_meta(self.output_field + "__%s_repr" % side, [float(x) for x in utt_vects[0]])
         return utterance
 
     def refit_types(self, n_types, random_state=None, name=None):
@@ -221,35 +302,49 @@ class PromptTypes(Transformer):
             key = name
         if random_state is None:
             random_state = self.random_state
-        self.type_models[key] = fit_prompt_type_model(self.prompt_embedding_model, n_types, random_state, self.max_dist, self.verbosity)
+        self.type_models[key] = fit_prompt_type_model(
+            self.prompt_embedding_model, n_types, random_state, self.max_dist, self.verbosity
+        )
         prompt_df, reference_df = self._get_type_assignments(type_key=key)
-        self.train_types[key] = {'prompt_df': prompt_df, 'reference_df': reference_df}
-
+        self.train_types[key] = {"prompt_df": prompt_df, "reference_df": reference_df}
 
     def _get_embeddings(self, corpus, prompt_selector, reference_selector):
-        prompt_ids, prompt_inputs = self._get_input(corpus, self.prompt_transform_field,
-                                                    prompt_selector)
-        reference_ids, reference_inputs = self._get_input(corpus, self.reference_transform_field, reference_selector)
-        prompt_ids, prompt_vects = transform_embeddings(self.prompt_embedding_model,
-                                                        prompt_ids, prompt_inputs,
-                                                        side='prompt')
-        reference_ids, reference_vects = transform_embeddings(self.prompt_embedding_model,
-                                                        reference_ids, reference_inputs,
-                                                        side='reference')
+        prompt_ids, prompt_inputs = self._get_input(
+            corpus, self.prompt_transform_field, prompt_selector
+        )
+        reference_ids, reference_inputs = self._get_input(
+            corpus, self.reference_transform_field, reference_selector
+        )
+        prompt_ids, prompt_vects = transform_embeddings(
+            self.prompt_embedding_model, prompt_ids, prompt_inputs, side="prompt"
+        )
+        reference_ids, reference_vects = transform_embeddings(
+            self.prompt_embedding_model, reference_ids, reference_inputs, side="reference"
+        )
         return prompt_ids, prompt_vects, reference_ids, reference_vects
 
-
-    def _get_type_assignments(self, prompt_ids=None, prompt_vects=None,
-                             reference_ids=None, reference_vects=None, type_key=None):
+    def _get_type_assignments(
+        self,
+        prompt_ids=None,
+        prompt_vects=None,
+        reference_ids=None,
+        reference_vects=None,
+        type_key=None,
+    ):
         if prompt_ids is None:
-            prompt_ids, prompt_vects, reference_ids, reference_vects = [self.train_results[k] for k in
-                                        ['prompt_ids', 'prompt_vects', 'reference_ids', 'reference_vects']]
+            prompt_ids, prompt_vects, reference_ids, reference_vects = [
+                self.train_results[k]
+                for k in ["prompt_ids", "prompt_vects", "reference_ids", "reference_vects"]
+            ]
         if type_key is None:
             type_key = self.default_n_types
-        prompt_df = assign_prompt_types(self.type_models[type_key], prompt_ids, prompt_vects, self.max_dist)
-        reference_df = assign_prompt_types(self.type_models[type_key], reference_ids, reference_vects, self.max_dist)
+        prompt_df = assign_prompt_types(
+            self.type_models[type_key], prompt_ids, prompt_vects, self.max_dist
+        )
+        reference_df = assign_prompt_types(
+            self.type_models[type_key], reference_ids, reference_vects, self.max_dist
+        )
         return prompt_df, reference_df
-
 
     def display_type(self, type_id, corpus=None, type_key=None, k=10):
         """
@@ -264,34 +359,36 @@ class PromptTypes(Transformer):
 
         if type_key is None:
             type_key = self.default_n_types
-        prompt_df = self.type_models[type_key]['prompt_df']
-        reference_df = self.type_models[type_key]['reference_df']
+        prompt_df = self.type_models[type_key]["prompt_df"]
+        reference_df = self.type_models[type_key]["reference_df"]
 
         top_prompt = prompt_df[prompt_df.type_id == type_id].sort_values(type_id).head(k)
         top_ref = reference_df[reference_df.type_id == type_id].sort_values(type_id).head(k)
-        print('top prompt:')
+        print("top prompt:")
         print(top_prompt)
-        print('top response:')
+        print("top response:")
         print(top_ref)
 
         if corpus is not None:
-            prompt_df = self.train_types[type_key]['prompt_df']
-            reference_df = self.train_types[type_key]['reference_df']
+            prompt_df = self.train_types[type_key]["prompt_df"]
+            reference_df = self.train_types[type_key]["reference_df"]
             top_prompt = prompt_df[prompt_df.type_id == type_id].sort_values(type_id).head(k).index
-            top_ref = reference_df[reference_df.type_id == type_id].sort_values(type_id).head(k).index
-            print('top prompts:')
+            top_ref = (
+                reference_df[reference_df.type_id == type_id].sort_values(type_id).head(k).index
+            )
+            print("top prompts:")
             for utt in top_prompt:
                 print(utt, corpus.get_utterance(utt).text)
                 print(corpus.get_utterance(utt).retrieve_meta(self.prompt_transform_field))
                 print()
-            print('top responses:')
+            print("top responses:")
             for utt in top_ref:
                 print(utt, corpus.get_utterance(utt).text)
                 print(corpus.get_utterance(utt).retrieve_meta(self.reference_transform_field))
                 print()
 
     def summarize(self, corpus, type_ids=None, type_key=None, k=10):
-        '''
+        """
         Displays representative prompt and response terms and utterances for each type learned. A wrapper for `display_type`.
 
         :param corpus: corpus to display utterances for (must have `transform()` called on it)
@@ -299,21 +396,21 @@ class PromptTypes(Transformer):
         :param type_key: the name of the prompt type clustering model to use. defaults to `n_types` that the model was initialized with, but if `refit_types` is called with different number of types, can be modified to display this updated model as well.
         :param k: the number of sample terms (or utteranceS) to display.
         :return: None
-        '''
+        """
         if type_key is None:
             type_key = self.default_n_types
 
-        n_types = self.type_models[type_key]['km_model'].n_clusters
+        n_types = self.type_models[type_key]["km_model"].n_clusters
         if type_ids is None:
             type_ids = list(range(n_types))
         if not isinstance(type_ids, list):
             type_ids = [type_ids]
         for type_id in type_ids:
-            print('TYPE', type_id)
+            print("TYPE", type_id)
             self.display_type(type_id, corpus, type_key, k)
-            print('====')
+            print("====")
 
-    def dump_model(self, model_dir, type_keys='default', dump_train_corpus=True):
+    def dump_model(self, model_dir, type_keys="default", dump_train_corpus=True):
         """
         Dumps the model to disk.
 
@@ -324,44 +421,45 @@ class PromptTypes(Transformer):
         """
 
         if self.verbosity > 0:
-            print('dumping embedding model')
+            print("dumping embedding model")
         if not os.path.exists(model_dir):
             try:
                 os.mkdir(model_dir)
             except:
                 pass
-        for k in ['prompt_tfidf_model', 'reference_tfidf_model', 'svd_model']:
-            joblib.dump(self.prompt_embedding_model[k],
-                       os.path.join(model_dir, k + '.joblib'))
+        for k in ["prompt_tfidf_model", "reference_tfidf_model", "svd_model"]:
+            joblib.dump(self.prompt_embedding_model[k], os.path.join(model_dir, k + ".joblib"))
 
-        for k in ['U_prompt', 'U_reference']:
+        for k in ["U_prompt", "U_reference"]:
             np.save(os.path.join(model_dir, k), self.prompt_embedding_model[k])
 
         if dump_train_corpus:
             if self.verbosity > 0:
-                print('dumping training embeddings')
-            for k in ['prompt_ids', 'prompt_vects', 'reference_ids', 'reference_vects']:
-                np.save(os.path.join(model_dir, 'train_' + k), self.train_results[k])
+                print("dumping training embeddings")
+            for k in ["prompt_ids", "prompt_vects", "reference_ids", "reference_vects"]:
+                np.save(os.path.join(model_dir, "train_" + k), self.train_results[k])
 
-        if type_keys == 'default':
+        if type_keys == "default":
             to_dump = [self.default_n_types]
-        elif type_keys == 'all':
+        elif type_keys == "all":
             to_dump = self.type_models.keys()
         else:
             to_dump = type_keys
         for key in to_dump:
             if self.verbosity > 0:
-                print('dumping type model', key)
+                print("dumping type model", key)
             type_model = self.type_models[key]
-            joblib.dump(type_model['km_model'], os.path.join(model_dir, 'km_model.%s.joblib' % key))
-            for k in ['prompt_df', 'reference_df']:
-                type_model[k].to_csv(os.path.join(model_dir, '%s.%s.tsv' % (k, key)), sep='\t')
+            joblib.dump(type_model["km_model"], os.path.join(model_dir, "km_model.%s.joblib" % key))
+            for k in ["prompt_df", "reference_df"]:
+                type_model[k].to_csv(os.path.join(model_dir, "%s.%s.tsv" % (k, key)), sep="\t")
             if dump_train_corpus:
                 train_types = self.train_types[key]
-                for k in ['prompt_df', 'reference_df']:
-                    train_types[k].to_csv(os.path.join(model_dir, 'train_%s.%s.tsv' % (k, key)), sep='\t')
+                for k in ["prompt_df", "reference_df"]:
+                    train_types[k].to_csv(
+                        os.path.join(model_dir, "train_%s.%s.tsv" % (k, key)), sep="\t"
+                    )
 
-    def get_model(self, type_keys='default'):
+    def get_model(self, type_keys="default"):
         """
         Returns the model as a dictionary containing:
             * embedding_model: stores information pertaining to the vector representations.
@@ -377,17 +475,19 @@ class PromptTypes(Transformer):
         :param type_keys: if 'default', will return the type clustering model corresponding to the `n_types` the model was initialized with. if 'all', returns all clustering models that have been trained via calls to `refit_types`. can also take a list of clustering models.
         :return: the prompt types model
         """
-        if type_keys == 'default':
+        if type_keys == "default":
             to_get = [self.default_n_types]
-        elif type_keys == 'all':
+        elif type_keys == "all":
             to_get = self.type_models.keys()
         else:
             to_get = type_keys
-        to_return = {'embedding_model': self.prompt_embedding_model, 
-                'type_models': {k: self.type_models[k] for k in to_get}}
+        to_return = {
+            "embedding_model": self.prompt_embedding_model,
+            "type_models": {k: self.type_models[k] for k in to_get},
+        }
         return to_return
 
-    def load_model(self, model_dir, type_keys='default', load_train_corpus=True):
+    def load_model(self, model_dir, type_keys="default", load_train_corpus=True):
         """
         Loads the model from disk.
 
@@ -397,48 +497,56 @@ class PromptTypes(Transformer):
         :return: None
         """
         if self.verbosity > 0:
-            print('loading embedding model')
-        for k in ['prompt_tfidf_model', 'reference_tfidf_model', 'svd_model']:
-            self.prompt_embedding_model[k] = joblib.load(os.path.join(model_dir, k + '.joblib'))
-        for k in ['U_prompt', 'U_reference']:
-            self.prompt_embedding_model[k] = np.load(os.path.join(model_dir, k + '.npy'))
+            print("loading embedding model")
+        for k in ["prompt_tfidf_model", "reference_tfidf_model", "svd_model"]:
+            self.prompt_embedding_model[k] = joblib.load(os.path.join(model_dir, k + ".joblib"))
+        for k in ["U_prompt", "U_reference"]:
+            self.prompt_embedding_model[k] = np.load(os.path.join(model_dir, k + ".npy"))
 
         if load_train_corpus:
             if self.verbosity > 0:
-                print('loading training embeddings')
-            for k in ['prompt_ids', 'prompt_vects', 'reference_ids', 'reference_vects']:
-                self.train_results[k] = np.load(os.path.join(model_dir, 'train_' + k + '.npy'))
+                print("loading training embeddings")
+            for k in ["prompt_ids", "prompt_vects", "reference_ids", "reference_vects"]:
+                self.train_results[k] = np.load(os.path.join(model_dir, "train_" + k + ".npy"))
 
-        if type_keys == 'default':
+        if type_keys == "default":
             to_load = [self.default_n_types]
-        elif type_keys == 'all':
-            to_load = [x.replace('km_model.','').replace('.joblib','')
-                      for x in os.listdir(model_dir) if x.startswith('km_model')]
+        elif type_keys == "all":
+            to_load = [
+                x.replace("km_model.", "").replace(".joblib", "")
+                for x in os.listdir(model_dir)
+                if x.startswith("km_model")
+            ]
         else:
             to_load = type_keys
         for key in to_load:
             try:
                 key = int(key)
-            except: pass
+            except:
+                pass
             if self.verbosity > 0:
-                print('loading type model', key)
-            self.type_models[key] = {} # this should be an int-ish
-            self.type_models[key]['km_model'] = joblib.load(
-                os.path.join(model_dir, 'km_model.%s.joblib' % key))
+                print("loading type model", key)
+            self.type_models[key] = {}  # this should be an int-ish
+            self.type_models[key]["km_model"] = joblib.load(
+                os.path.join(model_dir, "km_model.%s.joblib" % key)
+            )
 
-            for k in ['prompt_df', 'reference_df']:
-                self.type_models[key][k] =\
-                    pd.read_csv(os.path.join(model_dir, '%s.%s.tsv' % (k, key)), sep='\t', index_col=0)
-                self.type_models[key][k].columns = [int(x) for x in self.type_models[key][k].columns[:-1]]\
-                    + ['type_id']
+            for k in ["prompt_df", "reference_df"]:
+                self.type_models[key][k] = pd.read_csv(
+                    os.path.join(model_dir, "%s.%s.tsv" % (k, key)), sep="\t", index_col=0
+                )
+                self.type_models[key][k].columns = [
+                    int(x) for x in self.type_models[key][k].columns[:-1]
+                ] + ["type_id"]
             if load_train_corpus:
                 self.train_types[key] = {}
-                for k in ['prompt_df', 'reference_df']:
+                for k in ["prompt_df", "reference_df"]:
                     self.train_types[key][k] = pd.read_csv(
-                        os.path.join(model_dir, 'train_%s.%s.tsv' % (k, key)), sep='\t', index_col=0
+                        os.path.join(model_dir, "train_%s.%s.tsv" % (k, key)), sep="\t", index_col=0
                     )
-                    self.train_types[key][k].columns = \
-                        [int(x) for x in self.train_types[key][k].columns[:-1]] + ['type_id']
+                    self.train_types[key][k].columns = [
+                        int(x) for x in self.train_types[key][k].columns[:-1]
+                    ] + ["type_id"]
 
     def _get_input(self, corpus, field, filter_fn, check_nonempty=True):
         ids = []
@@ -446,16 +554,21 @@ class PromptTypes(Transformer):
         for utterance in corpus.iter_utterances():
             input = utterance.retrieve_meta(field)
             if isinstance(input, list):
-                input = '\n'.join(input)
-            if filter_fn(utterance)\
-                and ((not check_nonempty) or (len(input) > 0)):
+                input = "\n".join(input)
+            if filter_fn(utterance) and ((not check_nonempty) or (len(input) > 0)):
                 ids.append(utterance.id)
                 inputs.append(input)
         return ids, inputs
 
-    def _get_pair_input(self, corpus, prompt_field, reference_field,
-              prompt_selector, reference_selector,
-              check_nonempty=True):
+    def _get_pair_input(
+        self,
+        corpus,
+        prompt_field,
+        reference_field,
+        prompt_selector,
+        reference_selector,
+        check_nonempty=True,
+    ):
         prompt_ids = []
         prompt_utts = []
         reference_ids = []
@@ -468,8 +581,7 @@ class PromptTypes(Transformer):
                 prompt_utt = corpus.get_utterance(prompt_utt_id)
             except:
                 continue
-            if prompt_selector(prompt_utt) \
-                and reference_selector(reference_utt):
+            if prompt_selector(prompt_utt) and reference_selector(reference_utt):
 
                 prompt_input = prompt_utt.retrieve_meta(prompt_field)
                 reference_input = reference_utt.retrieve_meta(reference_field)
@@ -478,9 +590,9 @@ class PromptTypes(Transformer):
                     continue
 
                 if isinstance(prompt_input, list):
-                     prompt_input = '\n'.join(prompt_input)
+                    prompt_input = "\n".join(prompt_input)
                 if isinstance(reference_input, list):
-                     reference_input = '\n'.join(reference_input)
+                    reference_input = "\n".join(reference_input)
 
                 if (not check_nonempty) or ((len(prompt_input) > 0) and (len(reference_input) > 0)):
                     prompt_ids.append(prompt_utt.id)
@@ -490,11 +602,18 @@ class PromptTypes(Transformer):
         return prompt_ids, prompt_utts, reference_ids, reference_utts
 
 
-
-def fit_prompt_embedding_model(prompt_input, reference_input, snip_first_dim=True,
-            prompt__tfidf_min_df=100, prompt__tfidf_max_df=.1,
-            reference__tfidf_min_df=100, reference__tfidf_max_df=.1,
-            svd__n_components=25, random_state=None, verbosity=0):
+def fit_prompt_embedding_model(
+    prompt_input,
+    reference_input,
+    snip_first_dim=True,
+    prompt__tfidf_min_df=100,
+    prompt__tfidf_max_df=0.1,
+    reference__tfidf_min_df=100,
+    reference__tfidf_max_df=0.1,
+    svd__n_components=25,
+    random_state=None,
+    verbosity=0,
+):
     """
     Standalone function that fits an embedding model given paired prompt and response inputs. See docstring of the `PromptTypes` class for details.
 
@@ -504,30 +623,32 @@ def fit_prompt_embedding_model(prompt_input, reference_input, snip_first_dim=Tru
     """
 
     if verbosity > 0:
-        print('fitting %d input pairs' % len(prompt_input))
-        print('fitting reference tfidf model')
+        print("fitting %d input pairs" % len(prompt_input))
+        print("fitting reference tfidf model")
     reference_tfidf_model = TfidfVectorizer(
         min_df=reference__tfidf_min_df,
         max_df=reference__tfidf_max_df,
         binary=True,
-        token_pattern=r'(?u)(\S+)'
+        token_pattern=r"(?u)(\S+)",
     )
     reference_vect = reference_tfidf_model.fit_transform(reference_input)
 
     if verbosity > 0:
-        print('fitting prompt tfidf model')
+        print("fitting prompt tfidf model")
     prompt_tfidf_model = TfidfVectorizer(
         min_df=prompt__tfidf_min_df,
         max_df=prompt__tfidf_max_df,
         binary=True,
-        token_pattern=r'(?u)(\S+)'
+        token_pattern=r"(?u)(\S+)",
     )
     prompt_vect = prompt_tfidf_model.fit_transform(prompt_input)
 
     if verbosity > 0:
-        print('fitting svd model')
-    svd_model = TruncatedSVD(n_components=svd__n_components, random_state=random_state, algorithm='arpack')
-   
+        print("fitting svd model")
+    svd_model = TruncatedSVD(
+        n_components=svd__n_components, random_state=random_state, algorithm="arpack"
+    )
+
     U_reference = svd_model.fit_transform(normalize(reference_vect.T))
     s = svd_model.singular_values_
     U_reference /= s
@@ -539,10 +660,16 @@ def fit_prompt_embedding_model(prompt_input, reference_input, snip_first_dim=Tru
     U_prompt_norm = normalize(U_prompt)
     U_reference_norm = normalize(U_reference)
 
-    return {'prompt_tfidf_model': prompt_tfidf_model, 'reference_tfidf_model': reference_tfidf_model,
-           'svd_model': svd_model, 'U_prompt': U_prompt_norm, 'U_reference': U_reference_norm}
+    return {
+        "prompt_tfidf_model": prompt_tfidf_model,
+        "reference_tfidf_model": reference_tfidf_model,
+        "svd_model": svd_model,
+        "U_prompt": U_prompt_norm,
+        "U_reference": U_reference_norm,
+    }
 
-def transform_embeddings(model, ids, input, side='prompt', filter_empty=True):
+
+def transform_embeddings(model, ids, input, side="prompt", filter_empty=True):
     """
     Standalone function that returns vector representations of input text given a trained PromptTypes prompt_embedding_model. See docstring of `PromptTypes` class for details.
 
@@ -554,13 +681,14 @@ def transform_embeddings(model, ids, input, side='prompt', filter_empty=True):
     :return: input IDs `ids`, and corresponding vector representations of input `vect`
     """
 
-    tfidf_vects = normalize(model['%s_tfidf_model' % side].transform(input), norm='l1')
+    tfidf_vects = normalize(model["%s_tfidf_model" % side].transform(input), norm="l1")
     mask = np.array(tfidf_vects.sum(axis=1)).flatten() > 0
-    vects = normalize(tfidf_vects * model['U_%s' % side])
+    vects = normalize(tfidf_vects * model["U_%s" % side])
     if filter_empty:
         ids = np.array(ids)[mask]
         vects = vects[mask]
     return ids, vects
+
 
 def fit_prompt_type_model(model, n_types, random_state=None, max_dist=0.9, verbosity=0):
     """
@@ -572,24 +700,28 @@ def fit_prompt_type_model(model, n_types, random_state=None, max_dist=0.9, verbo
     """
 
     if verbosity > 0:
-        print('fitting %d prompt types' % n_types)
+        print("fitting %d prompt types" % n_types)
     km = KMeans(n_clusters=n_types, random_state=random_state)
-    km.fit(model['U_prompt'])
-    prompt_dists = km.transform(model['U_prompt'])
-    prompt_clusters = km.predict(model['U_prompt'])
+    km.fit(model["U_prompt"])
+    prompt_dists = km.transform(model["U_prompt"])
+    prompt_clusters = km.predict(model["U_prompt"])
     prompt_clusters[prompt_dists.min(axis=1) >= max_dist] = -1
-    reference_dists = km.transform(model['U_reference'])
-    reference_clusters = km.predict(model['U_reference'])
+    reference_dists = km.transform(model["U_reference"])
+    reference_clusters = km.predict(model["U_reference"])
     reference_clusters[reference_dists.min(axis=1) >= max_dist] = -1
 
-    prompt_df = pd.DataFrame(index=model['prompt_tfidf_model'].get_feature_names(),
-                          data=np.hstack([prompt_dists, prompt_clusters[:,np.newaxis]]),
-                          columns=list(range(n_types)) + ['type_id'])
-    reference_df = pd.DataFrame(index=model['reference_tfidf_model'].get_feature_names(),
-                          data=np.hstack([reference_dists, reference_clusters[:,np.newaxis]]),
-                          columns=list(range(n_types)) + ['type_id'])
-    return {'km_model': km,
-           'prompt_df': prompt_df, 'reference_df': reference_df}
+    prompt_df = pd.DataFrame(
+        index=model["prompt_tfidf_model"].get_feature_names(),
+        data=np.hstack([prompt_dists, prompt_clusters[:, np.newaxis]]),
+        columns=list(range(n_types)) + ["type_id"],
+    )
+    reference_df = pd.DataFrame(
+        index=model["reference_tfidf_model"].get_feature_names(),
+        data=np.hstack([reference_dists, reference_clusters[:, np.newaxis]]),
+        columns=list(range(n_types)) + ["type_id"],
+    )
+    return {"km_model": km, "prompt_df": prompt_df, "reference_df": reference_df}
+
 
 def assign_prompt_types(model, ids, vects, max_dist=0.9):
     """
@@ -601,10 +733,13 @@ def assign_prompt_types(model, ids, vects, max_dist=0.9):
     :return: a dataframe storing cluster centroid distances and the assigned type.
     """
 
-    dists = model['km_model'].transform(vects)
-    clusters = model['km_model'].predict(vects)
+    dists = model["km_model"].transform(vects)
+    clusters = model["km_model"].predict(vects)
     dist_mask = dists.min(axis=1) >= max_dist
-    clusters[ dist_mask] = -1
-    df = pd.DataFrame(index=ids, data=np.hstack([dists,clusters[:,np.newaxis]]),
-                     columns=list(range(dists.shape[1])) + ['type_id'])
+    clusters[dist_mask] = -1
+    df = pd.DataFrame(
+        index=ids,
+        data=np.hstack([dists, clusters[:, np.newaxis]]),
+        columns=list(range(dists.shape[1])) + ["type_id"],
+    )
     return df

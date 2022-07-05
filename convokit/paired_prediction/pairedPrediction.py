@@ -8,6 +8,7 @@ from .util import *
 from convokit.classifier.util import get_coefs_helper
 from convokit.util import deprecation
 
+
 class PairedPrediction(Transformer):
     """
     At a high level, Paired Prediction is a quasi-experimental method that controls for certain priors,
@@ -25,34 +26,62 @@ class PairedPrediction(Transformer):
         default: "pair_orientation"
 
     """
-    def __init__(self, obj_type: str,
-                 pred_feats: List[str],
-                 clf=None,
-                 pair_id_attribute_name: str = "pair_id",
-                 pair_id_feat_name=None,
-                 label_attribute_name: str = "pair_obj_label",
-                 label_feat_name=None,
-                 pair_orientation_attribute_name: str = "pair_orientation",
-                 pair_orientation_feat_name=None):
+
+    def __init__(
+        self,
+        obj_type: str,
+        pred_feats: List[str],
+        clf=None,
+        pair_id_attribute_name: str = "pair_id",
+        pair_id_feat_name=None,
+        label_attribute_name: str = "pair_obj_label",
+        label_feat_name=None,
+        pair_orientation_attribute_name: str = "pair_orientation",
+        pair_orientation_feat_name=None,
+    ):
 
         assert obj_type in ["speaker", "utterance", "conversation"]
         self.obj_type = obj_type
-        self.clf = Pipeline([("standardScaler", StandardScaler(with_mean=False)),
-                             ("logreg", LogisticRegression(solver='liblinear'))]) if clf is None else clf
+        self.clf = (
+            Pipeline(
+                [
+                    ("standardScaler", StandardScaler(with_mean=False)),
+                    ("logreg", LogisticRegression(solver="liblinear")),
+                ]
+            )
+            if clf is None
+            else clf
+        )
         self.pred_feats = pred_feats
-        self.pair_id_attribute_name = pair_id_attribute_name if pair_id_feat_name is None else pair_id_feat_name
-        self.label_attribute_name = label_attribute_name if label_feat_name is None else label_feat_name
-        self.pair_orientation_attribute_name = pair_orientation_attribute_name if \
-            pair_orientation_feat_name is None else pair_orientation_feat_name
+        self.pair_id_attribute_name = (
+            pair_id_attribute_name if pair_id_feat_name is None else pair_id_feat_name
+        )
+        self.label_attribute_name = (
+            label_attribute_name if label_feat_name is None else label_feat_name
+        )
+        self.pair_orientation_attribute_name = (
+            pair_orientation_attribute_name
+            if pair_orientation_feat_name is None
+            else pair_orientation_feat_name
+        )
 
-        for deprecated_set in [(pair_id_feat_name, 'pair_id_feat_name', 'pair_id_attribute_name'),
-                                (label_feat_name, 'label_feat_name', 'label_attribute_name'),
-                                (pair_orientation_feat_name, 'pair_orientation_feat_name',
-                                 'pair_orientation_attribute_name')]:
+        for deprecated_set in [
+            (pair_id_feat_name, "pair_id_feat_name", "pair_id_attribute_name"),
+            (label_feat_name, "label_feat_name", "label_attribute_name"),
+            (
+                pair_orientation_feat_name,
+                "pair_orientation_feat_name",
+                "pair_orientation_attribute_name",
+            ),
+        ]:
             if deprecated_set[0] is not None:
-                deprecation(f"PairedPrediction's {deprecated_set[1]} parameter", f'{deprecated_set[2]}')
+                deprecation(
+                    f"PairedPrediction's {deprecated_set[1]} parameter", f"{deprecated_set[2]}"
+                )
 
-    def fit(self, corpus: Corpus, y=None, selector: Callable[[CorpusComponent], bool] = lambda x: True):
+    def fit(
+        self, corpus: Corpus, y=None, selector: Callable[[CorpusComponent], bool] = lambda x: True
+    ):
         """
         Fit the internal classifier on the paired object features, with an optional selector selecting for which corpus objects to include in the analysis
 
@@ -62,10 +91,18 @@ class PairedPrediction(Transformer):
         """
         # Check if Pairer.transform() needs to be run first
         self._check_for_pair_information(corpus)
-        pair_id_to_objs = generate_pair_id_to_objs(corpus, self.obj_type, selector, self.pair_orientation_attribute_name,
-                                                   self.label_attribute_name, self.pair_id_attribute_name)
+        pair_id_to_objs = generate_pair_id_to_objs(
+            corpus,
+            self.obj_type,
+            selector,
+            self.pair_orientation_attribute_name,
+            self.label_attribute_name,
+            self.pair_id_attribute_name,
+        )
 
-        X, y = generate_paired_X_y(self.pred_feats, self.pair_orientation_attribute_name, pair_id_to_objs)
+        X, y = generate_paired_X_y(
+            self.pred_feats, self.pair_orientation_attribute_name, pair_id_to_objs
+        )
         self.clf.fit(X, y)
         return self
 
@@ -79,14 +116,24 @@ class PairedPrediction(Transformer):
         # Check if transform() needs to be run first
         sample_obj = next(corpus.iter_objs(self.obj_type))
         meta_keys = set(sample_obj.meta)
-        required_keys = {self.pair_orientation_attribute_name, self.pair_id_attribute_name, self.label_attribute_name}
+        required_keys = {
+            self.pair_orientation_attribute_name,
+            self.pair_id_attribute_name,
+            self.label_attribute_name,
+        }
         required_keys -= meta_keys
         if len(required_keys) > 0:
-            raise ValueError("Some metadata attributes required for paired prediction are missing: {}. "
-                             "You may need to run Pairer.transform() first.".format(required_keys))
+            raise ValueError(
+                "Some metadata attributes required for paired prediction are missing: {}. "
+                "You may need to run Pairer.transform() first.".format(required_keys)
+            )
 
-    def summarize(self, corpus: Corpus, selector: Callable[[CorpusComponent], bool] = lambda x: True,
-                  cv=KFold(n_splits=5, shuffle=True)):
+    def summarize(
+        self,
+        corpus: Corpus,
+        selector: Callable[[CorpusComponent], bool] = lambda x: True,
+        cv=KFold(n_splits=5, shuffle=True),
+    ):
         """
         Run PairedPrediction on the corpus with cross-validation and returns the mean cross-validation score.
 
@@ -95,11 +142,19 @@ class PairedPrediction(Transformer):
         :param cv: optional CV model: default is KFold(n_splits=5, shuffle=True)
         :return: cross-validation accuracy score
         """
-        pair_id_to_objs = generate_pair_id_to_objs(corpus, self.obj_type, selector, self.pair_orientation_attribute_name,
-                                                   self.label_attribute_name, self.pair_id_attribute_name)
+        pair_id_to_objs = generate_pair_id_to_objs(
+            corpus,
+            self.obj_type,
+            selector,
+            self.pair_orientation_attribute_name,
+            self.label_attribute_name,
+            self.pair_id_attribute_name,
+        )
 
-        X, y = generate_paired_X_y(self.pred_feats, self.pair_orientation_attribute_name, pair_id_to_objs)
-        return np.mean(cross_val_score(self.clf, X, y, cv=cv, error_score='raise'))
+        X, y = generate_paired_X_y(
+            self.pred_feats, self.pair_orientation_attribute_name, pair_id_to_objs
+        )
+        return np.mean(cross_val_score(self.clf, X, y, cv=cv, error_score="raise"))
 
     def get_coefs(self, feature_names: List[str], coef_func=None):
         """

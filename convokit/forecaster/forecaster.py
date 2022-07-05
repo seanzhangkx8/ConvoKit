@@ -5,6 +5,7 @@ from .cumulativeBoW import CumulativeBoW
 from .forecasterModel import ForecasterModel
 import pandas as pd
 
+
 class Forecaster(Transformer):
     """
     Implements basic Forecaster behavior.
@@ -19,24 +20,31 @@ class Forecaster(Transformer):
     :param forecast_attribute_name: metadata feature name to use in annotation for forecast result, default: "forecast"
     :param forecast_prob_attribute_name: metadata feature name to use in annotation for forecast result probability, default: "forecast_prob"
     """
-    def __init__(self, forecaster_model: ForecasterModel = None,
-                 forecast_mode: str = "future",
-                 convo_structure: str = "branched",
-                 text_func=lambda utt: utt.text,
-                 label_func: Callable[[Utterance], bool] = lambda utt: True,
-                 use_last_only: bool = False,
-                 skip_broken_convos: bool = True,
-                 forecast_attribute_name: str = "forecast",
-                 forecast_prob_attribute_name: str = "forecast_prob"
-                 ):
+
+    def __init__(
+        self,
+        forecaster_model: ForecasterModel = None,
+        forecast_mode: str = "future",
+        convo_structure: str = "branched",
+        text_func=lambda utt: utt.text,
+        label_func: Callable[[Utterance], bool] = lambda utt: True,
+        use_last_only: bool = False,
+        skip_broken_convos: bool = True,
+        forecast_attribute_name: str = "forecast",
+        forecast_prob_attribute_name: str = "forecast_prob",
+    ):
 
         assert convo_structure in ["branched", "linear"]
         self.convo_structure = convo_structure
 
         if forecaster_model is None:
-            print("No model passed to Forecaster. Initializing default forecaster model: Cumulative Bag-of-words...")
-            self.forecaster_model = CumulativeBoW(forecast_attribute_name=forecast_attribute_name,
-                                                  forecast_prob_attribute_name=forecast_prob_attribute_name)
+            print(
+                "No model passed to Forecaster. Initializing default forecaster model: Cumulative Bag-of-words..."
+            )
+            self.forecaster_model = CumulativeBoW(
+                forecast_attribute_name=forecast_attribute_name,
+                forecast_prob_attribute_name=forecast_prob_attribute_name,
+            )
         else:
             self.forecaster_model = forecaster_model
         self.forecast_mode = forecast_mode
@@ -47,7 +55,9 @@ class Forecaster(Transformer):
         self.forecast_attribute_name = forecast_attribute_name
         self.forecast_prob_attribute_name = forecast_prob_attribute_name
 
-    def _get_context_reply_label_dict(self, corpus: Corpus, convo_selector, utt_excluder, include_label=True):
+    def _get_context_reply_label_dict(
+        self, corpus: Corpus, convo_selector, utt_excluder, include_label=True
+    ):
         """
         Returns a dict mapping reply id to (context, reply, label).
 
@@ -59,7 +69,8 @@ class Forecaster(Transformer):
                 try:
                     for path in convo.get_root_to_leaf_paths():
                         path = [utt for utt in path if not utt_excluder(utt)]
-                        if len(path) == 1: continue
+                        if len(path) == 1:
+                            continue
                         dialogs.append(path)
                 except ValueError as e:
                     if not self.skip_broken_convos:
@@ -67,8 +78,11 @@ class Forecaster(Transformer):
 
         elif self.convo_structure == "linear":
             for convo in corpus.iter_conversations(convo_selector):
-                utts = convo.get_chronological_utterance_list(selector=lambda x: not utt_excluder(x))
-                if len(utts) == 1: continue
+                utts = convo.get_chronological_utterance_list(
+                    selector=lambda x: not utt_excluder(x)
+                )
+                if len(utts) == 1:
+                    continue
                 dialogs.append(utts)
 
         id_to_context_reply_label = dict()
@@ -79,12 +93,14 @@ class Forecaster(Transformer):
         # utterance after the last utterance in the context. This override logic won't affect
         # forecast_mode however, since that argument only applies to transform() while include_label
         # is only True when called from fit()
-        include_current = (self.forecast_mode == 'future') and (not include_label)
+        include_current = (self.forecast_mode == "future") and (not include_label)
 
         for dialog in dialogs:
             if self.use_last_only:
                 reply = self.text_func(dialog[-1])
-                context = [self.text_func(utt) for utt in (dialog if include_current else dialog[:-1])]
+                context = [
+                    self.text_func(utt) for utt in (dialog if include_current else dialog[:-1])
+                ]
                 label = self.label_func(dialog[-1]) if include_label else None
                 id_to_context_reply_label[dialog[-1].id] = (context, reply, label)
             else:
@@ -92,14 +108,23 @@ class Forecaster(Transformer):
                     reply = self.text_func(dialog[idx])
                     label = self.label_func(dialog[idx]) if include_label else None
                     reply_id = dialog[idx].id
-                    context = [self.text_func(utt) for utt in (dialog[:(idx+1)] if include_current else dialog[:idx])]
-                    id_to_context_reply_label[reply_id] = (context, reply, label) if include_label else (context, reply, None)
+                    context = [
+                        self.text_func(utt)
+                        for utt in (dialog[: (idx + 1)] if include_current else dialog[:idx])
+                    ]
+                    id_to_context_reply_label[reply_id] = (
+                        (context, reply, label) if include_label else (context, reply, None)
+                    )
 
         return id_to_context_reply_label
 
-    def fit(self, corpus: Corpus, y=None,
-            selector: Callable[[Conversation], bool] = lambda convo: True,
-            ignore_utterances: Callable[[Utterance], bool] = lambda utt: False):
+    def fit(
+        self,
+        corpus: Corpus,
+        y=None,
+        selector: Callable[[Conversation], bool] = lambda convo: True,
+        ignore_utterances: Callable[[Utterance], bool] = lambda utt: False,
+    ):
         """
         Train the ForecasterModel on the given corpus.
 
@@ -108,12 +133,17 @@ class Forecaster(Transformer):
         :param ignore_utterances: a (lambda) function that takes an Utterance and returns a bool: True if the Utterance should be excluded from the Conversation in the fitting step. By default, all Utterances are included.
         :return: fitted Forecaster Transformer
         """
-        id_to_context_reply_label = self._get_context_reply_label_dict(corpus, selector, ignore_utterances, include_label=True)
+        id_to_context_reply_label = self._get_context_reply_label_dict(
+            corpus, selector, ignore_utterances, include_label=True
+        )
         self.forecaster_model.train(id_to_context_reply_label)
 
-    def transform(self, corpus: Corpus,
-                  selector: Callable[[Conversation], bool] = lambda convo: True,
-                  ignore_utterances: Callable[[Utterance], bool] = lambda utt: False) -> Corpus:
+    def transform(
+        self,
+        corpus: Corpus,
+        selector: Callable[[Conversation], bool] = lambda convo: True,
+        ignore_utterances: Callable[[Utterance], bool] = lambda utt: False,
+    ) -> Corpus:
         """
         Annotate the corpus utterances with forecast and forecast score information
 
@@ -122,28 +152,44 @@ class Forecaster(Transformer):
         :param ignore_utterances: a (lambda) function that takes an Utterance and returns a bool: True if the Utterance should be excluded from the Conversation in the transformation step. By default, all Utterances are included.
         :return: annotated Corpus
         """
-        id_to_context_reply_label = self._get_context_reply_label_dict(corpus, selector, ignore_utterances, include_label=False)
+        id_to_context_reply_label = self._get_context_reply_label_dict(
+            corpus, selector, ignore_utterances, include_label=False
+        )
         forecast_df = self.forecaster_model.forecast(id_to_context_reply_label)
 
         for utt in corpus.iter_utterances():
             if utt.id in forecast_df.index:
-                utt.add_meta(self.forecast_attribute_name, forecast_df.loc[utt.id][self.forecast_attribute_name])
-                utt.add_meta(self.forecast_prob_attribute_name, forecast_df.loc[utt.id][self.forecast_prob_attribute_name])
+                utt.add_meta(
+                    self.forecast_attribute_name,
+                    forecast_df.loc[utt.id][self.forecast_attribute_name],
+                )
+                utt.add_meta(
+                    self.forecast_prob_attribute_name,
+                    forecast_df.loc[utt.id][self.forecast_prob_attribute_name],
+                )
             else:
                 utt.add_meta(self.forecast_attribute_name, None)
                 utt.add_meta(self.forecast_prob_attribute_name, None)
 
         return corpus
 
-    def fit_transform(self, corpus: Corpus, y=None, selector: Callable[[Conversation], bool] = lambda convo: True,
-                      ignore_utterances: Callable[[Utterance], bool] = lambda utt: False) -> Corpus:
+    def fit_transform(
+        self,
+        corpus: Corpus,
+        y=None,
+        selector: Callable[[Conversation], bool] = lambda convo: True,
+        ignore_utterances: Callable[[Utterance], bool] = lambda utt: False,
+    ) -> Corpus:
         self.fit(corpus, selector=selector, ignore_utterances=ignore_utterances)
         return self.transform(corpus, selector=selector, ignore_utterances=ignore_utterances)
 
-    def summarize(self, corpus: Corpus,
-                  selector: Callable[[Conversation], bool] = lambda convo: True,
-                  ignore_utterances: Callable[[Utterance], bool] = lambda utt: False,
-                  exclude_na=True):
+    def summarize(
+        self,
+        corpus: Corpus,
+        selector: Callable[[Conversation], bool] = lambda convo: True,
+        ignore_utterances: Callable[[Utterance], bool] = lambda utt: False,
+        exclude_na=True,
+    ):
         """
         Returns a DataFrame of utterances and their forecasts (and forecast probabilities)
 
@@ -156,9 +202,21 @@ class Forecaster(Transformer):
         utt_forecast_prob = []
         for convo in corpus.iter_conversations(selector):
             for utt in convo.iter_utterances(lambda x: not ignore_utterances(x)):
-                utt_forecast_prob.append((utt.id, utt.meta[self.forecast_attribute_name], utt.meta[self.forecast_prob_attribute_name]))
-        forecast_df = pd.DataFrame(utt_forecast_prob, columns=["utt_id", self.forecast_attribute_name, self.forecast_prob_attribute_name]) \
-            .set_index('utt_id').sort_values(self.forecast_prob_attribute_name, ascending=False)
+                utt_forecast_prob.append(
+                    (
+                        utt.id,
+                        utt.meta[self.forecast_attribute_name],
+                        utt.meta[self.forecast_prob_attribute_name],
+                    )
+                )
+        forecast_df = (
+            pd.DataFrame(
+                utt_forecast_prob,
+                columns=["utt_id", self.forecast_attribute_name, self.forecast_prob_attribute_name],
+            )
+            .set_index("utt_id")
+            .sort_values(self.forecast_prob_attribute_name, ascending=False)
+        )
         if exclude_na:
             forecast_df = forecast_df.dropna()
         return forecast_df

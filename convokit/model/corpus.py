@@ -79,17 +79,23 @@ class Corpus:
         self._vector_matrices = dict()
 
         convos_data = defaultdict(dict)
-        if exclude_utterance_meta is None: exclude_utterance_meta = []
-        if exclude_conversation_meta is None: exclude_conversation_meta = []
-        if exclude_speaker_meta is None: exclude_speaker_meta = []
-        if exclude_overall_meta is None: exclude_overall_meta = []
+        if exclude_utterance_meta is None:
+            exclude_utterance_meta = []
+        if exclude_conversation_meta is None:
+            exclude_conversation_meta = []
+        if exclude_speaker_meta is None:
+            exclude_speaker_meta = []
+        if exclude_overall_meta is None:
+            exclude_overall_meta = []
 
         # Construct corpus from file or directory
         if filename is not None:
-            if disable_type_check: self.meta_index.disable_type_check()
+            if disable_type_check:
+                self.meta_index.disable_type_check()
             if os.path.isdir(filename):
-                utterances = load_uttinfo_from_dir(filename, utterance_start_index,
-                                                   utterance_end_index, exclude_utterance_meta)
+                utterances = load_uttinfo_from_dir(
+                    filename, utterance_start_index, utterance_end_index, exclude_utterance_meta
+                )
 
                 speakers_data = load_speakers_data_from_dir(filename, exclude_speaker_meta)
                 convos_data = load_convos_data_from_dir(filename, exclude_conversation_meta)
@@ -108,28 +114,53 @@ class Corpus:
                 #     pass
 
                 # unpack binary data for utterances
-                unpack_binary_data_for_utts(utterances, filename, self.meta_index.utterances_index,
-                                            exclude_utterance_meta, KeyMeta)
+                unpack_binary_data_for_utts(
+                    utterances,
+                    filename,
+                    self.meta_index.utterances_index,
+                    exclude_utterance_meta,
+                    KeyMeta,
+                )
                 # unpack binary data for speakers
-                unpack_binary_data(filename, speakers_data, self.meta_index.speakers_index, "speaker",
-                                   exclude_speaker_meta)
+                unpack_binary_data(
+                    filename,
+                    speakers_data,
+                    self.meta_index.speakers_index,
+                    "speaker",
+                    exclude_speaker_meta,
+                )
 
                 # unpack binary data for conversations
-                unpack_binary_data(filename, convos_data, self.meta_index.conversations_index, "convo",
-                                   exclude_conversation_meta)
+                unpack_binary_data(
+                    filename,
+                    convos_data,
+                    self.meta_index.conversations_index,
+                    "convo",
+                    exclude_conversation_meta,
+                )
 
                 # unpack binary data for overall corpus
-                unpack_binary_data(filename, self.meta, self.meta_index.overall_index, "overall", exclude_overall_meta)
+                unpack_binary_data(
+                    filename,
+                    self.meta,
+                    self.meta_index.overall_index,
+                    "overall",
+                    exclude_overall_meta,
+                )
 
             else:
                 speakers_data = defaultdict(dict)
                 convos_data = defaultdict(dict)
-                utterances = load_from_utterance_file(filename, utterance_start_index, utterance_end_index)
+                utterances = load_from_utterance_file(
+                    filename, utterance_start_index, utterance_end_index
+                )
 
             self.utterances = dict()
             self.speakers = dict()
 
-            initialize_speakers_and_utterances_objects(self, self.utterances, utterances, self.speakers, speakers_data)
+            initialize_speakers_and_utterances_objects(
+                self, self.utterances, utterances, self.speakers, speakers_data
+            )
 
             self.meta_index.enable_type_check()
 
@@ -151,7 +182,8 @@ class Corpus:
         if merge_lines:
             self.utterances = merge_utterance_lines(self.utterances)
 
-        if disable_type_check: self.meta_index.disable_type_check()
+        if disable_type_check:
+            self.meta_index.disable_type_check()
         self.conversations = initialize_conversations(self, self.utterances, convos_data)
         self.meta_index.enable_type_check()
         self.update_speakers_data()
@@ -162,16 +194,22 @@ class Corpus:
 
     @vectors.setter
     def vectors(self, new_vectors):
-        if not isinstance(new_vectors, type(['stringlist'])):
-            raise ValueError("The preload_vectors being set should be a list of strings, "
-                             "where each string is the name of a vector matrix.")
+        if not isinstance(new_vectors, type(["stringlist"])):
+            raise ValueError(
+                "The preload_vectors being set should be a list of strings, "
+                "where each string is the name of a vector matrix."
+            )
         self.meta_index.vectors = new_vectors
 
-    def dump(self, name: str, base_path: Optional[str] = None,
-             exclude_vectors: List[str] = None,
-             force_version: int = None,
-             overwrite_existing_corpus: bool = False,
-             fields_to_skip=None) -> None:
+    def dump(
+        self,
+        name: str,
+        base_path: Optional[str] = None,
+        exclude_vectors: List[str] = None,
+        force_version: int = None,
+        overwrite_existing_corpus: bool = False,
+        fields_to_skip=None,
+    ) -> None:
         """
         Dumps the corpus and its metadata to disk. Optionally, set `force_version` to a desired integer version number,
         otherwise the version number is automatically incremented.
@@ -181,7 +219,7 @@ class Corpus:
         :param exclude_vectors: list of names of vector matrices to exclude from the dumping step. By default; all
             vector matrices that belong to the Corpus (whether loaded or not) are dumped.
         :param force_version: version number to set for the dumped corpus
-        :param overwrite_existing_corpus: if True, save to the path you loaded the corpus from, overriding the original corpus. 
+        :param overwrite_existing_corpus: if True, save to the path you loaded the corpus from, overriding the original corpus.
         :param fields_to_skip: a dictionary of {object type: list of metadata attributes to omit when writing to disk}. object types can be one of "speaker", "utterance", "conversation", "corpus".
         """
         if fields_to_skip is None:
@@ -190,7 +228,9 @@ class Corpus:
         if base_path is not None and overwrite_existing_corpus:
             raise ValueError("Not allowed to specify both base_path and overwrite_existing_corpus!")
         if overwrite_existing_corpus and self.corpus_dirpath is None:
-            raise ValueError("Cannot use save to existing path on Corpus generated from utterance list!")
+            raise ValueError(
+                "Cannot use save to existing path on Corpus generated from utterance list!"
+            )
         if not overwrite_existing_corpus:
             if base_path is None:
                 base_path = os.path.expanduser("~/.convokit/")
@@ -207,15 +247,24 @@ class Corpus:
             os.mkdir(dir_name)
 
         # dump speakers, conversations, utterances
-        dump_corpus_component(self, dir_name, "speakers.json", "speaker", "speaker", exclude_vectors, fields_to_skip)
-        dump_corpus_component(self, dir_name, "conversations.json", "conversation", "convo",
-                              exclude_vectors, fields_to_skip)
+        dump_corpus_component(
+            self, dir_name, "speakers.json", "speaker", "speaker", exclude_vectors, fields_to_skip
+        )
+        dump_corpus_component(
+            self,
+            dir_name,
+            "conversations.json",
+            "conversation",
+            "convo",
+            exclude_vectors,
+            fields_to_skip,
+        )
         dump_utterances(self, dir_name, exclude_vectors, fields_to_skip)
 
         # dump corpus
         with open(os.path.join(dir_name, "corpus.json"), "w") as f:
             d_bin = defaultdict(list)
-            meta_up = dump_helper_bin(self.meta, d_bin, fields_to_skip.get('corpus', None))
+            meta_up = dump_helper_bin(self.meta, d_bin, fields_to_skip.get("corpus", None))
 
             json.dump(meta_up, f)
             for name, l_bin in d_bin.items():
@@ -224,7 +273,12 @@ class Corpus:
 
         # dump index
         with open(os.path.join(dir_name, "index.json"), "w") as f:
-            json.dump(self.meta_index.to_dict(exclude_vectors=exclude_vectors, force_version=force_version), f)
+            json.dump(
+                self.meta_index.to_dict(
+                    exclude_vectors=exclude_vectors, force_version=force_version
+                ),
+                f,
+            )
 
         # dump vectors
         if exclude_vectors is not None:
@@ -235,8 +289,8 @@ class Corpus:
             if vector_name in self._vector_matrices:
                 self._vector_matrices[vector_name].dump(dir_name)
             else:
-                src = os.path.join(self.corpus_dirpath, 'vectors.{}.p'.format(vector_name))
-                dest = os.path.join(dir_name, 'vectors.{}.p'.format(vector_name))
+                src = os.path.join(self.corpus_dirpath, "vectors.{}.p".format(vector_name))
+                dest = os.path.join(dir_name, "vectors.{}.p".format(vector_name))
                 shutil.copy(src, dest)
 
     # with open(os.path.join(dir_name, "processed_text.index.json"), "w") as f:
@@ -348,8 +402,9 @@ class Corpus:
         deprecation("random_user()", "random_speaker()")
         return self.random_speaker()
 
-    def iter_utterances(self, selector: Optional[Callable[[Utterance], bool]] = lambda utt: True) -> \
-            Generator[Utterance, None, None]:
+    def iter_utterances(
+        self, selector: Optional[Callable[[Utterance], bool]] = lambda utt: True
+    ) -> Generator[Utterance, None, None]:
         """
         Get utterances in the Corpus, with an optional selector that filters for Utterances that should be included.
 
@@ -361,8 +416,11 @@ class Corpus:
             if selector(v):
                 yield v
 
-    def get_utterances_dataframe(self, selector: Optional[Callable[[Utterance], bool]] = lambda utt: True,
-                                 exclude_meta: bool = False):
+    def get_utterances_dataframe(
+        self,
+        selector: Optional[Callable[[Utterance], bool]] = lambda utt: True,
+        exclude_meta: bool = False,
+    ):
         """
         Get a DataFrame of the utterances with fields and metadata attributes, with an optional selector that filters
         utterances that should be included. Edits to the DataFrame do not change the corpus in any way.
@@ -374,8 +432,9 @@ class Corpus:
         """
         return get_utterances_dataframe(self, selector, exclude_meta)
 
-    def iter_conversations(self, selector: Optional[Callable[[Conversation], bool]] = lambda convo: True) -> Generator[
-                           Conversation, None, None]:
+    def iter_conversations(
+        self, selector: Optional[Callable[[Conversation], bool]] = lambda convo: True
+    ) -> Generator[Conversation, None, None]:
         """
         Get conversations in the Corpus, with an optional selector that filters for Conversations that should be included
 
@@ -387,8 +446,11 @@ class Corpus:
             if selector(v):
                 yield v
 
-    def get_conversations_dataframe(self, selector: Optional[Callable[[Conversation], bool]] = lambda convo: True,
-                                    exclude_meta: bool = False):
+    def get_conversations_dataframe(
+        self,
+        selector: Optional[Callable[[Conversation], bool]] = lambda convo: True,
+        exclude_meta: bool = False,
+    ):
         """
         Get a DataFrame of the conversations with fields and metadata attributes, with an optional selector that filters
         for conversations that should be included. Edits to the DataFrame do not change the corpus in any way.
@@ -400,8 +462,9 @@ class Corpus:
         """
         return get_conversations_dataframe(self, selector, exclude_meta)
 
-    def iter_speakers(self, selector: Optional[Callable[[Speaker], bool]] = lambda speaker: True) -> \
-            Generator[Speaker, None, None]:
+    def iter_speakers(
+        self, selector: Optional[Callable[[Speaker], bool]] = lambda speaker: True
+    ) -> Generator[Speaker, None, None]:
         """
         Get Speakers in the Corpus, with an optional selector that filters for Speakers that should be included
 
@@ -414,8 +477,11 @@ class Corpus:
             if selector(speaker):
                 yield speaker
 
-    def get_speakers_dataframe(self, selector: Optional[Callable[[Speaker], bool]] = lambda utt: True,
-                               exclude_meta: bool = False):
+    def get_speakers_dataframe(
+        self,
+        selector: Optional[Callable[[Speaker], bool]] = lambda utt: True,
+        exclude_meta: bool = False,
+    ):
         """
         Get a DataFrame of the Speakers with fields and metadata attributes, with an optional selector that filters
         Speakers that should be included. Edits to the DataFrame do not change the corpus in any way.
@@ -431,8 +497,11 @@ class Corpus:
         deprecation("iter_users()", "iter_speakers()")
         return self.iter_speakers(selector)
 
-    def iter_objs(self, obj_type: str,
-                  selector: Callable[[Union[Speaker, Utterance, Conversation]], bool] = lambda obj: True):
+    def iter_objs(
+        self,
+        obj_type: str,
+        selector: Callable[[Union[Speaker, Utterance, Conversation]], bool] = lambda obj: True,
+    ):
         """
         Get Corpus objects of specified type from the Corpus, with an optional selector that filters for Corpus object that should be included
 
@@ -443,13 +512,17 @@ class Corpus:
         """
 
         assert obj_type in ["speaker", "utterance", "conversation"]
-        obj_iters = {"conversation": self.iter_conversations,
-                     "speaker": self.iter_speakers,
-                     "utterance": self.iter_utterances}
+        obj_iters = {
+            "conversation": self.iter_conversations,
+            "speaker": self.iter_speakers,
+            "utterance": self.iter_utterances,
+        }
 
         return obj_iters[obj_type](selector)
 
-    def get_utterance_ids(self, selector: Optional[Callable[[Utterance], bool]] = lambda utt: True) -> List[str]:
+    def get_utterance_ids(
+        self, selector: Optional[Callable[[Utterance], bool]] = lambda utt: True
+    ) -> List[str]:
         """
         Get a list of ids of Utterances in the Corpus, with an optional selector that filters for Utterances that should be included
 
@@ -459,8 +532,9 @@ class Corpus:
         """
         return [utt.id for utt in self.iter_utterances(selector)]
 
-    def get_conversation_ids(self, selector: Optional[Callable[[Conversation], bool]] = lambda convo: True) -> List[
-        str]:
+    def get_conversation_ids(
+        self, selector: Optional[Callable[[Conversation], bool]] = lambda convo: True
+    ) -> List[str]:
         """
         Get a list of ids of Conversations in the Corpus, with an optional selector that filters for Conversations that should be included
 
@@ -470,8 +544,9 @@ class Corpus:
         """
         return [convo.id for convo in self.iter_conversations(selector)]
 
-    def get_speaker_ids(self, selector: Optional[Callable[[Speaker], bool]] = lambda speaker: True) -> List[
-        str]:
+    def get_speaker_ids(
+        self, selector: Optional[Callable[[Speaker], bool]] = lambda speaker: True
+    ) -> List[str]:
         """
         Get a list of ids of Speakers in the Corpus, with an optional selector that filters for Speakers that should be included
 
@@ -481,8 +556,11 @@ class Corpus:
         """
         return [speaker.id for speaker in self.iter_speakers(selector)]
 
-    def get_object_ids(self, obj_type: str,
-                       selector: Callable[[Union[Speaker, Utterance, Conversation]], bool] = lambda obj: True):
+    def get_object_ids(
+        self,
+        obj_type: str,
+        selector: Callable[[Union[Speaker, Utterance, Conversation]], bool] = lambda obj: True,
+    ):
         """
         Get a list of ids of Corpus objects of the specified type in the Corpus, with an optional selector that filters for objects that should be included
 
@@ -494,7 +572,9 @@ class Corpus:
         assert obj_type in ["speaker", "utterance", "conversation"]
         return [obj.id for obj in self.iter_objs(obj_type, selector)]
 
-    def get_usernames(self, selector: Optional[Callable[[Speaker], bool]] = lambda user: True) -> Set[str]:
+    def get_usernames(
+        self, selector: Optional[Callable[[Speaker], bool]] = lambda user: True
+    ) -> Set[str]:
         """Get names of speakers in the dataset.
 
         This function will be deprecated and replaced by get_speaker_ids()
@@ -519,11 +599,17 @@ class Corpus:
         :return: the mutated Corpus
         """
 
-        self.conversations = {convo_id: convo for convo_id, convo in self.conversations.items() if selector(convo)}
-        utt_ids = set([utt for convo in self.conversations.values() for utt in convo.get_utterance_ids()])
+        self.conversations = {
+            convo_id: convo for convo_id, convo in self.conversations.items() if selector(convo)
+        }
+        utt_ids = set(
+            [utt for convo in self.conversations.values() for utt in convo.get_utterance_ids()]
+        )
         self.utterances = {utt.id: utt for utt in self.utterances.values() if utt.id in utt_ids}
         speaker_ids = set([utt.speaker.id for utt in self.utterances.values()])
-        self.speakers = {speaker.id: speaker for speaker in self.speakers.values() if speaker.id in speaker_ids}
+        self.speakers = {
+            speaker.id: speaker for speaker in self.speakers.values() if speaker.id in speaker_ids
+        }
         self.update_speakers_data()
         self.reinitialize_index()
         return self
@@ -544,8 +630,13 @@ class Corpus:
             convo.meta.update(self.get_conversation(convo.id).meta)
         return new_corpus
 
-    def reindex_conversations(self, new_convo_roots: List[str], preserve_corpus_meta: bool = True,
-                              preserve_convo_meta: bool = True, verbose=True) -> 'Corpus':
+    def reindex_conversations(
+        self,
+        new_convo_roots: List[str],
+        preserve_corpus_meta: bool = True,
+        preserve_convo_meta: bool = True,
+        verbose=True,
+    ) -> "Corpus":
         """
         Generates a new Corpus from current Corpus with specified list of utterance ids to use as conversation ids.
 
@@ -559,7 +650,7 @@ class Corpus:
             (For each new conversation, use the metadata of the conversation that the utterance belonged to.)
         :param verbose: whether to print a warning when
         :return: new Corpus with reindexed Conversations
-        """""
+        """ ""
         new_convo_roots = set(new_convo_roots)
         for convo in self.iter_conversations():
             try:
@@ -592,10 +683,14 @@ class Corpus:
 
         if preserve_convo_meta:
             for convo in new_corpus.iter_conversations():
-                convo.meta['original_convo_meta'] = self.get_conversation(original_utt_to_convo_id[convo.id]).meta
-                convo.meta['original_convo_id'] = original_utt_to_convo_id[convo.id]
+                convo.meta["original_convo_meta"] = self.get_conversation(
+                    original_utt_to_convo_id[convo.id]
+                ).meta
+                convo.meta["original_convo_id"] = original_utt_to_convo_id[convo.id]
         if verbose:
-            missing_convo_roots = list(set(new_convo_roots) - set(new_corpus.get_conversation_ids()))
+            missing_convo_roots = list(
+                set(new_convo_roots) - set(new_corpus.get_conversation_ids())
+            )
             if len(missing_convo_roots) > 0:
                 warn("Failed to find some of the specified new convo roots:\n")
                 print(missing_convo_roots)
@@ -608,8 +703,11 @@ class Corpus:
     def add_meta(self, key: str, value) -> None:
         self.meta[key] = value
 
-    def speaking_pairs(self, selector: Optional[Callable[[Speaker, Speaker], bool]] = lambda speaker1, speaker2: True,
-                       speaker_ids_only: bool = False) -> Set[Tuple[str, str]]:
+    def speaking_pairs(
+        self,
+        selector: Optional[Callable[[Speaker, Speaker], bool]] = lambda speaker1, speaker2: True,
+        speaker_ids_only: bool = False,
+    ) -> Set[Tuple[str, str]]:
         """
         Get all directed speaking pairs (a, b) of speakers such that a replies to b at least once in the dataset.
 
@@ -623,20 +721,30 @@ class Corpus:
         """
         pairs = set()
         for utt2 in self.iter_utterances():
-            if utt2.speaker is not None and utt2.reply_to is not None and self.has_utterance(utt2.reply_to):
+            if (
+                utt2.speaker is not None
+                and utt2.reply_to is not None
+                and self.has_utterance(utt2.reply_to)
+            ):
                 utt1 = self.get_utterance(utt2.reply_to)
                 if utt1.speaker is not None:
                     if selector(utt2.speaker, utt1.speaker):
-                        pairs.add((utt2.speaker.id, utt1.speaker.id) if
-                                  speaker_ids_only else (utt2.speaker, utt1.speaker))
+                        pairs.add(
+                            (utt2.speaker.id, utt1.speaker.id)
+                            if speaker_ids_only
+                            else (utt2.speaker, utt1.speaker)
+                        )
         return pairs
 
-    def directed_pairwise_exchanges(self, selector: Optional[Callable[[Speaker, Speaker], bool]] = lambda speaker1, speaker2: True,
-                                    speaker_ids_only: bool = False) -> Dict[Tuple, List[Utterance]]:
+    def directed_pairwise_exchanges(
+        self,
+        selector: Optional[Callable[[Speaker, Speaker], bool]] = lambda speaker1, speaker2: True,
+        speaker_ids_only: bool = False,
+    ) -> Dict[Tuple, List[Utterance]]:
         """
         Get all directed pairwise exchanges in the dataset.
 
-        :param selector: optional function that takes in a speaking speaker and a replied-to speaker and 
+        :param selector: optional function that takes in a speaking speaker and a replied-to speaker and
             returns True to include the pair in the result, or False otherwise.
         :param speaker_ids_only: if True, index conversations
             by speaker ids rather than Speaker objects.
@@ -651,13 +759,19 @@ class Corpus:
                 u1 = self.get_utterance(u2.reply_to)
                 if u1.speaker is not None:
                     if selector(u2.speaker, u1.speaker):
-                        key = (u2.speaker.id, u1.speaker.id) if speaker_ids_only else (u2.speaker, u1.speaker)
+                        key = (
+                            (u2.speaker.id, u1.speaker.id)
+                            if speaker_ids_only
+                            else (u2.speaker, u1.speaker)
+                        )
                         pairs[key].append(u2)
 
         return pairs
 
     @staticmethod
-    def _merge_utterances(utts1: List[Utterance], utts2: List[Utterance], warnings: bool) -> ValuesView[Utterance]:
+    def _merge_utterances(
+        utts1: List[Utterance], utts2: List[Utterance], warnings: bool
+    ) -> ValuesView[Utterance]:
         """
         Helper function for merge().
 
@@ -693,25 +807,32 @@ class Corpus:
                     for key, val in utt.meta.items():
                         if key in prev_utt.meta and prev_utt.meta[key] != val:
                             if warnings:
-                                warn("Found conflicting values for Utterance {} for metadata key: {}. "
-                                     "Overwriting with other corpus's Utterance metadata.".format(repr(utt.id),
-                                                                                                  repr(key)))
+                                warn(
+                                    "Found conflicting values for Utterance {} for metadata key: {}. "
+                                    "Overwriting with other corpus's Utterance metadata.".format(
+                                        repr(utt.id), repr(key)
+                                    )
+                                )
                         prev_utt.meta[key] = val
                 else:
                     if warnings:
-                        warn("Utterances with same id do not share the same data:\n" +
-                             str(prev_utt) + "\n" +
-                             str(utt) + "\n" +
-                             "Ignoring second corpus's utterance."
-                             )
+                        warn(
+                            "Utterances with same id do not share the same data:\n"
+                            + str(prev_utt)
+                            + "\n"
+                            + str(utt)
+                            + "\n"
+                            + "Ignoring second corpus's utterance."
+                        )
             else:
                 seen_utts[utt.id] = utt
 
         return seen_utts.values()
 
     @staticmethod
-    def _collect_speaker_data(utt_sets: Collection[Collection[Utterance]]) -> Tuple[
-        Dict[str, Dict[str, str]], Dict[str, Dict[str, bool]]]:
+    def _collect_speaker_data(
+        utt_sets: Collection[Collection[Utterance]],
+    ) -> Tuple[Dict[str, Dict[str, str]], Dict[str, Dict[str, bool]]]:
         """
         Helper function for merge().
 
@@ -739,8 +860,9 @@ class Corpus:
         return speakers_meta, speakers_meta_conflict
 
     @staticmethod
-    def _update_corpus_speaker_data(new_corpus, speakers_meta: Dict, speakers_meta_conflict: Dict,
-                                    warnings: bool) -> None:
+    def _update_corpus_speaker_data(
+        new_corpus, speakers_meta: Dict, speakers_meta_conflict: Dict, warnings: bool
+    ) -> None:
         """
         Helper function for merge().
 
@@ -757,8 +879,10 @@ class Corpus:
             for meta_key, meta_val in speakers_meta[speaker].items():
                 if speakers_meta_conflict[speaker][meta_key]:
                     if warnings:
-                        warn("Multiple values found for {} for metadata key: {}. "
-                             "Taking the latest one found".format(speaker, repr(meta_key)))
+                        warn(
+                            "Multiple values found for {} for metadata key: {}. "
+                            "Taking the latest one found".format(speaker, repr(meta_key))
+                        )
                 speaker.meta[meta_key] = meta_val
 
     def _reinitialize_index_helper(self, new_index, obj_type):
@@ -787,7 +911,7 @@ class Corpus:
         self._reinitialize_index_helper(new_index, "conversation")
 
         for key, value in self.meta.items():  # overall
-            new_index.update_index('corpus', key, str(type(value)))
+            new_index.update_index("corpus", key, str(type(value)))
 
         new_index.version = old_index.version
         self.meta_index = new_index
@@ -819,15 +943,19 @@ class Corpus:
         # differences in Speaker meta will not be registered for duplicate Utterances (because utts would be discarded
         # during merging)
         speakers_meta, speakers_meta_conflict = self._collect_speaker_data([utts1, utts2])
-        Corpus._update_corpus_speaker_data(new_corpus, speakers_meta, speakers_meta_conflict, warnings=warnings)
+        Corpus._update_corpus_speaker_data(
+            new_corpus, speakers_meta, speakers_meta_conflict, warnings=warnings
+        )
 
         # Merge CORPUS metadata
         new_corpus.meta = self.meta
         for key, val in other_corpus.meta.items():
             if key in new_corpus.meta and new_corpus.meta[key] != val:
                 if warnings:
-                    warn("Found conflicting values for Corpus metadata key: {}. "
-                         "Overwriting with other Corpus's metadata.".format(repr(key)))
+                    warn(
+                        "Found conflicting values for Corpus metadata key: {}. "
+                        "Overwriting with other Corpus's metadata.".format(repr(key))
+                    )
             new_corpus.meta[key] = val
 
         # Merge CONVERSATION metadata
@@ -842,8 +970,12 @@ class Corpus:
                 curr_meta = new_corpus.get_conversation(convo.id).meta
                 if key in curr_meta and curr_meta[key] != val:
                     if warnings:
-                        warn("Found conflicting values for Conversation {} for metadata key: {}. "
-                             "Overwriting with other corpus's Conversation metadata.".format(repr(convo.id), repr(key)))
+                        warn(
+                            "Found conflicting values for Conversation {} for metadata key: {}. "
+                            "Overwriting with other corpus's Conversation metadata.".format(
+                                repr(convo.id), repr(key)
+                            )
+                        )
                 curr_meta[key] = val
 
         new_corpus.update_speakers_data()
@@ -896,9 +1028,7 @@ class Corpus:
                 else:
                     new_convos[utt.conversation_id].append(utt.id)
             for convo_id, convo_utts in new_convos.items():
-                new_convo = Conversation(owner=self, id=convo_id,
-                                         utterances=convo_utts,
-                                         meta=None)
+                new_convo = Conversation(owner=self, id=convo_id, utterances=convo_utts, meta=None)
                 self.conversations[convo_id] = new_convo
                 # (link speaker -> convo)
                 new_convo_speaker = self.speakers[new_convo.get_utterance(convo_id).speaker.id]
@@ -953,7 +1083,9 @@ class Corpus:
         self.meta_index.del_from_index(obj_type, attribute)
         self.meta_index.lock_metadata_deletion[obj_type] = True
 
-    def set_vector_matrix(self, name: str, matrix, ids: List[str]=None, columns: List[str] = None):
+    def set_vector_matrix(
+        self, name: str, matrix, ids: List[str] = None, columns: List[str] = None
+    ):
         """
         Adds a vector matrix to the Corpus, where the matrix is an array of vector representations of some
         set of Corpus components (i.e. Utterances, Conversations, Speakers).
@@ -969,7 +1101,11 @@ class Corpus:
 
         matrix = ConvoKitMatrix(name=name, matrix=matrix, ids=ids, columns=columns)
         if name in self.meta_index.vectors:
-            warn('Vector matrix "{}" already exists. Overwriting it with newly set vector matrix.'.format(name))
+            warn(
+                'Vector matrix "{}" already exists. Overwriting it with newly set vector matrix.'.format(
+                    name
+                )
+            )
         self.meta_index.add_vector(name)
         self._vector_matrices[name] = matrix
 
@@ -981,8 +1117,12 @@ class Corpus:
         :return: None
         """
         if matrix.name in self.meta_index.vectors:
-            warn('Vector matrix "{}" already exists. '
-                 "Overwriting it with newly appended vector matrix that has name: '{}'.".format(matrix.name, matrix.name))
+            warn(
+                'Vector matrix "{}" already exists. '
+                "Overwriting it with newly appended vector matrix that has name: '{}'.".format(
+                    matrix.name, matrix.name
+                )
+            )
         self.meta_index.add_vector(matrix.name)
         self._vector_matrices[matrix.name] = matrix
 
@@ -1001,8 +1141,13 @@ class Corpus:
                 self._vector_matrices[name] = matrix
         return self._vector_matrices[name]
 
-    def get_vectors(self, name, ids: Optional[List[str]] = None, columns: Optional[List[str]] = None,
-                    as_dataframe: bool = False):
+    def get_vectors(
+        self,
+        name,
+        ids: Optional[List[str]] = None,
+        columns: Optional[List[str]] = None,
+        as_dataframe: bool = False,
+    ):
         """
         Get the vectors for some corpus component objects.
 
@@ -1013,7 +1158,9 @@ class Corpus:
             by default.
         :return: a vector matrix (either np.ndarray or csr_matrix) or a pandas dataframe
         """
-        return self.get_vector_matrix(name).get_vectors(ids=ids, columns=columns, as_dataframe=as_dataframe)
+        return self.get_vector_matrix(name).get_vectors(
+            ids=ids, columns=columns, as_dataframe=as_dataframe
+        )
 
     def delete_vector_matrix(self, name):
         """
@@ -1029,7 +1176,7 @@ class Corpus:
     def dump_vectors(self, name, dir_name=None):
 
         if (self.corpus_dirpath is None) and (dir_name is None):
-            raise ValueError('Must specify a directory to read from.')
+            raise ValueError("Must specify a directory to read from.")
         if dir_name is None:
             dir_name = self.corpus_dirpath
 
@@ -1054,19 +1201,22 @@ class Corpus:
             fields = []
 
         if (self.corpus_dirpath is None) and (dir_name is None):
-            raise ValueError('Must specify a directory to read from.')
+            raise ValueError("Must specify a directory to read from.")
         if dir_name is None:
             dir_name = self.corpus_dirpath
 
         if len(fields) == 0:
-            fields = [x.replace('info.', '').replace('.jsonl', '') for x in os.listdir(dir_name)
-                      if x.startswith('info')]
+            fields = [
+                x.replace("info.", "").replace(".jsonl", "")
+                for x in os.listdir(dir_name)
+                if x.startswith("info")
+            ]
 
         for field in fields:
             # self.aux_info[field] = self.load_jsonlist_to_dict(
             #     os.path.join(dir_name, 'feat.%s.jsonl' % field))
             getter = lambda oid: self.get_object(obj_type, oid)
-            entries = load_jsonlist_to_dict(os.path.join(dir_name, 'info.%s.jsonl' % field))
+            entries = load_jsonlist_to_dict(os.path.join(dir_name, "info.%s.jsonl" % field))
             for k, v in entries.items():
                 try:
                     obj = getter(k)
@@ -1088,7 +1238,7 @@ class Corpus:
         """
 
         if (self.corpus_dirpath is None) and (dir_name is None):
-            raise ValueError('must specify a directory to write to')
+            raise ValueError("must specify a directory to write to")
 
         if dir_name is None:
             dir_name = self.corpus_dirpath
@@ -1101,7 +1251,7 @@ class Corpus:
             entries = {obj.id: obj.retrieve_meta(field) for obj in iterator}
             # self.dump_jsonlist_from_dict(self.aux_info[field],
             #     os.path.join(dir_name, 'feat.%s.jsonl' % field))
-            dump_jsonlist_from_dict(entries, os.path.join(dir_name, 'info.%s.jsonl' % field))
+            dump_jsonlist_from_dict(entries, os.path.join(dir_name, "info.%s.jsonl" % field))
 
     # def load_vector_reprs(self, field, dir_name=None):
     #     """
@@ -1155,11 +1305,11 @@ class Corpus:
         table_entries = []
         for obj in iterator:
             entry = dict()
-            entry['id'] = obj.id
+            entry["id"] = obj.id
             for attr in attrs:
                 entry[attr] = obj.retrieve_meta(attr)
             table_entries.append(entry)
-        return pd.DataFrame(table_entries).set_index('id')
+        return pd.DataFrame(table_entries).set_index("id")
 
     def set_speaker_convo_info(self, speaker_id, convo_id, key, value):
         """
@@ -1173,11 +1323,11 @@ class Corpus:
         """
 
         speaker = self.get_speaker(speaker_id)
-        if 'conversations' not in speaker.meta:
-            speaker.meta['conversations'] = {}
-        if convo_id not in speaker.meta['conversations']:
-            speaker.meta['conversations'][convo_id] = {}
-        speaker.meta['conversations'][convo_id][key] = value
+        if "conversations" not in speaker.meta:
+            speaker.meta["conversations"] = {}
+        if convo_id not in speaker.meta["conversations"]:
+            speaker.meta["conversations"][convo_id] = {}
+        speaker.meta["conversations"][convo_id][key] = value
 
     def get_speaker_convo_info(self, speaker_id, convo_id, key=None):
         """
@@ -1190,10 +1340,11 @@ class Corpus:
         """
 
         speaker = self.get_speaker(speaker_id)
-        if 'conversations' not in speaker.meta: return None
+        if "conversations" not in speaker.meta:
+            return None
         if key is None:
-            return speaker.meta['conversations'].get(convo_id, {})
-        return speaker.meta['conversations'].get(convo_id, {}).get(key)
+            return speaker.meta["conversations"].get(convo_id, {})
+        return speaker.meta["conversations"].get(convo_id, {}).get(key)
 
     def organize_speaker_convo_history(self, utterance_filter=None):
         """
@@ -1217,27 +1368,33 @@ class Corpus:
 
         speaker_to_convo_utts = defaultdict(lambda: defaultdict(list))
         for utterance in self.iter_utterances():
-            if not utterance_filter(utterance): continue
+            if not utterance_filter(utterance):
+                continue
 
             speaker_to_convo_utts[utterance.speaker.id][utterance.conversation_id].append(
-                (utterance.id, utterance.timestamp))
+                (utterance.id, utterance.timestamp)
+            )
         for speaker, convo_utts in speaker_to_convo_utts.items():
             for convo, utts in convo_utts.items():
                 sorted_utts = sorted(utts, key=lambda x: (x[1], x[0]))
-                self.set_speaker_convo_info(speaker, convo, 'utterance_ids', [x[0] for x in sorted_utts])
-                self.set_speaker_convo_info(speaker, convo, 'start_time', sorted_utts[0][1])
-                self.set_speaker_convo_info(speaker, convo, 'n_utterances', len(sorted_utts))
+                self.set_speaker_convo_info(
+                    speaker, convo, "utterance_ids", [x[0] for x in sorted_utts]
+                )
+                self.set_speaker_convo_info(speaker, convo, "start_time", sorted_utts[0][1])
+                self.set_speaker_convo_info(speaker, convo, "n_utterances", len(sorted_utts))
         for speaker in self.iter_speakers():
             try:
-                speaker.set_info('n_convos', len(speaker.retrieve_meta('conversations')))
+                speaker.set_info("n_convos", len(speaker.retrieve_meta("conversations")))
             except:
                 continue
 
-            sorted_convos = sorted(speaker.retrieve_meta('conversations').items(),
-                                   key=lambda x: (x[1]['start_time'], x[1]['utterance_ids'][0]))
-            speaker.set_info('start_time', sorted_convos[0][1]['start_time'])
+            sorted_convos = sorted(
+                speaker.retrieve_meta("conversations").items(),
+                key=lambda x: (x[1]["start_time"], x[1]["utterance_ids"][0]),
+            )
+            speaker.set_info("start_time", sorted_convos[0][1]["start_time"])
             for idx, (convo_id, _) in enumerate(sorted_convos):
-                self.set_speaker_convo_info(speaker.id, convo_id, 'idx', idx)
+                self.set_speaker_convo_info(speaker.id, convo_id, "idx", idx)
 
     def get_speaker_convo_attribute_table(self, attrs):
         """
@@ -1249,20 +1406,29 @@ class Corpus:
 
         table_entries = []
         for speaker in self.iter_speakers():
-            if 'conversations' not in speaker.meta: continue
-            for convo_id, convo_dict in speaker.meta['conversations'].items():
-                entry = {'id': '%s__%s' % (speaker.id, convo_id),
-                         'speaker': speaker.id, 'convo_id': convo_id,
-                         'convo_idx': convo_dict['idx']}
+            if "conversations" not in speaker.meta:
+                continue
+            for convo_id, convo_dict in speaker.meta["conversations"].items():
+                entry = {
+                    "id": "%s__%s" % (speaker.id, convo_id),
+                    "speaker": speaker.id,
+                    "convo_id": convo_id,
+                    "convo_idx": convo_dict["idx"],
+                }
 
                 for attr in attrs:
                     entry[attr] = convo_dict.get(attr, None)
                 table_entries.append(entry)
-        return pd.DataFrame(table_entries).set_index('id')
+        return pd.DataFrame(table_entries).set_index("id")
 
-    def get_full_attribute_table(self, speaker_convo_attrs, speaker_attrs=None, convo_attrs=None,
-                                 speaker_suffix='__speaker',
-                                 convo_suffix='__convo'):
+    def get_full_attribute_table(
+        self,
+        speaker_convo_attrs,
+        speaker_attrs=None,
+        convo_attrs=None,
+        speaker_suffix="__speaker",
+        convo_suffix="__convo",
+    ):
         """
         Returns a table where each row lists a (speaker, convo) level aggregate for each attribute in attrs,
         along with speaker-level and conversation-level attributes; by default these attributes are suffixed with
@@ -1281,17 +1447,17 @@ class Corpus:
             convo_attrs = []
 
         uc_df = self.get_speaker_convo_attribute_table(speaker_convo_attrs)
-        u_df = self.get_attribute_table('speaker', speaker_attrs)
+        u_df = self.get_attribute_table("speaker", speaker_attrs)
         u_df.columns = [x + speaker_suffix for x in u_df.columns]
-        c_df = self.get_attribute_table('conversation', convo_attrs)
+        c_df = self.get_attribute_table("conversation", convo_attrs)
         c_df.columns = [x + convo_suffix for x in c_df.columns]
-        return uc_df.join(u_df, on='speaker').join(c_df, on='convo_id')
+        return uc_df.join(u_df, on="speaker").join(c_df, on="convo_id")
 
     def update_metadata_from_df(self, obj_type, df):
-        assert obj_type in ['utterance', 'speaker', 'conversation']
+        assert obj_type in ["utterance", "speaker", "conversation"]
         meta_cols = extract_meta_from_df(df)
-        df.columns = [col.replace('meta.', '') for col in df.columns]
-        df = df.set_index('id')
+        df.columns = [col.replace("meta.", "") for col in df.columns]
+        df = df.set_index("id")
         for obj in self.iter_objs(obj_type):
             obj_meta = df.loc[obj.id][meta_cols].to_dict() if meta_cols else None
             if obj_meta is not None:
@@ -1299,8 +1465,11 @@ class Corpus:
         return self
 
     @staticmethod
-    def from_pandas(utterances_df: DataFrame, speakers_df: Optional[DataFrame] = None,
-                    conversations_df: Optional[DataFrame] = None) -> 'Corpus':
+    def from_pandas(
+        utterances_df: DataFrame,
+        speakers_df: Optional[DataFrame] = None,
+        conversations_df: Optional[DataFrame] = None,
+    ) -> "Corpus":
         """
         Generates a Corpus from utterances, speakers, and conversations dataframes.
         For each dataframe, if the 'id' column is absent, the dataframe index will be used as the id.
@@ -1321,17 +1490,25 @@ class Corpus:
         :param conversations_df: (optional) conversations data in a pandas Dataframe
         :return: Corpus constructed from the dataframe(s)
         """
-        columns = ['speaker', 'id', 'timestamp', 'conversation_id', 'reply_to', 'text']
+        columns = ["speaker", "id", "timestamp", "conversation_id", "reply_to", "text"]
 
-        for (df_type, df) in [('utterances', utterances_df), ('conversations', conversations_df),
-                              ('speakers', speakers_df)]:
-            if df is None: continue
-            if 'id' not in df.columns:
-                print(f'ID column is not present in {df_type} dataframe, generated ID column from dataframe index...')
-                df['id'] = df.index
+        for (df_type, df) in [
+            ("utterances", utterances_df),
+            ("conversations", conversations_df),
+            ("speakers", speakers_df),
+        ]:
+            if df is None:
+                continue
+            if "id" not in df.columns:
+                print(
+                    f"ID column is not present in {df_type} dataframe, generated ID column from dataframe index..."
+                )
+                df["id"] = df.index
 
-        #checking if dataframes contain their respective required columns
-        assert pd.Series(columns).isin(utterances_df.columns).all(), "Utterances dataframe must contain all primary data fields"
+        # checking if dataframes contain their respective required columns
+        assert (
+            pd.Series(columns).isin(utterances_df.columns).all()
+        ), "Utterances dataframe must contain all primary data fields"
 
         utterance_meta_cols = extract_meta_from_df(utterances_df)
 
@@ -1340,25 +1517,33 @@ class Corpus:
             if utterance_meta_cols:
                 metadata = {}
                 for meta_col in utterance_meta_cols:
-                    metadata[meta_col] = row['meta.' + meta_col]
-            else: 
+                    metadata[meta_col] = row["meta." + meta_col]
+            else:
                 metadata = None
 
             # adding utterance in utterance list
-            reply_to = None if row['reply_to'] == "None" else row['reply_to']
-            utterance_list.append(Utterance(id=str(row['id']), speaker=Speaker(id=str(row['speaker'])),
-                                            conversation_id=str(row['conversation_id']), reply_to=reply_to,
-                                            timestamp=row['timestamp'], text=row['text'],
-                                            meta=metadata))
+            reply_to = None if row["reply_to"] == "None" else row["reply_to"]
+            utterance_list.append(
+                Utterance(
+                    id=str(row["id"]),
+                    speaker=Speaker(id=str(row["speaker"])),
+                    conversation_id=str(row["conversation_id"]),
+                    reply_to=reply_to,
+                    timestamp=row["timestamp"],
+                    text=row["text"],
+                    meta=metadata,
+                )
+            )
 
         # initializing corpus using utterance_list
         corpus = Corpus(utterances=utterance_list)
         if speakers_df is not None:
-            corpus.update_metadata_from_df('speaker', speakers_df)
+            corpus.update_metadata_from_df("speaker", speakers_df)
         if conversations_df is not None:
-            corpus.update_metadata_from_df('conversation', conversations_df)
+            corpus.update_metadata_from_df("conversation", conversations_df)
 
         return corpus
+
 
 # def __repr__(self):
 # def __eq__(self, other):

@@ -142,20 +142,28 @@ class Utterance(CorpusComponent):
         if not isinstance(other, Utterance):
             return False
         try:
-            return self.id == other.id and self.conversation_id == other.conversation_id and self.reply_to == other.reply_to and \
-                   self.speaker == other.speaker and self.timestamp == other.timestamp and self.text == other.text
-        except AttributeError: # for backwards compatibility with wikiconv
+            return (
+                self.id == other.id
+                and self.conversation_id == other.conversation_id
+                and self.reply_to == other.reply_to
+                and self.speaker == other.speaker
+                and self.timestamp == other.timestamp
+                and self.text == other.text
+            )
+        except AttributeError:  # for backwards compatibility with wikiconv
             return self.__dict__ == other.__dict__
 
     def __str__(self):
-        return "Utterance(id: {}, conversation_id: {}, reply-to: {}, " \
-               "speaker: {}, timestamp: {}, text: {}, vectors: {}, meta: {})".format(repr(self.id),
-                                                                                    self.conversation_id,
-                                                                                    self.reply_to,
-                                                                                    self.speaker,
-                                                                                    self.timestamp,
-                                                                                    repr(self.text),
-                                                                                    self.vectors,
-                                                                                    self.meta)
-
-
+        return (
+            "Utterance(id: {}, conversation_id: {}, reply-to: {}, "
+            "speaker: {}, timestamp: {}, text: {}, vectors: {}, meta: {})".format(
+                repr(self.id),
+                self.conversation_id,
+                self.reply_to,
+                self.speaker,
+                self.timestamp,
+                repr(self.text),
+                self.vectors,
+                self.meta,
+            )
+        )

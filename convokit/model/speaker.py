@@ -23,8 +23,16 @@ class Speaker(CorpusComponent):
         speaker-level metadata.
     """
 
-    def __init__(self, owner=None, id: str = None, name: str = None, utts=None, convos = None, meta: Optional[Dict] = None):
-        name_var = id if id is not None else name # to be deprecated
+    def __init__(
+        self,
+        owner=None,
+        id: str = None,
+        name: str = None,
+        utts=None,
+        convos=None,
+        meta: Optional[Dict] = None,
+    ):
+        name_var = id if id is not None else name  # to be deprecated
         super().__init__(obj_type="speaker", owner=owner, id=name_var, meta=meta)
         self.utterances = utts if utts is not None else dict()
         self.conversations = convos if convos is not None else dict()
@@ -64,7 +72,7 @@ class Speaker(CorpusComponent):
     def _add_conversation(self, convo):
         self.conversations[convo.id] = convo
 
-    def get_utterance(self, ut_id: str): #-> Utterance:
+    def get_utterance(self, ut_id: str):  # -> Utterance:
         """
         Get the Utterance with the specified Utterance id
 
@@ -73,13 +81,13 @@ class Speaker(CorpusComponent):
         """
         return self.utterances[ut_id]
 
-    def iter_utterances(self, selector=lambda utt: True): #-> Generator[Utterance, None, None]:
+    def iter_utterances(self, selector=lambda utt: True):  # -> Generator[Utterance, None, None]:
         """
         Get utterances made by the Speaker, with an optional selector that selects for Utterances that
         should be included.
 
-		:param selector: a (lambda) function that takes an Utterance and returns True or False (i.e. include / exclude).
-			By default, the selector includes all Utterances in the Corpus.
+                :param selector: a (lambda) function that takes an Utterance and returns True or False (i.e. include / exclude).
+                        By default, the selector includes all Utterances in the Corpus.
         :return: An iterator of the Utterances made by the speaker
         """
         for v in self.utterances.values():
@@ -88,15 +96,15 @@ class Speaker(CorpusComponent):
 
     def get_utterances_dataframe(self, selector=lambda utt: True, exclude_meta: bool = False):
         """
-		Get a DataFrame of the Utterances made by the Speaker with fields and metadata attributes.
-		Set an optional selector that filters for Utterances that should be included.
-		Edits to the DataFrame do not change the corpus in any way.
+        Get a DataFrame of the Utterances made by the Speaker with fields and metadata attributes.
+        Set an optional selector that filters for Utterances that should be included.
+        Edits to the DataFrame do not change the corpus in any way.
 
-		:param exclude_meta: whether to exclude metadata
-		:param selector: a (lambda) function that takes a Utterance and returns True or False (i.e. include / exclude).
-			By default, the selector includes all Utterances in the Corpus.
-		:return: a pandas DataFrame
-		"""
+        :param exclude_meta: whether to exclude metadata
+        :param selector: a (lambda) function that takes a Utterance and returns True or False (i.e. include / exclude).
+                By default, the selector includes all Utterances in the Corpus.
+        :return: a pandas DataFrame
+        """
         return get_utterances_dataframe(self, selector, exclude_meta)
 
     def get_utterance_ids(self, selector=lambda utt: True) -> List[str]:
@@ -106,7 +114,7 @@ class Speaker(CorpusComponent):
         """
         return list([utt.id for utt in self.iter_utterances(selector)])
 
-    def get_conversation(self, cid: str): # -> Conversation:
+    def get_conversation(self, cid: str):  # -> Conversation:
         """
         Get the Conversation with the specified Conversation id
 
@@ -115,7 +123,9 @@ class Speaker(CorpusComponent):
         """
         return self.conversations[cid]
 
-    def iter_conversations(self, selector=lambda convo: True): # -> Generator[Conversation, None, None]:
+    def iter_conversations(
+        self, selector=lambda convo: True
+    ):  # -> Generator[Conversation, None, None]:
         """
 
         :return: An iterator of the Conversations that the speaker has participated in
@@ -165,4 +175,4 @@ class Speaker(CorpusComponent):
         try:
             return self.id == other.id
         except AttributeError:
-            return self.__dict__['_name'] == other.__dict__['_name']
+            return self.__dict__["_name"] == other.__dict__["_name"]

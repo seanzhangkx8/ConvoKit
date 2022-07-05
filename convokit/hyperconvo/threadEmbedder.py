@@ -20,8 +20,13 @@ class ThreadEmbedder(Transformer):
     :param return_components: if True, returns the components from embedding
     """
 
-    def __init__(self, n_components: int=7, method: str="svd",
-                 norm_method: str="standard", return_components: bool=False):
+    def __init__(
+        self,
+        n_components: int = 7,
+        method: str = "svd",
+        norm_method: str = "standard",
+        return_components: bool = False,
+    ):
         self.n_components = n_components
         self.method = method
         self.norm_method = norm_method
@@ -46,7 +51,9 @@ class ThreadEmbedder(Transformer):
         convos = corpus.iter_conversations()
         sample_convo_meta = next(iter(convos))
         if "hyperconvo" not in sample_convo_meta:
-            raise RuntimeError("Missing thread statistics: HyperConvo.fit_transform() must be run on the Corpus first")
+            raise RuntimeError(
+                "Missing thread statistics: HyperConvo.fit_transform() must be run on the Corpus first"
+            )
 
         thread_stats = dict()
 
@@ -57,8 +64,12 @@ class ThreadEmbedder(Transformer):
         roots = []
         for root, feats in thread_stats.items():
             roots.append(root)
-            row = np.array([v[1] if not (np.isnan(v[1]) or np.isinf(v[1])) else
-                            0 for v in sorted(feats.items())])
+            row = np.array(
+                [
+                    v[1] if not (np.isnan(v[1]) or np.isinf(v[1])) else 0
+                    for v in sorted(feats.items())
+                ]
+            )
             X.append(row)
         X = np.array(X)
 
@@ -80,7 +91,8 @@ class ThreadEmbedder(Transformer):
         X_mid = emb.fit_transform(X) / emb.singular_values_
 
         retval = {"X": X_mid, "roots": roots}
-        if self.return_components: retval["components"] = emb.components_
+        if self.return_components:
+            retval["components"] = emb.components_
 
         corpus.add_meta("threadEmbedder", retval)
         return corpus

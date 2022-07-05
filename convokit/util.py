@@ -1,15 +1,22 @@
-import urllib.request
-import shutil
-import os
-import zipfile
 import json
-from typing import Dict
-import requests
+import os
+import shutil
+import urllib.request
 import warnings
+import zipfile
+from typing import Dict
+
+import requests
+
 
 # returns a path to the dataset file
-def download(name: str, verbose: bool = True, data_dir: str = None, use_newest_version: bool = True,
-             use_local: bool = False) -> str:
+def download(
+    name: str,
+    verbose: bool = True,
+    data_dir: str = None,
+    use_newest_version: bool = True,
+    use_local: bool = False,
+) -> str:
     """Use this to download (or use saved) convokit data by name.
 
     :param name: Which item to download. Currently supported:
@@ -73,24 +80,26 @@ def download(name: str, verbose: bool = True, data_dir: str = None, use_newest_v
     if use_local:
         return download_local(name, data_dir)
 
-    dataset_config = requests.get('https://zissou.infosci.cornell.edu/convokit/datasets/download_config.json').json()
+    dataset_config = requests.get(
+        "https://raw.githubusercontent.com/CornellNLP/ConvoKit/master/download_config.json"
+    ).json()
 
-    cur_version = dataset_config['cur_version']
-    DatasetURLs = dataset_config['DatasetURLs']
+    cur_version = dataset_config["cur_version"]
+    DatasetURLs = dataset_config["DatasetURLs"]
 
     if name.startswith("subreddit"):
         subreddit_name = name.split("-", maxsplit=1)[1]
         # print(subreddit_name)
-        cur_version[name] = cur_version['subreddit']
+        cur_version[name] = cur_version["subreddit"]
         DatasetURLs[name] = get_subreddit_info(subreddit_name)
         # print(DatasetURLs[name])
     elif name.startswith("wikiconv"):
         wikiconv_year = name.split("-")[1]
-        cur_version[name] = cur_version['wikiconv']
+        cur_version[name] = cur_version["wikiconv"]
         DatasetURLs[name] = _get_wikiconv_year_info(wikiconv_year)
     elif name.startswith("supreme-"):
-        supreme_year = name.split('-')[1]
-        cur_version[name] = cur_version['supreme']
+        supreme_year = name.split("-")[1]
+        cur_version[name] = cur_version["supreme"]
         DatasetURLs[name] = _get_supreme_info(supreme_year)
     else:
         name = name.lower()
@@ -99,7 +108,7 @@ def download(name: str, verbose: bool = True, data_dir: str = None, use_newest_v
 
     data_dir = os.path.expanduser("~/.convokit/")
 
-        #pkg_resources.resource_filename("convokit", "")
+    # pkg_resources.resource_filename("convokit", "")
     if not os.path.exists(data_dir):
         os.mkdir(data_dir)
     if not os.path.exists(os.path.join(data_dir, "downloads")):
@@ -134,23 +143,26 @@ def download(name: str, verbose: bool = True, data_dir: str = None, use_newest_v
 
         # print(list(downloaded.keys()))
         if (name, os.path.dirname(dataset_path)) in downloaded:
-            if use_newest_version and name in cur_version and \
-                downloaded[name, os.path.dirname(dataset_path)] < cur_version[name]:
-                    needs_download = True
+            if (
+                use_newest_version
+                and name in cur_version
+                and downloaded[name, os.path.dirname(dataset_path)] < cur_version[name]
+            ):
+                needs_download = True
         else:
             needs_download = True
 
     if needs_download:
 
         print("Downloading {} to {}".format(name, dataset_path))
-    #name not in downloaded or \
-    #    (use_newest_version and name in cur_version and
-    #        downloaded[name] < cur_version[name]):
+        # name not in downloaded or \
+        #    (use_newest_version and name in cur_version and
+        #        downloaded[name] < cur_version[name]):
         if name.endswith("-motifs"):
             for url in DatasetURLs[name]:
-                full_name = name + url[url.rfind('/'):]
+                full_name = name + url[url.rfind("/") :]
                 if full_name not in downloaded:
-                    motif_file_path = dataset_path + url[url.rfind('/'):]
+                    motif_file_path = dataset_path + url[url.rfind("/") :]
                     if not os.path.exists(os.path.dirname(motif_file_path)):
                         os.makedirs(os.path.dirname(motif_file_path))
                     _download_helper(motif_file_path, url, verbose, full_name, downloadeds_path)
@@ -164,22 +176,27 @@ def download(name: str, verbose: bool = True, data_dir: str = None, use_newest_v
 
     return dataset_path
 
+
 def download_local(name: str, data_dir: str):
     """
     Get path to a previously-downloaded local version of the corpus (which may be an older version).
-    
+
     :param name: name of Corpus
     :return: string path to local Corpus
     """
     custom_data_dir = data_dir
     data_dir = os.path.expanduser("~/.convokit/")
 
-    #pkg_resources.resource_filename("convokit", "")
+    # pkg_resources.resource_filename("convokit", "")
     if not os.path.exists(data_dir):
-        raise FileNotFoundError("No convokit data directory found. No local corpus version available.")
+        raise FileNotFoundError(
+            "No convokit data directory found. No local corpus version available."
+        )
 
     if not os.path.exists(os.path.join(data_dir, "downloads")):
-        raise FileNotFoundError("Local convokit data directory found, but no downloads folder exists. No local corpus version available.")
+        raise FileNotFoundError(
+            "Local convokit data directory found, but no downloads folder exists. No local corpus version available."
+        )
 
     dataset_path = os.path.join(data_dir, "downloads", name)
 
@@ -216,20 +233,27 @@ def download_local(name: str, data_dir: str):
 
     return dataset_path
 
-def _download_helper(dataset_path: str, url: str, verbose: bool, name: str, downloadeds_path: str) -> None:
 
-    if url.lower().endswith(".corpus") or url.lower().endswith(".corpus.zip") or url.lower().endswith(".zip"):
+def _download_helper(
+    dataset_path: str, url: str, verbose: bool, name: str, downloadeds_path: str
+) -> None:
+
+    if (
+        url.lower().endswith(".corpus")
+        or url.lower().endswith(".corpus.zip")
+        or url.lower().endswith(".zip")
+    ):
         dataset_path += ".zip"
 
-    with urllib.request.urlopen(url) as response, \
-            open(dataset_path, "wb") as out_file:
+    with urllib.request.urlopen(url) as response, open(dataset_path, "wb") as out_file:
         if verbose:
             length = float(response.info()["Content-Length"])
-            length = str(round(length / 1e6, 1)) + "MB" \
-                if length > 1e6 else \
-                str(round(length / 1e3, 1)) + "KB"
-            print("Downloading", name, "from", url,
-                  "(" + length + ")...", end=" ", flush=True)
+            length = (
+                str(round(length / 1e6, 1)) + "MB"
+                if length > 1e6
+                else str(round(length / 1e3, 1)) + "KB"
+            )
+            print("Downloading", name, "from", url, "(" + length + ")...", end=" ", flush=True)
         shutil.copyfileobj(response, out_file)
 
     # post-process (extract) corpora
@@ -241,21 +265,29 @@ def _download_helper(dataset_path: str, url: str, verbose: bool, name: str, down
             zipf.extractall(corpus_dir)
 
     elif url.lower().endswith(".corpus") or url.lower().endswith(".zip"):
-        #print(dataset_path)
+        # print(dataset_path)
         with zipfile.ZipFile(dataset_path, "r") as zipf:
             zipf.extractall(os.path.dirname(dataset_path))
 
     if verbose:
         print("Done")
     with open(downloadeds_path, "a") as f:
-        fn = os.path.join(os.path.dirname(dataset_path), name)#os.path.join(os.path.dirname(data), name)
-        f.write("{}$#${}$#${}\n".format(name, os.path.realpath(os.path.dirname(dataset_path) + "/"), corpus_version(fn)))
-        #f.write(name + "\n")
+        fn = os.path.join(
+            os.path.dirname(dataset_path), name
+        )  # os.path.join(os.path.dirname(data), name)
+        f.write(
+            "{}$#${}$#${}\n".format(
+                name, os.path.realpath(os.path.dirname(dataset_path) + "/"), corpus_version(fn)
+            )
+        )
+        # f.write(name + "\n")
+
 
 def corpus_version(filename: str) -> int:
     with open(os.path.join(filename, "index.json")) as f:
         d = json.load(f)
         return int(d["version"])
+
 
 # retrieve grouping and completes the download link for subreddit
 def get_subreddit_info(subreddit_name: str) -> str:
@@ -278,6 +310,7 @@ def get_subreddit_info(subreddit_name: str) -> str:
 
     return ""
 
+
 def subreddit_in_grouping(subreddit: str, grouping_key: str) -> bool:
     """
     :param subreddit: subreddit name
@@ -289,6 +322,7 @@ def subreddit_in_grouping(subreddit: str, grouping_key: str) -> bool:
         print(subreddit, grouping_key)
     return bounds[0] <= subreddit <= bounds[1]
 
+
 def _get_wikiconv_year_info(year: str) -> str:
     """completes the download link for wikiconv"""
 
@@ -298,20 +332,22 @@ def _get_wikiconv_year_info(year: str) -> str:
 
     return data_dir + year + "/full.corpus.zip"
 
+
 def _get_supreme_info(year: str) -> str:
 
     supreme_base = "http://zissou.infosci.cornell.edu/convokit/datasets/supreme-corpus/"
-    return supreme_base + 'supreme-' + year + '.zip'
+    return supreme_base + "supreme-" + year + ".zip"
+
 
 def meta_index(corpus=None, filename: str = None) -> Dict:
-    keys = ["utterances-index", "conversations-index", "speakers-index",
-            "overall-index"]
+    keys = ["utterances-index", "conversations-index", "speakers-index", "overall-index"]
     if corpus is not None:
         return {k: v for k, v in corpus.meta_index.items() if k in keys}
     if filename is not None:
         with open(os.path.join(filename, "index.json")) as f:
             d = json.load(f)
             return d
+
 
 def warn(text: str):
     """
@@ -320,11 +356,11 @@ def warn(text: str):
     :param text: Warning message
     :return: 'WARNING: [text]'
     """
-    print('\033[91m'+ "WARNING: " + '\033[0m' + text)
+    print("\033[91m" + "WARNING: " + "\033[0m" + text)
 
 
 def _deprecation_format(message, category, filename, lineno, file=None, line=None):
-    return '{}:{}: {}: {}\n'.format(filename, lineno, category.__name__, message)
+    return "{}:{}: {}: {}\n".format(filename, lineno, category.__name__, message)
 
 
 def deprecation(prev_name: str, new_name: str, stacklevel: int = 3):
@@ -332,5 +368,9 @@ def deprecation(prev_name: str, new_name: str, stacklevel: int = 3):
     Suppressable deprecation warning.
     """
     warnings.formatwarning = _deprecation_format
-    warnings.warn("{} is deprecated and will be removed in a future release. "
-                  "Use {} instead.".format(prev_name, new_name), category=FutureWarning, stacklevel=stacklevel)
+    warnings.warn(
+        "{} is deprecated and will be removed in a future release. "
+        "Use {} instead.".format(prev_name, new_name),
+        category=FutureWarning,
+        stacklevel=stacklevel,
+    )

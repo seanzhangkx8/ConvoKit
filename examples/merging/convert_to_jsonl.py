@@ -3,24 +3,26 @@ from convokit import Corpus
 import re
 import multiprocessing as mp
 
+
 def convert_json_to_jsonl_safe(corpus_filepath):
     corpus = Corpus(filename=corpus_filepath)
     corpus.dump(name=corpus_filepath, save_to_existing_path=True)
+
 
 def convert_json_to_jsonl_fast(filepath):
     """
     :param filepath: Path to utterances.json
     """
-    with open(filepath, 'r') as f:
+    with open(filepath, "r") as f:
         json_str = f.read()
 
-    json_str = json_str[1:-1] #strip [ ]
+    json_str = json_str[1:-1]  # strip [ ]
 
     jsonl_filepath = filepath.replace(".json", ".jsonl")
 
-    with open(jsonl_filepath, 'w') as f:
+    with open(jsonl_filepath, "w") as f:
         bracket_ctr = 0
-        utt_acc = ''
+        utt_acc = ""
         ignore_chars = 0
 
         for c in json_str:
@@ -30,15 +32,16 @@ def convert_json_to_jsonl_fast(filepath):
 
             utt_acc += c
 
-            if c == '{':
+            if c == "{":
                 bracket_ctr += 1
-            elif c == '}':
+            elif c == "}":
                 bracket_ctr -= 1
                 if bracket_ctr == 0:
                     f.write(utt_acc)
                     f.write("\n")
-                    utt_acc = ''
+                    utt_acc = ""
                     ignore_chars = 2
+
 
 def find_utterance_jsons(filepath):
     """
@@ -54,16 +57,18 @@ def find_utterance_jsons(filepath):
         elif base_file == "utterances.json":
             yield full_file
 
+
 def convert_json_to_jsonl_regex(filepath):
     pattern = re.compile(r'({"id":.+?"timestamp":.+?})')
-    with open(filepath, 'r') as f:
+    with open(filepath, "r") as f:
         json_str = f.read()
 
     jsonl_filepath = filepath.replace(".json", ".jsonl")
-    with open(jsonl_filepath, 'w') as f:
+    with open(jsonl_filepath, "w") as f:
         for match in re.findall(pattern, json_str):
             f.write(match)
             f.write("\n")
+
 
 if __name__ == "__main__":
     # os.chdir("temp-corpus")
@@ -72,5 +77,4 @@ if __name__ == "__main__":
     # corpus1 = Corpus(filename="temp-corpus")
     # print(corpus1.utterances)
     with mp.Pool(processes=5, maxtasksperchild=1000) as pool:
-        pool.map(convert_json_to_jsonl_regex, find_utterance_jsons('./lolol'))
-
+        pool.map(convert_json_to_jsonl_regex, find_utterance_jsons("./lolol"))

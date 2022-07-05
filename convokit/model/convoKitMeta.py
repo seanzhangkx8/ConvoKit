@@ -40,13 +40,13 @@ class ConvoKitMeta(MutableMapping, dict):
 
     @staticmethod
     def _check_type_and_update_index(index, obj_type, key, value):
-        if not isinstance(value, type(None)): # do nothing to index if value is None
+        if not isinstance(value, type(None)):  # do nothing to index if value is None
             if key not in index.indices[obj_type]:
                 type_ = _optimized_type_check(value)
                 index.update_index(obj_type, key=key, class_type=type_)
             else:
                 # entry exists
-                if index.get_index(obj_type)[key] != ["bin"]: # if "bin" do no further checks
+                if index.get_index(obj_type)[key] != ["bin"]:  # if "bin" do no further checks
                     if str(type(value)) not in index.get_index(obj_type)[key]:
                         new_type = _optimized_type_check(value)
 
@@ -70,10 +70,14 @@ class ConvoKitMeta(MutableMapping, dict):
             self._get_storage().delete_data("meta", self.storage_key, key)
         else:
             if self.index.lock_metadata_deletion[self.obj_type]:
-                warn("For consistency in metadata attributes in Corpus component objects, deleting metadata attributes "
-                         "from component objects individually is not allowed. "
-                     "To delete this metadata attribute from all Corpus components of this type, "
-                         "use corpus.delete_metadata(obj_type='{}', attribute='{}') instead.".format(self.obj_type, key))
+                warn(
+                    "For consistency in metadata attributes in Corpus component objects, deleting metadata attributes "
+                    "from component objects individually is not allowed. "
+                    "To delete this metadata attribute from all Corpus components of this type, "
+                    "use corpus.delete_metadata(obj_type='{}', attribute='{}') instead.".format(
+                        self.obj_type, key
+                    )
+                )
             else:
                 self._get_storage().delete_data("meta", self.storage_key, key)
 
@@ -93,7 +97,7 @@ class ConvoKitMeta(MutableMapping, dict):
         return dict(self._get_storage().get_data("meta", self.storage_key))
 
 
-_basic_types = {type(0), type(1.0), type('str'), type(True)} # cannot include lists or dicts
+_basic_types = {type(0), type(1.0), type("str"), type(True)}  # cannot include lists or dicts
 
 
 def _optimized_type_check(val):

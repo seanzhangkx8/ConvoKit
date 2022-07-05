@@ -10,7 +10,7 @@ from convokit import Transformer, CorpusComponent, Corpus
 class Pairer(Transformer):
     """
     Pairer transformer sets up pairing to be used for paired prediction analyses.
-    
+
     :param obj_type: type of Corpus object to classify: ‘conversation’, ‘speaker’, or ‘utterance’
     :param pairing_func: the Corpus object characteristic to pair on, e.g. to pair on the first 10 characters of a
         well-structured id, use lambda obj: obj.id[:10]
@@ -22,35 +22,49 @@ class Pairer(Transformer):
     :param pair_orientation_attribute_name: metadata attribute name to use in annotating object with pair orientation, default: "pair_orientation"
     """
 
-    def __init__(self, obj_type: str,
-                 pairing_func: Callable[[CorpusComponent], str],
-                 pos_label_func: Callable[[CorpusComponent], bool],
-                 neg_label_func: Callable[[CorpusComponent], bool],
-                 pair_mode: str = "random",
-                 pair_id_attribute_name: str = "pair_id",
-                 pair_id_feat_name=None,
-                 label_attribute_name: str = "pair_obj_label",
-                 label_feat_name=None,
-                 pair_orientation_attribute_name: str = "pair_orientation",
-                 pair_orientation_feat_name=None
-                 ):
+    def __init__(
+        self,
+        obj_type: str,
+        pairing_func: Callable[[CorpusComponent], str],
+        pos_label_func: Callable[[CorpusComponent], bool],
+        neg_label_func: Callable[[CorpusComponent], bool],
+        pair_mode: str = "random",
+        pair_id_attribute_name: str = "pair_id",
+        pair_id_feat_name=None,
+        label_attribute_name: str = "pair_obj_label",
+        label_feat_name=None,
+        pair_orientation_attribute_name: str = "pair_orientation",
+        pair_orientation_feat_name=None,
+    ):
         assert obj_type in ["speaker", "utterance", "conversation"]
         self.obj_type = obj_type
         self.pairing_func = pairing_func
         self.pos_label_func = pos_label_func
         self.neg_label_func = neg_label_func
         self.pair_mode = pair_mode
-        self.pair_id_attribute_name = pair_id_attribute_name if pair_id_feat_name is None else pair_id_feat_name
-        self.label_attribute_name = label_attribute_name if label_feat_name is None else label_feat_name
-        self.pair_orientation_attribute_name = pair_orientation_attribute_name if \
-            pair_orientation_feat_name is None else pair_orientation_feat_name
+        self.pair_id_attribute_name = (
+            pair_id_attribute_name if pair_id_feat_name is None else pair_id_feat_name
+        )
+        self.label_attribute_name = (
+            label_attribute_name if label_feat_name is None else label_feat_name
+        )
+        self.pair_orientation_attribute_name = (
+            pair_orientation_attribute_name
+            if pair_orientation_feat_name is None
+            else pair_orientation_feat_name
+        )
 
-        for deprecated_set in [(pair_id_feat_name, 'pair_id_feat_name', 'pair_id_attribute_name'),
-                               (label_feat_name, 'label_feat_name', 'label_attribute_name'),
-                               (pair_orientation_feat_name, 'pair_orientation_feat_name',
-                                'pair_orientation_attribute_name')]:
+        for deprecated_set in [
+            (pair_id_feat_name, "pair_id_feat_name", "pair_id_attribute_name"),
+            (label_feat_name, "label_feat_name", "label_attribute_name"),
+            (
+                pair_orientation_feat_name,
+                "pair_orientation_feat_name",
+                "pair_orientation_attribute_name",
+            ),
+        ]:
             if deprecated_set[0] is not None:
-                deprecation(f"Pairer's {deprecated_set[1]} parameter", f'{deprecated_set[2]}')
+                deprecation(f"Pairer's {deprecated_set[1]} parameter", f"{deprecated_set[2]}")
 
     def _get_pos_neg_objects(self, corpus: Corpus, selector):
         """
@@ -89,13 +103,18 @@ class Pairer(Transformer):
         valid_pairs = set(pair_feat_to_neg_objs).intersection(set(pair_feat_to_pos_objs))
 
         if self.pair_mode == "first":
-            return {pair_id: (pair_feat_to_pos_objs[pair_id][0],
-                              pair_feat_to_neg_objs[pair_id][0])
-                    for pair_id in valid_pairs}
+            return {
+                pair_id: (pair_feat_to_pos_objs[pair_id][0], pair_feat_to_neg_objs[pair_id][0])
+                for pair_id in valid_pairs
+            }
         elif self.pair_mode == "random":
-            return {pair_id: (choice(pair_feat_to_pos_objs[pair_id]),
-                              choice(pair_feat_to_neg_objs[pair_id]))
-                    for pair_id in valid_pairs}
+            return {
+                pair_id: (
+                    choice(pair_feat_to_pos_objs[pair_id]),
+                    choice(pair_feat_to_neg_objs[pair_id]),
+                )
+                for pair_id in valid_pairs
+            }
         elif self.pair_mode == "maximize":
             retval = dict()
             for pair_id in valid_pairs:
@@ -127,7 +146,9 @@ class Pairer(Transformer):
             flip = not flip
         return pair_orientations
 
-    def transform(self, corpus: Corpus, selector: Callable[[CorpusComponent], bool] = lambda x: True) -> Corpus:
+    def transform(
+        self, corpus: Corpus, selector: Callable[[CorpusComponent], bool] = lambda x: True
+    ) -> Corpus:
         """
         Annotate corpus objects with pair information (label, pair_id, pair_orientation), with an optional selector indicating which objects should be considered for pairing.
 

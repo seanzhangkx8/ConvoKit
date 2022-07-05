@@ -2,7 +2,7 @@ from unittest import TestLoader, TextTestRunner
 
 if __name__ == "__main__":
     loader = TestLoader()
-    tests = loader.discover('.')
+    tests = loader.discover(".")
     testRunner = TextTestRunner()
     test_results = testRunner.run(tests)
 
@@ -10,4 +10,3 @@ if __name__ == "__main__":
         exit(0)
     else:
         exit(1)
-
