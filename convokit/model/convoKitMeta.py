@@ -13,12 +13,30 @@ class ConvoKitMeta(MutableMapping, dict):
     """
     ConvoKitMeta is a dictlike object that stores the metadata attributes of a corpus component
     """
-    def __init__(self, convokit_index, obj_type):
+    def __init__(self, owner, convokit_index, obj_type):
+        self.owner = owner # Corpus or CorpusComponent
         self.index: ConvoKitIndex = convokit_index
         self.obj_type = obj_type
 
+        self._get_storage().initialize_data_for_component("meta", self.storage_key)
+
+    @property
+    def storage_key(self) -> str:
+        return f"{self.obj_type}_{self.owner.id}"
+
     def __getitem__(self, item):
-        return dict.__getitem__(self, item)
+        return self._get_storage().get_data("meta", self.storage_key, item)
+
+    def _get_storage(self):
+        # special case for Corpus meta since that's the only time owner is not a CorpusComponent
+        # since cannot directly import Corpus to check the type (circular import), as a proxy we
+        # check for the obj_type attribute which is common to all CorpusComponent but not
+        # present in Corpus
+        if not hasattr(self.owner, "obj_type"):
+            return self.owner.storage
+        # self.owner -> CorpusComponent
+        # self.owner.owner -> Corpus that owns the CorpusComponent (only Corpus has direct pointer to storage)
+        return self.owner.owner.storage
 
     @staticmethod
     def _check_type_and_update_index(index, obj_type, key, value):
@@ -44,12 +62,12 @@ class ConvoKitMeta(MutableMapping, dict):
 
         if self.index.type_check:
             ConvoKitMeta._check_type_and_update_index(self.index, self.obj_type, key, value)
-        dict.__setitem__(self, key, value)
+        self._get_storage().update_data("meta", self.storage_key, key, value)
 
     def __delitem__(self, key):
         if self.obj_type == 'corpus':
-            dict.__delitem__(self, key)
             self.index.del_from_index(self.obj_type, key)
+            self._get_storage().delete_data("meta", self.storage_key, key)
         else:
             if self.index.lock_metadata_deletion[self.obj_type]:
                 warn("For consistency in metadata attributes in Corpus component objects, deleting metadata attributes "
@@ -57,19 +75,22 @@ class ConvoKitMeta(MutableMapping, dict):
                      "To delete this metadata attribute from all Corpus components of this type, "
                          "use corpus.delete_metadata(obj_type='{}', attribute='{}') instead.".format(self.obj_type, key))
             else:
-                dict.__delitem__(self, key)
+                self._get_storage().delete_data("meta", self.storage_key, key)
 
     def __iter__(self):
-        return dict.__iter__(self)
+        return self._get_storage().get_data("meta", self.storage_key).__iter__()
 
     def __len__(self):
-        return dict.__len__(self)
+        return self._get_storage().get_data("meta", self.storage_key).__len__()
 
     def __contains__(self, x):
-        return dict.__contains__(self, x)
+        return self._get_storage().get_data("meta", self.storage_key).__contains__(x)
+    
+    def __repr__(self) -> str:
+        return "ConvoKitMeta(" + self.to_dict().__repr__() + ")"
 
     def to_dict(self):
-        return self.__dict__
+        return dict(self._get_storage().get_data("meta", self.storage_key))
 
 
 _basic_types = {type(0), type(1.0), type('str'), type(True)} # cannot include lists or dicts

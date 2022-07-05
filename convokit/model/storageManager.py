@@ -10,11 +10,9 @@ class StorageManager:
     """
     def __init__(
         self,
-        corpus_id: Optional[str] = None,
-        version: Optional[str] = "0"
+        corpus_id: Optional[str] = None
     ):
         self.corpus_id = corpus_id
-        self.version = version
 
         # concrete data storage (i.e., collections) for each component type
         # this will be assigned in subclasses
@@ -37,24 +35,45 @@ class MemStorageManager(StorageManager):
     """
     def __init__(
         self, 
-        corpus_id: Optional[str] = None, 
-        version: Optional[str] = "0"
+        corpus_id: Optional[str] = None
     ):
-        super().__init__(corpus_id, version)
+        super().__init__(corpus_id)
 
         # initialize component collections as dicts
         for key in self.data:
             self.data[key] = {}
+    
+    def has_data_for_component(self, component_type: str, component_id: str) -> bool:
+        """
+        Check if there is an existing entry for the component of type component_type
+        with id component_id
+        """
+        collection = self.get_collection(component_type)
+        return component_id in collection
 
-    def get_data(self, component_type: str, component_id: str, property_name: str):
+    def initialize_data_for_component(self, component_type: str, component_id: str, overwrite: bool = False, initial_value = None):
+        """
+        Create a blank entry for a component of type component_type with id
+        component_id. Will avoid overwriting any existing data unless the
+        overwrite parameter is set to True.
+        """
+        collection = self.get_collection(component_type)
+        if overwrite or not self.has_data_for_component(component_type, component_id):
+            collection[component_id] = initial_value if initial_value is not None else {}
+
+    def get_data(self, component_type: str, component_id: str, property_name: Optional[str] = None):
         """
         Retrieve the property data for the component of type component_type with
-        id component_id
+        id component_id. If property_name is specified return only the data for
+        that property, otherwise return the dict containing all properties.
         """
         collection = self.get_collection(component_type)
         if component_id not in collection:
             raise KeyError(f"This StorageManager does not have an entry for the {component_type} with id {component_id}.")
-        return collection[component_id][property_name]
+        if property_name is None:
+            return collection[component_id]
+        else:
+            return collection[component_id][property_name]
 
     def update_data(self, component_type: str, component_id: str, property_name: str, new_value):
         """
@@ -67,4 +86,18 @@ class MemStorageManager(StorageManager):
         if component_id not in collection:
             raise KeyError(f"This StorageManager does not have an entry for the {component_type} with id {component_id}.")
         collection[component_id][property_name] = new_value
+
+    def delete_data(self, component_type: str, component_id: str, property_name: Optional[str] = None):
+        """
+        Delete a data entry from this StorageManager for the component of type
+        component_type with id component_id. If property_name is specified
+        delete only that property, otherwise delete the entire entry.
+        """
+        collection = self.get_collection(component_type)
+        if component_id not in collection:
+            raise KeyError(f"This StorageManager does not have an entry for the {component_type} with id {component_id}.")
+        if property_name is None:
+            del collection[component_id]
+        else:
+            del collection[component_id][property_name]
         

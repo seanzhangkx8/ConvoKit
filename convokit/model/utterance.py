@@ -30,25 +30,78 @@ class Utterance(CorpusComponent):
                  root: Optional[str] = None, reply_to: Optional[str] = None,
                  timestamp: Optional[int] = None, text: str = '',
                  meta: Optional[Dict] = None):
-        super().__init__(obj_type="utterance", owner=owner, id=id, meta=meta)
-        speaker_ = speaker if speaker is not None else user
-        self.speaker = speaker_
-        if self.speaker is None:
-            raise ValueError("No Speaker found: Utterance must be initialized with a Speaker.")
-        self.user = speaker # for backwards compatbility
-        self.conversation_id = conversation_id if conversation_id is not None else root
-        if self.conversation_id is not None and not isinstance(self.conversation_id, str):
+        # check arguments that have alternate naming due to backwards compatibility
+        if speaker is None:
+            if user is not None:
+                speaker = user
+            else:
+                raise ValueError("No Speaker found: Utterance must be initialized with a Speaker.")
+        if conversation_id is None and root is not None:
+            conversation_id = root
+
+        if conversation_id is not None and not isinstance(conversation_id, str):
             warn("Utterance conversation_id must be a string: conversation_id of utterance with ID: {} "
-                 "has been casted to a string.".format(self.id))
-            self.conversation_id = str(self.conversation_id)
-        self._root = self.conversation_id
-        self.reply_to = reply_to
-        self.timestamp = timestamp # int(timestamp) if timestamp is not None else timestamp
+                 "has been casted to a string.".format(id))
+            conversation_id = str(conversation_id)
         if not isinstance(text, str):
             warn("Utterance text must be a string: text of utterance with ID: {} "
-                 "has been casted to a string.".format(self.id))
+                 "has been casted to a string.".format(id))
             text = '' if text is None else str(text)
-        self.text = text
+
+        props = {
+            'speaker': speaker.id,
+            'conversation_id': conversation_id,
+            'reply_to': reply_to,
+            'timestamp': timestamp,
+            'text': text
+        }
+        super().__init__(obj_type="utterance", owner=owner, id=id, initial_data=props, meta=meta)
+        self.speaker_ = speaker
+
+    ############################################################################
+    ## directly-accessible class properties (roughly equivalent to keys in the 
+    ## JSON, plus aliases for compatibility)
+    ############################################################################
+
+    def _get_speaker(self):
+        return self.speaker_
+
+    def _set_speaker(self, val):
+        self.speaker_ = val
+
+    speaker = property(_get_speaker, _set_speaker)
+
+    def _get_conversation_id(self):
+        return self.get_data("conversation_id")
+
+    def _set_conversation_id(self, val):
+        self.set_data("conversation_id", val)
+
+    conversation_id = property(_get_conversation_id, _set_conversation_id)
+
+    def _get_reply_to(self):
+        return self.get_data("reply_to")
+
+    def _set_reply_to(self, val):
+        self.set_data("reply_to", val)
+
+    reply_to = property(_get_reply_to, _set_reply_to)
+
+    def _get_timestamp(self):
+        return self.get_data("timestamp")
+
+    def _set_timestamp(self, val):
+        self.set_data("timestamp", val)
+
+    timestamp = property(_get_timestamp, _set_timestamp)
+
+    def _get_text(self):
+        return self.get_data("text")
+
+    def _set_text(self, val):
+        self.set_data("text", val)
+
+    text = property(_get_text, _set_text)
 
     def _get_root(self):
         deprecation("utterance.root", "utterance.conversation_id")
@@ -60,6 +113,10 @@ class Utterance(CorpusComponent):
         # self._update_uid()
 
     root = property(_get_root, _set_root)
+
+    ############################################################################
+    ## end properties
+    ############################################################################
 
     def get_conversation(self):
         """

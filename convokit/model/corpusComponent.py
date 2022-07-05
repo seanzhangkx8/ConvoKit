@@ -5,30 +5,63 @@ from typing import List, Optional
 
 class CorpusComponent:
 
-    def __init__(self, obj_type: str, owner=None, id=None, vectors: List[str]=None, meta=None):
+    def __init__(
+        self, 
+        obj_type: str, 
+        owner=None, 
+        id=None, 
+        initial_data=None, 
+        vectors: List[str]=None, 
+        meta=None
+    ):
         self.obj_type = obj_type  # utterance, speaker, conversation
         self._owner = owner
+        self._id = id
+        self.vectors = vectors if vectors is not None else []
+        
+        # if the CorpusComponent is initialized with an owner set up an entry
+        # in the owner's storage; if it is not initialized with an owner
+        # (i.e. it is a standalone object) set up a dict-based temp storage
+        if self.owner is None:
+            self._temp_storage = initial_data if initial_data is not None else {}
+        else:
+            self.owner.storage.initialize_data_for_component(self.obj_type, self._id, initial_value=(initial_data if initial_data is not None else {}))
+
         if meta is None:
             meta = dict()
         self.meta = self.init_meta(meta)
-        self.id = id
-        self.vectors = vectors if vectors is not None else []
 
     def get_owner(self):
         return self._owner
 
     def set_owner(self, owner):
+        previous_owner = self._owner
         self._owner = owner
         if owner is not None:
+            # when a new owner Corpus is assigned, we must take the following steps:
+            # (1) transfer this component's data to the new owner's StorageManager
+            # (2) avoid duplicates by removing the data from the old owner (or temp storage if there was no prior owner)
+            # (3) reinitialize the metadata instance
+            data_dict = dict(previous_owner.storage.get_data(self.id)) if previous_owner is not None else self._temp_storage
+            self.owner.storage.initialize_data_for_component(self.obj_type, self.id, initial_value=data_dict)
+            if previous_owner is not None:
+                previous_owner.storage.delete_data(self.obj_type, self.id)
+            else:
+                del self._temp_storage
             self.meta = self.init_meta(self.meta)
 
     owner = property(get_owner, set_owner)
 
     def init_meta(self, meta):
         if self._owner is None:
+            # ConvoKitMeta instances are not allowed for ownerless (standalone)
+            # components since they must be backed by a StorageManager. In this
+            # case we must forcibly convert the ConvoKitMeta instance to dict
+            if type(meta) == ConvoKitMeta:
+                meta = meta.to_dict()
             return meta
         else:
-            ck_meta = ConvoKitMeta(self.owner.meta_index, self.obj_type)
+            ck_meta = ConvoKitMeta(self, self.owner.meta_index, self.obj_type)
             for key, value in meta.items():
                 ck_meta[key] = value
             return ck_meta
@@ -44,6 +77,17 @@ class CorpusComponent:
             self._id = value
 
     id = property(get_id, set_id)
+
+    def get_data(self, property_name):
+        if self._owner is None:
+            return self._temp_storage[property_name]
+        return self.owner.storage.get_data(self.obj_type, self.id, property_name)
+
+    def set_data(self, property_name, value):
+        if self._owner is None:
+            self._temp_storage[property_name] = value
+        else:
+            self.owner.storage.update_data(self.obj_type, self.id, property_name, value)
 
     # def __eq__(self, other):
     #     if type(self) != type(other): return False

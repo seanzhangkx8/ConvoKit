@@ -8,6 +8,7 @@ from .convoKitIndex import ConvoKitIndex
 import random
 from .convoKitMeta import ConvoKitMeta
 from .convoKitMatrix import ConvoKitMatrix
+from .storageManager import StorageManager, MemStorageManager
 import shutil
 
 
@@ -39,14 +40,21 @@ class Corpus:
     :ivar corpus_dirpath: path to the directory the corpus was loaded from
     """
 
-    def __init__(self, filename: Optional[str] = None, utterances: Optional[List[Utterance]] = None,
-                 preload_vectors: List[str] = None, utterance_start_index: int = None,
-                 utterance_end_index: int = None, merge_lines: bool = False,
-                 exclude_utterance_meta: Optional[List[str]] = None,
-                 exclude_conversation_meta: Optional[List[str]] = None,
-                 exclude_speaker_meta: Optional[List[str]] = None,
-                 exclude_overall_meta: Optional[List[str]] = None,
-                 disable_type_check=True):
+    def __init__(
+        self, 
+        filename: Optional[str] = None, 
+        utterances: Optional[List[Utterance]] = None,
+        preload_vectors: List[str] = None, 
+        utterance_start_index: int = None,
+        utterance_end_index: int = None, 
+        merge_lines: bool = False,
+        exclude_utterance_meta: Optional[List[str]] = None,
+        exclude_conversation_meta: Optional[List[str]] = None,
+        exclude_speaker_meta: Optional[List[str]] = None,
+        exclude_overall_meta: Optional[List[str]] = None,
+        disable_type_check=True,
+        storage: Optional[StorageManager] = None
+    ):
 
         if filename is None:
             self.corpus_dirpath = None
@@ -55,8 +63,17 @@ class Corpus:
         else:
             self.corpus_dirpath = os.path.dirname(filename)
 
+        corpus_id = os.path.basename(os.path.normpath(filename))
+        self.id = corpus_id
+
+        # Setup storage
+        if storage is not None:
+            self.storage = storage
+        else:
+            self.storage = MemStorageManager(corpus_id)
+
         self.meta_index = ConvoKitIndex(self)
-        self.meta = ConvoKitMeta(self.meta_index, 'corpus')
+        self.meta = ConvoKitMeta(self, self.meta_index, 'corpus')
 
         # private storage
         self._vector_matrices = dict()
