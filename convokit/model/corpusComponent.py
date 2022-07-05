@@ -4,8 +4,7 @@ from typing import List, Optional
 
 
 class CorpusComponent:
-
-    def __init__(self, obj_type: str, owner=None, id=None, vectors: List[str]=None, meta=None):
+    def __init__(self, obj_type: str, owner=None, id=None, vectors: List[str] = None, meta=None):
         self.obj_type = obj_type  # utterance, speaker, conversation
         self._owner = owner
         if meta is None:
@@ -39,7 +38,11 @@ class CorpusComponent:
     def set_id(self, value):
         if not isinstance(value, str) and value is not None:
             self._id = str(value)
-            warn("{} id must be a string. ID input has been casted to a string.".format(self.obj_type))
+            warn(
+                "{} id must be a string. ID input has been casted to a string.".format(
+                    self.obj_type
+                )
+            )
         else:
             self._id = value
 
@@ -88,7 +91,9 @@ class CorpusComponent:
         deprecation("set_info()", "add_meta()")
         self.meta[key] = value
 
-    def get_vector(self, vector_name: str, as_dataframe: bool = False, columns: Optional[List[str]] = None):
+    def get_vector(
+        self, vector_name: str, as_dataframe: bool = False, columns: Optional[List[str]] = None
+    ):
         """
         Get the vector stored as `vector_name` for this object.
         :param vector_name: name of vector
@@ -99,10 +104,13 @@ class CorpusComponent:
         :return: a numpy / scipy array
         """
         if vector_name not in self.vectors:
-            raise ValueError("This {} has no vector stored as '{}'.".format(self.obj_type, vector_name))
+            raise ValueError(
+                "This {} has no vector stored as '{}'.".format(self.obj_type, vector_name)
+            )
 
-        return self.owner.get_vector_matrix(vector_name).get_vectors(ids=[self.id], as_dataframe=as_dataframe,
-                                                                     columns=columns)
+        return self.owner.get_vector_matrix(vector_name).get_vectors(
+            ids=[self.id], as_dataframe=as_dataframe, columns=columns
+        )
 
     def add_vector(self, vector_name: str):
         """
@@ -128,20 +136,29 @@ class CorpusComponent:
         self.vectors.remove(vector_name)
 
     def __str__(self):
-        return "{}(id: {}, vectors: {}, meta: {})".format(self.obj_type.capitalize(), self.id, self.vectors, self.meta)
+        return "{}(id: {}, vectors: {}, meta: {})".format(
+            self.obj_type.capitalize(), self.id, self.vectors, self.meta
+        )
 
     def __hash__(self):
         return hash(self.obj_type + str(self.id))
 
     def __repr__(self):
         copy = self.__dict__.copy()
-        deleted_keys = ['utterances', 'conversations', 'user', '_root', '_utterance_ids', '_speaker_ids']
+        deleted_keys = [
+            "utterances",
+            "conversations",
+            "user",
+            "_root",
+            "_utterance_ids",
+            "_speaker_ids",
+        ]
         for k in deleted_keys:
             if k in copy:
                 del copy[k]
 
-        to_delete = [k for k in copy if k.startswith('_')]
-        to_add = {k[1:]: copy[k] for k in copy if k.startswith('_')}
+        to_delete = [k for k in copy if k.startswith("_")]
+        to_add = {k[1:]: copy[k] for k in copy if k.startswith("_")}
 
         for k in to_delete:
             del copy[k]
@@ -150,5 +167,5 @@ class CorpusComponent:
 
         try:
             return self.obj_type.capitalize() + "(" + str(copy) + ")"
-        except AttributeError: # for backwards compatibility when corpus objects are saved as binary data, e.g. wikiconv
+        except AttributeError:  # for backwards compatibility when corpus objects are saved as binary data, e.g. wikiconv
             return "(" + str(copy) + ")"

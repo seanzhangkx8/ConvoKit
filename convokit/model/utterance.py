@@ -25,29 +25,41 @@ class Utterance(CorpusComponent):
         utterance-level metadata.
     """
 
-    def __init__(self, owner=None, id: Optional[str] = None, speaker: Optional[Speaker] = None,
-                 user: Optional[Speaker] = None, conversation_id: Optional[str] = None,
-                 root: Optional[str] = None, reply_to: Optional[str] = None,
-                 timestamp: Optional[int] = None, text: str = '',
-                 meta: Optional[Dict] = None):
+    def __init__(
+        self,
+        owner=None,
+        id: Optional[str] = None,
+        speaker: Optional[Speaker] = None,
+        user: Optional[Speaker] = None,
+        conversation_id: Optional[str] = None,
+        root: Optional[str] = None,
+        reply_to: Optional[str] = None,
+        timestamp: Optional[int] = None,
+        text: str = "",
+        meta: Optional[Dict] = None,
+    ):
         super().__init__(obj_type="utterance", owner=owner, id=id, meta=meta)
         speaker_ = speaker if speaker is not None else user
         self.speaker = speaker_
         if self.speaker is None:
             raise ValueError("No Speaker found: Utterance must be initialized with a Speaker.")
-        self.user = speaker # for backwards compatbility
+        self.user = speaker  # for backwards compatbility
         self.conversation_id = conversation_id if conversation_id is not None else root
         if self.conversation_id is not None and not isinstance(self.conversation_id, str):
-            warn("Utterance conversation_id must be a string: conversation_id of utterance with ID: {} "
-                 "has been casted to a string.".format(self.id))
+            warn(
+                "Utterance conversation_id must be a string: conversation_id of utterance with ID: {} "
+                "has been casted to a string.".format(self.id)
+            )
             self.conversation_id = str(self.conversation_id)
         self._root = self.conversation_id
         self.reply_to = reply_to
-        self.timestamp = timestamp # int(timestamp) if timestamp is not None else timestamp
+        self.timestamp = timestamp  # int(timestamp) if timestamp is not None else timestamp
         if not isinstance(text, str):
-            warn("Utterance text must be a string: text of utterance with ID: {} "
-                 "has been casted to a string.".format(self.id))
-            text = '' if text is None else str(text)
+            warn(
+                "Utterance text must be a string: text of utterance with ID: {} "
+                "has been casted to a string.".format(self.id)
+            )
+            text = "" if text is None else str(text)
         self.text = text
 
     def _get_root(self):
@@ -85,20 +97,28 @@ class Utterance(CorpusComponent):
         if not isinstance(other, Utterance):
             return False
         try:
-            return self.id == other.id and self.conversation_id == other.conversation_id and self.reply_to == other.reply_to and \
-                   self.speaker == other.speaker and self.timestamp == other.timestamp and self.text == other.text
-        except AttributeError: # for backwards compatibility with wikiconv
+            return (
+                self.id == other.id
+                and self.conversation_id == other.conversation_id
+                and self.reply_to == other.reply_to
+                and self.speaker == other.speaker
+                and self.timestamp == other.timestamp
+                and self.text == other.text
+            )
+        except AttributeError:  # for backwards compatibility with wikiconv
             return self.__dict__ == other.__dict__
 
     def __str__(self):
-        return "Utterance(id: {}, conversation_id: {}, reply-to: {}, " \
-               "speaker: {}, timestamp: {}, text: {}, vectors: {}, meta: {})".format(repr(self.id),
-                                                                                    self.conversation_id,
-                                                                                    self.reply_to,
-                                                                                    self.speaker,
-                                                                                    self.timestamp,
-                                                                                    repr(self.text),
-                                                                                    self.vectors,
-                                                                                    self.meta)
-
-
+        return (
+            "Utterance(id: {}, conversation_id: {}, reply-to: {}, "
+            "speaker: {}, timestamp: {}, text: {}, vectors: {}, meta: {})".format(
+                repr(self.id),
+                self.conversation_id,
+                self.reply_to,
+                self.speaker,
+                self.timestamp,
+                repr(self.text),
+                self.vectors,
+                self.meta,
+            )
+        )

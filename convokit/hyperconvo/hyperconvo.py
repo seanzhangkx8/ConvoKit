@@ -9,27 +9,31 @@ from convokit.transformer import Transformer
 from convokit.model import Corpus, Conversation
 from .hypergraph import Hypergraph
 
+
 def degree_stat_funcs(nan_val):
     # int wrapping is to convert from np.int64 to int, since np.int64 is not JSON-serializable
     return {
-    "max": lambda l: int(np.max(l)),
-    "argmax": lambda l: int(np.argmax(l)),
-    "norm.max": lambda l: np.max(l) / np.sum(l) if np.sum(l) > 0 else 0,
-    "2nd-largest": lambda l: int(np.partition(l, -2)[-2]) if len(l) > 1 else nan_val,
-    "2nd-argmax": lambda l: int((-l).argsort()[1]) if len(l) > 1 else nan_val,
-    "norm.2nd-largest": lambda l: np.partition(l, -2)[-2] / np.sum(l) if (len(l) > 1 and np.sum(l) > 0) else nan_val,
-    "mean": np.mean,
-    "mean-nonzero": lambda l: np.mean(l[l != 0]) if len(l[l != 0]) > 0 else 0,
-    "prop-nonzero": lambda l: np.mean(l != 0),
-    "prop-multiple": lambda l: np.mean(l[l != 0] > 1) if len(l[l !=0] > 1) > 0 else 0,
-    "entropy": lambda l: scipy.stats.entropy(l) if np.sum(l) > 0 else nan_val,
-    "2nd-largest / max": lambda l: np.partition(l, -2)[-2] / np.max(l) if (len(l) > 1 and np.sum(l) > 0) else nan_val
-}
+        "max": lambda l: int(np.max(l)),
+        "argmax": lambda l: int(np.argmax(l)),
+        "norm.max": lambda l: np.max(l) / np.sum(l) if np.sum(l) > 0 else 0,
+        "2nd-largest": lambda l: int(np.partition(l, -2)[-2]) if len(l) > 1 else nan_val,
+        "2nd-argmax": lambda l: int((-l).argsort()[1]) if len(l) > 1 else nan_val,
+        "norm.2nd-largest": lambda l: np.partition(l, -2)[-2] / np.sum(l)
+        if (len(l) > 1 and np.sum(l) > 0)
+        else nan_val,
+        "mean": np.mean,
+        "mean-nonzero": lambda l: np.mean(l[l != 0]) if len(l[l != 0]) > 0 else 0,
+        "prop-nonzero": lambda l: np.mean(l != 0),
+        "prop-multiple": lambda l: np.mean(l[l != 0] > 1) if len(l[l != 0] > 1) > 0 else 0,
+        "entropy": lambda l: scipy.stats.entropy(l) if np.sum(l) > 0 else nan_val,
+        "2nd-largest / max": lambda l: np.partition(l, -2)[-2] / np.max(l)
+        if (len(l) > 1 and np.sum(l) > 0)
+        else nan_val,
+    }
 
-motif_stat_funcs = {
-    "is-present": lambda l: len(l) > 0,
-    "count": len
-}
+
+motif_stat_funcs = {"is-present": lambda l: len(l) > 0, "count": len}
+
 
 class HyperConvo(Transformer):
     """
@@ -62,16 +66,27 @@ class HyperConvo(Transformer):
     :param invalid_val: value to use for invalid hyperconvo features, default is np.nan
     """
 
-    def __init__(self, prefix_len: int = 10, min_convo_len: int = 10, vector_name: str = "hyperconvo", feat_name=None,
-                 invalid_val: float = np.nan):
+    def __init__(
+        self,
+        prefix_len: int = 10,
+        min_convo_len: int = 10,
+        vector_name: str = "hyperconvo",
+        feat_name=None,
+        invalid_val: float = np.nan,
+    ):
         self.prefix_len = prefix_len
         self.min_convo_len = min_convo_len
         self.vector_name = vector_name if feat_name is None else feat_name
-        if feat_name is not None: deprecation("HyperConvo's feat_name parameter", "vector_name")
+        if feat_name is not None:
+            deprecation("HyperConvo's feat_name parameter", "vector_name")
 
         self.invalid_val = invalid_val
 
-    def transform(self, corpus: Corpus, selector: Optional[Callable[[Conversation], bool]] = lambda convo: True) -> Corpus:
+    def transform(
+        self,
+        corpus: Corpus,
+        selector: Optional[Callable[[Conversation], bool]] = lambda convo: True,
+    ) -> Corpus:
         """
         Retrieves features from the Corpus Conversations using retrieve_feats() and annotates Conversations with this feature set
 
@@ -83,10 +98,12 @@ class HyperConvo(Transformer):
 
         convo_id_to_feats = self.retrieve_feats(corpus, selector)
         df = pd.DataFrame(convo_id_to_feats).T
-        corpus.set_vector_matrix(name=self.vector_name,
-                                 ids=list(df.index),
-                                 columns=list(df.columns),
-                                 matrix=csr_matrix(df.values.astype('float64')))
+        corpus.set_vector_matrix(
+            name=self.vector_name,
+            ids=list(df.index),
+            columns=list(df.columns),
+            matrix=csr_matrix(df.values.astype("float64")),
+        )
 
         for convo in corpus.iter_conversations(selector):
             convo.add_vector(self.vector_name)
@@ -118,22 +135,31 @@ class HyperConvo(Transformer):
         stats = {}
         for from_hyper in [False, True]:
             for to_hyper in [False, True]:
-                if not from_hyper and to_hyper: continue # skip c->C
+                if not from_hyper and to_hyper:
+                    continue  # skip c->C
                 if from_hyper:
                     outdegrees = np.array(graph.outdegrees(from_hyper, to_hyper))
                 indegrees = np.array(graph.indegrees(from_hyper, to_hyper))
 
                 for stat, stat_func in degree_stat_funcs(self.invalid_val).items():
                     if from_hyper:
-                        stats["{}[outdegree over {}->{} {}responses]".format(stat,
-                                                                     HyperConvo._node_type_name(from_hyper),
-                                                                     HyperConvo._node_type_name(to_hyper),
-                                                                     name_ext)] = stat_func(outdegrees)
+                        stats[
+                            "{}[outdegree over {}->{} {}responses]".format(
+                                stat,
+                                HyperConvo._node_type_name(from_hyper),
+                                HyperConvo._node_type_name(to_hyper),
+                                name_ext,
+                            )
+                        ] = stat_func(outdegrees)
 
-                    stats["{}[indegree over {}->{} {}responses]".format(stat,
-                                                                        HyperConvo._node_type_name(from_hyper),
-                                                                        HyperConvo._node_type_name(to_hyper),
-                                                                        name_ext)] = stat_func(indegrees)
+                    stats[
+                        "{}[indegree over {}->{} {}responses]".format(
+                            stat,
+                            HyperConvo._node_type_name(from_hyper),
+                            HyperConvo._node_type_name(to_hyper),
+                            name_ext,
+                        )
+                    ] = stat_func(indegrees)
         return stats
 
     @staticmethod
@@ -156,13 +182,16 @@ class HyperConvo(Transformer):
             ("external reciprocity motif", graph.external_reciprocity_motifs),
             ("dyadic interaction motif", graph.dyadic_interaction_motifs),
             ("incoming triads", graph.incoming_triad_motifs),
-            ("outgoing triads", graph.outgoing_triad_motifs)]:
+            ("outgoing triads", graph.outgoing_triad_motifs),
+        ]:
             motifs = motif_func()
             for stat, stat_func in motif_stat_funcs.items():
                 stats["{}[{}{}]".format(stat, motif, name_ext)] = stat_func(motifs)
         return stats
 
-    def retrieve_feats(self, corpus: Corpus, selector: Callable[[Conversation], bool] = lambda convo: True) -> Dict[str, Dict]:
+    def retrieve_feats(
+        self, corpus: Corpus, selector: Callable[[Conversation], bool] = lambda convo: True
+    ) -> Dict[str, Dict]:
         """
         Retrieve all hypergraph features for a given corpus (viewed as a set of conversation threads).
 
@@ -179,15 +208,19 @@ class HyperConvo(Transformer):
 
         for convo in corpus.iter_conversations(selector):
             ordered_utts = convo.get_chronological_utterance_list()
-            if len(ordered_utts) < self.min_convo_len: continue
-            utts = ordered_utts[:self.prefix_len]
+            if len(ordered_utts) < self.min_convo_len:
+                continue
+            utts = ordered_utts[: self.prefix_len]
             stats = {}
             G = Hypergraph.init_from_utterances(utterances=utts)
-            G_mid = Hypergraph.init_from_utterances(utterances=utts[1:]) # exclude root
-            for k, v in self._degree_feats(graph=G).items(): stats[k] = v
-            for k, v in HyperConvo._motif_feats(graph=G).items(): stats[k] = v
-            for k, v in self._degree_feats(graph=G_mid, name_ext="mid-thread ").items(): stats[k] = v
-            for k, v in HyperConvo._motif_feats(graph=G_mid, name_ext=" over mid-thread").items(): stats[k] = v
+            G_mid = Hypergraph.init_from_utterances(utterances=utts[1:])  # exclude root
+            for k, v in self._degree_feats(graph=G).items():
+                stats[k] = v
+            for k, v in HyperConvo._motif_feats(graph=G).items():
+                stats[k] = v
+            for k, v in self._degree_feats(graph=G_mid, name_ext="mid-thread ").items():
+                stats[k] = v
+            for k, v in HyperConvo._motif_feats(graph=G_mid, name_ext=" over mid-thread").items():
+                stats[k] = v
             threads_stats[convo.id] = stats
         return threads_stats
-

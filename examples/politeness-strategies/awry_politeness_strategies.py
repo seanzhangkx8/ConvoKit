@@ -7,7 +7,7 @@ import pandas as pd
 from convokit import PolitenessStrategies, Corpus, download
 
 print("Loading awry corpus...")
-corpus = Corpus(filename=download('conversations-gone-awry-corpus'))
+corpus = Corpus(filename=download("conversations-gone-awry-corpus"))
 
 # extract the politeness strategies.
 # Note: politeness strategies are a hand-engineered feature set, so no fitting is needed.

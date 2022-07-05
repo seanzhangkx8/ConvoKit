@@ -23,7 +23,7 @@ Once you have created a Corpus representation of your dataset, follow these step
 * Use `Corpus.dump()` to write the Corpus to disk
 * Locate the resulting folder and compress it into a zip file
 * Open a new issue on GitHub with the "dataset" tag
-* Include the following information in the issue: 
+* Include the following information in the issue:
   * the name of the dataset
   * brief description
   * the dataset details, i.e. Speaker-, Utterance-, Conversation-, Corpus-level data and metadata (refer to [this](https://convokit.cornell.edu/documentation/chromium.html) for an example)
@@ -48,13 +48,31 @@ In general, code contributions will take one of 3 different forms:
 
 There are a number of guidelines that contributors should follow for _all_ types of code contributions, which will be listed below. There are also particular guidelines for implementing new modules, which we will cover at the end
 
-### Style guidelines
+### Style and formatting
 
-Please ensure that your contributions adhere to the existing coding style used throughout the codebase, as we do want to maintain some level of consistency. Specific guidelines that should be followed include:
+ConvoKit [Black](https://black.readthedocs.io/en/stable/) to standardize Python code formatting.
+Black is configured with `pyproject.toml`.
 
-- Use 4 spaces (not tabs) for indentation
-- Classes should be named in CamelCase, starting with an uppercase letter
-- Functions and variables should be named in snake_case and should avoid uppercase letters (exceptions may be made for names that are acronyms, but only if this is done to be consistent with some preexisting literature)
+Developers should also set up pre-commit hooks to re-format any changed code prior to a commit.
+The configuration for pre-commit is in `pre-commit-config.yaml` and `pre-commit-hooks.yaml`.
+
+On every push to the repo, we also use GitHub Actions to check for formatting issues using Black. The
+configuration options are in `.github/workflows/format.yml`.
+
+
+To set up pre-commit:
+
+```
+python -m pip install -r requirements-dev.txt
+pre-commit install
+```
+
+To run the formatter manually:
+
+```
+black ./convokit
+```
+
 
 ### Testing
 

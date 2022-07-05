@@ -3,8 +3,17 @@ from convokit.util import deprecation
 from collections import defaultdict
 from typing import Callable, Tuple, List, Dict, Optional, Collection, Hashable, Union
 
-CoordinationWordCategories = ["article", "auxverb", "conj", "adverb",
-                              "ppron", "ipron", "preps", "quant"]
+CoordinationWordCategories = [
+    "article",
+    "auxverb",
+    "conj",
+    "adverb",
+    "ppron",
+    "ipron",
+    "preps",
+    "quant",
+]
+
 
 class CoordinationScore(dict):
     """Encapsulates results of :func:`Coordination.score()` and
@@ -30,6 +39,7 @@ class CoordinationScore(dict):
     Coordination's `summarize()` method, using the `summary_report=True`
     option).
     """
+
     def scores_for_marker(self, marker: str) -> Dict[Union[Speaker, Hashable], float]:
         """Return a dictionary from speakers to their scores for just the given
         marker.
@@ -40,17 +50,14 @@ class CoordinationScore(dict):
 
     def averages_by_user(self):
         deprecation("averages_by_user()", "averages_by_speaker()")
-        return {speaker: sum(scores.values()) / len(scores)
-                for speaker, scores in self.items()}
-
+        return {speaker: sum(scores.values()) / len(scores) for speaker, scores in self.items()}
 
     def averages_by_speaker(self) -> Dict[Union[Speaker, Hashable], float]:
         """Return a dictionary from speakers to the average of each speaker's
         marker scores."""
-        return {speaker: sum(scores.values()) / len(scores)
-                for speaker, scores in self.items()}
+        return {speaker: sum(scores.values()) / len(scores) for speaker, scores in self.items()}
 
-    def averages_by_marker(self, strict_thresh: bool=False) -> Dict[str, float]:
+    def averages_by_marker(self, strict_thresh: bool = False) -> Dict[str, float]:
         """Return a dictionary mapping markers to the average coordination score
         on that marker.
 
@@ -61,7 +68,7 @@ class CoordinationScore(dict):
         self.precompute_aggregates()
         return self.a1_avg_by_marker if strict_thresh else self.avg_by_marker
 
-    def aggregate(self, method: int=3) -> Optional[float]:
+    def aggregate(self, method: int = 3) -> Optional[float]:
         """Return the aggregate coordination score.
 
         :param method: Can be 1, 2 or 3, corresponding to which aggregate method
@@ -98,8 +105,9 @@ class CoordinationScore(dict):
         do_agg2 = False
         if len(scores_by_marker) == len(CoordinationWordCategories):
             do_agg2 = True
-            avg_score_by_marker = {cat: sum(scores) / len(scores)
-                                   for cat, scores in scores_by_marker.items()}
+            avg_score_by_marker = {
+                cat: sum(scores) / len(scores) for cat, scores in scores_by_marker.items()
+            }
         agg1s, agg2s, agg3s = [], [], []
         for speaker, scoredict in self.items():
             scores = list(scoredict.values())
@@ -117,10 +125,10 @@ class CoordinationScore(dict):
         agg2 = sum(agg2s) / len(agg2s) if agg2s else None
         agg3 = sum(agg3s) / len(agg3s) if agg3s else None
 
-        a1_avg_by_marker = {cat: sum(scores) / len(scores)
-                            for cat, scores in a1_scores_by_marker.items()}
-        avg_by_marker = {cat: sum(scores) / len(scores)
-                         for cat, scores in scores_by_marker.items()}
+        a1_avg_by_marker = {
+            cat: sum(scores) / len(scores) for cat, scores in a1_scores_by_marker.items()
+        }
+        avg_by_marker = {cat: sum(scores) / len(scores) for cat, scores in scores_by_marker.items()}
         self.precomputed_aggregates = True
         self.a1_avg_by_marker = a1_avg_by_marker
         self.avg_by_marker = avg_by_marker

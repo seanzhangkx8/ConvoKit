@@ -26,7 +26,9 @@ class ConvoKitMatrix:
     :ivar cols_to_idx: a mapping from column name to the column index
     """
 
-    def __init__(self, name, matrix, ids: Optional[List[str]] = None, columns: Optional[List[str]] = None):
+    def __init__(
+        self, name, matrix, ids: Optional[List[str]] = None, columns: Optional[List[str]] = None
+    ):
         self.name = name
         self._matrix = matrix
         self._sparse = isinstance(self._matrix, scipy.sparse.csr.csr_matrix)
@@ -50,7 +52,9 @@ class ConvoKitMatrix:
 
     @matrix.deleter
     def matrix(self):
-        warn("ConvoKitMatrix's internal matrix cannot be deleted. Use Corpus.delete_vector_matrix() instead.")
+        warn(
+            "ConvoKitMatrix's internal matrix cannot be deleted. Use Corpus.delete_vector_matrix() instead."
+        )
 
     def _initialization_checks(self):
         try:
@@ -63,10 +67,17 @@ class ConvoKitMatrix:
             if self.columns is not None:
                 assert len(self.columns) == self.matrix.shape[1]
         except AssertionError:
-            raise ValueError("Input matrix dimensions {} do not match "
-                             "length of ids and/or columns".format(self.matrix.shape))
+            raise ValueError(
+                "Input matrix dimensions {} do not match "
+                "length of ids and/or columns".format(self.matrix.shape)
+            )
 
-    def get_vectors(self, ids: Optional[List[str]] = None, columns: Optional[List[str]] = None, as_dataframe: bool=False):
+    def get_vectors(
+        self,
+        ids: Optional[List[str]] = None,
+        columns: Optional[List[str]] = None,
+        as_dataframe: bool = False,
+    ):
         """
 
         :param ids: optional list of object ids to get vectors for; all by default
@@ -89,7 +100,9 @@ class ConvoKitMatrix:
 
     def to_dict(self):
         if self.columns is None:
-            raise ValueError("Matrix columns are missing. Update matrix.columns with a list of column names.")
+            raise ValueError(
+                "Matrix columns are missing. Update matrix.columns with a list of column names."
+            )
         d = dict()
         for id, idx in self.ids_to_idx.items():
             row = self.matrix[idx]
@@ -115,7 +128,7 @@ class ConvoKitMatrix:
         :param filepath:
         :return:
         """
-        with open(filepath, 'rb') as f:
+        with open(filepath, "rb") as f:
             retval: ConvoKitMatrix = pickle.load(f)
             if not retval._sparse:
                 retval.matrix = retval.matrix.toarray()
@@ -131,7 +144,7 @@ class ConvoKitMatrix:
         :return: the initialized ConvoKitMatrix
         """
         try:
-            with open(os.path.join(dirpath, 'vectors.{}.p'.format(matrix_name)), 'rb') as f:
+            with open(os.path.join(dirpath, "vectors.{}.p".format(matrix_name)), "rb") as f:
                 retval: ConvoKitMatrix = pickle.load(f)
                 if not retval._sparse:
                     retval.matrix = retval.matrix.toarray()
@@ -150,11 +163,11 @@ class ConvoKitMatrix:
         if not issparse(self.matrix):
             temp = self.matrix
             self.matrix = csr_matrix(self.matrix)
-            with open(os.path.join(dirpath, 'vectors.{}.p'.format(self.name)), 'wb') as f:
+            with open(os.path.join(dirpath, "vectors.{}.p".format(self.name)), "wb") as f:
                 pickle.dump(self, f)
             self.matrix = temp
         else:
-            with open(os.path.join(dirpath, 'vectors.{}.p'.format(self.name)), 'wb') as f:
+            with open(os.path.join(dirpath, "vectors.{}.p".format(self.name)), "wb") as f:
                 pickle.dump(self, f)
 
     def subset(self, ids: Optional[List[str]] = None, columns: Optional[List[str]] = None):
@@ -168,13 +181,15 @@ class ConvoKitMatrix:
         columns = columns if columns is not None else self.columns
 
         submatrix = self.to_dataframe().loc[ids][columns]
-        return ConvoKitMatrix(name=self.name,
-                              matrix=csr_matrix(submatrix.values.astype('float64')),
-                              ids=ids,
-                              columns=columns)
+        return ConvoKitMatrix(
+            name=self.name,
+            matrix=csr_matrix(submatrix.values.astype("float64")),
+            ids=ids,
+            columns=columns,
+        )
 
     @staticmethod
-    def hstack(name: str, matrices: List['ConvoKitMatrix']):
+    def hstack(name: str, matrices: List["ConvoKitMatrix"]):
         """
         Combines multiple ConvoKitMatrices into a single ConvoKitMatrix by stacking them horizontally (i.e. each
         constituent matrix must have the same ids).
@@ -192,7 +207,7 @@ class ConvoKitMatrix:
         return ConvoKitMatrix(name=name, matrix=stacked, ids=matrices[0].ids, columns=columns)
 
     @staticmethod
-    def vstack(name: str, matrices: List['ConvoKitMatrix']):
+    def vstack(name: str, matrices: List["ConvoKitMatrix"]):
         """
         Combines multiple ConvoKitMatrices into a single ConvoKitMatrix by stacking them horizontally (i.e. each
         constituent matrix must have the same columns).

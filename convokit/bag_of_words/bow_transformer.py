@@ -28,13 +28,25 @@ class BoWTransformer(Transformer):
         based on the `obj_type`.
 
     """
-    def __init__(self, obj_type: str, vector_name="bow_vector",
-                 text_func: Callable[[CorpusComponent], str] = None, vectorizer=None):
+
+    def __init__(
+        self,
+        obj_type: str,
+        vector_name="bow_vector",
+        text_func: Callable[[CorpusComponent], str] = None,
+        vectorizer=None,
+    ):
 
         if vectorizer is None:
             print("Initializing default unigram CountVectorizer...", end="")
-            self.vectorizer = CV(decode_error='ignore', min_df=10, max_df=.5,
-                                 ngram_range=(1, 1), binary=False, max_features=15000)
+            self.vectorizer = CV(
+                decode_error="ignore",
+                min_df=10,
+                max_df=0.5,
+                ngram_range=(1, 1),
+                binary=False,
+                max_features=15000,
+            )
             print("Done.")
         else:
             self.vectorizer = vectorizer
@@ -48,13 +60,19 @@ class BoWTransformer(Transformer):
             elif obj_type == "conversation":
                 self.text_func = lambda convo: " ".join(utt.text for utt in convo.iter_utterances())
             elif obj_type == "speaker":
-                self.text_func = lambda speaker: " ".join(utt.text for utt in speaker.iter_utterances())
+                self.text_func = lambda speaker: " ".join(
+                    utt.text for utt in speaker.iter_utterances()
+                )
             else:
-                raise ValueError("Invalid corpus object type. Use 'utterance', 'conversation', or 'speaker'")
+                raise ValueError(
+                    "Invalid corpus object type. Use 'utterance', 'conversation', or 'speaker'"
+                )
         else:
             self.text_func = text_func
 
-    def fit(self, corpus: Corpus, y=None, selector: Callable[[CorpusComponent], bool] = lambda x: True):
+    def fit(
+        self, corpus: Corpus, y=None, selector: Callable[[CorpusComponent], bool] = lambda x: True
+    ):
         """
         Fit the Transformer's internal vectorizer on the Corpus objects' texts, with an optional selector that selects
         for objects to be fit on.
@@ -69,7 +87,9 @@ class BoWTransformer(Transformer):
         self.vectorizer.fit(docs)
         return self
 
-    def transform(self, corpus: Corpus, selector: Callable[[CorpusComponent], bool] = lambda x: True) -> Corpus:
+    def transform(
+        self, corpus: Corpus, selector: Callable[[CorpusComponent], bool] = lambda x: True
+    ) -> Corpus:
         """
         Computes the vector matrix for the Corpus component objects and then stores it in a ConvoKitMatrix object,
         which is saved in the Corpus as `vector_name`.
@@ -96,7 +116,9 @@ class BoWTransformer(Transformer):
 
         return corpus
 
-    def fit_transform(self, corpus: Corpus, y=None, selector: Callable[[CorpusComponent], bool] = lambda x: True) -> Corpus:
+    def fit_transform(
+        self, corpus: Corpus, y=None, selector: Callable[[CorpusComponent], bool] = lambda x: True
+    ) -> Corpus:
         """
         Fit the Transformer's internal vectorizer on the Corpus component objects' texts, and then compute
         vector representations for them and stores it in the Corpus object as `vector_name`.

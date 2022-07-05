@@ -22,7 +22,9 @@ class CommunityEmbedder(Transformer):
     :param method: Embedding method; "svd", "tsne" or "none"
     """
 
-    def __init__(self, community_key: Optional[str]=None, n_components: int=2, method: str="none"):
+    def __init__(
+        self, community_key: Optional[str] = None, n_components: int = 2, method: str = "none"
+    ):
         self.community_key = community_key
         self.n_components = n_components
         self.method = method
@@ -44,12 +46,16 @@ class CommunityEmbedder(Transformer):
                 and "labels": an array whose ith entry is the community of the ith row of X.
         """
         if self.community_key is None:
-            raise RuntimeError("Must specify community_key to retrieve label information from utterance")
+            raise RuntimeError(
+                "Must specify community_key to retrieve label information from utterance"
+            )
 
         corpus_meta = corpus.get_meta()
         if "threadEmbedder" not in corpus_meta:
-            raise RuntimeError("Missing threadEmbedder metadata: "
-                               "threadEmbedder.fit_transform() must be run on the Corpus first")
+            raise RuntimeError(
+                "Missing threadEmbedder metadata: "
+                "threadEmbedder.fit_transform() must be run on the Corpus first"
+            )
 
         thread_embed_data = corpus_meta["threadEmbedder"]
 
@@ -70,8 +76,7 @@ class CommunityEmbedder(Transformer):
         else:
             X_embedded = X_mid
 
-        labels = [corpus.get_utterance(root).meta[self.community_key]
-                  for root in roots]
+        labels = [corpus.get_utterance(root).meta[self.community_key] for root in roots]
         # label_counts = Counter(labels)
         subs = defaultdict(list)
         for x, label in zip(X_embedded, labels):

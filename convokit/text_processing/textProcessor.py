@@ -2,6 +2,7 @@ from convokit.transformer import Transformer
 from convokit.model import Corpus, Utterance, Speaker
 from inspect import signature
 
+
 class TextProcessor(Transformer):
     """
     A base class for Transformers that perform per-utterance computations, i.e., computing  utterance-by-utterance features or representations.
@@ -13,9 +14,17 @@ class TextProcessor(Transformer):
     :param input_filter: a boolean function of signature `input_filter(utterance, aux_input)`. attributes will only be computed for utterances where `input_filter` returns `True`. By default, will always return `True`, meaning that attributes will be computed for all utterances.
     :param verbosity: frequency at which to print status messages when computing attributes.
     """
-    
-    def __init__(self, proc_fn, output_field, input_field=None, aux_input=None, input_filter=None, verbosity=0):
-        
+
+    def __init__(
+        self,
+        proc_fn,
+        output_field,
+        input_field=None,
+        aux_input=None,
+        input_filter=None,
+        verbosity=0,
+    ):
+
         self.proc_fn = proc_fn
         self.aux_input = aux_input if aux_input is not None else {}
         # self.input_filter = input_filter if input_filter is not None else lambda utt, aux: True
@@ -31,25 +40,26 @@ class TextProcessor(Transformer):
         self.output_field = output_field
         self.verbosity = verbosity
         self.multi_outputs = isinstance(output_field, list)
-    
+
     def _print_output(self, i):
         return (self.verbosity > 0) and (i > 0) and (i % self.verbosity == 0)
 
     def transform(self, corpus: Corpus) -> Corpus:
         """
-            Computes per-utterance attributes for each utterance in the Corpus, storing these values in the `output_field` of each utterance as specified in the constructor. For utterances which do not contain all of the `input_field` attributes as specified in the constructor, or for utterances which return `False` on `input_filter`, this call will not annotate the utterance. 
+        Computes per-utterance attributes for each utterance in the Corpus, storing these values in the `output_field` of each utterance as specified in the constructor. For utterances which do not contain all of the `input_field` attributes as specified in the constructor, or for utterances which return `False` on `input_filter`, this call will not annotate the utterance.
 
-            :param corpus: Corpus
-            :return: the corpus
+        :param corpus: Corpus
+        :return: the corpus
         """
 
         total_utts = len(corpus.utterances)
 
         for idx, utterance in enumerate(corpus.iter_utterances()):
-            
+
             if self._print_output(idx):
-                print('%03d/%03d utterances processed' % (idx, total_utts))
-            if not self.input_filter(utterance, self.aux_input): continue
+                print("%03d/%03d utterances processed" % (idx, total_utts))
+            if not self.input_filter(utterance, self.aux_input):
+                continue
             if self.input_field is None:
                 text_entry = utterance.text
             elif isinstance(self.input_field, str):
@@ -70,9 +80,10 @@ class TextProcessor(Transformer):
                     utterance.add_meta(out, res)
             else:
                 utterance.add_meta(self.output_field, result)
-        if self.verbosity > 0: print('%03d/%03d utterances processed' % (total_utts, total_utts))
+        if self.verbosity > 0:
+            print("%03d/%03d utterances processed" % (total_utts, total_utts))
         return corpus
-    
+
     def transform_utterance(self, utt, override_input_filter=False):
         """
         Computes per-utterance attributes of an individual utterance or string. For utterances which do not contain all of the `input_field` attributes as specified in the constructor, or for utterances which return `False` on `input_filter`, this call will not annotate the utterance. For strings, will convert the string to an utterance and return the utterance, annotating it if `input_field` is not set to `None` at initialization.
@@ -88,8 +99,8 @@ class TextProcessor(Transformer):
             text_entry = utt.text
         else:
             if not override_input_filter:
-                if not self.input_filter(utt, self.aux_input): 
-                    return utt 
+                if not self.input_filter(utt, self.aux_input):
+                    return utt
             if isinstance(self.input_field, str):
                 text_entry = utt.retrieve_meta(self.input_field)
             elif isinstance(self.input_field, list):
@@ -108,4 +119,3 @@ class TextProcessor(Transformer):
         else:
             utt.add_meta(self.output_field, result)
         return utt
-

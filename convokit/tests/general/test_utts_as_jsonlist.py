@@ -3,6 +3,7 @@ import unittest
 import os
 from convokit import Utterance, Corpus, Speaker
 
+
 class CorpusMerge(unittest.TestCase):
     def test_dump_and_load_with_binary(self):
         """
@@ -15,30 +16,39 @@ class CorpusMerge(unittest.TestCase):
         utt_byte_arr1 = bytearray([99, 44, 33])
         utt_byte_arr2 = bytearray([110, 200, 220, 28])
 
-        corpus1 = Corpus(utterances = [
-            Utterance(id="0", text="hello world",
-                      speaker=Speaker(id="alice", meta={'speaker_binary_data': speaker_byte_arr1, 'index': 99}),
-                      meta={'utt_binary_data': utt_byte_arr1}),
-
-            Utterance(id="1", text="my name is bob",
-                      speaker=Speaker(id="bob", meta={'speaker_binary_data': speaker_byte_arr2}),
-                      meta={'utt_binary_data': utt_byte_arr2}),
-            Utterance(id="2", text="this is a test", speaker=Speaker(id="charlie")),
-        ])
+        corpus1 = Corpus(
+            utterances=[
+                Utterance(
+                    id="0",
+                    text="hello world",
+                    speaker=Speaker(
+                        id="alice", meta={"speaker_binary_data": speaker_byte_arr1, "index": 99}
+                    ),
+                    meta={"utt_binary_data": utt_byte_arr1},
+                ),
+                Utterance(
+                    id="1",
+                    text="my name is bob",
+                    speaker=Speaker(id="bob", meta={"speaker_binary_data": speaker_byte_arr2}),
+                    meta={"utt_binary_data": utt_byte_arr2},
+                ),
+                Utterance(id="2", text="this is a test", speaker=Speaker(id="charlie")),
+            ]
+        )
 
         alice = corpus1.get_speaker("alice")
         bob = corpus1.get_speaker("bob")
 
-        corpus1.dump('test_corpus', './')
+        corpus1.dump("test_corpus", "./")
         corpus2 = Corpus(filename="test_corpus")
 
         alice2 = corpus2.get_speaker("alice")
         bob2 = corpus2.get_speaker("bob")
 
         self.assertEqual(alice.meta, alice2.meta)
-        self.assertEqual(corpus1.get_utterance('0').meta, corpus2.get_utterance('0').meta)
+        self.assertEqual(corpus1.get_utterance("0").meta, corpus2.get_utterance("0").meta)
         self.assertEqual(bob.meta, bob2.meta)
-        self.assertEqual(corpus1.get_utterance('1').meta, corpus2.get_utterance('1').meta)
+        self.assertEqual(corpus1.get_utterance("1").meta, corpus2.get_utterance("1").meta)
 
     def test_partial_loading(self):
         speaker_byte_arr1 = bytearray([120, 3, 255, 0, 100])
@@ -46,13 +56,25 @@ class CorpusMerge(unittest.TestCase):
         utt_byte_arr1 = bytearray([99, 44, 33])
         utt_byte_arr2 = bytearray([110, 200, 220, 28])
 
-        corpus1 = Corpus(utterances = [
-            Utterance(id="0", text="hello world", speaker=Speaker(id="alice", meta={'speaker_binary_data': speaker_byte_arr1}), meta={'utt_binary_data': utt_byte_arr1}),
-            Utterance(id="1", text="my name is bob", speaker=Speaker(id="bob", meta={'speaker_binary_data': speaker_byte_arr2}), meta={'utt_binary_data': utt_byte_arr2}),
-            Utterance(id="2", text="this is a test", speaker=Speaker(id="charlie")),
-        ])
+        corpus1 = Corpus(
+            utterances=[
+                Utterance(
+                    id="0",
+                    text="hello world",
+                    speaker=Speaker(id="alice", meta={"speaker_binary_data": speaker_byte_arr1}),
+                    meta={"utt_binary_data": utt_byte_arr1},
+                ),
+                Utterance(
+                    id="1",
+                    text="my name is bob",
+                    speaker=Speaker(id="bob", meta={"speaker_binary_data": speaker_byte_arr2}),
+                    meta={"utt_binary_data": utt_byte_arr2},
+                ),
+                Utterance(id="2", text="this is a test", speaker=Speaker(id="charlie")),
+            ]
+        )
 
-        corpus1.dump('test_corpus', './')
+        corpus1.dump("test_corpus", "./")
 
         corpus2 = Corpus(filename="test_corpus", utterance_start_index=0, utterance_end_index=1)
 
@@ -66,13 +88,25 @@ class CorpusMerge(unittest.TestCase):
         utt_byte_arr1 = bytearray([99, 44, 33])
         utt_byte_arr2 = bytearray([110, 200, 220, 28])
 
-        corpus1 = Corpus(utterances = [
-            Utterance(id="0", text="hello world", speaker=Speaker(id="alice", meta={'speaker_binary_data': speaker_byte_arr1}), meta={'utt_binary_data': utt_byte_arr1}),
-            Utterance(id="1", text="my name is bob", speaker=Speaker(id="bob", meta={'speaker_binary_data': speaker_byte_arr2}), meta={'utt_binary_data': utt_byte_arr2}),
-            Utterance(id="2", text="this is a test", speaker=Speaker(id="charlie")),
-        ])
+        corpus1 = Corpus(
+            utterances=[
+                Utterance(
+                    id="0",
+                    text="hello world",
+                    speaker=Speaker(id="alice", meta={"speaker_binary_data": speaker_byte_arr1}),
+                    meta={"utt_binary_data": utt_byte_arr1},
+                ),
+                Utterance(
+                    id="1",
+                    text="my name is bob",
+                    speaker=Speaker(id="bob", meta={"speaker_binary_data": speaker_byte_arr2}),
+                    meta={"utt_binary_data": utt_byte_arr2},
+                ),
+                Utterance(id="2", text="this is a test", speaker=Speaker(id="charlie")),
+            ]
+        )
 
-        corpus1.dump('test_corpus', './')
+        corpus1.dump("test_corpus", "./")
 
         corpus2 = Corpus(filename="test_corpus", utterance_start_index=1)
 
@@ -86,13 +120,25 @@ class CorpusMerge(unittest.TestCase):
         utt_byte_arr1 = bytearray([99, 44, 33])
         utt_byte_arr2 = bytearray([110, 200, 220, 28])
 
-        corpus1 = Corpus(utterances = [
-            Utterance(id="0", text="hello world", speaker=Speaker(id="alice", meta={'speaker_binary_data': speaker_byte_arr1}), meta={'utt_binary_data': utt_byte_arr1}),
-            Utterance(id="1", text="my name is bob", speaker=Speaker(id="bob", meta={'speaker_binary_data': speaker_byte_arr2}), meta={'utt_binary_data': utt_byte_arr2}),
-            Utterance(id="2", text="this is a test", speaker=Speaker(id="charlie")),
-        ])
+        corpus1 = Corpus(
+            utterances=[
+                Utterance(
+                    id="0",
+                    text="hello world",
+                    speaker=Speaker(id="alice", meta={"speaker_binary_data": speaker_byte_arr1}),
+                    meta={"utt_binary_data": utt_byte_arr1},
+                ),
+                Utterance(
+                    id="1",
+                    text="my name is bob",
+                    speaker=Speaker(id="bob", meta={"speaker_binary_data": speaker_byte_arr2}),
+                    meta={"utt_binary_data": utt_byte_arr2},
+                ),
+                Utterance(id="2", text="this is a test", speaker=Speaker(id="charlie")),
+            ]
+        )
 
-        corpus1.dump('test_corpus', './')
+        corpus1.dump("test_corpus", "./")
 
         corpus2 = Corpus(filename="test_corpus", utterance_end_index=0)
 
@@ -105,13 +151,25 @@ class CorpusMerge(unittest.TestCase):
         utt_byte_arr1 = bytearray([99, 44, 33])
         utt_byte_arr2 = bytearray([110, 200, 220, 28])
 
-        corpus1 = Corpus(utterances = [
-            Utterance(id="0", text="hello world", speaker=Speaker(id="alice", meta={'speaker_binary_data': speaker_byte_arr1}), meta={'utt_binary_data': utt_byte_arr1}),
-            Utterance(id="1", text="my name is bob", speaker=Speaker(id="bob", meta={'speaker_binary_data': speaker_byte_arr2}), meta={'utt_binary_data': utt_byte_arr2}),
-            Utterance(id="2", text="this is a test", speaker=Speaker(id="charlie")),
-        ])
+        corpus1 = Corpus(
+            utterances=[
+                Utterance(
+                    id="0",
+                    text="hello world",
+                    speaker=Speaker(id="alice", meta={"speaker_binary_data": speaker_byte_arr1}),
+                    meta={"utt_binary_data": utt_byte_arr1},
+                ),
+                Utterance(
+                    id="1",
+                    text="my name is bob",
+                    speaker=Speaker(id="bob", meta={"speaker_binary_data": speaker_byte_arr2}),
+                    meta={"utt_binary_data": utt_byte_arr2},
+                ),
+                Utterance(id="2", text="this is a test", speaker=Speaker(id="charlie")),
+            ]
+        )
 
-        corpus1.dump('test_corpus', './')
+        corpus1.dump("test_corpus", "./")
 
         corpus2 = Corpus(filename="test_corpus", utterance_start_index=99)
 
@@ -123,18 +181,30 @@ class CorpusMerge(unittest.TestCase):
         utt_byte_arr1 = bytearray([99, 44, 33])
         utt_byte_arr2 = bytearray([110, 200, 220, 28])
 
-        corpus1 = Corpus(utterances = [
-            Utterance(id="0", text="hello world", speaker=Speaker(id="alice", meta={'speaker_binary_data': speaker_byte_arr1}), meta={'utt_binary_data': utt_byte_arr1}),
-            Utterance(id="1", text="my name is bob", speaker=Speaker(id="bob", meta={'speaker_binary_data': speaker_byte_arr2}), meta={'utt_binary_data': utt_byte_arr2}),
-            Utterance(id="2", text="this is a test", speaker=Speaker(id="charlie")),
-        ])
+        corpus1 = Corpus(
+            utterances=[
+                Utterance(
+                    id="0",
+                    text="hello world",
+                    speaker=Speaker(id="alice", meta={"speaker_binary_data": speaker_byte_arr1}),
+                    meta={"utt_binary_data": utt_byte_arr1},
+                ),
+                Utterance(
+                    id="1",
+                    text="my name is bob",
+                    speaker=Speaker(id="bob", meta={"speaker_binary_data": speaker_byte_arr2}),
+                    meta={"utt_binary_data": utt_byte_arr2},
+                ),
+                Utterance(id="2", text="this is a test", speaker=Speaker(id="charlie")),
+            ]
+        )
 
-        corpus1.dump('test_corpus', './')
+        corpus1.dump("test_corpus", "./")
 
         corpus2 = Corpus(filename="test_corpus", utterance_end_index=-1)
 
         self.assertEqual(len(list(corpus2.iter_utterances())), 0)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

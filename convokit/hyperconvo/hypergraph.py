@@ -3,6 +3,7 @@ from collections import defaultdict
 from convokit import Utterance, Speaker
 import itertools
 
+
 class Hypergraph:
     """
     Represents a hypergraph, consisting of nodes, directed edges,
@@ -11,6 +12,7 @@ class Hypergraph:
     from hypergraphs (Fig 2 of
     http://www.cs.cornell.edu/~cristian/Patterns_of_participant_interactions.html)
     """
+
     def __init__(self):
         # public
         self.nodes: Dict[str, Utterance] = dict()
@@ -19,7 +21,7 @@ class Hypergraph:
 
         # private
         self.adj_out = dict()  # out edges for each (hyper)node
-        self.adj_in = dict()   # in edges for each (hyper)node
+        self.adj_in = dict()  # in edges for each (hyper)node
 
     @staticmethod
     def init_from_utterances(utterances: List[Utterance]):
@@ -40,8 +42,13 @@ class Hypergraph:
             if utt.reply_to is not None and utt.reply_to in utt_dict:
                 reply_edges.append((utt.id, utt.reply_to))
                 speaker_to_reply_tos[utt.speaker.id].append(utt.reply_to)
-                speaker_target_pairs.append([utt.speaker.id, utt_dict[utt.reply_to].speaker.id,
-                                             {'utt': utt, 'target_speaker': utt_to_speaker_id[utt.reply_to]}])
+                speaker_target_pairs.append(
+                    [
+                        utt.speaker.id,
+                        utt_dict[utt.reply_to].speaker.id,
+                        {"utt": utt, "target_speaker": utt_to_speaker_id[utt.reply_to]},
+                    ]
+                )
             hypergraph.add_node(utt)
 
         # hypernodes (speakers)
@@ -84,35 +91,31 @@ class Hypergraph:
             self.adj_out[u][v] = []
         if u not in self.adj_in[v]:
             self.adj_in[v][u] = []
-        if info is None: info = dict()
+        if info is None:
+            info = dict()
         self.adj_out[u][v].append(info)
         self.adj_in[v][u].append(info)
 
     def edges(self) -> Dict[Tuple[str, str], List]:
-        return dict(((u, v), lst) for u, d in self.adj_out.items()
-                    for v, lst in d.items())
+        return dict(((u, v), lst) for u, d in self.adj_out.items() for v, lst in d.items())
 
     def outgoing_nodes(self, u: str) -> Dict[str, List]:
         assert u in self.adj_out
-        return dict((v, lst) for v, lst in self.adj_out[u].items()
-                    if v in self.nodes)
+        return dict((v, lst) for v, lst in self.adj_out[u].items() if v in self.nodes)
 
     def outgoing_hypernodes(self, u) -> Dict[str, List]:
         assert u in self.adj_out
-        return dict((v, lst) for v, lst in self.adj_out[u].items()
-                    if v in self.hypernodes)
+        return dict((v, lst) for v, lst in self.adj_out[u].items() if v in self.hypernodes)
 
     def incoming_nodes(self, v: str) -> Dict[str, List]:
         assert v in self.adj_in
-        return dict((u, lst) for u, lst in self.adj_in[v].items() if u in
-                    self.nodes)
+        return dict((u, lst) for u, lst in self.adj_in[v].items() if u in self.nodes)
 
     def incoming_hypernodes(self, v: str) -> Dict[str, List]:
         assert v in self.adj_in
-        return dict((u, lst) for u, lst in self.adj_in[v].items() if u in
-                    self.hypernodes)
+        return dict((u, lst) for u, lst in self.adj_in[v].items() if u in self.hypernodes)
 
-    def outdegrees(self, from_hyper: bool=False, to_hyper: bool=False) -> List[int]:
+    def outdegrees(self, from_hyper: bool = False, to_hyper: bool = False) -> List[int]:
         retval = []
         from_nodes = self.hypernodes if from_hyper else self.nodes
         to_nodes = self.hypernodes if to_hyper else self.nodes
@@ -121,7 +124,7 @@ class Hypergraph:
             retval.append(sum([1 for v, l in self.adj_out[node].items() if v in to_nodes]))
         return retval
 
-    def indegrees(self, from_hyper: bool=False, to_hyper: bool=False) -> List[int]:
+    def indegrees(self, from_hyper: bool = False, to_hyper: bool = False) -> List[int]:
         retval = []
         from_nodes = self.hypernodes if from_hyper else self.nodes
         to_nodes = self.hypernodes if to_hyper else self.nodes
@@ -137,10 +140,13 @@ class Hypergraph:
         motifs = []
         for C1, c1_nodes in self.hypernodes.items():
             for c1 in c1_nodes:
-                motifs += [(C1, c1, c2, e1, e2) for c2 in self.adj_in[c1] if
-                           c2 in self.nodes and c2 in self.adj_out[C1]
-                           for e1 in self.adj_out[C1][c2] # only 1 such e1
-                           for e2 in self.adj_out[c2][c1]] # only 1 such e2
+                motifs += [
+                    (C1, c1, c2, e1, e2)
+                    for c2 in self.adj_in[c1]
+                    if c2 in self.nodes and c2 in self.adj_out[C1]
+                    for e1 in self.adj_out[C1][c2]  # only 1 such e1
+                    for e2 in self.adj_out[c2][c1]
+                ]  # only 1 such e2
         return motifs
 
     def external_reciprocity_motifs(self) -> List[Tuple]:
@@ -151,11 +157,13 @@ class Hypergraph:
         for C3 in self.hypernodes:
             for c2 in self.adj_out[C3]:
                 if c2 in self.nodes:
-                    motifs += [(C3, c2, c1, e1, e2) for c1 in
-                               set(self.adj_out[c2].keys()) - self.hypernodes[C3]
-                               if c1 in self.nodes
-                               for e1 in self.adj_out[C3][c2]  # there should be only 1 such e1
-                               for e2 in self.adj_out[c2][c1]] # there should only be 1 such e2
+                    motifs += [
+                        (C3, c2, c1, e1, e2)
+                        for c1 in set(self.adj_out[c2].keys()) - self.hypernodes[C3]
+                        if c1 in self.nodes
+                        for e1 in self.adj_out[C3][c2]  # there should be only 1 such e1
+                        for e2 in self.adj_out[c2][c1]
+                    ]  # there should only be 1 such e2
         return motifs
 
     def dyadic_interaction_motifs(self) -> List[Tuple]:

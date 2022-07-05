@@ -13,6 +13,7 @@ class ConvoKitMeta(MutableMapping, dict):
     """
     ConvoKitMeta is a dictlike object that stores the metadata attributes of a corpus component
     """
+
     def __init__(self, convokit_index, obj_type):
         self.index: ConvoKitIndex = convokit_index
         self.obj_type = obj_type
@@ -22,13 +23,13 @@ class ConvoKitMeta(MutableMapping, dict):
 
     @staticmethod
     def _check_type_and_update_index(index, obj_type, key, value):
-        if not isinstance(value, type(None)): # do nothing to index if value is None
+        if not isinstance(value, type(None)):  # do nothing to index if value is None
             if key not in index.indices[obj_type]:
                 type_ = _optimized_type_check(value)
                 index.update_index(obj_type, key=key, class_type=type_)
             else:
                 # entry exists
-                if index.get_index(obj_type)[key] != ["bin"]: # if "bin" do no further checks
+                if index.get_index(obj_type)[key] != ["bin"]:  # if "bin" do no further checks
                     if str(type(value)) not in index.get_index(obj_type)[key]:
                         new_type = _optimized_type_check(value)
 
@@ -47,15 +48,19 @@ class ConvoKitMeta(MutableMapping, dict):
         dict.__setitem__(self, key, value)
 
     def __delitem__(self, key):
-        if self.obj_type == 'corpus':
+        if self.obj_type == "corpus":
             dict.__delitem__(self, key)
             self.index.del_from_index(self.obj_type, key)
         else:
             if self.index.lock_metadata_deletion[self.obj_type]:
-                warn("For consistency in metadata attributes in Corpus component objects, deleting metadata attributes "
-                         "from component objects individually is not allowed. "
-                     "To delete this metadata attribute from all Corpus components of this type, "
-                         "use corpus.delete_metadata(obj_type='{}', attribute='{}') instead.".format(self.obj_type, key))
+                warn(
+                    "For consistency in metadata attributes in Corpus component objects, deleting metadata attributes "
+                    "from component objects individually is not allowed. "
+                    "To delete this metadata attribute from all Corpus components of this type, "
+                    "use corpus.delete_metadata(obj_type='{}', attribute='{}') instead.".format(
+                        self.obj_type, key
+                    )
+                )
             else:
                 dict.__delitem__(self, key)
 
@@ -72,7 +77,7 @@ class ConvoKitMeta(MutableMapping, dict):
         return self.__dict__
 
 
-_basic_types = {type(0), type(1.0), type('str'), type(True)} # cannot include lists or dicts
+_basic_types = {type(0), type(1.0), type("str"), type(True)}  # cannot include lists or dicts
 
 
 def _optimized_type_check(val):

@@ -31,20 +31,40 @@ class VectorClassifier(Classifier):
     :param clf_prob_attribute_name: the metadata attribute name to store the classifier prediction score under;
         default: "pred_score"
     """
-    def __init__(self, obj_type: str, vector_name: str, columns: List[str] = None,
-                 labeller: Callable[[CorpusComponent], bool] = lambda x: True,
-                 clf=None, clf_attribute_name: str = "prediction", clf_prob_attribute_name: str = "pred_score"):
+
+    def __init__(
+        self,
+        obj_type: str,
+        vector_name: str,
+        columns: List[str] = None,
+        labeller: Callable[[CorpusComponent], bool] = lambda x: True,
+        clf=None,
+        clf_attribute_name: str = "prediction",
+        clf_prob_attribute_name: str = "pred_score",
+    ):
         if clf is None:
-            clf = Pipeline([("standardScaler", StandardScaler(with_mean=False)),
-                            ("logreg", LogisticRegression(solver='liblinear'))])
+            clf = Pipeline(
+                [
+                    ("standardScaler", StandardScaler(with_mean=False)),
+                    ("logreg", LogisticRegression(solver="liblinear")),
+                ]
+            )
             print("Initialized default classification model (standard scaled logistic regression).")
 
-        super().__init__(obj_type=obj_type, pred_feats=[], labeller=labeller,
-                         clf=clf, clf_attribute_name=clf_attribute_name, clf_prob_attribute_name=clf_prob_attribute_name)
+        super().__init__(
+            obj_type=obj_type,
+            pred_feats=[],
+            labeller=labeller,
+            clf=clf,
+            clf_attribute_name=clf_attribute_name,
+            clf_prob_attribute_name=clf_prob_attribute_name,
+        )
         self.vector_name = vector_name
         self.columns = columns
 
-    def fit(self, corpus: Corpus, selector: Callable[[CorpusComponent], bool] = lambda x: True, y=None):
+    def fit(
+        self, corpus: Corpus, selector: Callable[[CorpusComponent], bool] = lambda x: True, y=None
+    ):
         """
         Fit the Transformer's internal classifier model on the vector matrix that represents one of
         the Corpus components, with an optional selector that selects for objects to be fit on.
@@ -68,7 +88,9 @@ class VectorClassifier(Classifier):
         self.clf.fit(X, y)
         return self
 
-    def transform(self, corpus: Corpus, selector: Callable[[CorpusComponent], bool] = lambda x: True) -> Corpus:
+    def transform(
+        self, corpus: Corpus, selector: Callable[[CorpusComponent], bool] = lambda x: True
+    ) -> Corpus:
         """
         Annotate the corpus components with the classifier prediction and prediction score, with an optional selector
         that selects for objects to be classified. Objects that are not selected will get a metadata value of 'None'
@@ -110,10 +132,14 @@ class VectorClassifier(Classifier):
         # :param objs: list of Corpus objects
         # :return: list of annotated Corpus objects
         # """
-        raise NotImplementedError("VectorClassifier can only be run on corpora, not arbitrary lists of corpus "
-                                  "component objects.")
+        raise NotImplementedError(
+            "VectorClassifier can only be run on corpora, not arbitrary lists of corpus "
+            "component objects."
+        )
 
-    def fit_transform(self, corpus: Corpus, selector: Callable[[CorpusComponent], bool] = lambda x: True) -> Corpus:
+    def fit_transform(
+        self, corpus: Corpus, selector: Callable[[CorpusComponent], bool] = lambda x: True
+    ) -> Corpus:
         """
         Runs the `fit()` and `transform()` steps in order, with the specified selector.
 
@@ -126,7 +152,9 @@ class VectorClassifier(Classifier):
         self.fit(corpus, selector=selector)
         return self.transform(corpus, selector=selector)
 
-    def summarize(self, corpus: Corpus, selector: Callable[[CorpusComponent], bool] = lambda x: True):
+    def summarize(
+        self, corpus: Corpus, selector: Callable[[CorpusComponent], bool] = lambda x: True
+    ):
         """
         Generate a DataFrame indexed by object id with the classifier predictions and scores.
 
@@ -138,11 +166,18 @@ class VectorClassifier(Classifier):
         objId_clf_prob = []
 
         for obj in corpus.iter_objs(self.obj_type, selector):
-            objId_clf_prob.append((obj.id, obj.meta[self.clf_attribute_name], obj.meta[self.clf_prob_attribute_name]))
+            objId_clf_prob.append(
+                (obj.id, obj.meta[self.clf_attribute_name], obj.meta[self.clf_prob_attribute_name])
+            )
 
-        return pd.DataFrame(list(objId_clf_prob),
-                            columns=['id', self.clf_attribute_name, self.clf_prob_attribute_name])\
-                            .set_index('id').sort_values(self.clf_prob_attribute_name, ascending=False)
+        return (
+            pd.DataFrame(
+                list(objId_clf_prob),
+                columns=["id", self.clf_attribute_name, self.clf_prob_attribute_name],
+            )
+            .set_index("id")
+            .sort_values(self.clf_prob_attribute_name, ascending=False)
+        )
 
     def summarize_objs(self, objs: List[CorpusComponent]):
         """
@@ -162,12 +197,17 @@ class VectorClassifier(Classifier):
         # return pd.DataFrame(list(objId_clf_prob),
         #                     columns=['id', self.clf_attribute_name, self.clf_prob_attribute_name]).set_index('id').sort_values(
         #                     self.clf_prob_attribute_name)
-        raise NotImplementedError("VectorClassifier can only be run on corpora, not arbitrary lists of corpus "
-                                  "component objects.")
+        raise NotImplementedError(
+            "VectorClassifier can only be run on corpora, not arbitrary lists of corpus "
+            "component objects."
+        )
 
-    def evaluate_with_train_test_split(self, corpus: Corpus,
-                                       selector: Callable[[CorpusComponent], bool] = lambda x: True,
-                                       test_size: float = 0.2):
+    def evaluate_with_train_test_split(
+        self,
+        corpus: Corpus,
+        selector: Callable[[CorpusComponent], bool] = lambda x: True,
+        test_size: float = 0.2,
+    ):
         """
         Evaluate the performance of predictive features (Classifier.pred_feats) in predicting for the label,
         using a train-test split.
@@ -180,8 +220,9 @@ class VectorClassifier(Classifier):
         :param test_size: size of test set
         :return: accuracy and confusion matrix
         """
-        X, y = extract_vector_feats_and_label(corpus, self.obj_type, self.vector_name, self.columns,
-                                              self.labeller, selector)
+        X, y = extract_vector_feats_and_label(
+            corpus, self.obj_type, self.vector_name, self.columns, self.labeller, selector
+        )
 
         print("Running a train-test-split evaluation...")
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size)
@@ -191,8 +232,12 @@ class VectorClassifier(Classifier):
         print("Done.")
         return accuracy, confusion_matrix(y_true=y_test, y_pred=preds)
 
-    def evaluate_with_cv(self, corpus: Corpus, cv=KFold(n_splits=5, shuffle=True),
-                         selector: Callable[[CorpusComponent], bool] = lambda x: True):
+    def evaluate_with_cv(
+        self,
+        corpus: Corpus,
+        cv=KFold(n_splits=5, shuffle=True),
+        selector: Callable[[CorpusComponent], bool] = lambda x: True,
+    ):
         """
         Evaluate the performance of predictive features (Classifier.pred_feats) in predicting for the label,
         using cross-validation for data splitting.
@@ -204,8 +249,9 @@ class VectorClassifier(Classifier):
         :return: cross-validated accuracy score
         """
 
-        X, y = extract_vector_feats_and_label(corpus, self.obj_type, self.vector_name,
-                                              self.columns, self.labeller, selector)
+        X, y = extract_vector_feats_and_label(
+            corpus, self.obj_type, self.vector_name, self.columns, self.labeller, selector
+        )
         print("Running a cross-validated evaluation...", end="")
         score = cross_val_score(self.clf, X, y, cv=cv)
         print("Done.")

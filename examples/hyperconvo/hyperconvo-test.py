@@ -1,4 +1,5 @@
 import convokit
+
 print(convokit)
 import numpy as np
 
@@ -10,9 +11,10 @@ corpus = convokit.Corpus(filename=convokit.download("reddit-corpus-small"))
 
 G = convokit.HyperConvo()._make_hypergraph(corpus)
 
+
 def summarize_dist(name, l):
-    print("{}: min {}, mean {:.4f}, max {}".format(
-        name, min(l), np.mean(l), max(l)))
+    print("{}: min {}, mean {:.4f}, max {}".format(name, min(l), np.mean(l), max(l)))
+
 
 # in- and outdegree distributions
 summarize_dist("speaker to speaker indegrees", G.indegrees(True, True))
@@ -23,8 +25,10 @@ summarize_dist("comment to comment indegrees", G.indegrees(False, False))
 summarize_dist("comment to comment outdegrees", G.outdegrees(False, False))
 print()
 
+
 def summarize_motifs(name, l):
     print("{}: count {}".format(name, len(l)))
+
 
 # motif extraction
 summarize_motifs("reciprocity", G.reciprocity_motifs())
@@ -45,7 +49,7 @@ feats = dict()
 convos = corpus.iter_conversations()
 
 for convo in convos:
-    feats.update(convo.meta['hyperconvo'])
+    feats.update(convo.meta["hyperconvo"])
 
 random_thread = next(iter(feats))
 
