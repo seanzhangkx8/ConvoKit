@@ -46,7 +46,7 @@ class CorpusComponent:
             # (2) avoid duplicates by removing the data from the old owner (or temp storage if there was no prior owner)
             # (3) reinitialize the metadata instance
             data_dict = (
-                dict(previous_owner.storage.get_data(self.id))
+                dict(previous_owner.storage.get_data(self.obj_type, self.id))
                 if previous_owner is not None
                 else self._temp_storage
             )
