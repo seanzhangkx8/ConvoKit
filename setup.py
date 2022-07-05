@@ -52,6 +52,7 @@ setup(
         "joblib>=0.13.2",
         "clean-text>=0.1.1",
         "unidecode>=1.1.1",
+        "tqdm>=4.64.0",
     ],
     extras_require={
         "craft": ["torch>=0.12"],
