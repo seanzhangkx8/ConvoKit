@@ -10,8 +10,8 @@ jobs:
   format:
     runs-on: ubuntu-latest
     steps:
-      - name: Black for backend
+      - name: Black format
         uses: psf/black@stable
         with:
           options: '--check --verbose'
-          src: './backend'
+          src: './'
