@@ -38,6 +38,8 @@ class CorpusComponent:
         return self._owner
 
     def set_owner(self, owner):
+        # stash the metadata first since reassigning self._owner will break its storage connection
+        meta_vals = {k: v for k, v in self.meta.items()}
         previous_owner = self._owner
         self._owner = owner
         if owner is not None:
@@ -55,9 +57,10 @@ class CorpusComponent:
             )
             if previous_owner is not None:
                 previous_owner.storage.delete_data(self.obj_type, self.id)
+                previous_owner.storage.delete_data("meta", self.meta.storage_key)
             else:
                 del self._temp_storage
-            self.meta = self.init_meta(self.meta)
+            self.meta = self.init_meta(meta_vals)
 
     owner = property(get_owner, set_owner)
 
