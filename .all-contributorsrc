@@ -289,6 +289,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "oscarso2000",
+      "name": "Oscar So",
+      "avatar_url": "https://avatars.githubusercontent.com/u/20172573?v=4",
+      "profile": "https://github.com/oscarso2000",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
