@@ -25,6 +25,7 @@ _DOCS_DIR = os.path.abspath(os.path.join(_HERE, ".."))
 _ROOT_DIR = os.path.abspath(os.path.join(_DOCS_DIR, ".."))
 _CONVOKIT_DIR = os.path.abspath(os.path.join(_ROOT_DIR, "convokit"))
 
+sys.path.insert(0, _ROOT_DIR)
 sys.path.insert(0, _CONVOKIT_DIR)
 
 # -- General configuration ------------------------------------------------
