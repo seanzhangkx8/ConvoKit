@@ -364,5 +364,6 @@ autodoc_mock_imports = [
     "clean-text",
     "unidecode",
     "scikit-learn",
+    "sklearn",
     "numpy",
 ]
