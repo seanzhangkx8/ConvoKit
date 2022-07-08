@@ -366,4 +366,5 @@ autodoc_mock_imports = [
     "sklearn",
     "numpy",
     "joblib",
+    "torch",
 ]
