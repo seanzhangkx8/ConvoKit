@@ -365,4 +365,5 @@ autodoc_mock_imports = [
     "unidecode",
     "sklearn",
     "numpy",
+    "joblib",
 ]
