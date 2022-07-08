@@ -10,11 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - name: Install docs dependencies
-      run: |
-        python -m pip install --upgrade pip
-        python -m pip install .
-        python -m pip install -r requirements-dev.txt
     - name: Sphinx Build
       uses: ammaraskar/sphinx-action@master
       with:

@@ -353,3 +353,5 @@ texinfo_documents = [
 #
 # texinfo_no_detailmenu = False
 autodoc_dumb_docstring = True
+
+autodoc_mock_imports = ["pandas"]
