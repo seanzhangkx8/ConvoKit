@@ -240,7 +240,7 @@ class CorpusTraversal(unittest.TestCase):
         original_convo_meta = {
             k: v for k, v in self.corpus.get_conversation("0").meta.to_dict().items()
         }
-        original_corpus_meta = {k: v for k, v in self.corpus.meta}
+        original_corpus_meta = {k: v for k, v in self.corpus.meta.to_dict().items()}
         new_convo_conversation_ids = ["1", "2", "3"]
         new_corpus = self.corpus.reindex_conversations(new_convo_conversation_ids)
         # checking for correct number of conversations and utterances
