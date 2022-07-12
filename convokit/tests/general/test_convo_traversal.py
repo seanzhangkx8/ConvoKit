@@ -236,6 +236,7 @@ class CorpusTraversal(unittest.TestCase):
         self.assertEqual([utt.id for utt in convo.traverse("preorder")], ["other"])
 
     def test_reindex_corpus(self):
+        self.setUp()  # reinitialize corpus since reindex is destructive
         new_convo_conversation_ids = ["1", "2", "3"]
         new_corpus = self.corpus.reindex_conversations(new_convo_conversation_ids)
         # checking for correct number of conversations and utterances
@@ -251,6 +252,7 @@ class CorpusTraversal(unittest.TestCase):
         self.assertEqual(self.corpus.meta, new_corpus.meta)
 
     def test_reindex_corpus2(self):
+        self.setUp()  # reinitialize corpus since reindex is destructive
         new_convo_conversation_ids = ["1", "2", "3"]
         new_corpus = self.corpus.reindex_conversations(
             new_convo_conversation_ids, preserve_convo_meta=False, preserve_corpus_meta=False
