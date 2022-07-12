@@ -23,9 +23,22 @@ class CorpusMerge(unittest.TestCase):
             ]
         )
 
+        all_utt_ids = set(corpus1.get_utterance_ids()) | set(corpus2.get_utterance_ids())
+        all_speaker_ids = set(corpus1.get_speaker_ids()) | set(corpus2.get_speaker_ids())
+
         merged = corpus1.merge(corpus2)
         self.assertEqual(len(list(merged.iter_utterances())), 6)
         self.assertEqual(len(list(merged.iter_speakers())), 6)
+
+        for utt_id in all_utt_ids:
+            self.assertTrue(utt_id in merged.storage.get_collection_ids("utterance"))
+        for speaker_id in all_speaker_ids:
+            self.assertTrue(speaker_id in merged.storage.get_collection_ids("speaker"))
+
+        for collection in corpus1.storage.data.values():
+            self.assertEqual(len(collection), 0)
+        for collection in corpus2.storage.data.values():
+            self.assertEqual(len(collection), 0)
 
     def test_with_overlap(self):
         """
@@ -47,9 +60,22 @@ class CorpusMerge(unittest.TestCase):
             ]
         )
 
+        all_utt_ids = set(corpus1.get_utterance_ids()) | set(corpus2.get_utterance_ids())
+        all_speaker_ids = set(corpus1.get_speaker_ids()) | set(corpus2.get_speaker_ids())
+
         merged = corpus1.merge(corpus2)
         self.assertEqual(len(list(merged.iter_utterances())), 5)
         self.assertEqual(len(list(merged.iter_speakers())), 5)
+
+        for utt_id in all_utt_ids:
+            self.assertTrue(utt_id in merged.storage.get_collection_ids("utterance"))
+        for speaker_id in all_speaker_ids:
+            self.assertTrue(speaker_id in merged.storage.get_collection_ids("speaker"))
+
+        for collection in corpus1.storage.data.values():
+            self.assertEqual(len(collection), 0)
+        for collection in corpus2.storage.data.values():
+            self.assertEqual(len(collection), 0)
 
     def test_overlap_diff_data(self):
         """
@@ -73,6 +99,9 @@ class CorpusMerge(unittest.TestCase):
             ]
         )
 
+        all_utt_ids = set(corpus1.get_utterance_ids()) | set(corpus2.get_utterance_ids())
+        all_speaker_ids = set(corpus1.get_speaker_ids()) | set(corpus2.get_speaker_ids())
+
         merged = corpus1.merge(corpus2)
         self.assertEqual(len(list(merged.iter_utterances())), 5)
         self.assertEqual(len(list(merged.iter_speakers())), 5)
@@ -81,6 +110,21 @@ class CorpusMerge(unittest.TestCase):
 
         self.assertEqual(merged.get_utterance("2").text, "this is a test")
         self.assertEqual(merged.get_utterance("2").speaker.id, "charlie")
+
+        for utt_id in all_utt_ids:
+            self.assertTrue(utt_id in merged.storage.get_collection_ids("utterance"))
+        for speaker_id in all_speaker_ids:
+            if (
+                speaker_id == "candace"
+            ):  # this speaker shouldn't be present due to overlap prioritization
+                self.assertFalse(speaker_id in merged.storage.get_collection_ids("speaker"))
+            else:
+                self.assertTrue(speaker_id in merged.storage.get_collection_ids("speaker"))
+
+        for collection in corpus1.storage.data.values():
+            self.assertEqual(len(collection), 0)
+        for collection in corpus2.storage.data.values():
+            self.assertEqual(len(collection), 0)
 
     def test_overlap_diff_metadata(self):
         """
@@ -114,12 +158,27 @@ class CorpusMerge(unittest.TestCase):
             ]
         )
 
+        all_utt_ids = set(corpus1.get_utterance_ids()) | set(corpus2.get_utterance_ids())
+        all_speaker_ids = set(corpus1.get_speaker_ids()) | set(corpus2.get_speaker_ids())
+
         merged = corpus1.merge(corpus2)
         self.assertEqual(len(list(merged.iter_utterances())), 5)
         self.assertEqual(len(list(merged.iter_speakers())), 5)
 
         self.assertEqual(len(merged.get_utterance("2").meta), 3)
         self.assertEqual(merged.get_utterance("2").meta["the"], "ringo")
+
+        for utt_id in all_utt_ids:
+            self.assertTrue(utt_id in merged.storage.get_collection_ids("utterance"))
+            self.assertTrue(f"utterance_{utt_id}" in merged.storage.get_collection_ids("meta"))
+        for speaker_id in all_speaker_ids:
+            self.assertTrue(speaker_id in merged.storage.get_collection_ids("speaker"))
+            self.assertTrue(f"speaker_{speaker_id}" in merged.storage.get_collection_ids("meta"))
+
+        for collection in corpus1.storage.data.values():
+            self.assertEqual(len(collection), 0)
+        for collection in corpus2.storage.data.values():
+            self.assertEqual(len(collection), 0)
 
     def test_overlap_convo_metadata(self):
         """
@@ -180,6 +239,14 @@ class CorpusMerge(unittest.TestCase):
         merged = corpus1.merge(corpus2)
         self.assertEqual(len(merged.get_conversation("convo1").meta), 3)
         self.assertEqual(merged.get_conversation("convo1").meta["hello"], "food")
+
+        self.assertTrue("convo1" in merged.storage.get_collection_ids("conversation"))
+        self.assertTrue("conversation_convo1" in merged.storage.get_collection_ids("meta"))
+
+        self.assertFalse("convo1" in corpus1.storage.get_collection_ids("conversation"))
+        self.assertFalse("convo1" in corpus2.storage.get_collection_ids("conversation"))
+        self.assertFalse("conversation_convo1" in corpus1.storage.get_collection_ids("meta"))
+        self.assertFalse("conversation_convo1" in corpus2.storage.get_collection_ids("meta"))
 
     def test_corpus_metadata(self):
         """
@@ -242,6 +309,9 @@ class CorpusMerge(unittest.TestCase):
         self.assertEqual(len(list(added.iter_utterances())), 4)
         self.assertEqual(len(added.get_utterance("2").meta), 3)
         self.assertEqual(added.get_utterance("2").meta["hello"], "food")
+
+        for utt in utts:
+            self.assertFalse(hasattr(utt, "_temp_storage"))
 
 
 if __name__ == "__main__":
