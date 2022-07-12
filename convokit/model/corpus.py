@@ -972,7 +972,7 @@ class Corpus:
         )
 
         # Merge CORPUS metadata
-        new_corpus.meta = self.meta
+        new_corpus.meta.reinitialize_from_other(self.meta)
         for key, val in other_corpus.meta.items():
             if key in new_corpus.meta and new_corpus.meta[key] != val:
                 if warnings:
@@ -987,7 +987,7 @@ class Corpus:
         convos2 = other_corpus.iter_conversations()
 
         for convo in convos1:
-            new_corpus.get_conversation(convo.id).meta = convo.meta
+            new_corpus.get_conversation(convo.id).meta.reinitialize_from_other(convo.meta)
 
         for convo in convos2:
             for key, val in convo.meta.items():

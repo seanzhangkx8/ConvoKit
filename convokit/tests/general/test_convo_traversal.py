@@ -237,6 +237,7 @@ class CorpusTraversal(unittest.TestCase):
 
     def test_reindex_corpus(self):
         self.setUp()  # reinitialize corpus since reindex is destructive
+        original_meta = {k: v for k, v in self.corpus.get_conversation("0").meta.to_dict().items()}
         new_convo_conversation_ids = ["1", "2", "3"]
         new_corpus = self.corpus.reindex_conversations(new_convo_conversation_ids)
         # checking for correct number of conversations and utterances
@@ -245,9 +246,7 @@ class CorpusTraversal(unittest.TestCase):
 
         # checking that corpus and conversation metadata was preserved
         for convo in new_corpus.iter_conversations():
-            self.assertEqual(
-                convo.meta["original_convo_meta"], self.corpus.get_conversation("0").meta
-            )
+            self.assertEqual(convo.meta["original_convo_meta"], original_meta)
 
         self.assertEqual(self.corpus.meta, new_corpus.meta)
 
