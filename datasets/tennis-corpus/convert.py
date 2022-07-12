@@ -4,36 +4,36 @@ import pandas as pd
 import numpy as np
 
 # Keys in original metadata.tsv
-#question_text_idx
-#answer_text_idx
-#player
-#question_text
-#answer_text
-#gender
-#ranking
-#date
-#pair_idx
-#match_id
-#opponent
-#result
-#stage
-#tournament
-#tournament_type
+# question_text_idx
+# answer_text_idx
+# player
+# question_text
+# answer_text
+# gender
+# ranking
+# date
+# pair_idx
+# match_id
+# opponent
+# result
+# stage
+# tournament
+# tournament_type
 
 
 # Keys in new full.json
-ID = "id" # equal to question_text_idx if current utterance is a question
-        # equal to answer_text_idx if current utterance is an answer
-ROOT = "conversation_id" # this will always be equal to question_text_idx
-REPLY_TO = "reply-to" # non existant if this utterance is a question,
-                    # equal to question_text_idx if this is an answer
-USER = "speaker" # equal to "REPORTER" if current utterance is a question
-            # equal to player if current utterance is an answer
-TEXT = "text" # equal to question_text if current utterance is a question
-        # equal to answer_text if current utterance is an answer
+ID = "id"  # equal to question_text_idx if current utterance is a question
+# equal to answer_text_idx if current utterance is an answer
+ROOT = "conversation_id"  # this will always be equal to question_text_idx
+REPLY_TO = "reply-to"  # non existant if this utterance is a question,
+# equal to question_text_idx if this is an answer
+USER = "speaker"  # equal to "REPORTER" if current utterance is a question
+# equal to player if current utterance is an answer
+TEXT = "text"  # equal to question_text if current utterance is a question
+# equal to answer_text if current utterance is an answer
 
-IS_QUESTION = "is_question" # for redundancy
-IS_ANSWER = "is_answer" # for redundancy
+IS_QUESTION = "is_question"  # for redundancy
+IS_ANSWER = "is_answer"  # for redundancy
 DATE = "date"
 MATCH_ID = "match_id"
 PAIR_IDX = "pair_idx"
@@ -43,14 +43,14 @@ STAGE = "stage"
 TOURNAMENT = "tournament"
 TOURNAMENT_TYPE = "tournament_type"
 
-USER_INFO = "speaker-info" # container for extra information
+USER_INFO = "speaker-info"  # container for extra information
 
 # Keys within speaker-info
 GENDER = "gender"
 RANKING = "ranking"
 
 utterances = []
-question_df = pd.read_csv('metadata.tsv', index_col=0, sep='\t')
+question_df = pd.read_csv("metadata.tsv", index_col=0, sep="\t")
 i = 0
 for row in question_df.itertuples():
     i += 1

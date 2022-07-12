@@ -2,16 +2,18 @@ name: Formatter
 
 on:
   push:
-    branches: [main]
+    branches: [master]
   pull_request:
-    branches: [main]
+    branches: [master]
 
 jobs:
   format:
     runs-on: ubuntu-latest
     steps:
-      - name: Black for backend
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Black format
         uses: psf/black@stable
         with:
           options: '--check --verbose'
-          src: './backend'
+          src: "./"

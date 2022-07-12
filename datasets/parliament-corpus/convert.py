@@ -22,7 +22,7 @@ import numpy as np
 # major_name
 # minor_name
 # num_interjections
-# year   
+# year
 # spans_per_question
 # has_latent_repr
 
@@ -38,18 +38,18 @@ import numpy as np
 # answerer_name
 
 # Keys in new full.json
-ID = "id" # equal to question_text_idx if current utterance is a question
-        # equal to answer_text_idx if current utterance is an answer
-ROOT = "conversation_id" # this will always be equal to question_text_idx
-REPLY_TO = "reply-to" # non existant if this utterance is a question,
-                    # equal to question_text_idx if this is an answer
-USER = "speaker" # equal to asker if current utterance is a question
-            # equal to answerer if current utterance is an answer
-TEXT = "text" # equal to question_text if current utterance is a question
-        # equal to answer_text if current utterance is an answer
+ID = "id"  # equal to question_text_idx if current utterance is a question
+# equal to answer_text_idx if current utterance is an answer
+ROOT = "conversation_id"  # this will always be equal to question_text_idx
+REPLY_TO = "reply-to"  # non existant if this utterance is a question,
+# equal to question_text_idx if this is an answer
+USER = "speaker"  # equal to asker if current utterance is a question
+# equal to answerer if current utterance is an answer
+TEXT = "text"  # equal to question_text if current utterance is a question
+# equal to answer_text if current utterance is an answer
 
-IS_QUESTION = "is_question" # for redundancy
-IS_ANSWER = "is_answer" # for redundancy
+IS_QUESTION = "is_question"  # for redundancy
+IS_ANSWER = "is_answer"  # for redundancy
 DATE = "date"
 GOVT = "govt"
 PAIR_IDX = "pair_idx"
@@ -65,18 +65,18 @@ YEAR = "year"
 SPANS_PER_QUESTION = "spans_per_question"
 HAS_LATENT_REPR = "has_latent_repr"
 
-USER_INFO = "speaker-info" # container for extra information
+USER_INFO = "speaker-info"  # container for extra information
 
 # Keys within speaker-info
-PARTY = "party" # to represent party_asker or party_answerer
-IS_INCUMBENT = "is_incumbent" # to represent is_incumbent_asker or is_incumbent_answerer
-IS_OPPN = "is_oppn" # to represent is_oppn_asker or is_oppn_answerer
+PARTY = "party"  # to represent party_asker or party_answerer
+IS_INCUMBENT = "is_incumbent"  # to represent is_incumbent_asker or is_incumbent_answerer
+IS_OPPN = "is_oppn"  # to represent is_oppn_asker or is_oppn_answerer
 IS_MINISTER = "is_minister"
 AGE = "age"
 NAME = "name"
 
 utterances = []
-question_df = pd.read_csv('parliament_metadata.tsv', index_col=0, sep='\t')
+question_df = pd.read_csv("parliament_metadata.tsv", index_col=0, sep="\t")
 i = 0
 for row in question_df.itertuples():
     i += 1
@@ -151,13 +151,13 @@ for row in question_df.itertuples():
         IS_OPPN: bool(row.is_oppn_asker),
         IS_MINISTER: bool(row.is_minister_asker),
         AGE: float(row.age_asker_year),
-        NAME: row.asker_name
+        NAME: row.asker_name,
     }
     answer_utter[USER_INFO] = {
         PARTY: row.party_answerer,
         IS_INCUMBENT: bool(row.is_incumbent_answerer),
         # IS_OPPN: bool(row.is_oppn_answerer),
-        NAME: row.answerer_name
+        NAME: row.answerer_name,
     }
 
     utterances.append(question_utter)

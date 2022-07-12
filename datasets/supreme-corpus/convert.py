@@ -29,21 +29,24 @@ with open("supreme.conversations.dat", "r", encoding="utf-8") as f:
     utterances = []
     count = 0
     for line in f:
-        if count % 1000 == 0: print(count)
+        if count % 1000 == 0:
+            print(count)
         line = line[:-1]
         if line:
             fields = line.split(" +++$+++ ")
             if len(fields) == 8:
                 user = fields[3].strip().lower()
-                if user == "justice roberts": user = "chief " + user # fix typo
-                if user.endswith("kenned"): user += "y" # fix typo
+                if user == "justice roberts":
+                    user = "chief " + user  # fix typo
+                if user.endswith("kenned"):
+                    user += "y"  # fix typo
 
-                case = fields[0].strip() 
+                case = fields[0].strip()
                 is_justice = fields[4].strip() == "JUSTICE"
 
-                #speaker += "(case:" + fields[0].strip() + ")"
-                #is_justice = fields[4].strip() == "JUSTICE"
-                #if is_justice:
+                # speaker += "(case:" + fields[0].strip() + ")"
+                # is_justice = fields[4].strip() == "JUSTICE"
+                # if is_justice:
                 #    if fields[5].strip() == fields[6].strip(): # favorable justice
                 #        speaker += "{justice-fav}"
                 #    else:
@@ -64,38 +67,37 @@ with open("supreme.conversations.dat", "r", encoding="utf-8") as f:
                 d = {
                     KeyId: fields[1],
                     KeySpeaker: user,
-                    KeyConvoRoot: root_id,#convo_id,
+                    KeyConvoRoot: root_id,  # convo_id,
                     KeyText: fields[7],
                     KeySpeakerInfo: {
                         "case": case,
-                        #"gender": genders[speaker],
-                        #"is-justice": is_justice,
+                        # "gender": genders[speaker],
+                        # "is-justice": is_justice,
                         "side": fields[6].lower(),
-                    }
+                    },
                 }
                 if is_justice:
                     d[KeySpeakerInfo]["justice-vote"] = fields[5].lower()
-                    d[KeySpeakerInfo]["justice-is-favorable"] = \
-                            fields[5] == fields[6]
+                    d[KeySpeakerInfo]["justice-is-favorable"] = fields[5] == fields[6]
 
                 if is_reply:
                     d[KeyReplyTo] = last_utterance_id
-                    d[KeyConvoRoot] = root_id#convo_id#speaker # \
-                        #+ "->" + (
-                        #"[justices]" if \
-                        #u[last_utterance_id][KeySpeaker].endswith("fav}") else \
-                        #"[lawyers]")
+                    d[KeyConvoRoot] = root_id  # convo_id#speaker # \
+                    # + "->" + (
+                    # "[justices]" if \
+                    # u[last_utterance_id][KeySpeaker].endswith("fav}") else \
+                    # "[lawyers]")
                 u[fields[1]] = d
                 utterances.append(d)
 
                 last_utterance_id = fields[1]
-                
+
                 count += 1
-                #if MaxUtterances > 0 and count > MaxUtterances:
+                # if MaxUtterances > 0 and count > MaxUtterances:
                 #    break
 
-#udict = {ut["id"]: ut for ut in utterances}
-#for i, ut in enumerate(utterances):
+# udict = {ut["id"]: ut for ut in utterances}
+# for i, ut in enumerate(utterances):
 #    if KeyReplyTo in ut:
 #        target = udict[ut[KeyReplyTo]][KeySpeaker]
 #        if target.endswith("{justice-fav}"):
@@ -109,15 +111,12 @@ with open("supreme.conversations.dat", "r", encoding="utf-8") as f:
 #        del utterances[i][KeyConvoId]
 
 if MaxUtterances > 0:
-    #import random
-    #random.shuffle(utterances)
+    # import random
+    # random.shuffle(utterances)
     utterances = utterances[-MaxUtterances:]
-json.dump(utterances, open("supreme.json", "w"), indent=2,
-          sort_keys=True)
+json.dump(utterances, open("supreme.json", "w"), indent=2, sort_keys=True)
 
 with open("supreme-speakers.json", "w") as f:
     json.dump(users_meta, f, indent=2)
-#print(len(usernames), len(usernames_cased))
+# print(len(usernames), len(usernames_cased))
 print("Done")
-
-

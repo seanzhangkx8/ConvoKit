@@ -151,7 +151,8 @@
       "avatar_url": "https://avatars.githubusercontent.com/u/14956008?v=4",
       "profile": "https://jschluger.github.io/",
       "contributions": [
-        "bug"
+        "bug",
+        "code"
       ]
     },
     {
@@ -285,6 +286,15 @@
       "name": "Armaan Puri",
       "avatar_url": "https://avatars.githubusercontent.com/u/25790092?v=4",
       "profile": "https://github.com/Ap1075",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "oscarso2000",
+      "name": "Oscar So",
+      "avatar_url": "https://avatars.githubusercontent.com/u/20172573?v=4",
+      "profile": "https://github.com/oscarso2000",
       "contributions": [
         "code"
       ]
