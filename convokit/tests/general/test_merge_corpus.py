@@ -26,8 +26,6 @@ class CorpusMerge(unittest.TestCase):
         merged = corpus1.merge(corpus2)
         self.assertEqual(len(list(merged.iter_utterances())), 6)
         self.assertEqual(len(list(merged.iter_speakers())), 6)
-        self.assertEqual(len(list(corpus1.iter_utterances())), 3)
-        self.assertEqual(len(list(corpus2.iter_utterances())), 3)
 
     def test_with_overlap(self):
         """
@@ -52,8 +50,6 @@ class CorpusMerge(unittest.TestCase):
         merged = corpus1.merge(corpus2)
         self.assertEqual(len(list(merged.iter_utterances())), 5)
         self.assertEqual(len(list(merged.iter_speakers())), 5)
-        self.assertEqual(len(list(corpus1.iter_utterances())), 3)
-        self.assertEqual(len(list(corpus2.iter_utterances())), 3)
 
     def test_overlap_diff_data(self):
         """
@@ -84,7 +80,7 @@ class CorpusMerge(unittest.TestCase):
         self.assertEqual(len(list(corpus2.iter_utterances())), 3)
 
         self.assertEqual(merged.get_utterance("2").text, "this is a test")
-        self.assertEqual(merged.get_utterance("2").speaker, Speaker(id="charlie"))
+        self.assertEqual(merged.get_utterance("2").speaker.id, "charlie")
 
     def test_overlap_diff_metadata(self):
         """

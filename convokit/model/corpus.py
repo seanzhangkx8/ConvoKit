@@ -614,6 +614,19 @@ class Corpus:
         }
         self.update_speakers_data()
         self.reinitialize_index()
+
+        # clear all storage entries corresponding to filtered-out components
+        meta_ids = []
+        for utt in self.iter_utterances():
+            meta_ids.append(utt.meta.storage_key)
+        for convo in self.iter_conversations():
+            meta_ids.append(convo.meta.storage_key)
+        for speaker in self.iter_speakers():
+            meta_ids.append(speaker.meta.storage_key)
+        self.storage.purge_obsolete_entries(
+            self.get_utterance_ids, self.get_conversation_ids(), self.get_speaker_ids(), meta_ids
+        )
+
         return self
 
     def filter_utterances_by(self, selector: Callable[[Utterance], bool]):
@@ -621,7 +634,7 @@ class Corpus:
         Returns a new corpus that includes only a subset of Utterances within this Corpus. This filtering provides no
         guarantees with regard to maintaining conversational integrity and should be used with care.
 
-        Vectors are not preserved.
+        Vectors are not preserved. The original corpus will be invalidated and no longer usable.
 
         :param selector: function for selecting which
         :return: a new Corpus with a subset of the Utterances
@@ -630,6 +643,11 @@ class Corpus:
         new_corpus = Corpus(utterances=utts)
         for convo in new_corpus.iter_conversations():
             convo.meta.update(self.get_conversation(convo.id).meta)
+
+        # original Corpus is invalidated and no longer usable; clear all data from
+        # its now-orphaned StorageManager to avoid having duplicates in memory
+        self.storage.clear_all_data()
+
         return new_corpus
 
     def reindex_conversations(
@@ -644,7 +662,7 @@ class Corpus:
 
         The subtrees denoted by these utterance ids should be distinct and should not overlap, otherwise there may be unexpected behavior.
 
-        Vectors are not preserved. The original Corpus will be mutated.
+        Vectors are not preserved. The original Corpus will be invalidated and no longer usable.
 
         :param new_convo_roots: List of utterance ids to use as conversation ids
         :param preserve_corpus_meta: set as True to copy original Corpus metadata to new Corpus
@@ -696,6 +714,10 @@ class Corpus:
             if len(missing_convo_roots) > 0:
                 warn("Failed to find some of the specified new convo roots:\n")
                 print(missing_convo_roots)
+
+        # original Corpus is invalidated and no longer usable; clear all data from
+        # its now-orphaned StorageManager to avoid having duplicates in memory
+        self.storage.clear_all_data()
 
         return new_corpus
 
@@ -929,7 +951,7 @@ class Corpus:
         other corpus, the other corpus's metadata (or its conversations / utterances) values will be used. A warning
         is printed when this happens.
 
-        May mutate original and other corpus in the process.
+        Will invalidate original and other corpus in the process.
 
         (Updates internal ConvoKit Index to match post-merge state and uses this Corpus's version number.)
 
@@ -982,6 +1004,12 @@ class Corpus:
 
         new_corpus.update_speakers_data()
         new_corpus.reinitialize_index()
+
+        # source corpora are now invalidated and all needed data has been copied
+        # into the new merged corpus; clear the source corpora's storage to
+        # prevent having duplicates in memory
+        self.storage.clear_all_data()
+        other_corpus.storage.clear_all_data()
 
         return new_corpus
 
