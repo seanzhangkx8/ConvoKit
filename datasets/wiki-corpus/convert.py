@@ -27,9 +27,9 @@ with open("wikipedia.talkpages.admins.txt", "r", encoding="utf-8") as f:
         toks = line.strip().split(" ")
         name = " ".join(toks[:-1])
         date = toks[-1]
-        if date == "NA": date = "1975-01-01"
-        admins[name] = time.mktime(
-            datetime.datetime.strptime(date.strip(), "%Y-%m-%d").timetuple())
+        if date == "NA":
+            date = "1975-01-01"
+        admins[name] = time.mktime(datetime.datetime.strptime(date.strip(), "%Y-%m-%d").timetuple())
 
 users_meta = {}
 uniq_admins = set()
@@ -41,7 +41,8 @@ with open("wikipedia.talkpages.conversations.dat", "r", encoding="utf-8") as f:
     count = 0
     unk_count = 0
     for line in f:
-        if count % 1000 == 0: print(count)
+        if count % 1000 == 0:
+            print(count)
         line = line[:-1]
         if line:
             fields = line.split(" +++$+++ ")
@@ -54,18 +55,17 @@ with open("wikipedia.talkpages.conversations.dat", "r", encoding="utf-8") as f:
                 is_admin = False
                 if user in admins and float(timestamp) > admins[user]:
                     is_admin = True
-                    #speaker += "{admin}"
+                    # speaker += "{admin}"
                     uniq_admins.add(user)
 
                 is_admin_glob = is_admin
                 if user in users_meta and users_meta[user]["is-admin"]:
                     is_admin_glob = True
-                    
+
                 users_meta[user] = {
                     "is-admin": is_admin_glob,
                     "gender": gender[user] if user in gender else "unknown",
-                    "edit-count": edit_counts[user] if user in \
-                            edit_counts else "unknown"
+                    "edit-count": edit_counts[user] if user in edit_counts else "unknown",
                 }
 
                 d = {
@@ -74,9 +74,7 @@ with open("wikipedia.talkpages.conversations.dat", "r", encoding="utf-8") as f:
                     KeyConvoRoot: fields[3],
                     KeyTimestamp: timestamp,
                     KeyText: fields[7],
-                    KeySpeakerInfo: {
-                        "is-admin": is_admin
-                    }
+                    KeySpeakerInfo: {"is-admin": is_admin},
                 }
                 fields[4] = fields[4].strip()
                 if fields[4] != "initial_post" and fields[4] != "-1":
@@ -87,11 +85,11 @@ with open("wikipedia.talkpages.conversations.dat", "r", encoding="utf-8") as f:
                 usernames_cased.add(fields[1].strip())
                 utterances.append(d)
                 count += 1
-                #if MaxUtterances > 0 and count > MaxUtterances:
+                # if MaxUtterances > 0 and count > MaxUtterances:
                 #    break
 
-#udict = {u["id"]: u for u in utterances}
-#for i, u in enumerate(utterances):
+# udict = {u["id"]: u for u in utterances}
+# for i, u in enumerate(utterances):
 #    if KeyReplyTo in u:
 #        target = udict[u[KeyReplyTo]][KeySpeaker]
 #        #u[KeyConvoId] = u[KeySpeaker] + "->" + (
@@ -109,17 +107,15 @@ for user in usernames:
 print(len(ips), len(usernames))
 
 if MaxUtterances > 0:
-    #import random
-    #random.shuffle(utterances)
+    # import random
+    # random.shuffle(utterances)
     utterances = utterances[-MaxUtterances:]
-json.dump(utterances, open("utterances.json", "w"), indent=2,
-          sort_keys=True)
+json.dump(utterances, open("utterances.json", "w"), indent=2, sort_keys=True)
 
 with open("speakers.json", "w") as f:
     json.dump(users_meta, f, indent=2)
 
 print(len(uniq_admins), "admins")
 print(unrecoverable_replytos, "unrecovered reply-tos")
-#print(len(usernames), len(usernames_cased))
+# print(len(usernames), len(usernames_cased))
 print("Done")
-
