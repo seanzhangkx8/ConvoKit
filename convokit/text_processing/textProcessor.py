@@ -1,6 +1,7 @@
-from convokit.transformer import Transformer
-from convokit.model import Corpus, Utterance, Speaker
 from inspect import signature
+
+from convokit.model import Corpus, Utterance, Speaker
+from convokit.transformer import Transformer
 
 
 class TextProcessor(Transformer):
@@ -52,7 +53,7 @@ class TextProcessor(Transformer):
         :return: the corpus
         """
 
-        total_utts = len(corpus.utterances)
+        total_utts = len(list(corpus.iter_utterances()))
 
         for idx, utterance in enumerate(corpus.iter_utterances()):
 

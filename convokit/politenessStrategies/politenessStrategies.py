@@ -1,25 +1,22 @@
 from typing import Callable, Optional
-from convokit.model import Utterance
-from convokit.text_processing.textParser import process_text
-from convokit.transformer import Transformer
-from convokit.model import Corpus, Utterance, Speaker
 
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from spacy.tokens import Doc
+
+from convokit.model import Corpus, Utterance, Speaker
 from convokit.politeness_collections.politeness_api.features.politeness_strategies import (
     get_politeness_strategy_features,
-)
-from convokit.politeness_collections.politeness_local.strategy_extractor import (
-    get_local_politeness_strategy_features,
 )
 from convokit.politeness_collections.politeness_cscw_zh.strategy_extractor import (
     get_chinese_politeness_strategy_features,
 )
-
-import re
-import spacy
-from spacy.tokens import Doc
-import pandas as pd
-import matplotlib.pyplot as plt
-import numpy as np
+from convokit.politeness_collections.politeness_local.strategy_extractor import (
+    get_local_politeness_strategy_features,
+)
+from convokit.text_processing.textParser import process_text
+from convokit.transformer import Transformer
 
 
 class PolitenessStrategies(Transformer):
@@ -76,7 +73,7 @@ class PolitenessStrategies(Transformer):
         :param markers: whether or not to add politeness occurrence markers
         """
 
-        total_utts = len(corpus.utterances)
+        total_utts = len(list(corpus.iter_utterances()))
 
         for idx, utt in enumerate(corpus.iter_utterances()):
 
