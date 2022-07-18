@@ -5,7 +5,7 @@ Introductory tutorial
 Setup
 =====
 
-This toolkit requires Python >=3.6.
+This toolkit requires Python >=3.7.
 
 If you haven't already,
 
