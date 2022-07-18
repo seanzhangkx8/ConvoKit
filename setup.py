@@ -50,7 +50,7 @@ setup(
         "nltk>=3.4",
         "dill>=0.2.9",
         "joblib>=0.13.2",
-        "clean-text>=0.1.1",
+        "clean-text>=0.6.0",
         "unidecode>=1.1.1",
         "tqdm>=4.64.0",
     ],
@@ -59,8 +59,8 @@ setup(
     },
     classifiers=[
         "Programming Language :: Python",
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
     ],
 )
