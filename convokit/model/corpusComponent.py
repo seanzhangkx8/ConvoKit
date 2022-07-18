@@ -38,6 +38,9 @@ class CorpusComponent:
         return self._owner
 
     def set_owner(self, owner):
+        if owner is self._owner:
+            # no action needed
+            return
         # stash the metadata first since reassigning self._owner will break its storage connection
         meta_vals = {k: v for k, v in self.meta.items()}
         previous_owner = self._owner

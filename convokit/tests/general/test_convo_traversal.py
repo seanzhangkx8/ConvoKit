@@ -242,7 +242,7 @@ class CorpusTraversal(unittest.TestCase):
         }
         original_corpus_meta = {k: v for k, v in self.corpus.meta.to_dict().items()}
         new_convo_conversation_ids = ["1", "2", "3"]
-        new_corpus = self.corpus.reindex_conversations(new_convo_conversation_ids)
+        new_corpus = Corpus.reindex_conversations(self.corpus, new_convo_conversation_ids)
         # checking for correct number of conversations and utterances
         self.assertEqual(len(list(new_corpus.iter_conversations())), 3)
         self.assertEqual(len(list(new_corpus.iter_utterances())), 11)
@@ -256,8 +256,11 @@ class CorpusTraversal(unittest.TestCase):
     def test_reindex_corpus2(self):
         self.setUp()  # reinitialize corpus since reindex is destructive
         new_convo_conversation_ids = ["1", "2", "3"]
-        new_corpus = self.corpus.reindex_conversations(
-            new_convo_conversation_ids, preserve_convo_meta=False, preserve_corpus_meta=False
+        new_corpus = Corpus.reindex_conversations(
+            self.corpus,
+            new_convo_conversation_ids,
+            preserve_convo_meta=False,
+            preserve_corpus_meta=False,
         )
         # checking for correct number of conversations and utterances
         self.assertEqual(len(list(new_corpus.iter_conversations())), 3)
