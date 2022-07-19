@@ -181,68 +181,12 @@ class Corpus:
             for _, utt in self.utterances.items():
                 utt.owner = self
 
-        else:  # initialize empty Corpus
-            self.utterances = dict()
-            self.speakers = dict()
-
         if merge_lines:
             self.utterances = merge_utterance_lines(self.utterances)
 
         if disable_type_check:
             self.meta_index.disable_type_check()
         self.conversations = initialize_conversations(self, self.utterances, convos_data)
-        self.meta_index.enable_type_check()
-        self.update_speakers_data()
-
-    def create_speaker(
-        self,
-        owner=None,
-        id: str = None,
-        name: str = None,
-        utts=None,
-        convos=None,
-        meta: Optional[Dict] = None,
-    ):
-        speaker = Speaker(
-            owner=owner,
-            id=id,
-            name=name,
-            utts=utts,
-        )
-        self.speakers[speaker.id] = speaker
-        speaker.owner = self
-        # self.conversations = initialize_conversations(self, self.utterances, convos_data)
-        self.meta_index.enable_type_check()
-        self.update_speakers_data()
-
-    def create_utterance(
-        self,
-        owner=None,
-        id: Optional[str] = None,
-        speaker: Optional[Speaker] = None,
-        user: Optional[Speaker] = None,
-        conversation_id: Optional[str] = None,
-        root: Optional[str] = None,
-        reply_to: Optional[str] = None,
-        timestamp: Optional[int] = None,
-        text: str = "",
-        meta: Optional[Dict] = None,
-    ):
-        utt = Utterance(
-            owner=owner,
-            id=id,
-            speaker=speaker,
-            user=user,
-            conversation_id=conversation_id,
-            root=root,
-            reply_to=reply_to,
-            timestamp=timestamp,
-            text=text,
-            meta=meta,
-        )
-        self.utterances[utt.id] = utt
-        utt.owner = self
-        # self.conversations = initialize_conversations(self, self.utterances, convos_data)
         self.meta_index.enable_type_check()
         self.update_speakers_data()
 
