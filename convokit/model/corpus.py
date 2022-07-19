@@ -670,41 +670,45 @@ class Corpus:
 
         return self
 
-    def filter_utterances_by(self, selector: Callable[[Utterance], bool]):
+    @staticmethod
+    def filter_corpus_utterances(source_corpus: "Corpus", selector: Callable[[Utterance], bool]):
         """
-        Returns a new corpus that includes only a subset of Utterances within this Corpus. This filtering provides no
+        Returns a new corpus that includes only a subset of Utterances from the source Corpus. This filtering provides no
         guarantees with regard to maintaining conversational integrity and should be used with care.
 
-        Vectors are not preserved. The original corpus will be invalidated and no longer usable.
+        Vectors are not preserved. The source corpus will be invalidated and no longer usable.
 
+        :param source_corpus: the Corpus to subset from
         :param selector: function for selecting which
         :return: a new Corpus with a subset of the Utterances
         """
-        utts = list(self.iter_utterances(selector))
+        utts = list(source_corpus.iter_utterances(selector))
         new_corpus = Corpus(utterances=utts)
         for convo in new_corpus.iter_conversations():
-            convo.meta.update(self.get_conversation(convo.id).meta)
+            convo.meta.update(source_corpus.get_conversation(convo.id).meta)
 
         # original Corpus is invalidated and no longer usable; clear all data from
         # its now-orphaned StorageManager to avoid having duplicates in memory
-        self.storage.clear_all_data()
+        source_corpus.storage.clear_all_data()
 
         return new_corpus
 
+    @staticmethod
     def reindex_conversations(
-        self,
+        source_corpus: "Corpus",
         new_convo_roots: List[str],
         preserve_corpus_meta: bool = True,
         preserve_convo_meta: bool = True,
         verbose=True,
     ) -> "Corpus":
         """
-        Generates a new Corpus from current Corpus with specified list of utterance ids to use as conversation ids.
+        Generates a new Corpus from source Corpus with specified list of utterance ids to use as conversation ids.
 
         The subtrees denoted by these utterance ids should be distinct and should not overlap, otherwise there may be unexpected behavior.
 
-        Vectors are not preserved. The original Corpus will be invalidated and no longer usable.
+        Vectors are not preserved. The source Corpus will be invalidated and no longer usable.
 
+        :param source_corpus: the Corpus containing the original data to select from
         :param new_convo_roots: List of utterance ids to use as conversation ids
         :param preserve_corpus_meta: set as True to copy original Corpus metadata to new Corpus
         :param preserve_convo_meta: set as True to copy original Conversation metadata to new Conversation metadata
@@ -713,7 +717,7 @@ class Corpus:
         :return: new Corpus with reindexed Conversations
         """ ""
         new_convo_roots = set(new_convo_roots)
-        for convo in self.iter_conversations():
+        for convo in source_corpus.iter_conversations():
             try:
                 convo.initialize_tree_structure()
             except ValueError as e:
@@ -724,7 +728,9 @@ class Corpus:
         original_utt_to_convo_id = dict()
 
         for utt_id in new_convo_roots:
-            orig_convo = self.get_conversation(self.get_utterance(utt_id).conversation_id)
+            orig_convo = source_corpus.get_conversation(
+                source_corpus.get_utterance(utt_id).conversation_id
+            )
             original_utt_to_convo_id[utt_id] = orig_convo.id
             try:
                 subtree = orig_convo.get_subtree(utt_id)
@@ -740,11 +746,11 @@ class Corpus:
         new_corpus = Corpus(utterances=new_corpus_utts)
 
         if preserve_corpus_meta:
-            new_corpus.meta.update(self.meta)
+            new_corpus.meta.update(source_corpus.meta)
 
         if preserve_convo_meta:
             for convo in new_corpus.iter_conversations():
-                convo.meta["original_convo_meta"] = self.get_conversation(
+                convo.meta["original_convo_meta"] = source_corpus.get_conversation(
                     original_utt_to_convo_id[convo.id]
                 ).meta.to_dict()
                 convo.meta["original_convo_id"] = original_utt_to_convo_id[convo.id]
@@ -758,7 +764,7 @@ class Corpus:
 
         # original Corpus is invalidated and no longer usable; clear all data from
         # its now-orphaned StorageManager to avoid having duplicates in memory
-        self.storage.clear_all_data()
+        source_corpus.storage.clear_all_data()
 
         return new_corpus
 
@@ -981,51 +987,53 @@ class Corpus:
         new_index.version = old_index.version
         self.meta_index = new_index
 
-    def merge(self, other_corpus, warnings: bool = True):
+    @staticmethod
+    def merge(primary: "Corpus", secondary: "Corpus", warnings: bool = True):
         """
-        Merges this corpus with another corpus.
+        Merges primary and secondary, creating a new Corpus with their combined data.
 
-        Utterances with the same id must share the same data, otherwise the other corpus utterance data & metadata
+        Utterances with the same id must share the same data. In case of conflicts,
+        primary will take precedence and the conflicting Utterance from secondary
         will be ignored. A warning is printed when this happens.
 
-        If metadata of this corpus (or its conversations / utterances) shares a key with the metadata of the
-        other corpus, the other corpus's metadata (or its conversations / utterances) values will be used. A warning
+        If metadata of primary (or its conversations / utterances) shares a key with the metadata of the
+        secondary, secondary's metadata (or its conversations / utterances) values will be used. A warning
         is printed when this happens.
 
-        Will invalidate original and other corpus in the process.
+        Will invalidate primary and secondary in the process.
 
-        (Updates internal ConvoKit Index to match post-merge state and uses this Corpus's version number.)
+        The resulting Corpus will inherit primary's id and version number.
 
         :param other_corpus: Corpus
         :param warnings: print warnings when data conflicts are encountered
         :return: new Corpus constructed from combined lists of utterances
         """
-        utts1 = list(self.iter_utterances())
-        utts2 = list(other_corpus.iter_utterances())
-        combined_utts = self._merge_utterances(utts1, utts2, warnings=warnings)
+        utts1 = list(primary.iter_utterances())
+        utts2 = list(secondary.iter_utterances())
+        combined_utts = primary._merge_utterances(utts1, utts2, warnings=warnings)
         new_corpus = Corpus(utterances=list(combined_utts))
         # Note that we collect Speakers from the utt sets directly instead of the combined utts, otherwise
         # differences in Speaker meta will not be registered for duplicate Utterances (because utts would be discarded
         # during merging)
-        speakers_meta, speakers_meta_conflict = self._collect_speaker_data([utts1, utts2])
+        speakers_meta, speakers_meta_conflict = primary._collect_speaker_data([utts1, utts2])
         Corpus._update_corpus_speaker_data(
             new_corpus, speakers_meta, speakers_meta_conflict, warnings=warnings
         )
 
         # Merge CORPUS metadata
-        new_corpus.meta.reinitialize_from_other(self.meta)
-        for key, val in other_corpus.meta.items():
+        new_corpus.meta.reinitialize_from_other(primary.meta)
+        for key, val in secondary.meta.items():
             if key in new_corpus.meta and new_corpus.meta[key] != val:
                 if warnings:
                     warn(
-                        "Found conflicting values for Corpus metadata key: {}. "
-                        "Overwriting with other Corpus's metadata.".format(repr(key))
+                        "Found conflicting values for primary Corpus metadata key: {}. "
+                        "Overwriting with secondary Corpus's metadata.".format(repr(key))
                     )
             new_corpus.meta[key] = val
 
         # Merge CONVERSATION metadata
-        convos1 = self.iter_conversations()
-        convos2 = other_corpus.iter_conversations()
+        convos1 = primary.iter_conversations()
+        convos2 = secondary.iter_conversations()
 
         for convo in convos1:
             new_corpus.get_conversation(convo.id).meta.reinitialize_from_other(convo.meta)
@@ -1037,7 +1045,7 @@ class Corpus:
                     if warnings:
                         warn(
                             "Found conflicting values for Conversation {} for metadata key: {}. "
-                            "Overwriting with other corpus's Conversation metadata.".format(
+                            "Overwriting with secondary corpus's Conversation metadata.".format(
                                 repr(convo.id), repr(key)
                             )
                         )
@@ -1049,8 +1057,8 @@ class Corpus:
         # source corpora are now invalidated and all needed data has been copied
         # into the new merged corpus; clear the source corpora's storage to
         # prevent having duplicates in memory
-        self.storage.clear_all_data()
-        other_corpus.storage.clear_all_data()
+        primary.storage.clear_all_data()
+        secondary.storage.clear_all_data()
 
         return new_corpus
 
@@ -1070,40 +1078,57 @@ class Corpus:
         :return: a Corpus with the utterances from this Corpus and the input utterances combined
         """
         if with_checks:
-            helper_corpus = Corpus(utterances=utterances)
-            return self.merge(helper_corpus, warnings=warnings)
-        else:
-            new_speakers = {u.speaker.id: u.speaker for u in utterances}
-            new_utterances = {u.id: u for u in utterances}
-            for speaker in new_speakers.values():
-                speaker.owner = self
-            for utt in new_utterances.values():
-                utt.owner = self
+            # leverage the merge method's _merge_utterances method to run the checks
+            # (but then run a subsequent filtering operation since we aren't actually doing a merge)
+            added_utt_ids = {utt.id for utt in utterances}
+            combined_utts = self._merge_utterances(
+                list(self.iter_utterances()), utterances, warnings
+            )
+            speakers_meta, speakers_meta_conflict = self._collect_speaker_data(
+                [list(self.iter_utterances()), utterances]
+            )
+            utterances = [utt for utt in combined_utts if utt.id in added_utt_ids]
 
-            # update corpus speakers
-            for new_speaker_id, new_speaker in new_speakers.items():
-                if new_speaker_id not in self.speakers:
-                    self.speakers[new_speaker_id] = new_speaker
+        new_speakers = {u.speaker.id: u.speaker for u in utterances}
+        new_utterances = {u.id: u for u in utterances}
+        for speaker in new_speakers.values():
+            speaker.owner = self
+        for utt in new_utterances.values():
+            utt.owner = self
 
-            # update corpus utterances + (link speaker -> utt)
-            for new_utt_id, new_utt in new_utterances.items():
-                if new_utt_id not in self.utterances:
-                    self.utterances[new_utt_id] = new_utt
-                    self.speakers[new_utt.speaker.id]._add_utterance(new_utt)
+        # update corpus speakers
+        for new_speaker_id, new_speaker in new_speakers.items():
+            if new_speaker_id not in self.speakers:
+                self.speakers[new_speaker_id] = new_speaker
 
-            # update corpus conversations + (link convo <-> utt)
-            new_convos = defaultdict(list)
-            for utt in new_utterances.values():
-                if utt.conversation_id in self.conversations:
+        # update corpus utterances + (link speaker -> utt)
+        for new_utt_id, new_utt in new_utterances.items():
+            if new_utt_id not in self.utterances:
+                self.utterances[new_utt_id] = new_utt
+                self.speakers[new_utt.speaker.id]._add_utterance(new_utt)
+
+        # update corpus conversations + (link convo <-> utt)
+        new_convos = defaultdict(list)
+        for utt in new_utterances.values():
+            if utt.conversation_id in self.conversations:
+                if (not with_checks) or (
+                    utt.id not in self.conversations[utt.conversation_id].get_utterance_ids()
+                ):
                     self.conversations[utt.conversation_id]._add_utterance(utt)
-                else:
-                    new_convos[utt.conversation_id].append(utt.id)
-            for convo_id, convo_utts in new_convos.items():
-                new_convo = Conversation(owner=self, id=convo_id, utterances=convo_utts, meta=None)
-                self.conversations[convo_id] = new_convo
-                # (link speaker -> convo)
-                new_convo_speaker = self.speakers[new_convo.get_utterance(convo_id).speaker.id]
-                new_convo_speaker._add_conversation(new_convo)
+            else:
+                new_convos[utt.conversation_id].append(utt.id)
+        for convo_id, convo_utts in new_convos.items():
+            new_convo = Conversation(owner=self, id=convo_id, utterances=convo_utts, meta=None)
+            self.conversations[convo_id] = new_convo
+            # (link speaker -> convo)
+            new_convo_speaker = self.speakers[new_convo.get_utterance(convo_id).speaker.id]
+            new_convo_speaker._add_conversation(new_convo)
+
+        # update speaker metadata (only in cases of conflict)
+        if with_checks:
+            Corpus._update_corpus_speaker_data(
+                self, speakers_meta, speakers_meta_conflict, warnings
+            )
 
         return self
 

@@ -59,8 +59,6 @@ The two recommended fixes are to run:
 
 and if that doesn't fix the issue, then run:
 
->>> open /Applications/Python\ 3.6/Install\ Certificates.command
+>>> open /Applications/Python\ 3.7/Install\ Certificates.command
 
-(Substitute 3.6 in the above command with your current Python version (e.g. 3.7 or 3.8) if necessary.)
-
-
+(Substitute 3.7 in the above command with your current Python version (e.g. 3.8 or 3.9) if necessary.)
