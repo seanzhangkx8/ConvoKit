@@ -180,8 +180,8 @@ class Corpus:
                 speaker.owner = self
             for _, utt in self.utterances.items():
                 utt.owner = self
-                
-        else: #initialize empty Corpus 
+
+        else:  # initialize empty Corpus
             self.utterances = dict()
             self.speakers = dict()
 
@@ -203,13 +203,18 @@ class Corpus:
         convos=None,
         meta: Optional[Dict] = None,
     ):
-        speaker = Speaker(owner=owner,id=id,name=name,utts=utts,)
+        speaker = Speaker(
+            owner=owner,
+            id=id,
+            name=name,
+            utts=utts,
+        )
         self.speakers[speaker.id] = speaker
         speaker.owner = self
         # self.conversations = initialize_conversations(self, self.utterances, convos_data)
         self.meta_index.enable_type_check()
         self.update_speakers_data()
-    
+
     def create_utterance(
         self,
         owner=None,
@@ -223,14 +228,24 @@ class Corpus:
         text: str = "",
         meta: Optional[Dict] = None,
     ):
-        utt = Utterance(owner=owner,id=id,speaker=speaker,user=user,conversation_id=conversation_id,root=root,reply_to=reply_to,timestamp=timestamp,text=text,meta=meta)
+        utt = Utterance(
+            owner=owner,
+            id=id,
+            speaker=speaker,
+            user=user,
+            conversation_id=conversation_id,
+            root=root,
+            reply_to=reply_to,
+            timestamp=timestamp,
+            text=text,
+            meta=meta,
+        )
         self.utterances[utt.id] = utt
         utt.owner = self
         # self.conversations = initialize_conversations(self, self.utterances, convos_data)
         self.meta_index.enable_type_check()
         self.update_speakers_data()
 
-        
     @property
     def vectors(self):
         return self.meta_index.vectors
