@@ -2,9 +2,11 @@ try:
     from collections.abc import MutableMapping
 except:
     from collections import MutableMapping
+from numpy import isin
 from convokit.util import warn
 from .convoKitIndex import ConvoKitIndex
 import json
+from typing import Union
 
 # See reference: https://stackoverflow.com/questions/7760916/correct-usage-of-a-getter-setter-for-dictionary-values
 
@@ -97,12 +99,16 @@ class ConvoKitMeta(MutableMapping, dict):
     def to_dict(self):
         return dict(self._get_storage().get_data("meta", self.storage_key))
 
-    def reinitialize_from_other(self, other):
+    def reinitialize_from(self, other: Union["ConvoKitMeta", dict]):
         """
         Reinitialize this ConvoKitMeta instance with the data from other
         """
-        if type(other) == ConvoKitMeta:
+        if isinstance(other, ConvoKitMeta):
             other = {k: v for k, v in other.to_dict().items()}
+        elif not isinstance(other, dict):
+            raise TypeError(
+                "ConvoKitMeta can only be reinitialized from a dict instance or another ConvoKitMeta"
+            )
         self._get_storage().initialize_data_for_component(
             "meta", self.storage_key, overwrite=True, initial_value=other
         )

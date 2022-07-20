@@ -630,12 +630,12 @@ class Corpus:
         return self
 
     @staticmethod
-    def filter_corpus_utterances(source_corpus: "Corpus", selector: Callable[[Utterance], bool]):
+    def filter_utterances(source_corpus: "Corpus", selector: Callable[[Utterance], bool]):
         """
         Returns a new corpus that includes only a subset of Utterances from the source Corpus. This filtering provides no
         guarantees with regard to maintaining conversational integrity and should be used with care.
 
-        Vectors are not preserved. The source corpus will be invalidated and no longer usable.
+        Vectors are not preserved. The source corpus will be invalidated and will no longer be usable.
 
         :param source_corpus: the Corpus to subset from
         :param selector: function for selecting which
@@ -949,21 +949,22 @@ class Corpus:
     @staticmethod
     def merge(primary: "Corpus", secondary: "Corpus", warnings: bool = True):
         """
-        Merges primary and secondary, creating a new Corpus with their combined data.
+        Merges two corpora (one primary and one secondary), creating a new Corpus with their combined data.
 
         Utterances with the same id must share the same data. In case of conflicts,
-        primary will take precedence and the conflicting Utterance from secondary
+        the primary Corpus will take precedence and the conflicting Utterance from secondary
         will be ignored. A warning is printed when this happens.
 
-        If metadata of primary (or its conversations / utterances) shares a key with the metadata of the
-        secondary, secondary's metadata (or its conversations / utterances) values will be used. A warning
+        If metadata of the primary Corpus (or its conversations / utterances) shares a key with the metadata of the
+        secondary Corpus, the secondary's metadata (or its conversations / utterances) values will be used. A warning
         is printed when this happens.
 
         Will invalidate primary and secondary in the process.
 
-        The resulting Corpus will inherit primary's id and version number.
+        The resulting Corpus will inherit the primary Corpus's id and version number.
 
-        :param other_corpus: Corpus
+        :param primary: the primary Corpus
+        :param secondary: the secondary Corpus
         :param warnings: print warnings when data conflicts are encountered
         :return: new Corpus constructed from combined lists of utterances
         """
