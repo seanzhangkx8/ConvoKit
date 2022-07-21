@@ -17,6 +17,7 @@ Datasets
    Persuasion For Good Corpus <persuasionforgood.rst>
    Intelligence Squared Debates Corpus <iq2.rst>
    Friends Corpus <friends.rst>
+   Spolin Corpus <spolin.rst>
    Switchboard Dialog Act Corpus <switchboard.rst>
    Stanford Politeness Corpus (Wikipedia) <wiki_politeness.rst>
    Stanford Politeness Corpus (Stack Exchange) <stack_politeness.rst>
@@ -25,4 +26,3 @@ Datasets
    Supreme Court Oral Arguments Dataset <supreme.rst>
    Wikipedia Articles for Deletion Dataset <wiki-articles-for-deletion-corpus.rst>
    CaSiNo Corpus <casino-corpus.rst>
-
