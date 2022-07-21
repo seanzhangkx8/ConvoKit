@@ -94,8 +94,6 @@ Additional notes
 
 More details about the SPOLIN project can be found on: https://justin-cho.com/spolin
 
-The URL
-
 License
 ^^^^^^^
 This dataset is shared under the `Creative Commons Attribution-NonCommercial 4.0 International License <https://creativecommons.org/licenses/by-nc/4.0/>`_.
