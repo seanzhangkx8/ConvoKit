@@ -298,6 +298,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "wise-east",
+      "name": "Justin Cho",
+      "avatar_url": "https://avatars.githubusercontent.com/u/31977186?v=4",
+      "profile": "http://justin-cho.com",
+      "contributions": [
+        "data"
+      ]
     }
   ],
   "contributorsPerLine": 7,

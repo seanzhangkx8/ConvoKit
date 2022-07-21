@@ -1,6 +1,6 @@
 # [ConvoKit](http://convokit.cornell.edu/)
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-29-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-30-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 [![pypi](https://img.shields.io/pypi/v/convokit.svg)](https://pypi.org/pypi/convokit/)
@@ -254,6 +254,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
   </tr>
   <tr>
     <td align="center"><a href="https://github.com/oscarso2000"><img src="https://avatars.githubusercontent.com/u/20172573?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Oscar So</b></sub></a><br /><a href="https://github.com/CornellNLP/ConvoKit/commits?author=oscarso2000" title="Code">💻</a></td>
+    <td align="center"><a href="http://justin-cho.com"><img src="https://avatars.githubusercontent.com/u/31977186?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Justin Cho</b></sub></a><br /><a href="#data-wise-east" title="Data">🔣</a></td>
   </tr>
 </table>
 
