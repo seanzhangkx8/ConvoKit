@@ -176,3 +176,8 @@ class Speaker(CorpusComponent):
             return self.id == other.id
         except AttributeError:
             return self.__dict__["_name"] == other.__dict__["_name"]
+
+    def __str__(self):
+        return "Speaker(id: {}, vectors: {}, meta: {})".format(
+            repr(self.id), self.vectors, self.meta
+        )

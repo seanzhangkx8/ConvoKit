@@ -19,7 +19,7 @@ def get_utterances_dataframe(obj, selector=lambda utt: True, exclude_meta: bool 
     """
     ds = dict()
     for utt in obj.iter_utterances(selector):
-        d = utt.__dict__.copy()
+        d = utt.to_dict().copy()
         if not exclude_meta:
             for k, v in d["meta"].items():
                 d["meta." + k] = v
@@ -27,9 +27,7 @@ def get_utterances_dataframe(obj, selector=lambda utt: True, exclude_meta: bool 
         ds[utt.id] = d
 
     df = pd.DataFrame(ds).T
-    df["id"] = df["_id"]
     df = df.set_index("id")
-    df = df.drop(["_id", "_owner", "obj_type", "user", "_root"], axis=1)
     df["speaker"] = df["speaker"].map(lambda spkr: spkr.id)
     meta_columns = [k for k in df.columns if k.startswith("meta.")]
     return df[
@@ -50,7 +48,7 @@ def get_conversations_dataframe(obj, selector=lambda convo: True, exclude_meta: 
     """
     ds = dict()
     for convo in obj.iter_conversations(selector):
-        d = convo.__dict__.copy()
+        d = convo.to_dict().copy()
         if not exclude_meta:
             for k, v in d["meta"].items():
                 d["meta." + k] = v
@@ -58,9 +56,7 @@ def get_conversations_dataframe(obj, selector=lambda convo: True, exclude_meta: 
         ds[convo.id] = d
 
     df = pd.DataFrame(ds).T
-    df["id"] = df["_id"]
-    df = df.set_index("id")
-    return df.drop(["_owner", "obj_type", "_utterance_ids", "_speaker_ids", "tree", "_id"], axis=1)
+    return df.set_index("id")
 
 
 def get_speakers_dataframe(obj, selector=lambda utt: True, exclude_meta: bool = False):
@@ -75,7 +71,7 @@ def get_speakers_dataframe(obj, selector=lambda utt: True, exclude_meta: bool = 
     """
     ds = dict()
     for spkr in obj.iter_speakers(selector):
-        d = spkr.__dict__.copy()
+        d = spkr.to_dict().copy()
         if not exclude_meta:
             for k, v in d["meta"].items():
                 d["meta." + k] = v
@@ -83,6 +79,4 @@ def get_speakers_dataframe(obj, selector=lambda utt: True, exclude_meta: bool = 
         ds[spkr.id] = d
 
     df = pd.DataFrame(ds).T
-    df["id"] = df["_id"]
-    df = df.set_index("id")
-    return df.drop(["_owner", "obj_type", "utterances", "conversations", "_id"], axis=1)
+    return df.set_index("id")
