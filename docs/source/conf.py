@@ -369,5 +369,6 @@ autodoc_mock_imports = [
     "torch",
     "pymongo",
     "yaml",
+    "bson",
     "dnspython",
 ]
