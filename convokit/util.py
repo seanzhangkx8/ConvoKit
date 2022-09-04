@@ -2,6 +2,7 @@ import json
 import os
 import shutil
 import urllib.request
+import uuid
 import warnings
 import zipfile
 from typing import Dict
@@ -374,3 +375,7 @@ def deprecation(prev_name: str, new_name: str, stacklevel: int = 3):
         category=FutureWarning,
         stacklevel=stacklevel,
     )
+
+
+def create_safe_id():
+    return uuid.uuid4().hex

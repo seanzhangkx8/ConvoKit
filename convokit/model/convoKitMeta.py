@@ -28,7 +28,8 @@ class ConvoKitMeta(MutableMapping, dict):
         return f"{self.obj_type}_{self.owner.id}"
 
     def __getitem__(self, item):
-        return self._get_storage().get_data("meta", self.storage_key, item)
+        item_type = self.index.get_index(self.obj_type).get(item, None)
+        return self._get_storage().get_data("meta", self.storage_key, item, item_type)
 
     def _get_storage(self):
         # special case for Corpus meta since that's the only time owner is not a CorpusComponent
@@ -65,7 +66,8 @@ class ConvoKitMeta(MutableMapping, dict):
 
         if self.index.type_check:
             ConvoKitMeta._check_type_and_update_index(self.index, self.obj_type, key, value)
-        self._get_storage().update_data("meta", self.storage_key, key, value)
+        item_type = self.index.get_index(self.obj_type).get(key, None)
+        self._get_storage().update_data("meta", self.storage_key, key, value, item_type)
 
     def __delitem__(self, key):
         if self.obj_type == "corpus":

@@ -53,6 +53,9 @@ setup(
         "clean-text>=0.6.0",
         "unidecode>=1.1.1",
         "tqdm>=4.64.0",
+        "pymongo>=4.0",
+        "pyyaml>=5.4.1",
+        "dnspython>=1.16.0",
     ],
     extras_require={
         "craft": ["torch>=0.12"],

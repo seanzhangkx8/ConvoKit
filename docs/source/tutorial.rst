@@ -5,15 +5,7 @@ Introductory tutorial
 Setup
 =====
 
-This toolkit requires Python >=3.7.
-
-If you haven't already,
-
-#. Download the toolkit: ``pip3 install convokit``
-
-#. Download Spacy's English model: ``python3 -m spacy download en_core_web_sm``
-
-#. Download nltk's punkt tokenizer: ``import nltk; nltk.download('punkt')`` (in a ``python`` interactive session)
+Follow the :doc:`Installation Guide </install>` to install and set up ConvoKit.
 
 **If you encounter difficulties with installation**, check out our `Troubleshooting Guide <https://convokit.cornell.edu/documentation/troubleshooting.html>`_ for a list of solutions to common issues.
 

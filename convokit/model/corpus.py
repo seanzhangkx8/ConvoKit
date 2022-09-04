@@ -1,15 +1,17 @@
+import random
+import shutil
+from typing import List, Collection, Callable, Set, Generator, Tuple, Optional, ValuesView, Union
+
 from pandas import DataFrame
 from tqdm import tqdm
-from typing import List, Collection, Callable, Set, Generator, Tuple, Optional, ValuesView, Union
-from .corpusHelper import *
-from convokit.util import deprecation, warn
-from .corpusUtil import *
+
+from convokit.convokitConfig import ConvoKitConfig
+from convokit.util import deprecation, create_safe_id
 from .convoKitIndex import ConvoKitIndex
-import random
-from .convoKitMeta import ConvoKitMeta
 from .convoKitMatrix import ConvoKitMatrix
-from .storageManager import StorageManager, MemStorageManager
-import shutil
+from .corpusUtil import *
+from .corpus_helpers import *
+from .storageManager import DBStorageManager, StorageManager, MemStorageManager
 
 
 class Corpus:
@@ -44,6 +46,8 @@ class Corpus:
         self,
         filename: Optional[str] = None,
         utterances: Optional[List[Utterance]] = None,
+        db_collection_prefix: Optional[str] = None,
+        db_host: Optional[str] = None,
         preload_vectors: List[str] = None,
         utterance_start_index: int = None,
         utterance_end_index: int = None,
@@ -53,8 +57,11 @@ class Corpus:
         exclude_speaker_meta: Optional[List[str]] = None,
         exclude_overall_meta: Optional[List[str]] = None,
         disable_type_check=True,
+        storage_type: Optional[str] = None,
         storage: Optional[StorageManager] = None,
     ):
+
+        self.config = ConvoKitConfig()
 
         if filename is None:
             self.corpus_dirpath = None
@@ -63,8 +70,20 @@ class Corpus:
         else:
             self.corpus_dirpath = os.path.dirname(filename)
 
+        # configure corpus ID (optional for mem mode, required for DB mode)
+        if storage_type is None:
+            storage_type = self.config.default_storage_mode
+        if db_collection_prefix is None and filename is None and storage_type == "db":
+            db_collection_prefix = create_safe_id()
+            warn(
+                "You are in DB mode, but no collection prefix was specified and no filename was given from which to infer one."
+                "Will use a randomly generated unique prefix " + db_collection_prefix
+            )
         self.id = None
-        if filename is not None:
+        if db_collection_prefix is not None:
+            # treat the unique collection prefix as the ID (even if a filename is specified)
+            self.id = db_collection_prefix
+        elif filename is not None:
             # automatically derive an ID from the file path
             self.id = os.path.basename(os.path.normpath(filename))
 
@@ -72,7 +91,16 @@ class Corpus:
         if storage is not None:
             self.storage = storage
         else:
-            self.storage = MemStorageManager()
+            if storage_type == "mem":
+                self.storage = MemStorageManager()
+            elif storage_type == "db":
+                if db_host is None:
+                    db_host = self.config.db_host
+                self.storage = DBStorageManager(self.id, db_host)
+            else:
+                raise ValueError(
+                    f"Unrecognized setting '{storage_type}' for storage type; should be either 'mem' or 'db'."
+                )
 
         self.meta_index = ConvoKitIndex(self)
         self.meta = ConvoKitMeta(self, self.meta_index, "corpus")
@@ -90,82 +118,35 @@ class Corpus:
         if exclude_overall_meta is None:
             exclude_overall_meta = []
 
-        # Construct corpus from file or directory
-        if filename is not None:
-            if disable_type_check:
-                self.meta_index.disable_type_check()
-            if os.path.isdir(filename):
-                utterances = load_uttinfo_from_dir(
-                    filename, utterance_start_index, utterance_end_index, exclude_utterance_meta
-                )
+        if filename is not None and storage_type == "db":
+            # JSON-to-DB construction mode uses a specialized code branch, which
+            # optimizes for this use case by using direct batch insertions into the
+            # DB rather than going through the StorageManager, hence improving
+            # efficiency.
 
-                speakers_data = load_speakers_data_from_dir(filename, exclude_speaker_meta)
-                convos_data = load_convos_data_from_dir(filename, exclude_conversation_meta)
-                load_corpus_meta_from_dir(filename, self.meta, exclude_overall_meta)
+            with open(os.path.join(filename, "index.json"), "r") as f:
+                idx_dict = json.load(f)
+                self.meta_index.update_from_dict(idx_dict)
 
-                with open(os.path.join(filename, "index.json"), "r") as f:
-                    idx_dict = json.load(f)
-                    self.meta_index.update_from_dict(idx_dict)
-
-                # load all processed text information, but don't load actual text.
-                # also checks if the index file exists.
-                # try:
-                #     with open(os.path.join(filename, "processed_text.index.json"), "r") as f:
-                #         self.processed_text = {k: {} for k in json.load(f)}
-                # except:
-                #     pass
-
-                # unpack binary data for utterances
-                unpack_binary_data_for_utts(
-                    utterances,
-                    filename,
-                    self.meta_index.utterances_index,
-                    exclude_utterance_meta,
-                    KeyMeta,
-                )
-                # unpack binary data for speakers
-                unpack_binary_data(
-                    filename,
-                    speakers_data,
-                    self.meta_index.speakers_index,
-                    "speaker",
-                    exclude_speaker_meta,
-                )
-
-                # unpack binary data for conversations
-                unpack_binary_data(
-                    filename,
-                    convos_data,
-                    self.meta_index.conversations_index,
-                    "convo",
-                    exclude_conversation_meta,
-                )
-
-                # unpack binary data for overall corpus
-                unpack_binary_data(
-                    filename,
-                    self.meta,
-                    self.meta_index.overall_index,
-                    "overall",
-                    exclude_overall_meta,
-                )
-
-            else:
-                speakers_data = defaultdict(dict)
-                convos_data = defaultdict(dict)
-                utterances = load_from_utterance_file(
-                    filename, utterance_start_index, utterance_end_index
-                )
-
-            self.utterances = dict()
-            self.speakers = dict()
-
-            initialize_speakers_and_utterances_objects(
-                self, self.utterances, utterances, self.speakers, speakers_data
+            # populate the DB with the contents of the source file
+            ids_in_db = populate_db_from_file(
+                filename,
+                self.storage.db,
+                self.id,
+                self.meta_index,
+                utterance_start_index,
+                utterance_end_index,
+                exclude_utterance_meta,
+                exclude_conversation_meta,
+                exclude_speaker_meta,
+                exclude_overall_meta,
             )
 
-            self.meta_index.enable_type_check()
+            # with the StorageManager's DB now populated, initialize the corresponding
+            # CorpusComponent instances.
+            init_corpus_from_storage_manager(self, ids_in_db)
 
+            self.meta_index.enable_type_check()
             # load preload_vectors
             if preload_vectors is not None:
                 for vector_name in preload_vectors:
@@ -173,22 +154,130 @@ class Corpus:
                     if matrix is not None:
                         self._vector_matrices[vector_name] = matrix
 
-        elif utterances is not None:  # Construct corpus from utterances list
-            self.speakers = {u.speaker.id: u.speaker for u in utterances}
-            self.utterances = {u.id: u for u in utterances}
-            for _, speaker in self.speakers.items():
-                speaker.owner = self
-            for _, utt in self.utterances.items():
-                utt.owner = self
+            if merge_lines:
+                self.utterances = merge_utterance_lines(self.utterances)
+        else:
+            # Construct corpus from file or directory
+            if filename is not None:
+                if disable_type_check:
+                    self.meta_index.disable_type_check()
+                if os.path.isdir(filename):
+                    utterances = load_utterance_info_from_dir(
+                        filename, utterance_start_index, utterance_end_index, exclude_utterance_meta
+                    )
 
-        if merge_lines:
-            self.utterances = merge_utterance_lines(self.utterances)
+                    speakers_data = load_speakers_data_from_dir(filename, exclude_speaker_meta)
+                    convos_data = load_convos_data_from_dir(filename, exclude_conversation_meta)
+                    load_corpus_meta_from_dir(filename, self.meta, exclude_overall_meta)
 
-        if disable_type_check:
-            self.meta_index.disable_type_check()
-        self.conversations = initialize_conversations(self, self.utterances, convos_data)
-        self.meta_index.enable_type_check()
-        self.update_speakers_data()
+                    with open(os.path.join(filename, "index.json"), "r") as f:
+                        idx_dict = json.load(f)
+                        self.meta_index.update_from_dict(idx_dict)
+
+                    # load all processed text information, but don't load actual text.
+                    # also checks if the index file exists.
+                    # try:
+                    #     with open(os.path.join(filename, "processed_text.index.json"), "r") as f:
+                    #         self.processed_text = {k: {} for k in json.load(f)}
+                    # except:
+                    #     pass
+
+                    # unpack binary data for utterances
+                    unpack_binary_data_for_utts(
+                        utterances,
+                        filename,
+                        self.meta_index.utterances_index,
+                        exclude_utterance_meta,
+                        KeyMeta,
+                    )
+                    # unpack binary data for speakers
+                    unpack_binary_data(
+                        filename,
+                        speakers_data,
+                        self.meta_index.speakers_index,
+                        "speaker",
+                        exclude_speaker_meta,
+                    )
+
+                    # unpack binary data for conversations
+                    unpack_binary_data(
+                        filename,
+                        convos_data,
+                        self.meta_index.conversations_index,
+                        "convo",
+                        exclude_conversation_meta,
+                    )
+
+                    # unpack binary data for overall corpus
+                    unpack_binary_data(
+                        filename,
+                        self.meta,
+                        self.meta_index.overall_index,
+                        "overall",
+                        exclude_overall_meta,
+                    )
+
+                else:
+                    speakers_data = defaultdict(dict)
+                    convos_data = defaultdict(dict)
+                    utterances = load_from_utterance_file(
+                        filename, utterance_start_index, utterance_end_index
+                    )
+
+                self.utterances = dict()
+                self.speakers = dict()
+
+                initialize_speakers_and_utterances_objects(
+                    self, self.utterances, utterances, self.speakers, speakers_data
+                )
+
+                self.meta_index.enable_type_check()
+
+                # load preload_vectors
+                if preload_vectors is not None:
+                    for vector_name in preload_vectors:
+                        matrix = ConvoKitMatrix.from_dir(self.corpus_dirpath, vector_name)
+                        if matrix is not None:
+                            self._vector_matrices[vector_name] = matrix
+
+            elif utterances is not None:  # Construct corpus from utterances list
+                self.speakers = {u.speaker.id: u.speaker for u in utterances}
+                self.utterances = {u.id: u for u in utterances}
+                for _, speaker in self.speakers.items():
+                    speaker.owner = self
+                for _, utt in self.utterances.items():
+                    utt.owner = self
+
+            if merge_lines:
+                self.utterances = merge_utterance_lines(self.utterances)
+
+            if disable_type_check:
+                self.meta_index.disable_type_check()
+            # if corpus is nonempty (check for self.utterances), construct the conversation
+            # data from the utterance list
+            if hasattr(self, "utterances"):
+                self.conversations = initialize_conversations(self, self.utterances, convos_data)
+                self.meta_index.enable_type_check()
+                self.update_speakers_data()
+
+    @classmethod
+    def reconnect_to_db(cls, db_collection_prefix: str, db_host: Optional[str] = None):
+        """
+        Factory method for a Corpus instance backed by an already-existing database (e.g.,
+        one that was created in a previous run of a Python script or interactive session).
+
+        This can be used to reconnect to existing Corpus data that you still want to use
+        without having to reload the data from the source file; this can happen for example
+        if your script crashed in the middle of working with the Corpus and you want to
+        resume where you left off.
+        """
+        # create a blank Corpus that will hold the data
+        result = cls(db_collection_prefix=db_collection_prefix, db_host=db_host, storage_type="db")
+        # through the constructor, the blank Corpus' StorageManager is now connected
+        # to the DB. Next use the DB contents to populate the corpus components.
+        init_corpus_from_storage_manager(result)
+
+        return result
 
     @property
     def vectors(self):

@@ -72,10 +72,12 @@ class CorpusComponent:
             # ConvoKitMeta instances are not allowed for ownerless (standalone)
             # components since they must be backed by a StorageManager. In this
             # case we must forcibly convert the ConvoKitMeta instance to dict
-            if type(meta) == ConvoKitMeta:
+            if isinstance(meta, ConvoKitMeta):
                 meta = meta.to_dict()
             return meta
         else:
+            if isinstance(meta, ConvoKitMeta) and meta.owner is self._owner:
+                return meta
             ck_meta = ConvoKitMeta(self, self.owner.meta_index, self.obj_type)
             for key, value in meta.items():
                 ck_meta[key] = value

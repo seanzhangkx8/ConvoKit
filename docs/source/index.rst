@@ -14,14 +14,26 @@ Contents
 --------
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
+   :caption: Getting Started
 
+   Installing ConvoKit <install.rst>
    Introductory tutorial <tutorial.rst>
    Core Concepts <architecture.rst>
+   Data Format <data_format.rst>
+   Troubleshooting <troubleshooting.rst>
+
+.. toctree::
+   :maxdepth: 2
+   :caption: API Reference
+
    The Corpus model <model.rst>
    Transformers <transformers.rst>
+   Utilities <utilities.rst>
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Datasets and Examples
+
    Datasets <datasets.rst>
    Examples <examples.rst>
-   Data Format <data_format.rst>
-   Utilities <utilities.rst>
-   Troubleshooting <troubleshooting.rst>
