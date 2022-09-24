@@ -6,7 +6,7 @@ import json
 import os
 import pickle
 from collections import defaultdict
-from typing import Dict, Optional
+from typing import Dict, Optional, List
 
 import bson
 from pymongo import UpdateOne
@@ -17,6 +17,7 @@ from .convoKitMeta import ConvoKitMeta
 from .speaker import Speaker
 from .storageManager import StorageManager, MemStorageManager, DBStorageManager
 from .utterance import Utterance
+from .. import ConvoKitIndex
 
 BIN_DELIM_L, BIN_DELIM_R = "<##bin{", "}&&@**>"
 KeyId = "id"
@@ -228,6 +229,54 @@ def unpack_binary_data(filename, objs_data, object_index, obj_type, exclude_meta
         del object_index[field]
 
 
+def unpack_all_binary_data(
+    filename: str,
+    meta_index: ConvoKitIndex,
+    meta: ConvoKitMeta,
+    utterances: List[Utterance],
+    speakers_data: Dict[str, Dict],
+    convos_data: Dict[str, Dict],
+    exclude_utterance_meta: List[str],
+    exclude_speaker_meta: List[str],
+    exclude_conversation_meta: List[str],
+    exclude_overall_meta: List[str],
+):
+    # unpack binary data for utterances
+    unpack_binary_data_for_utts(
+        utterances,
+        filename,
+        meta_index.utterances_index,
+        exclude_utterance_meta,
+        KeyMeta,
+    )
+    # unpack binary data for speakers
+    unpack_binary_data(
+        filename,
+        speakers_data,
+        meta_index.speakers_index,
+        "speaker",
+        exclude_speaker_meta,
+    )
+
+    # unpack binary data for conversations
+    unpack_binary_data(
+        filename,
+        convos_data,
+        meta_index.conversations_index,
+        "convo",
+        exclude_conversation_meta,
+    )
+
+    # unpack binary data for overall corpus
+    unpack_binary_data(
+        filename,
+        meta,
+        meta_index.overall_index,
+        "overall",
+        exclude_overall_meta,
+    )
+
+
 def load_from_utterance_file(filename, utterance_start_index, utterance_end_index):
     """
     where filename is "utterances.json" or "utterances.jsonl" for example
@@ -255,9 +304,7 @@ def load_from_utterance_file(filename, utterance_start_index, utterance_end_inde
     return utterances
 
 
-def initialize_speakers_and_utterances_objects(
-    corpus, utt_dict, utterances, speakers_dict, speakers_data
-):
+def initialize_speakers_and_utterances_objects(corpus, utterances, speakers_data):
     """
     Initialize Speaker and Utterance objects
     """
@@ -268,7 +315,7 @@ def initialize_speakers_and_utterances_objects(
     for i, u in enumerate(utterances):
         u = defaultdict(lambda: None, u)
         speaker_key = u[KeySpeaker]
-        if speaker_key not in speakers_dict:
+        if speaker_key not in corpus.speakers:
             if u[KeySpeaker] not in speakers_data:
                 warn(
                     "CorpusLoadWarning: Missing speaker metadata for speaker ID: {}. "
@@ -276,15 +323,15 @@ def initialize_speakers_and_utterances_objects(
                 )
                 speakers_data[u[KeySpeaker]] = {}
             if KeyMeta in speakers_data[u[KeySpeaker]]:
-                speakers_dict[speaker_key] = Speaker(
+                corpus.speakers[speaker_key] = Speaker(
                     owner=corpus, id=u[KeySpeaker], meta=speakers_data[u[KeySpeaker]][KeyMeta]
                 )
             else:
-                speakers_dict[speaker_key] = Speaker(
+                corpus.speakers[speaker_key] = Speaker(
                     owner=corpus, id=u[KeySpeaker], meta=speakers_data[u[KeySpeaker]]
                 )
 
-        speaker = speakers_dict[speaker_key]
+        speaker = corpus.speakers[speaker_key]
         speaker.vectors = speakers_data[u[KeySpeaker]].get(KeyVectors, [])
 
         # temp fix for reddit reply_to
@@ -303,7 +350,7 @@ def initialize_speakers_and_utterances_objects(
             meta=u[KeyMeta],
         )
         utt.vectors = u.get(KeyVectors, [])
-        utt_dict[utt.id] = utt
+        corpus.utterances[utt.id] = utt
 
 
 def merge_utterance_lines(utt_dict):

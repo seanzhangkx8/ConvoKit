@@ -1,13 +1,12 @@
 import random
 import shutil
-from typing import List, Collection, Callable, Set, Generator, Tuple, ValuesView, Union
+from typing import Collection, Callable, Set, Generator, Tuple, ValuesView, Union
 
 from pandas import DataFrame
 from tqdm import tqdm
 
 from convokit.convokitConfig import ConvoKitConfig
 from convokit.util import create_safe_id
-from .convoKitIndex import ConvoKitIndex
 from .convoKitMatrix import ConvoKitMatrix
 from .corpusUtil import *
 from .corpus_helpers import *
@@ -148,39 +147,18 @@ class Corpus:
                         idx_dict = json.load(f)
                         self.meta_index.update_from_dict(idx_dict)
 
-                    # unpack binary data for utterances
-                    unpack_binary_data_for_utts(
-                        utterances,
-                        filename,
-                        self.meta_index.utterances_index,
-                        exclude_utterance_meta,
-                        KeyMeta,
-                    )
-                    # unpack binary data for speakers
-                    unpack_binary_data(
-                        filename,
-                        speakers_data,
-                        self.meta_index.speakers_index,
-                        "speaker",
-                        exclude_speaker_meta,
-                    )
-
-                    # unpack binary data for conversations
-                    unpack_binary_data(
-                        filename,
-                        convos_data,
-                        self.meta_index.conversations_index,
-                        "convo",
-                        exclude_conversation_meta,
-                    )
-
-                    # unpack binary data for overall corpus
-                    unpack_binary_data(
-                        filename,
-                        self.meta,
-                        self.meta_index.overall_index,
-                        "overall",
-                        exclude_overall_meta,
+                    # unpack all binary data
+                    unpack_all_binary_data(
+                        filename=filename,
+                        meta_index=self.meta_index,
+                        meta=self.meta,
+                        utterances=utterances,
+                        speakers_data=speakers_data,
+                        convos_data=convos_data,
+                        exclude_utterance_meta=exclude_utterance_meta,
+                        exclude_speaker_meta=exclude_speaker_meta,
+                        exclude_conversation_meta=exclude_conversation_meta,
+                        exclude_overall_meta=exclude_overall_meta,
                     )
 
                 else:
@@ -193,9 +171,7 @@ class Corpus:
                 self.utterances = dict()
                 self.speakers = dict()
 
-                initialize_speakers_and_utterances_objects(
-                    self, self.utterances, utterances, self.speakers, speakers_data
-                )
+                initialize_speakers_and_utterances_objects(self, utterances, speakers_data)
 
                 self.meta_index.enable_type_check()
 
