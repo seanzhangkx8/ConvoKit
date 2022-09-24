@@ -6,7 +6,7 @@ import json
 import os
 import pickle
 from collections import defaultdict
-from typing import Dict
+from typing import Dict, Optional
 
 import bson
 from pymongo import UpdateOne
@@ -15,6 +15,7 @@ from convokit.util import warn
 from .conversation import Conversation
 from .convoKitMeta import ConvoKitMeta
 from .speaker import Speaker
+from .storageManager import StorageManager, MemStorageManager, DBStorageManager
 from .utterance import Utterance
 
 BIN_DELIM_L, BIN_DELIM_R = "<##bin{", "}&&@**>"
@@ -29,6 +30,44 @@ KeyMeta = "meta"
 KeyVectors = "vectors"
 
 JSONLIST_BUFFER_SIZE = 1000
+
+
+def get_corpus_id(db_collection_prefix: Optional[str], filename: Optional[str]) -> Optional[str]:
+    if db_collection_prefix is not None:
+        # treat the unique collection prefix as the ID (even if a filename is specified)
+        return db_collection_prefix
+    elif filename is not None:
+        # automatically derive an ID from the file path
+        return os.path.basename(os.path.normpath(filename))
+    else:
+        return None
+
+
+def get_corpus_dirpath(filename: str) -> Optional[str]:
+    if filename is None:
+        return None
+    elif os.path.isdir(filename):
+        return filename
+    else:
+        return os.path.dirname(filename)
+
+
+def initialize_storage(
+    corpus: "Corpus", storage: Optional[StorageManager], storage_type: str, db_host: Optional[str]
+):
+    if storage is not None:
+        return storage
+    else:
+        if storage_type == "mem":
+            return MemStorageManager()
+        elif storage_type == "db":
+            if db_host is None:
+                db_host = corpus.config.db_host
+            return DBStorageManager(corpus.id, db_host)
+        else:
+            raise ValueError(
+                f"Unrecognized setting '{storage_type}' for storage type; should be either 'mem' or 'db'."
+            )
 
 
 def load_utterance_info_from_dir(
