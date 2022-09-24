@@ -1,15 +1,13 @@
 import unittest
 
-from convokit.tests.util import parsed_burr_sir_corpus
 from convokit.phrasing_motifs.censorNouns import CensorNouns
+from convokit.tests.test_utils import small_burr_corpus_parsed, reload_corpus_in_db_mode
 
 
 class TestCensorNouns(unittest.TestCase):
-    def test_censor_nouns(self):
+    def censor_nouns(self):
         transformer = CensorNouns(output_field="censored")
-        corpus = parsed_burr_sir_corpus()
-
-        transformed_corpus = transformer.transform(corpus)
+        transformed_corpus = transformer.transform(self.corpus)
         expected_censored_list = [
             [
                 {
@@ -57,3 +55,19 @@ class TestCensorNouns(unittest.TestCase):
             expected_censored_list, transformed_corpus.iter_utterances()
         ):
             self.assertListEqual(expected_censored, utterance.retrieve_meta("censored"))
+
+
+class TestWithMem(TestCensorNouns):
+    def setUp(self) -> None:
+        self.corpus = small_burr_corpus_parsed()
+
+    def test_censor_nouns(self):
+        self.censor_nouns()
+
+
+class TestWithDB(TestCensorNouns):
+    def setUp(self) -> None:
+        self.corpus = reload_corpus_in_db_mode(small_burr_corpus_parsed())
+
+    def test_censor_nouns(self):
+        self.censor_nouns()

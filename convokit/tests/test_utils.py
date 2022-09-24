@@ -1,3 +1,7 @@
+import os.path
+import shutil
+from uuid import uuid4
+
 import spacy
 from spacy.tokens import Doc
 
@@ -14,13 +18,13 @@ BURR_SIR_SENTENCE_3 = "That depends."
 BURR_SIR_SENTENCE_4 = "Who's asking?"
 
 
-def en_vocab():
+def spacy_en_vocab():
     return spacy.load("en_core_web_sm").vocab
 
 
-def fox_doc():
+def fox_spacy_doc():
     return Doc(
-        vocab=en_vocab(),
+        vocab=spacy_en_vocab(),
         words=["A", "quick", "brown", "fox", "jumps", "over", "the", "lazy", "dog"],
         heads=[4, 4, 4, 4, 4, 4, 8, 8, 5],
         deps=["det", "amod", "amod", "NN", "ROOT", "prep", "det", "amod", "pobj"],
@@ -28,9 +32,9 @@ def fox_doc():
     )
 
 
-def buffalo_doc():
+def buffalo_spacy_doc():
     return Doc(
-        vocab=en_vocab(),
+        vocab=spacy_en_vocab(),
         words=[
             "Buffalo",
             "buffalo",
@@ -47,9 +51,9 @@ def buffalo_doc():
     )
 
 
-def fox_buffalo_doc():
+def fox_buffalo_spacy_doc():
     return Doc(
-        vocab=en_vocab(),
+        vocab=spacy_en_vocab(),
         words=[
             "A",
             "quick",
@@ -114,7 +118,7 @@ def fox_buffalo_doc():
     )
 
 
-def burr_sir_corpus():
+def small_burr_corpus():
     hamilton = Speaker(id="hamilton")
     burr = Speaker(id="burr")
     utterances = [
@@ -125,8 +129,8 @@ def burr_sir_corpus():
     return Corpus(utterances=utterances)
 
 
-def parsed_burr_sir_corpus():
-    corpus = burr_sir_corpus()
+def small_burr_corpus_parsed():
+    corpus = small_burr_corpus()
     utterance_infos = [
         {
             "parsed": [
@@ -188,9 +192,9 @@ def parsed_burr_sir_corpus():
     return corpus
 
 
-def burr_sir_doc_1():
+def burr_spacy_doc_1():
     return Doc(
-        vocab=en_vocab(),
+        vocab=spacy_en_vocab(),
         words=["Pardon", "me", ".", "Are", "you", "Aaron", "Burr", ",", "sir", "?"],
         heads=[0, 0, 0, 3, 3, 6, 3, 3, 3, 3],
         deps=[
@@ -209,9 +213,9 @@ def burr_sir_doc_1():
     )
 
 
-def burr_sir_doc_2():
+def burr_spacy_doc_2():
     return Doc(
-        vocab=en_vocab(),
+        vocab=spacy_en_vocab(),
         words=["That", "depends", ".", "Who", "'s", "asking", "?"],
         heads=[1, 1, 1, 5, 5, 5, 5],
         deps=["nsubj", "ROOT", "punct", "nsubj", "aux", "ROOT", "punct"],
@@ -219,9 +223,9 @@ def burr_sir_doc_2():
     )
 
 
-def burr_sir_sentence_doc_1():
+def burr_spacy_sentence_doc_1():
     return Doc(
-        vocab=en_vocab(),
+        vocab=spacy_en_vocab(),
         words=["Pardon", "me", "."],
         heads=[0, 0, 0],
         deps=["ROOT", "dobj", "punct"],
@@ -229,9 +233,9 @@ def burr_sir_sentence_doc_1():
     )
 
 
-def burr_sir_sentence_doc_2():
+def burr_spacy_sentence_doc_2():
     return Doc(
-        vocab=en_vocab(),
+        vocab=spacy_en_vocab(),
         words=["Are", "you", "Aaron", "Burr", ",", "sir", "?"],
         heads=[0, 0, 3, 0, 0, 0, 0],
         deps=["ROOT", "nsubj", "compound", "attr", "punct", "npadvmod", "punct"],
@@ -239,9 +243,9 @@ def burr_sir_sentence_doc_2():
     )
 
 
-def burr_sir_sentence_doc_3():
+def burr_spacy_sentence_doc_3():
     return Doc(
-        vocab=en_vocab(),
+        vocab=spacy_en_vocab(),
         words=["That", "depends", "."],
         heads=[1, 1, 1],
         deps=["nsubj", "ROOT", "punct"],
@@ -249,11 +253,22 @@ def burr_sir_sentence_doc_3():
     )
 
 
-def burr_sir_sentence_doc_4():
+def burr_spacy_sentence_doc_4():
     return Doc(
-        vocab=en_vocab(),
+        vocab=spacy_en_vocab(),
         words=["Who", "'s", "asking", "?"],
         heads=[2, 2, 2, 2],
         deps=["nsubj", "aux", "ROOT", "punct"],
         tags=["WP", "VBZ", "VBG", "."],
     )
+
+
+def reload_corpus_in_db_mode(corpus):
+    corpus_id = uuid4().hex
+    try:
+        corpus.dump(corpus_id, base_path=".")
+        db_corpus = Corpus(corpus_id, storage_type="db")
+        return db_corpus
+    finally:
+        if os.path.exists(corpus_id):
+            shutil.rmtree(corpus_id)

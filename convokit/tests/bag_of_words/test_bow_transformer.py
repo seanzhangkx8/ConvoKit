@@ -1,11 +1,15 @@
-from unittest import TestCase
 import unittest
+from unittest import TestCase
 
-from numpy.testing import assert_array_equal
-from scipy.sparse import coo_matrix, csr_matrix
+from scipy.sparse import coo_matrix
 
 from convokit import BoWTransformer
-from convokit.tests.util import burr_sir_corpus, BURR_SIR_TEXT_1, BURR_SIR_TEXT_2
+from convokit.tests.test_utils import (
+    small_burr_corpus,
+    BURR_SIR_TEXT_1,
+    BURR_SIR_TEXT_2,
+    reload_corpus_in_db_mode,
+)
 
 
 def burr_sir_sentence_1_vector():
@@ -36,16 +40,31 @@ class FakeVectorizer:
 
 
 class TestBoWTransformer(TestCase):
-    def test_transform_utterances(self):
-        corpus = burr_sir_corpus()
+    def transform_utterances(self):
         transformer = BoWTransformer(obj_type="utterance", vectorizer=FakeVectorizer())
-        corpus = transformer.fit_transform(corpus)
+        corpus = transformer.fit_transform(self.corpus)
 
         expected_vectors = [burr_sir_sentence_1_vector(), burr_sir_sentence_2_vector()]
 
         for expected_vector, utterance in zip(expected_vectors, corpus.iter_utterances()):
             actual_vector = utterance.get_vector("bow_vector")
             assert_sparse_matrices_equal(expected_vector, actual_vector)
+
+
+class TestWithDB(TestBoWTransformer):
+    def setUp(self) -> None:
+        self.corpus = reload_corpus_in_db_mode(small_burr_corpus())
+
+    def test_transform_utterances(self):
+        self.transform_utterances()
+
+
+class TestWithMem(TestBoWTransformer):
+    def setUp(self) -> None:
+        self.corpus = small_burr_corpus()
+
+    def test_transform_utterances(self):
+        self.transform_utterances()
 
 
 if __name__ == "__main__":

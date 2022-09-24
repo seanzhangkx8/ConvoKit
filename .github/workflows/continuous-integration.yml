@@ -28,4 +28,5 @@ jobs:
         python -m spacy download en_core_web_sm
     - name: Run tests
       run: |
+        python -m pip install -r requirements-dev.txt
         python convokit/tests/run_all_tests.py

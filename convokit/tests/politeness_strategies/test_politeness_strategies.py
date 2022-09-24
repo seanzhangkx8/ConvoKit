@@ -1,18 +1,17 @@
 import unittest
 
-from convokit.tests.politeness_strategies.politeness_corpus_util import (
+from convokit.politenessStrategies import PolitenessStrategies
+from convokit.tests.politeness_strategies.politeness_strategies_helpers import (
     parsed_politeness_test_corpus,
     parsed_politeness_test_zh_corpus,
 )
-from convokit.politenessStrategies import PolitenessStrategies
+from convokit.tests.test_utils import reload_corpus_in_db_mode
 
 
 class TestPolitenessStrategies(unittest.TestCase):
-    def test_politeness_api(self):
+    def politeness_api(self):
         ps = PolitenessStrategies(strategy_collection="politeness_api")
-        corpus = parsed_politeness_test_corpus()
-
-        corpus = ps.transform(corpus)
+        corpus = ps.transform(self.parsed_politeness_test_corpus)
         expected_strategy_uses = [
             {
                 "feature_politeness_==1st_person==": 0,
@@ -320,11 +319,9 @@ class TestPolitenessStrategies(unittest.TestCase):
             for k, v in expected_use.items():
                 self.assertEqual(v, extracted_use[k])
 
-    def test_politeness_cscw_zh(self):
+    def politeness_cscw_zh(self):
         ps = PolitenessStrategies(strategy_collection="politeness_cscw_zh")
-        corpus = parsed_politeness_test_zh_corpus()
-
-        corpus = ps.transform(corpus)
+        corpus = ps.transform(self.parsed_politeness_test_zh_corpus)
         expected_strategy_uses = [
             {
                 "apologetic": 0,
@@ -612,3 +609,31 @@ class TestPolitenessStrategies(unittest.TestCase):
             extracted_use = utterance.retrieve_meta("politeness_strategies")
             for k, v in expected_use.items():
                 self.assertEqual(v, extracted_use[k])
+
+
+class TestWithMem(TestPolitenessStrategies):
+    def setUp(self) -> None:
+        self.parsed_politeness_test_corpus = parsed_politeness_test_corpus()
+        self.parsed_politeness_test_zh_corpus = parsed_politeness_test_zh_corpus()
+
+    def test_politeness_api(self):
+        self.politeness_api()
+
+    def test_politeness_cscw_zh(self):
+        self.politeness_cscw_zh()
+
+
+class TestWithDB(TestPolitenessStrategies):
+    def setUp(self) -> None:
+        self.parsed_politeness_test_corpus = reload_corpus_in_db_mode(
+            parsed_politeness_test_corpus()
+        )
+        self.parsed_politeness_test_zh_corpus = reload_corpus_in_db_mode(
+            parsed_politeness_test_zh_corpus()
+        )
+
+    def test_politeness_api(self):
+        self.politeness_api()
+
+    def test_politeness_cscw_zh(self):
+        self.politeness_cscw_zh()
