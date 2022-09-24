@@ -13,11 +13,11 @@ from pymongo import UpdateOne
 
 from convokit.util import warn
 from .conversation import Conversation
+from .convoKitIndex import ConvoKitIndex
 from .convoKitMeta import ConvoKitMeta
 from .speaker import Speaker
 from .storageManager import StorageManager, MemStorageManager, DBStorageManager
 from .utterance import Utterance
-from .. import ConvoKitIndex
 
 BIN_DELIM_L, BIN_DELIM_R = "<##bin{", "}&&@**>"
 KeyId = "id"
