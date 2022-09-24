@@ -1,5 +1,6 @@
 from typing import Dict, Optional
-from convokit.util import deprecation, warn
+
+from convokit.util import warn
 from .corpusComponent import CorpusComponent
 from .speaker import Speaker
 
@@ -30,9 +31,7 @@ class Utterance(CorpusComponent):
         owner=None,
         id: Optional[str] = None,
         speaker: Optional[Speaker] = None,
-        user: Optional[Speaker] = None,
         conversation_id: Optional[str] = None,
-        root: Optional[str] = None,
         reply_to: Optional[str] = None,
         timestamp: Optional[int] = None,
         text: str = "",
@@ -40,12 +39,7 @@ class Utterance(CorpusComponent):
     ):
         # check arguments that have alternate naming due to backwards compatibility
         if speaker is None:
-            if user is not None:
-                speaker = user
-            else:
-                raise ValueError("No Speaker found: Utterance must be initialized with a Speaker.")
-        if conversation_id is None and root is not None:
-            conversation_id = root
+            raise ValueError("No Speaker found: Utterance must be initialized with a Speaker.")
 
         if conversation_id is not None and not isinstance(conversation_id, str):
             warn(
@@ -115,17 +109,6 @@ class Utterance(CorpusComponent):
         self.set_data("text", val)
 
     text = property(_get_text, _set_text)
-
-    def _get_root(self):
-        deprecation("utterance.root", "utterance.conversation_id")
-        return self.conversation_id
-
-    def _set_root(self, value: str):
-        deprecation("utterance.root", "utterance.conversation_id")
-        self.conversation_id = value
-        # self._update_uid()
-
-    root = property(_get_root, _set_root)
 
     ############################################################################
     ## end properties

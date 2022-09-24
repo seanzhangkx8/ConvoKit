@@ -1,12 +1,11 @@
-from convokit import Corpus
-from convokit.text_processing import TextProcessor, TextParser, TextToArcs
+import os
+
+from convokit.convokitPipeline import ConvokitPipeline
+from convokit.model import Utterance
 from convokit.phrasing_motifs import CensorNouns, QuestionSentences, PhrasingMotifs
 from convokit.prompt_types import PromptTypes
-from convokit.convokitPipeline import ConvokitPipeline
+from convokit.text_processing import TextParser, TextToArcs
 from convokit.transformer import Transformer
-from convokit.model import Utterance
-
-import os
 
 
 class PromptTypeWrapper(Transformer):
@@ -64,7 +63,8 @@ class PromptTypeWrapper(Transformer):
                 "parser",
                 TextParser(
                     verbosity=verbosity,
-                    input_filter=lambda utt, aux: recompute_all or (utt.get_info("parsed") is None),
+                    input_filter=lambda utt, aux: recompute_all
+                    or (utt.retrieve_meta("parsed") is None),
                 ),
             ),
             (
@@ -72,7 +72,7 @@ class PromptTypeWrapper(Transformer):
                 CensorNouns(
                     "parsed_censored",
                     input_filter=lambda utt, aux: recompute_all
-                    or (utt.get_info("parsed_censored") is None),
+                    or (utt.retrieve_meta("parsed_censored") is None),
                     verbosity=verbosity,
                 ),
             ),
@@ -81,7 +81,8 @@ class PromptTypeWrapper(Transformer):
                 TextToArcs(
                     "arcs",
                     input_field="parsed_censored",
-                    input_filter=lambda utt, aux: recompute_all or (utt.get_info("arcs") is None),
+                    input_filter=lambda utt, aux: recompute_all
+                    or (utt.retrieve_meta("arcs") is None),
                     root_only=root_only,
                     verbosity=verbosity,
                 ),

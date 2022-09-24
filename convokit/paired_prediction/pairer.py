@@ -1,9 +1,7 @@
-from typing import Callable
-from .util import *
 from collections import defaultdict
 from random import shuffle, choice
+from typing import Callable
 
-from convokit.util import deprecation
 from convokit import Transformer, CorpusComponent, Corpus
 
 
@@ -30,11 +28,8 @@ class Pairer(Transformer):
         neg_label_func: Callable[[CorpusComponent], bool],
         pair_mode: str = "random",
         pair_id_attribute_name: str = "pair_id",
-        pair_id_feat_name=None,
         label_attribute_name: str = "pair_obj_label",
-        label_feat_name=None,
         pair_orientation_attribute_name: str = "pair_orientation",
-        pair_orientation_feat_name=None,
     ):
         assert obj_type in ["speaker", "utterance", "conversation"]
         self.obj_type = obj_type
@@ -42,29 +37,9 @@ class Pairer(Transformer):
         self.pos_label_func = pos_label_func
         self.neg_label_func = neg_label_func
         self.pair_mode = pair_mode
-        self.pair_id_attribute_name = (
-            pair_id_attribute_name if pair_id_feat_name is None else pair_id_feat_name
-        )
-        self.label_attribute_name = (
-            label_attribute_name if label_feat_name is None else label_feat_name
-        )
-        self.pair_orientation_attribute_name = (
-            pair_orientation_attribute_name
-            if pair_orientation_feat_name is None
-            else pair_orientation_feat_name
-        )
-
-        for deprecated_set in [
-            (pair_id_feat_name, "pair_id_feat_name", "pair_id_attribute_name"),
-            (label_feat_name, "label_feat_name", "label_attribute_name"),
-            (
-                pair_orientation_feat_name,
-                "pair_orientation_feat_name",
-                "pair_orientation_attribute_name",
-            ),
-        ]:
-            if deprecated_set[0] is not None:
-                deprecation(f"Pairer's {deprecated_set[1]} parameter", f"{deprecated_set[2]}")
+        self.pair_id_attribute_name = pair_id_attribute_name
+        self.label_attribute_name = label_attribute_name
+        self.pair_orientation_attribute_name = pair_orientation_attribute_name
 
     def _get_pos_neg_objects(self, corpus: Corpus, selector):
         """

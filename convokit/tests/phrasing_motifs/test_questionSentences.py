@@ -1,13 +1,13 @@
 import unittest
 
-from convokit.tests.util import parsed_burr_sir_corpus
 from convokit.phrasing_motifs.questionSentences import QuestionSentences
+from convokit.tests.util import parsed_burr_sir_corpus
 
 
 def parsed_burr_sir_corpus_with_lowercase_are():
     corpus = parsed_burr_sir_corpus()
     for utterance in corpus.iter_utterances():
-        parsed = utterance.get_info("parsed")
+        parsed = utterance.retrieve_meta("parsed")
         for sentence in parsed:
             if sentence["toks"][0]["tok"] == "Are":
                 sentence["toks"][0]["tok"] = "are"
@@ -27,7 +27,7 @@ class TestQuestionSentences(unittest.TestCase):
         for utterance, expected_sentences in zip(
             transformed_corpus.iter_utterances(), expected_sentences_list
         ):
-            self.assertListEqual(expected_sentences, utterance.get_info("questions"))
+            self.assertListEqual(expected_sentences, utterance.retrieve_meta("questions"))
 
     def test_dont_use_caps(self):
         corpus = parsed_burr_sir_corpus_with_lowercase_are()
@@ -40,4 +40,4 @@ class TestQuestionSentences(unittest.TestCase):
         for utterance, expected_sentences in zip(
             transformed_corpus.iter_utterances(), expected_sentences_list
         ):
-            self.assertListEqual(expected_sentences, utterance.get_info("questions"))
+            self.assertListEqual(expected_sentences, utterance.retrieve_meta("questions"))

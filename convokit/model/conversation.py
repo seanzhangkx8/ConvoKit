@@ -1,11 +1,12 @@
-from typing import Dict, List, Callable, Generator, Optional
-from .utterance import Utterance
-from .speaker import Speaker
-from convokit.util import deprecation, warn
-from .corpusComponent import CorpusComponent
 from collections import defaultdict
-from .utteranceNode import UtteranceNode
+from typing import Dict, List, Callable, Generator, Optional
+
+from convokit.util import warn
+from .corpusComponent import CorpusComponent
 from .corpusUtil import *
+from .speaker import Speaker
+from .utterance import Utterance
+from .utteranceNode import UtteranceNode
 
 
 class Conversation(CorpusComponent):
@@ -90,23 +91,6 @@ class Conversation(CorpusComponent):
         """
         return get_utterances_dataframe(self, selector, exclude_meta)
 
-    def get_usernames(self) -> List[str]:
-        """Produces a list of names of all speakers in the Conversation, which can
-        be used in calls to get_speaker() to retrieve specific speakers. Provides no
-        ordering guarantees for the list.
-
-        :return: a list of usernames
-        """
-        deprecation("get_usernames()", "get_speaker_ids()")
-        if self._speaker_ids is None:
-            # first call to get_usernames or iter_speakers; precompute cached list
-            # of usernames
-            self._speaker_ids = set()
-            for ut_id in self._utterance_ids:
-                ut = self._owner.get_utterance(ut_id)
-                self._speaker_ids.add(ut.speaker.name)
-        return list(self._speaker_ids)
-
     def get_speaker_ids(self) -> List[str]:
         """
         Produces a list of ids of all speakers in the Conversation, which can be used in calls to get_speaker()
@@ -132,10 +116,6 @@ class Conversation(CorpusComponent):
         # delegate to the owner Corpus since Conversation does not itself own
         # any Utterances
         return self._owner.get_speaker(speaker_id)
-
-    def get_user(self, speaker_id: str):
-        deprecation("get_user()", "get_speaker()")
-        return self.get_speaker(speaker_id)
 
     def iter_speakers(
         self, selector: Callable[[Speaker], bool] = lambda speaker: True
@@ -175,10 +155,6 @@ class Conversation(CorpusComponent):
                 :return: a pandas DataFrame
         """
         return get_speakers_dataframe(self, selector, exclude_meta)
-
-    def iter_users(self, selector=lambda speaker: True):
-        deprecation("iter_users()", "iter_speakers()")
-        return self.iter_speakers(selector)
 
     def print_conversation_stats(self):
         """

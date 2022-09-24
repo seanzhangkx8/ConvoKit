@@ -6,7 +6,7 @@ from pandas import DataFrame
 from tqdm import tqdm
 
 from convokit.convokitConfig import ConvoKitConfig
-from convokit.util import deprecation, create_safe_id
+from convokit.util import create_safe_id
 from .convoKitIndex import ConvoKitIndex
 from .convoKitMatrix import ConvoKitMatrix
 from .corpusUtil import *
@@ -414,10 +414,6 @@ class Corpus:
         """
         return self.speakers[speaker_id]
 
-    def get_user(self, user_id: str) -> Speaker:
-        deprecation("get_user()", "get_speaker()")
-        return self.get_speaker(user_id)
-
     def get_object(self, obj_type: str, oid: str):
         """
         General Corpus object getter. Gets Speaker / Utterance / Conversation of specified id from the Corpus
@@ -461,10 +457,6 @@ class Corpus:
         """
         return speaker_id in self.speakers
 
-    def has_user(self, speaker_id):
-        deprecation("has_user()", "has_speaker()")
-        return self.has_speaker(speaker_id)
-
     def random_utterance(self) -> Utterance:
         """
         Get a random Utterance from the Corpus
@@ -488,10 +480,6 @@ class Corpus:
         :return: a random Speaker
         """
         return random.choice(list(self.speakers.values()))
-
-    def random_user(self) -> Speaker:
-        deprecation("random_user()", "random_speaker()")
-        return self.random_speaker()
 
     def iter_utterances(
         self, selector: Optional[Callable[[Utterance], bool]] = lambda utt: True
@@ -584,10 +572,6 @@ class Corpus:
         """
         return get_speakers_dataframe(self, selector, exclude_meta)
 
-    def iter_users(self, selector=lambda speaker: True):
-        deprecation("iter_users()", "iter_speakers()")
-        return self.iter_speakers(selector)
-
     def iter_objs(
         self,
         obj_type: str,
@@ -662,25 +646,6 @@ class Corpus:
         """
         assert obj_type in ["speaker", "utterance", "conversation"]
         return [obj.id for obj in self.iter_objs(obj_type, selector)]
-
-    def get_usernames(
-        self, selector: Optional[Callable[[Speaker], bool]] = lambda user: True
-    ) -> Set[str]:
-        """Get names of speakers in the dataset.
-
-        This function will be deprecated and replaced by get_speaker_ids()
-
-        :param selector: optional function that takes in a
-            `Speaker` and returns True to include the speaker's name in the
-            resulting list, or False otherwise.
-
-        :return: Set containing all speaker names selected by the selector
-            function, or all speaker names in the dataset if no selector function
-            was used.
-
-        """
-        deprecation("get_usernames()", "get_speaker_ids()")
-        return set([u.id for u in self.iter_speakers(selector)])
 
     def filter_conversations_by(self, selector: Callable[[Conversation], bool]):
         """
@@ -1365,7 +1330,7 @@ class Corpus:
             for k, v in entries.items():
                 try:
                     obj = getter(k)
-                    obj.set_info(field, v)
+                    obj.add_meta(field, v)
                 except:
                     continue
 
@@ -1529,7 +1494,7 @@ class Corpus:
                 self.set_speaker_convo_info(speaker, convo, "n_utterances", len(sorted_utts))
         for speaker in self.iter_speakers():
             try:
-                speaker.set_info("n_convos", len(speaker.retrieve_meta("conversations")))
+                speaker.add_meta("n_convos", len(speaker.retrieve_meta("conversations")))
             except:
                 continue
 
@@ -1537,7 +1502,7 @@ class Corpus:
                 speaker.retrieve_meta("conversations").items(),
                 key=lambda x: (x[1]["start_time"], x[1]["utterance_ids"][0]),
             )
-            speaker.set_info("start_time", sorted_convos[0][1]["start_time"])
+            speaker.add_meta("start_time", sorted_convos[0][1]["start_time"])
             for idx, (convo_id, _) in enumerate(sorted_convos):
                 self.set_speaker_convo_info(speaker.id, convo_id, "idx", idx)
 

@@ -1,6 +1,6 @@
-from convokit.text_processing import TextProcessor, TextParser, TextToArcs
-from convokit.phrasing_motifs import CensorNouns, QuestionSentences
 from convokit.convokitPipeline import ConvokitPipeline
+from convokit.phrasing_motifs import CensorNouns, QuestionSentences
+from convokit.text_processing import TextProcessor, TextParser, TextToArcs
 
 """
 Some pipelines to compute the feature representations used in each Expected Context Model demo.
@@ -11,11 +11,12 @@ def parliament_arc_pipeline():
     return ConvokitPipeline(
         [
             # to avoid most computations, we'll only run the pipeline if the desired attributes don't exist
-            ("parser", TextParser(input_filter=lambda utt, aux: utt.get_info("arcs") is None)),
+            ("parser", TextParser(input_filter=lambda utt, aux: utt.retrieve_meta("arcs") is None)),
             (
                 "censor_nouns",
                 CensorNouns(
-                    "parsed_censored", input_filter=lambda utt, aux: utt.get_info("arcs") is None
+                    "parsed_censored",
+                    input_filter=lambda utt, aux: utt.retrieve_meta("arcs") is None,
                 ),
             ),
             (
@@ -24,7 +25,7 @@ def parliament_arc_pipeline():
                     "arc_arr",
                     input_field="parsed_censored",
                     root_only=True,
-                    input_filter=lambda utt, aux: utt.get_info("arcs") is None,
+                    input_filter=lambda utt, aux: utt.retrieve_meta("arcs") is None,
                 ),
             ),
             (
@@ -32,7 +33,7 @@ def parliament_arc_pipeline():
                 QuestionSentences(
                     "q_arc_arr",
                     input_field="arc_arr",
-                    input_filter=lambda utt, aux: utt.get_info("q_arcs") is None,
+                    input_filter=lambda utt, aux: utt.retrieve_meta("q_arcs") is None,
                 ),
             ),
             (
@@ -41,7 +42,7 @@ def parliament_arc_pipeline():
                     output_field="arcs",
                     input_field="arc_arr",
                     proc_fn=lambda x: "\n".join(x),
-                    input_filter=lambda utt, aux: utt.get_info("arcs") is None,
+                    input_filter=lambda utt, aux: utt.retrieve_meta("arcs") is None,
                 ),
             ),
             (
@@ -50,7 +51,7 @@ def parliament_arc_pipeline():
                     output_field="q_arcs",
                     input_field="q_arc_arr",
                     proc_fn=lambda x: "\n".join(x),
-                    input_filter=lambda utt, aux: utt.get_info("q_arcs") is None,
+                    input_filter=lambda utt, aux: utt.retrieve_meta("q_arcs") is None,
                 ),
             ),
         ]
@@ -63,14 +64,15 @@ def wiki_arc_pipeline():
             (
                 "parser",
                 TextParser(
-                    input_filter=lambda utt, aux: (utt.get_info("arcs") is None)
-                    and (utt.get_info("parsed") is None)
+                    input_filter=lambda utt, aux: (utt.retrieve_meta("arcs") is None)
+                    and (utt.retrieve_meta("parsed") is None)
                 ),
             ),
             (
                 "censor_nouns",
                 CensorNouns(
-                    "parsed_censored", input_filter=lambda utt, aux: utt.get_info("arcs") is None
+                    "parsed_censored",
+                    input_filter=lambda utt, aux: utt.retrieve_meta("arcs") is None,
                 ),
             ),
             (
@@ -79,7 +81,7 @@ def wiki_arc_pipeline():
                     "arc_arr",
                     input_field="parsed_censored",
                     root_only=False,
-                    input_filter=lambda utt, aux: utt.get_info("arcs") is None,
+                    input_filter=lambda utt, aux: utt.retrieve_meta("arcs") is None,
                 ),
             ),
             (
@@ -88,7 +90,7 @@ def wiki_arc_pipeline():
                     output_field="arcs",
                     input_field="arc_arr",
                     proc_fn=lambda x: "\n".join(x),
-                    input_filter=lambda utt, aux: utt.get_info("arcs") is None,
+                    input_filter=lambda utt, aux: utt.retrieve_meta("arcs") is None,
                 ),
             ),
         ]
@@ -98,14 +100,14 @@ def wiki_arc_pipeline():
 def scotus_arc_pipeline():
     return ConvokitPipeline(
         [
-            ("parser", TextParser(input_filter=lambda utt, aux: utt.get_info("arcs") is None)),
+            ("parser", TextParser(input_filter=lambda utt, aux: utt.retrieve_meta("arcs") is None)),
             (
                 "arcs",
                 TextToArcs(
                     "arc_arr",
                     input_field="parsed",
                     root_only=False,
-                    input_filter=lambda utt, aux: utt.get_info("arcs") is None,
+                    input_filter=lambda utt, aux: utt.retrieve_meta("arcs") is None,
                 ),
             ),
             (
@@ -114,7 +116,7 @@ def scotus_arc_pipeline():
                     output_field="arcs",
                     input_field="arc_arr",
                     proc_fn=lambda x: "\n".join(x),
-                    input_filter=lambda utt, aux: utt.get_info("arcs") is None,
+                    input_filter=lambda utt, aux: utt.retrieve_meta("arcs") is None,
                 ),
             ),
         ]
@@ -130,7 +132,7 @@ def switchboard_text_pipeline():
                 TextProcessor(
                     proc_fn=lambda x: x,
                     output_field="alpha_text",
-                    input_filter=lambda utt, aux: utt.get_info("alpha_text") is None,
+                    input_filter=lambda utt, aux: utt.retrieve_meta("alpha_text") is None,
                 ),
             )
         ]

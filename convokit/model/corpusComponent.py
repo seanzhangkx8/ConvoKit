@@ -1,6 +1,7 @@
-from .convoKitMeta import ConvoKitMeta
-from convokit.util import warn, deprecation
 from typing import List, Optional
+
+from convokit.util import warn
+from .convoKitMeta import ConvoKitMeta
 
 
 class CorpusComponent:
@@ -132,25 +133,6 @@ class CorpusComponent:
         :param value: value of metadata attribute
         :return: None
         """
-        self.meta[key] = value
-
-    def get_info(self, key):
-        """
-        Gets attribute <key> of the corpus object. Returns None if the corpus object does not have this attribute.
-        :param key: name of attribute
-        :return: attribute <key>
-        """
-        deprecation("get_info()", "retrieve_meta()")
-        return self.meta.get(key, None)
-
-    def set_info(self, key, value):
-        """
-        Sets attribute <key> of the corpus object to <value>.
-        :param key: name of attribute
-        :param value: value to set
-        :return: None
-        """
-        deprecation("set_info()", "add_meta()")
         self.meta[key] = value
 
     def get_vector(

@@ -183,7 +183,7 @@ def parsed_burr_sir_corpus():
         [BURR_SIR_SENTENCE_3, BURR_SIR_SENTENCE_4],
     ]
     for utterance, sentences in zip(corpus.iter_utterances(), sentence_lists):
-        utterance.set_info("sentences", sentences)
+        utterance.add_meta("sentences", sentences)
 
     return corpus
 

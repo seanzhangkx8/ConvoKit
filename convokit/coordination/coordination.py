@@ -1,11 +1,12 @@
-import pkg_resources
-from convokit.model import Corpus, Speaker, Utterance
 from collections import defaultdict
 from typing import Callable, Tuple, List, Dict, Optional, Collection, Union
-from .coordinationScore import CoordinationScore, CoordinationWordCategories
 
+import pkg_resources
+
+from convokit.model import Corpus, Speaker, Utterance
 from convokit.transformer import Transformer
 from convokit.util import deprecation
+from .coordinationScore import CoordinationScore, CoordinationWordCategories
 
 
 class Coordination(Transformer):
@@ -445,15 +446,13 @@ class Coordination(Transformer):
         speaker_thresh_indiv: int,
         target_thresh_indiv: int,
         utterances_thresh_indiv: int,
-        utterance_thresh_func: Optional[Callable[[Tuple[Utterance, Utterance]], bool]] = None,
+        utterance_thresh_func: Optional[Callable[[Utterance, Utterance], bool]] = None,
         focus: str = "speakers",
         split_by_attribs: Optional[List[str]] = None,
         speaker_utterance_selector: Callable[
-            [Tuple[Utterance, Utterance]], bool
+            [Utterance, Utterance], bool
         ] = lambda utt1, utt2: True,
-        target_utterance_selector: Callable[
-            [Tuple[Utterance, Utterance]], bool
-        ] = lambda utt1, utt2: True,
+        target_utterance_selector: Callable[[Utterance, Utterance], bool] = lambda utt1, utt2: True,
     ) -> CoordinationScore:
         assert not isinstance(speakers, str)
         assert focus == "speakers" or focus == "targets"
@@ -479,8 +478,6 @@ class Coordination(Transformer):
                     speaker, utt2, split_by_attribs
                 ), Coordination._annot_speaker(target, utt1, split_by_attribs)
 
-                # speaker_has_attribs = Coordination._utterance_has_attribs(utt2, speaker_attribs)
-                # target_has_attribs = Coordination._utterance_has_attribs(utt1, target_attribs)
                 speaker_filter = speaker_utterance_selector(utt2, utt1)
                 target_filter = target_utterance_selector(utt2, utt1)
 

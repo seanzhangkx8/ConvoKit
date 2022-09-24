@@ -1,12 +1,12 @@
-import numpy as np
-import scipy.stats
-import pandas as pd
-from scipy.sparse import csr_matrix
 from typing import Dict, Optional, Callable
 
-from convokit.util import deprecation
-from convokit.transformer import Transformer
+import numpy as np
+import pandas as pd
+import scipy.stats
+from scipy.sparse import csr_matrix
+
 from convokit.model import Corpus, Conversation
+from convokit.transformer import Transformer
 from .hypergraph import Hypergraph
 
 
@@ -71,15 +71,11 @@ class HyperConvo(Transformer):
         prefix_len: int = 10,
         min_convo_len: int = 10,
         vector_name: str = "hyperconvo",
-        feat_name=None,
         invalid_val: float = np.nan,
     ):
         self.prefix_len = prefix_len
         self.min_convo_len = min_convo_len
-        self.vector_name = vector_name if feat_name is None else feat_name
-        if feat_name is not None:
-            deprecation("HyperConvo's feat_name parameter", "vector_name")
-
+        self.vector_name = vector_name
         self.invalid_val = invalid_val
 
     def transform(

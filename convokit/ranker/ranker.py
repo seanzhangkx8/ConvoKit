@@ -1,8 +1,8 @@
 from typing import List, Callable, Union
+
 import pandas as pd
 
 from convokit import Corpus, Transformer, CorpusComponent
-from convokit.util import deprecation
 
 
 class Ranker(Transformer):
@@ -20,22 +20,12 @@ class Ranker(Transformer):
         obj_type: str,
         score_func: Callable[[CorpusComponent], Union[int, float]],
         score_attribute_name: str = "score",
-        score_feat_name=None,
         rank_attribute_name: str = "rank",
-        rank_feat_name=None,
     ):
         self.obj_type = obj_type
         self.score_func = score_func
-        self.score_attribute_name = (
-            score_attribute_name if score_feat_name is None else score_feat_name
-        )
-        self.rank_attribute_name = rank_attribute_name if rank_feat_name is None else rank_feat_name
-
-        if score_feat_name is not None:
-            deprecation("Ranker's score_feat_name parameter", "score_attribute_name")
-
-        if rank_feat_name is not None:
-            deprecation("Ranker's rank_feat_name parameter", "rank_attribute_name")
+        self.score_attribute_name = score_attribute_name
+        self.rank_attribute_name = rank_attribute_name
 
     def transform(
         self, corpus: Corpus, y=None, selector: Callable[[CorpusComponent], bool] = lambda obj: True

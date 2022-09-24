@@ -5,6 +5,5 @@ from .corpus import Corpus
 from .corpusComponent import CorpusComponent
 from .corpus_helpers import *
 from .speaker import Speaker
-from .user import User
 from .utterance import Utterance
 from .utteranceNode import UtteranceNode

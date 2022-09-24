@@ -1,7 +1,7 @@
-from convokit.model import Speaker
-from convokit.util import deprecation
 from collections import defaultdict
-from typing import Callable, Tuple, List, Dict, Optional, Collection, Hashable, Union
+from typing import Dict, Optional, Hashable, Union
+
+from convokit.model import Speaker
 
 CoordinationWordCategories = [
     "article",
@@ -47,10 +47,6 @@ class CoordinationScore(dict):
         :param marker: The marker to return scores for.
         """
         return {speaker: scores[marker] for speaker, scores in self.items()}
-
-    def averages_by_user(self):
-        deprecation("averages_by_user()", "averages_by_speaker()")
-        return {speaker: sum(scores.values()) / len(scores) for speaker, scores in self.items()}
 
     def averages_by_speaker(self) -> Dict[Union[Speaker, Hashable], float]:
         """Return a dictionary from speakers to the average of each speaker's

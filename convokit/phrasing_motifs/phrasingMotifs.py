@@ -1,8 +1,9 @@
-from convokit.text_processing import TextProcessor
 import itertools
-from collections import defaultdict
 import json
 import os
+from collections import defaultdict
+
+from convokit.text_processing import TextProcessor
 
 
 class PhrasingMotifs(TextProcessor):
@@ -102,7 +103,7 @@ class PhrasingMotifs(TextProcessor):
         sent_dict = {}
         for utterance in corpus.iter_utterances():
             if self.fit_filter(utterance):
-                for idx, sent in enumerate(utterance.get_info(self.input_field)):
+                for idx, sent in enumerate(utterance.retrieve_meta(self.input_field)):
 
                     sent_dict["%s__%d" % (utterance.id, idx)] = sent.split()
         return sent_dict

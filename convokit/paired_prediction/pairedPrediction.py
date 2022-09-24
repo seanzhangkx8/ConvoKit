@@ -1,12 +1,13 @@
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler
+from typing import List, Callable
+
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import cross_val_score, KFold
-from typing import List, Callable
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+
 from convokit import Transformer, CorpusComponent, Corpus
-from .util import *
 from convokit.classifier.util import get_coefs_helper
-from convokit.util import deprecation
+from .util import *
 
 
 class PairedPrediction(Transformer):
@@ -33,11 +34,8 @@ class PairedPrediction(Transformer):
         pred_feats: List[str],
         clf=None,
         pair_id_attribute_name: str = "pair_id",
-        pair_id_feat_name=None,
         label_attribute_name: str = "pair_obj_label",
-        label_feat_name=None,
         pair_orientation_attribute_name: str = "pair_orientation",
-        pair_orientation_feat_name=None,
     ):
 
         assert obj_type in ["speaker", "utterance", "conversation"]
@@ -53,31 +51,9 @@ class PairedPrediction(Transformer):
             else clf
         )
         self.pred_feats = pred_feats
-        self.pair_id_attribute_name = (
-            pair_id_attribute_name if pair_id_feat_name is None else pair_id_feat_name
-        )
-        self.label_attribute_name = (
-            label_attribute_name if label_feat_name is None else label_feat_name
-        )
-        self.pair_orientation_attribute_name = (
-            pair_orientation_attribute_name
-            if pair_orientation_feat_name is None
-            else pair_orientation_feat_name
-        )
-
-        for deprecated_set in [
-            (pair_id_feat_name, "pair_id_feat_name", "pair_id_attribute_name"),
-            (label_feat_name, "label_feat_name", "label_attribute_name"),
-            (
-                pair_orientation_feat_name,
-                "pair_orientation_feat_name",
-                "pair_orientation_attribute_name",
-            ),
-        ]:
-            if deprecated_set[0] is not None:
-                deprecation(
-                    f"PairedPrediction's {deprecated_set[1]} parameter", f"{deprecated_set[2]}"
-                )
+        self.pair_id_attribute_name = pair_id_attribute_name
+        self.label_attribute_name = label_attribute_name
+        self.pair_orientation_attribute_name = pair_orientation_attribute_name
 
     def fit(
         self, corpus: Corpus, y=None, selector: Callable[[CorpusComponent], bool] = lambda x: True

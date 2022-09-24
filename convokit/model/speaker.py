@@ -1,6 +1,6 @@
 from functools import total_ordering
-from typing import Dict, List, Optional, Callable
-from convokit.util import deprecation
+from typing import Dict, List, Optional
+
 from .corpusComponent import CorpusComponent
 from .corpusUtil import *
 
@@ -27,13 +27,11 @@ class Speaker(CorpusComponent):
         self,
         owner=None,
         id: str = None,
-        name: str = None,
         utts=None,
         convos=None,
         meta: Optional[Dict] = None,
     ):
-        name_var = id if id is not None else name  # to be deprecated
-        super().__init__(obj_type="speaker", owner=owner, id=name_var, meta=meta)
+        super().__init__(obj_type="speaker", owner=owner, id=id, meta=meta)
         self.utterances = utts if utts is not None else dict()
         self.conversations = convos if convos is not None else dict()
         # self._split_attribs = set()
@@ -54,17 +52,6 @@ class Speaker(CorpusComponent):
     #
     #     self._split_attribs = set(attribs)
     #     # self._update_uid()
-
-    def _get_name(self):
-        deprecation("speaker.name", "speaker.id")
-        return self._id
-
-    def _set_name(self, value: str):
-        deprecation("speaker.name", "speaker.id")
-        self._id = value
-        # self._update_uid()
-
-    name = property(_get_name, _set_name)
 
     def _add_utterance(self, utt):
         self.utterances[utt.id] = utt
