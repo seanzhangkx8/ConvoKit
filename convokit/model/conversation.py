@@ -460,6 +460,10 @@ class Conversation(CorpusComponent):
         ]
         return paths
 
+    @staticmethod
+    def generate_default_conversation_id(utterance_id):
+        return f"__default_conversation__{utterance_id}"
+
     def __hash__(self):
         return super().__hash__()
 

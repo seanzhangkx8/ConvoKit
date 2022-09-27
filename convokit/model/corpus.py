@@ -198,7 +198,9 @@ class Corpus:
             # if corpus is nonempty (check for self.utterances), construct the conversation
             # data from the utterance list
             if hasattr(self, "utterances"):
-                self.conversations = initialize_conversations(self, self.utterances, convos_data)
+                self.conversations = initialize_conversations(
+                    self, convos_data, fill_missing_convo_ids=True
+                )
                 self.meta_index.enable_type_check()
                 self.update_speakers_data()
 
@@ -1063,8 +1065,12 @@ class Corpus:
                 self.utterances[new_utt_id] = new_utt
                 self.speakers[new_utt.speaker.id]._add_utterance(new_utt)
 
+        # add convo ids if new utts are missing convo ids
+        fill_missing_conversation_ids(self.utterances)
+
         # update corpus conversations + (link convo <-> utt)
         new_convos = defaultdict(list)
+        convo_id_to_root_utt_id = dict()
         for utt in new_utterances.values():
             if utt.conversation_id in self.conversations:
                 if (not with_checks) or (
@@ -1073,11 +1079,16 @@ class Corpus:
                     self.conversations[utt.conversation_id]._add_utterance(utt)
             else:
                 new_convos[utt.conversation_id].append(utt.id)
+            if utt.reply_to is None:
+                convo_id_to_root_utt_id[utt.conversation_id] = utt.id
+
         for convo_id, convo_utts in new_convos.items():
             new_convo = Conversation(owner=self, id=convo_id, utterances=convo_utts, meta=None)
             self.conversations[convo_id] = new_convo
             # (link speaker -> convo)
-            new_convo_speaker = self.speakers[new_convo.get_utterance(convo_id).speaker.id]
+            convo_root_utt_id = convo_id_to_root_utt_id[convo_id]
+            convo_root_utt = new_convo.get_utterance(convo_root_utt_id)
+            new_convo_speaker = self.speakers[convo_root_utt.speaker.id]
             new_convo_speaker._add_conversation(new_convo)
 
         # update speaker metadata (only in cases of conflict)

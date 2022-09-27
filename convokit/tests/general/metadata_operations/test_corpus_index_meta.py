@@ -1,6 +1,7 @@
 import unittest
 
 from convokit.model import Utterance, Speaker, Corpus
+from convokit.tests.general.metadata_operations.corpus_index_meta_helpers import get_basic_corpus
 from convokit.tests.test_utils import reload_corpus_in_db_mode
 
 
@@ -27,8 +28,7 @@ class CorpusIndexMeta(unittest.TestCase):
         self.corpus.get_utterance("1").meta["foo"] = "bar2"
         self.corpus.get_utterance("2").meta["hey"] = "jude"
 
-        self.corpus.get_conversation(None).meta["convo_meta"] = 1
-
+        self.corpus.get_conversation("convo_id_0").meta["convo_meta"] = 1
         self.corpus.get_speaker("alice").meta["surname"] = 1.0
 
         self.assertEqual(self.corpus.meta_index.utterances_index["foo"], [str(type("bar"))])
@@ -62,19 +62,11 @@ class CorpusIndexMeta(unittest.TestCase):
         self.assertTrue("donkey" in new_corpus.meta_index.speakers_index)
 
     def corpus_dump(self):
-        self.corpus = Corpus(
-            utterances=[
-                Utterance(id="0", text="hello world", speaker=Speaker(id="alice")),
-                Utterance(id="1", text="my name is bob", speaker=Speaker(id="bob")),
-                Utterance(id="2", text="this is a test", speaker=Speaker(id="charlie")),
-            ]
-        )
-
         self.corpus.get_utterance("0").meta["foo"] = "bar"
         self.corpus.get_utterance("1").meta["foo"] = "bar2"
         self.corpus.get_utterance("2").meta["hey"] = "jude"
 
-        self.corpus.get_conversation(None).meta["convo_meta"] = 1
+        self.corpus.get_conversation("convo_id_0").meta["convo_meta"] = 1
 
         self.corpus.get_speaker("alice").meta["surname"] = 1.0
         self.corpus.dump("test_index_meta_corpus", base_path=".")
@@ -102,13 +94,7 @@ class CorpusIndexMeta(unittest.TestCase):
 
 class TestWithMem(CorpusIndexMeta):
     def setUp(self) -> None:
-        self.corpus = Corpus(
-            utterances=[
-                Utterance(id="0", text="hello world", speaker=Speaker(id="alice")),
-                Utterance(id="1", text="my name is bob", speaker=Speaker(id="bob")),
-                Utterance(id="2", text="this is a test", speaker=Speaker(id="charlie")),
-            ]
-        )
+        self.corpus = get_basic_corpus()
 
     def test_basic_functions(self):
         self.basic_functions()
@@ -128,15 +114,7 @@ class TestWithMem(CorpusIndexMeta):
 
 class TestWithDB(CorpusIndexMeta):
     def setUp(self) -> None:
-        self.corpus = reload_corpus_in_db_mode(
-            Corpus(
-                utterances=[
-                    Utterance(id="0", text="hello world", speaker=Speaker(id="alice")),
-                    Utterance(id="1", text="my name is bob", speaker=Speaker(id="bob")),
-                    Utterance(id="2", text="this is a test", speaker=Speaker(id="charlie")),
-                ]
-            )
-        )
+        self.corpus = reload_corpus_in_db_mode(get_basic_corpus())
 
     def test_basic_functions(self):
         self.basic_functions()

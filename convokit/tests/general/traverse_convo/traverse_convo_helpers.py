@@ -8,6 +8,7 @@ def construct_multiple_convo_id_corpus():
             Utterance(
                 id="0",
                 text="hello world",
+                conversation_id="convo_id_0",
                 reply_to=None,
                 speaker=Speaker(id="alice"),
                 timestamp=0,
@@ -15,6 +16,7 @@ def construct_multiple_convo_id_corpus():
             Utterance(
                 id="1",
                 text="my name is bob",
+                conversation_id="convo_id_0",
                 reply_to="0",
                 speaker=Speaker(id="bob"),
                 timestamp=2,
@@ -22,6 +24,7 @@ def construct_multiple_convo_id_corpus():
             Utterance(
                 id="2",
                 text="this is a test",
+                conversation_id="convo_id_0",
                 reply_to="1",
                 speaker=Speaker(id="charlie"),
                 timestamp=1,
@@ -29,6 +32,7 @@ def construct_multiple_convo_id_corpus():
             Utterance(
                 id="3",
                 text="hello world 2",
+                conversation_id="convo_id_0",
                 reply_to=None,
                 speaker=Speaker(id="alice2"),
                 timestamp=0,
@@ -44,6 +48,7 @@ def construct_nonexistent_reply_to_corpus():
             Utterance(
                 id="0",
                 text="hello world",
+                conversation_id="convo_id_0",
                 reply_to=None,
                 speaker=Speaker(id="alice"),
                 timestamp=0,
@@ -51,6 +56,7 @@ def construct_nonexistent_reply_to_corpus():
             Utterance(
                 id="1",
                 text="my name is bob",
+                conversation_id="convo_id_0",
                 reply_to="0",
                 speaker=Speaker(id="bob"),
                 timestamp=2,
@@ -58,6 +64,7 @@ def construct_nonexistent_reply_to_corpus():
             Utterance(
                 id="2",
                 text="this is a test",
+                conversation_id="convo_id_0",
                 reply_to="1",
                 speaker=Speaker(id="charlie"),
                 timestamp=1,
@@ -65,6 +72,7 @@ def construct_nonexistent_reply_to_corpus():
             Utterance(
                 id="3",
                 text="hello world 2",
+                conversation_id="convo_id_0",
                 reply_to="9",
                 speaker=Speaker(id="alice2"),
                 timestamp=0,

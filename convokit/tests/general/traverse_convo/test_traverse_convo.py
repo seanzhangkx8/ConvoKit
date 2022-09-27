@@ -12,11 +12,11 @@ from convokit.tests.test_utils import reload_corpus_in_db_mode
 class CorpusTraversal(unittest.TestCase):
     def broken_convos(self):
         # test broken convo where there are multiple conversation_ids
-        convo = self.multiple_convo_id_corpus.get_conversation(None)
+        convo = self.multiple_convo_id_corpus.get_conversation("convo_id_0")
         self.assertRaises(ValueError, lambda: list(convo.traverse("dfs", as_utterance=True)))
 
         # test broken convo where utterance replies to something not in Conversation
-        convo = self.nonexistent_reply_to_corpus.get_conversation(None)
+        convo = self.nonexistent_reply_to_corpus.get_conversation("convo_id_0")
         self.assertRaises(ValueError, lambda: list(convo.traverse("dfs", as_utterance=True)))
 
     def bfs_traversal(self):
