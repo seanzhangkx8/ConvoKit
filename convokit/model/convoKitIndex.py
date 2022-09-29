@@ -28,6 +28,18 @@ class ConvoKitIndex:
         self.type_check = True  # toggle-able to enable/disable type checks on metadata additions
         self.lock_metadata_deletion = {"utterance": True, "conversation": True, "speaker": True}
 
+    def create_new_index(self, obj_type: str, key: str):
+        """
+        Create a new entry in the obj_type index with a blank type list,
+        representing an "Any" type which might be later refined.
+
+        :param obj_type: utterance, conversation, or speaker
+        :param key: string
+        :param class_type: class type
+        """
+        if key not in self.indices[obj_type]:
+            self.indices[obj_type][key] = []
+
     def update_index(self, obj_type: str, key: str, class_type: str):
         """
         Append the class_type to the index

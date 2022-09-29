@@ -33,7 +33,7 @@ class CorpusComponent:
 
         if meta is None:
             meta = dict()
-        self.meta = self.init_meta(meta)
+        self._meta = self.init_meta(meta)
 
     def get_owner(self):
         return self._owner
@@ -64,11 +64,11 @@ class CorpusComponent:
                 previous_owner.storage.delete_data("meta", self.meta.storage_key)
             else:
                 del self._temp_storage
-            self.meta = self.init_meta(meta_vals)
+            self._meta = self.init_meta(meta_vals)
 
     owner = property(get_owner, set_owner)
 
-    def init_meta(self, meta):
+    def init_meta(self, meta, overwrite=False):
         if self._owner is None:
             # ConvoKitMeta instances are not allowed for ownerless (standalone)
             # components since they must be backed by a StorageManager. In this
@@ -79,7 +79,7 @@ class CorpusComponent:
         else:
             if isinstance(meta, ConvoKitMeta) and meta.owner is self._owner:
                 return meta
-            ck_meta = ConvoKitMeta(self, self.owner.meta_index, self.obj_type)
+            ck_meta = ConvoKitMeta(self, self.owner.meta_index, self.obj_type, overwrite=overwrite)
             for key, value in meta.items():
                 ck_meta[key] = value
             return ck_meta
@@ -99,6 +99,14 @@ class CorpusComponent:
             self._id = value
 
     id = property(get_id, set_id)
+
+    def get_meta(self):
+        return self._meta
+
+    def set_meta(self, new_meta):
+        self._meta = self.init_meta(new_meta, overwrite=True)
+
+    meta = property(get_meta, set_meta)
 
     def get_data(self, property_name):
         if self._owner is None:

@@ -83,7 +83,7 @@ class CorpusIndexMeta(unittest.TestCase):
 
     def multiple_types(self):
         self.corpus.get_utterance("2").meta["hey"] = None
-        self.assertEqual(self.corpus.meta_index.utterances_index.get("hey", None), None)
+        self.assertEqual(self.corpus.meta_index.utterances_index["hey"], [])
         self.corpus.get_utterance("0").meta["hey"] = 5
         self.assertEqual(self.corpus.meta_index.utterances_index["hey"], [str(type(5))])
         self.corpus.get_utterance("1").meta["hey"] = "five"

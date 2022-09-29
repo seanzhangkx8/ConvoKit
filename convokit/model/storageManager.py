@@ -52,7 +52,7 @@ class StorageManager(metaclass=ABCMeta):
         component_type: str,
         component_id: str,
         property_name: Optional[str] = None,
-        object_type: Optional[List[str]] = None,
+        index=None,
     ):
         """
         Retrieve the property data for the component of type component_type with
@@ -70,7 +70,7 @@ class StorageManager(metaclass=ABCMeta):
         component_id: str,
         property_name: str,
         new_value,
-        object_type: Optional[List[str]] = None,
+        index=None,
     ):
         """
         Set or update the property data for the component of type component_type
@@ -97,6 +97,14 @@ class StorageManager(metaclass=ABCMeta):
         initial empty state; Python will garbage-collect the now-unreferenced
         old data entries). This is used for cleanup after destructive Corpus
         operations.
+        """
+        return NotImplemented
+
+    @abstractmethod
+    def count_entries(self, component_type: str):
+        """
+        Count the number of entries held for the specified component type by
+        this StorageManager instance
         """
         return NotImplemented
 
@@ -157,7 +165,7 @@ class MemStorageManager(StorageManager):
         component_type: str,
         component_id: str,
         property_name: Optional[str] = None,
-        object_type: Optional[List[str]] = None,
+        index=None,
     ):
         collection = self.get_collection(component_type)
         if component_id not in collection:
@@ -175,7 +183,7 @@ class MemStorageManager(StorageManager):
         component_id: str,
         property_name: str,
         new_value,
-        object_type: Optional[List[str]] = None,
+        index=None,
     ):
         collection = self.get_collection(component_type)
         # don't create new collections if the ID is not found; this is supposed to be handled in the
@@ -202,6 +210,9 @@ class MemStorageManager(StorageManager):
     def clear_all_data(self):
         for key in self.data:
             self.data[key] = {}
+
+    def count_entries(self, component_type: str):
+        return len(self.get_collection(component_type))
 
 
 class DBStorageManager(StorageManager):
@@ -252,14 +263,14 @@ class DBStorageManager(StorageManager):
         collection = self.get_collection(component_type)
         if overwrite or not self.has_data_for_component(component_type, component_id):
             data = initial_value if initial_value is not None else {}
-            collection.update_one({"_id": component_id}, {"$set": data}, upsert=True)
+            collection.replace_one({"_id": component_id}, data, upsert=True)
 
     def get_data(
         self,
         component_type: str,
         component_id: str,
         property_name: Optional[str] = None,
-        object_type: Optional[List[str]] = None,
+        index=None,
     ):
         collection = self.get_collection(component_type)
         all_fields = collection.find_one({"_id": component_id})
@@ -268,10 +279,17 @@ class DBStorageManager(StorageManager):
                 f"This StorageManager does not have an entry for the {component_type} with id {component_id}."
             )
         if property_name is None:
+            # if some data is known to be binary type, unpack it
+            if index is not None:
+                for key in all_fields:
+                    if index.get(key, None) == ["bin"]:
+                        all_fields[key] = pickle.loads(all_fields[key])
+            # do not include the MongoDB-specific _id field
+            del all_fields["_id"]
             return all_fields
         else:
             result = all_fields[property_name]
-            if object_type == ["bin"]:
+            if index is not None and index.get(property_name, None) == ["bin"]:
                 # binary data must be unpacked
                 result = pickle.loads(result)
             return result
@@ -282,10 +300,10 @@ class DBStorageManager(StorageManager):
         component_id: str,
         property_name: str,
         new_value,
-        object_type: Optional[List[str]] = None,
+        index=None,
     ):
         data = self.get_data(component_type, component_id)
-        if object_type == ["bin"]:
+        if index is not None and index.get(property_name, None) == ["bin"]:
             # non-serializable types must go through pickling then be encoded as bson.Binary
             new_value = bson.Binary(pickle.dumps(new_value))
         data[property_name] = new_value
@@ -307,3 +325,6 @@ class DBStorageManager(StorageManager):
         for key in self.data:
             self.data[key].drop()
             self.data[key] = self.db[self._get_collection_name(key)]
+
+    def count_entries(self, component_type: str):
+        return self.get_collection(component_type).estimated_document_count()

@@ -152,7 +152,11 @@ class Utterance(CorpusComponent):
         try:
             return (
                 self.id == other.id
-                and self.conversation_id == other.conversation_id
+                and (
+                    self.conversation_id is None
+                    or other.conversation_id is None
+                    or self.conversation_id == other.conversation_id
+                )
                 and self.reply_to == other.reply_to
                 and self.speaker == other.speaker
                 and self.timestamp == other.timestamp

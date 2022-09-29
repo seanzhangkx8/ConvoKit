@@ -29,14 +29,14 @@ class CorpusMerge(unittest.TestCase):
         self.assertEqual(len(list(merged.iter_speakers())), 6)
 
         for utt_id in all_utt_ids:
-            self.assertTrue(utt_id in merged.storage.get_collection_ids("utterance"))
+            self.assertTrue(merged.storage.has_data_for_component("utterance", utt_id))
         for speaker_id in all_speaker_ids:
-            self.assertTrue(speaker_id in merged.storage.get_collection_ids("speaker"))
+            self.assertTrue(merged.storage.has_data_for_component("speaker", speaker_id))
 
-        for collection in self.base_corpus.storage.data.values():
-            self.assertEqual(len(collection), 0)
-        for collection in self.non_overlapping_corpus.storage.data.values():
-            self.assertEqual(len(collection), 0)
+        for component_type in self.base_corpus.storage.data.keys():
+            self.assertEqual(self.base_corpus.storage.count_entries(component_type), 0)
+        for component_type in self.non_overlapping_corpus.storage.data.keys():
+            self.assertEqual(self.non_overlapping_corpus.storage.count_entries(component_type), 0)
 
     def with_overlap(self):
         """
@@ -55,14 +55,14 @@ class CorpusMerge(unittest.TestCase):
         self.assertEqual(len(list(merged.iter_speakers())), 5)
 
         for utt_id in all_utt_ids:
-            self.assertTrue(utt_id in merged.storage.get_collection_ids("utterance"))
+            self.assertTrue(merged.storage.has_data_for_component("utterance", utt_id))
         for speaker_id in all_speaker_ids:
-            self.assertTrue(speaker_id in merged.storage.get_collection_ids("speaker"))
+            self.assertTrue(merged.storage.has_data_for_component("speaker", speaker_id))
 
-        for collection in self.base_corpus.storage.data.values():
-            self.assertEqual(len(collection), 0)
-        for collection in self.overlapping_corpus.storage.data.values():
-            self.assertEqual(len(collection), 0)
+        for component_type in self.base_corpus.storage.data.keys():
+            self.assertEqual(self.base_corpus.storage.count_entries(component_type), 0)
+        for component_type in self.overlapping_corpus.storage.data.keys():
+            self.assertEqual(self.overlapping_corpus.storage.count_entries(component_type), 0)
 
     def overlap_diff_data(self):
         """
@@ -87,19 +87,19 @@ class CorpusMerge(unittest.TestCase):
         self.assertEqual(merged.get_utterance("2").speaker.id, "charlie")
 
         for utt_id in all_utt_ids:
-            self.assertTrue(utt_id in merged.storage.get_collection_ids("utterance"))
+            self.assertTrue(merged.storage.has_data_for_component("utterance", utt_id))
         for speaker_id in all_speaker_ids:
             if (
                 speaker_id == "candace"
             ):  # this speaker shouldn't be present due to overlap prioritization
-                self.assertFalse(speaker_id in merged.storage.get_collection_ids("speaker"))
+                self.assertFalse(merged.storage.has_data_for_component("speaker", speaker_id))
             else:
-                self.assertTrue(speaker_id in merged.storage.get_collection_ids("speaker"))
+                self.assertTrue(merged.storage.has_data_for_component("speaker", speaker_id))
 
-        for collection in self.base_corpus.storage.data.values():
-            self.assertEqual(len(collection), 0)
-        for collection in self.overlapping_corpus.storage.data.values():
-            self.assertEqual(len(collection), 0)
+        for component_type in self.base_corpus.storage.data.keys():
+            self.assertEqual(self.base_corpus.storage.count_entries(component_type), 0)
+        for component_type in self.overlapping_corpus.storage.data.keys():
+            self.assertEqual(self.overlapping_corpus.storage.count_entries(component_type), 0)
 
     def overlap_diff_metadata(self):
         """
@@ -129,16 +129,16 @@ class CorpusMerge(unittest.TestCase):
         self.assertEqual(merged.get_utterance("2").meta["the"], "ringo")
 
         for utt_id in all_utt_ids:
-            self.assertTrue(utt_id in merged.storage.get_collection_ids("utterance"))
-            self.assertTrue(f"utterance_{utt_id}" in merged.storage.get_collection_ids("meta"))
+            self.assertTrue(merged.storage.has_data_for_component("utterance", utt_id))
+            self.assertTrue(merged.storage.has_data_for_component("meta", f"utterance_{utt_id}"))
         for speaker_id in all_speaker_ids:
-            self.assertTrue(speaker_id in merged.storage.get_collection_ids("speaker"))
-            self.assertTrue(f"speaker_{speaker_id}" in merged.storage.get_collection_ids("meta"))
+            self.assertTrue(merged.storage.has_data_for_component("speaker", speaker_id))
+            self.assertTrue(merged.storage.has_data_for_component("meta", f"speaker_{speaker_id}"))
 
-        for collection in self.base_corpus.storage.data.values():
-            self.assertEqual(len(collection), 0)
-        for collection in self.overlapping_corpus.storage.data.values():
-            self.assertEqual(len(collection), 0)
+        for component_type in self.base_corpus.storage.data.keys():
+            self.assertEqual(self.base_corpus.storage.count_entries(component_type), 0)
+        for component_type in self.overlapping_corpus.storage.data.keys():
+            self.assertEqual(self.overlapping_corpus.storage.count_entries(component_type), 0)
 
     def overlap_convo_metadata(self):
         """
@@ -158,23 +158,26 @@ class CorpusMerge(unittest.TestCase):
         self.assertEqual(len(merged.get_conversation("convo1").meta), 3)
         self.assertEqual(merged.get_conversation("convo1").meta["hello"], "food")
 
-        self.assertTrue("convo1" in merged.storage.get_collection_ids("conversation"))
-        self.assertTrue("conversation_convo1" in merged.storage.get_collection_ids("meta"))
+        self.assertTrue(merged.storage.has_data_for_component("conversation", "convo1"))
+        self.assertTrue(merged.storage.has_data_for_component("meta", "conversation_convo1"))
 
         self.assertFalse(
-            "convo1" in self.base_corpus_with_convo_id.storage.get_collection_ids("conversation")
+            self.base_corpus_with_convo_id.storage.has_data_for_component("conversation", "convo1")
         )
         self.assertFalse(
-            "convo1"
-            in self.overlapping_corpus_with_convo_id.storage.get_collection_ids("conversation")
+            self.overlapping_corpus_with_convo_id.storage.has_data_for_component(
+                "conversation", "convo1"
+            )
         )
         self.assertFalse(
-            "conversation_convo1"
-            in self.base_corpus_with_convo_id.storage.get_collection_ids("meta")
+            self.base_corpus_with_convo_id.storage.has_data_for_component(
+                "meta", "conversation_convo1"
+            )
         )
         self.assertFalse(
-            "conversation_convo1"
-            in self.overlapping_corpus_with_convo_id.storage.get_collection_ids("meta")
+            self.overlapping_corpus_with_convo_id.storage.has_data_for_component(
+                "meta", "conversation_convo1"
+            )
         )
 
     def corpus_metadata(self):

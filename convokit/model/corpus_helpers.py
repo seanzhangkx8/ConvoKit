@@ -176,7 +176,7 @@ def unpack_binary_data_for_utts(utterances, filename, utterance_index, exclude_m
     :return:
     """
     for field, field_types in utterance_index.items():
-        if field_types[0] == "bin" and field not in exclude_meta:
+        if len(field_types) > 0 and field_types[0] == "bin" and field not in exclude_meta:
             with open(os.path.join(filename, field + "-bin.p"), "rb") as f:
                 l_bin = pickle.load(f)
             for i, ut in enumerate(utterances):
@@ -211,7 +211,7 @@ def unpack_binary_data(filename, objs_data, object_index, obj_type, exclude_meta
     """
     # unpack speaker meta
     for field, field_types in object_index.items():
-        if field_types[0] == "bin" and field not in exclude_meta:
+        if len(field_types) > 0 and field_types[0] == "bin" and field not in exclude_meta:
             with open(os.path.join(filename, field + "-{}-bin.p".format(obj_type)), "rb") as f:
                 l_bin = pickle.load(f)
             for obj, data in objs_data.items():
@@ -501,7 +501,7 @@ def dump_helper_bin(d: ConvoKitMeta, d_bin: Dict, fields_to_skip=None) -> Dict: 
         if k in fields_to_skip:
             continue
         try:
-            if obj_idx[k][0] == "bin":
+            if len(obj_idx[k]) > 0 and obj_idx[k][0] == "bin":
                 d_out[k] = "{}{}{}".format(BIN_DELIM_L, len(d_bin[k]), BIN_DELIM_R)
                 d_bin[k].append(v)
             else:
@@ -589,17 +589,26 @@ def load_binary_metadata(filename, index, exclude_meta=None):
             if meta_type == ["bin"] and (
                 exclude_meta is None or meta_key not in exclude_meta[component_type]
             ):
+                # filename format differs for utterances versus everything else
+                filename_suffix = (
+                    "-bin.p"
+                    if component_type == "utterance"
+                    else "-{}-bin.p".format(component_type)
+                )
                 try:
-                    with open(
-                        os.path.join(filename, meta_key + "-{}-bin.p".format(component_type)), "rb"
-                    ) as f:
+                    with open(os.path.join(filename, meta_key + filename_suffix), "rb") as f:
                         l_bin = pickle.load(f)
                         binary_data[component_type][meta_key] = l_bin
                 except FileNotFoundError:
                     warn(
                         f"Metadata field {meta_key} is specified to have binary type but no saved binary data was found. This field will be skipped."
                     )
-    return binary_data
+                    # update the exclude_meta list to force this field to get skipped
+                    # in the subsequent corpus loading logic
+                    if exclude_meta is None:
+                        exclude_meta = defaultdict(list)
+                    exclude_meta[component_type].append(meta_key)
+    return binary_data, exclude_meta
 
 
 def load_jsonlist_to_db(
@@ -661,9 +670,9 @@ def load_jsonlist_to_db(
                         del utt_meta[exclude_key]
             if bin_meta is not None:
                 for key, bin_list in bin_meta.items():
-                    bin_locator = utt_meta[key]
+                    bin_locator = utt_meta.get(key, None)
                     if (
-                        type(bin_locator) == "str"
+                        type(bin_locator) == str
                         and bin_locator.startswith(BIN_DELIM_L)
                         and bin_locator.endswith(BIN_DELIM_R)
                     ):
@@ -718,9 +727,9 @@ def load_json_to_db(
         )
         if bin_meta is not None:
             for key, bin_list in bin_meta.items():
-                bin_locator = meta[key]
+                bin_locator = meta.get(key, None)
                 if (
-                    type(bin_locator) == "str"
+                    type(bin_locator) == str
                     and bin_locator.startswith(BIN_DELIM_L)
                     and bin_locator.endswith(BIN_DELIM_R)
                 ):
@@ -745,9 +754,9 @@ def load_corpus_info_to_db(filename, db, collection_prefix, exclude_meta=None, b
         corpus_meta = {k: v for k, v in json.load(f).items() if k not in exclude_meta}
         if bin_meta is not None:
             for key, bin_list in bin_meta.items():
-                bin_locator = corpus_meta[key]
+                bin_locator = corpus_meta.get(key, None)
                 if (
-                    type(bin_locator) == "str"
+                    type(bin_locator) == str
                     and bin_locator.startswith(BIN_DELIM_L)
                     and bin_locator.endswith(BIN_DELIM_R)
                 ):
@@ -756,6 +765,15 @@ def load_corpus_info_to_db(filename, db, collection_prefix, exclude_meta=None, b
         meta_collection.update_one(
             {"_id": f"corpus_{collection_prefix}"}, {"$set": corpus_meta}, upsert=True
         )
+
+
+def clean_up_excluded_meta(meta_index, exclude_meta):
+    """
+    Remove excluded metadata from the metadata index
+    """
+    for component_type, excluded_keys in exclude_meta.items():
+        for key in excluded_keys:
+            meta_index.del_from_index(component_type, key)
 
 
 def populate_db_from_file(
@@ -775,7 +793,7 @@ def populate_db_from_file(
     used by a DBStorageManager, sourcing data from the valid ConvoKit Corpus
     data pointed to by the filename parameter.
     """
-    binary_meta = load_binary_metadata(
+    binary_meta, updated_exclude_meta = load_binary_metadata(
         filename,
         meta_index,
         {
@@ -785,6 +803,14 @@ def populate_db_from_file(
             "corpus": exclude_overall_meta,
         },
     )
+
+    # exclusion lists may have changed if errors were encountered while loading
+    # the binary metadata
+    if updated_exclude_meta is not None:
+        exclude_utterance_meta = updated_exclude_meta["utterance"]
+        exclude_conversation_meta = updated_exclude_meta["conversation"]
+        exclude_speaker_meta = updated_exclude_meta["speaker"]
+        exclude_overall_meta = updated_exclude_meta["corpus"]
 
     # first load the utterance data
     inserted_utt_ids = load_jsonlist_to_db(
@@ -809,6 +835,17 @@ def populate_db_from_file(
     # finally, load the corpus metadata
     load_corpus_info_to_db(
         filename, db, collection_prefix, exclude_overall_meta, binary_meta["corpus"]
+    )
+
+    # make sure skipped metadata isn't kept in the final index
+    clean_up_excluded_meta(
+        meta_index,
+        {
+            "utterance": exclude_utterance_meta,
+            "conversation": exclude_conversation_meta,
+            "speaker": exclude_speaker_meta,
+            "corpus": exclude_overall_meta,
+        },
     )
 
     return inserted_utt_ids
