@@ -213,30 +213,30 @@ class PromptTypes(Transformer):
         reference_min_dists = reference_dists.min(axis=1)
 
         corpus.set_vector_matrix(
-            self.output_field + "__prompt_dists.%s" % self.default_n_types,
+            self.output_field + "__prompt_dists__%s" % self.default_n_types,
             ids=prompt_df.index,
             matrix=prompt_dists,
             columns=["type_%d_dist" % x for x in range(prompt_dists.shape[1])],
         )
         corpus.set_vector_matrix(
-            self.output_field + "__reference_dists.%s" % self.default_n_types,
+            self.output_field + "__reference_dists__%s" % self.default_n_types,
             ids=reference_df.index,
             matrix=reference_dists,
             columns=["type_%d_dist" % x for x in range(prompt_dists.shape[1])],
         )
         for id, assign, dist in zip(prompt_df.index, prompt_assigns, prompt_min_dists):
             corpus.get_utterance(id).add_meta(
-                self.output_field + "__prompt_type.%s" % self.default_n_types, assign
+                self.output_field + "__prompt_type__%s" % self.default_n_types, assign
             )
             corpus.get_utterance(id).add_meta(
-                self.output_field + "__prompt_type_dist.%s" % self.default_n_types, float(dist)
+                self.output_field + "__prompt_type_dist__%s" % self.default_n_types, float(dist)
             )
         for id, assign, dist in zip(reference_df.index, reference_assigns, reference_min_dists):
             corpus.get_utterance(id).add_meta(
-                self.output_field + "__reference_type.%s" % self.default_n_types, assign
+                self.output_field + "__reference_type__%s" % self.default_n_types, assign
             )
             corpus.get_utterance(id).add_meta(
-                self.output_field + "__reference_type_dist.%s" % self.default_n_types, float(dist)
+                self.output_field + "__reference_type_dist__%s" % self.default_n_types, float(dist)
             )
         return corpus
 
@@ -274,13 +274,13 @@ class PromptTypes(Transformer):
         min_dist = min(dists)
         assign = vals[-1]
         utterance.add_meta(
-            self.output_field + "__%s_type.%s" % (side, self.default_n_types), assign
+            self.output_field + "__%s_type__%s" % (side, self.default_n_types), assign
         )
         utterance.add_meta(
-            self.output_field + "__%s_type_dist.%s" % (side, self.default_n_types), float(min_dist)
+            self.output_field + "__%s_type_dist__%s" % (side, self.default_n_types), float(min_dist)
         )
         utterance.add_meta(
-            self.output_field + "__%s_dists.%s" % (side, self.default_n_types),
+            self.output_field + "__%s_dists__%s" % (side, self.default_n_types),
             [float(x) for x in dists],
         )
         utterance.add_meta(self.output_field + "__%s_repr" % side, [float(x) for x in utt_vects[0]])

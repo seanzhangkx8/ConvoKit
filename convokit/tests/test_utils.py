@@ -264,7 +264,7 @@ def burr_spacy_sentence_doc_4():
 
 
 def reload_corpus_in_db_mode(corpus):
-    corpus_id = uuid4().hex
+    corpus_id = "_" + uuid4().hex
     try:
         corpus.dump(corpus_id, base_path=".")
         db_corpus = Corpus(corpus_id, storage_type="db")

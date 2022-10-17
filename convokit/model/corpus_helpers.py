@@ -11,7 +11,7 @@ from typing import Dict, Optional, List, Iterable
 import bson
 from pymongo import UpdateOne
 
-from convokit.util import warn
+from convokit.util import warn, create_safe_id
 from .conversation import Conversation
 from .convoKitIndex import ConvoKitIndex
 from .convoKitMeta import ConvoKitMeta
@@ -33,15 +33,44 @@ KeyVectors = "vectors"
 JSONLIST_BUFFER_SIZE = 1000
 
 
-def get_corpus_id(db_collection_prefix: Optional[str], filename: Optional[str]) -> Optional[str]:
+def get_corpus_id(
+    db_collection_prefix: Optional[str], filename: Optional[str], check_mongodb_compatibility: bool
+) -> Optional[str]:
     if db_collection_prefix is not None:
         # treat the unique collection prefix as the ID (even if a filename is specified)
-        return db_collection_prefix
+        corpus_id = db_collection_prefix
     elif filename is not None:
         # automatically derive an ID from the file path
-        return os.path.basename(os.path.normpath(filename))
+        corpus_id = os.path.basename(os.path.normpath(filename))
     else:
-        return None
+        corpus_id = None
+
+    if check_mongodb_compatibility and corpus_id is not None:
+        compatibility_msg = check_id_for_mongodb(corpus_id)
+        if compatibility_msg is not None:
+            random_id = create_safe_id()
+            warn(
+                f'Attempting to use "{corpus_id}" as DB collection prefix failed because: {compatibility_msg}. Will instead use randomly generated prefix {random_id}.'
+            )
+            corpus_id = random_id
+
+    return corpus_id
+
+
+def check_id_for_mongodb(corpus_id):
+    # List of collection name restrictions from official MongoDB docs:
+    # https://www.mongodb.com/docs/manual/reference/limits/#mongodb-limit-Restriction-on-Collection-Names
+    if "$" in corpus_id:
+        return "contains the restricted character '$'"
+    if len(corpus_id) == 0:
+        return "string is empty"
+    if "\0" in corpus_id:
+        return "contains a null character"
+    if "system." in corpus_id:
+        return 'starts with the restricted prefix "system."'
+    if not (corpus_id[0] == "_" or corpus_id[0].isalpha()):
+        return "name must start with an underscore or letter character"
+    return None
 
 
 def get_corpus_dirpath(filename: str) -> Optional[str]:
@@ -648,6 +677,7 @@ def load_jsonlist_to_db(
             if reply_key is None:
                 # fix for misnamed reply_to in subreddit corpora
                 reply_key = "reply-to" if "reply-to" in utt_obj else "reply_to"
+            utt_obj = defaultdict(lambda: None, utt_obj)
             utt_insertion_buffer.append(
                 UpdateOne(
                     {"_id": utt_obj["id"]},
@@ -765,6 +795,72 @@ def load_corpus_info_to_db(filename, db, collection_prefix, exclude_meta=None, b
         meta_collection.update_one(
             {"_id": f"corpus_{collection_prefix}"}, {"$set": corpus_meta}, upsert=True
         )
+
+
+def load_info_to_mem(corpus, dir_name, obj_type, field):
+    """
+    Helper for load_info in mem mode that reads the file for the specified extra
+    info field, loads it into memory, and assigns the entries to their
+    corresponding corpus components.
+    """
+    getter = lambda oid: corpus.get_object(obj_type, oid)
+    entries = load_jsonlist_to_dict(os.path.join(dir_name, "info.%s.jsonl" % field))
+    for k, v in entries.items():
+        try:
+            obj = getter(k)
+            obj.add_meta(field, v)
+        except:
+            continue
+
+
+def load_info_to_db(corpus, dir_name, obj_type, field, index_key="id", value_key="value"):
+    """
+    Helper for load_info in DB mode that reads the jsonlist file for the
+    specified extra info field in a batched line-by-line manner, populates
+    its contents into the DB, and updates the Corpus' metadata index
+    """
+    filename = os.path.join(dir_name, "info.%s.jsonl" % field)
+    meta_collection = corpus.storage.get_collection("meta")
+
+    # attept to use saved type information
+    index_file = os.path.join(dir_name, "index.json")
+    with open(index_file) as f:
+        raw_index = json.load(f)
+        try:
+            field_type = raw_index[f"{obj_type}s-index"][field]
+            corpus.meta_index.get_index(obj_type)[field] = field_type
+            index_updated = True
+        except:
+            # field not recorded in the index file; we will need to infer
+            # types during insertion time
+            index_updated = False
+
+    # iteratively insert the info in the DB in batched fashion
+    with open(filename) as f:
+        info_insertion_buffer = []
+        for line in f:
+            info_json = json.loads(line)
+            obj_id, info_val = info_json[index_key], info_json[value_key]
+            if not index_updated:
+                # we were previously unable to fetch the type info from the
+                # index file, so we must infer it now
+                ConvoKitMeta._check_type_and_update_index(
+                    corpus.meta_index, obj_type, field, info_val
+                )
+            info_insertion_buffer.append(
+                UpdateOne(
+                    {"_id": "{}_{}".format(obj_type, obj_id)},
+                    {"$set": {field: info_val}},
+                    upsert=True,
+                )
+            )
+            if len(info_insertion_buffer) >= JSONLIST_BUFFER_SIZE:
+                meta_collection.bulk_write(info_insertion_buffer)
+                info_insertion_buffer = []
+        # after loop termination, insert any remaining items in the buffer
+        if len(info_insertion_buffer) > 0:
+            meta_collection.bulk_write(info_insertion_buffer)
+            info_insertion_buffer = []
 
 
 def clean_up_excluded_meta(meta_index, exclude_meta):

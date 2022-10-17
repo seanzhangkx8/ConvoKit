@@ -241,14 +241,10 @@ class DBStorageManager(StorageManager):
         return f"{self.collection_prefix}_{component_type}"
 
     def get_collection_ids(self, component_type: str):
-        # from StackOverflow: get all keys in a MongoDB collection
-        # https://stackoverflow.com/questions/2298870/get-names-of-all-keys-in-the-collection
-        map = bson.Code("function() { for (var key in this) { emit(key, null); } }")
-        reduce = bson.Code("function(key, stuff) { return null; }")
-        result = self.db[self._get_collection_name(component_type)].map_reduce(
-            map, reduce, "get_collection_ids_result"
-        )
-        return result.distinct("_id")
+        return [
+            doc["_id"]
+            for doc in self.db[self._get_collection_name(component_type)].find(projection=["_id"])
+        ]
 
     def has_data_for_component(self, component_type: str, component_id: str) -> bool:
         collection = self.get_collection(component_type)
