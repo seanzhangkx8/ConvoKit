@@ -72,7 +72,8 @@ class Corpus:
                 "You are in DB mode, but no collection prefix was specified and no filename was given from which to infer one."
                 "Will use a randomly generated unique prefix " + db_collection_prefix
             )
-        self.id = get_corpus_id(db_collection_prefix, filename)
+        self.id = get_corpus_id(db_collection_prefix, filename, storage_type)
+        self.storage_type = storage_type
         self.storage = initialize_storage(self, storage, storage_type, db_host)
 
         self.meta_index = ConvoKitIndex(self)
@@ -622,7 +623,7 @@ class Corpus:
         for speaker in self.iter_speakers():
             meta_ids.append(speaker.meta.storage_key)
         self.storage.purge_obsolete_entries(
-            self.get_utterance_ids, self.get_conversation_ids(), self.get_speaker_ids(), meta_ids
+            self.get_utterance_ids(), self.get_conversation_ids(), self.get_speaker_ids(), meta_ids
         )
 
         return self
@@ -1278,14 +1279,10 @@ class Corpus:
         for field in fields:
             # self.aux_info[field] = self.load_jsonlist_to_dict(
             #     os.path.join(dir_name, 'feat.%s.jsonl' % field))
-            getter = lambda oid: self.get_object(obj_type, oid)
-            entries = load_jsonlist_to_dict(os.path.join(dir_name, "info.%s.jsonl" % field))
-            for k, v in entries.items():
-                try:
-                    obj = getter(k)
-                    obj.add_meta(field, v)
-                except:
-                    continue
+            if self.storage_type == "mem":
+                load_info_to_mem(self, dir_name, obj_type, field)
+            elif self.storage_type == "db":
+                load_info_to_db(self, dir_name, obj_type, field)
 
     def dump_info(self, obj_type, fields, dir_name=None):
         """
