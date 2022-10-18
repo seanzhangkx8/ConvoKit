@@ -72,9 +72,7 @@ class Corpus:
                 "You are in DB mode, but no collection prefix was specified and no filename was given from which to infer one."
                 "Will use a randomly generated unique prefix " + db_collection_prefix
             )
-        self.id = get_corpus_id(
-            db_collection_prefix, filename, check_mongodb_compatibility=(storage_type == "db")
-        )
+        self.id = get_corpus_id(db_collection_prefix, filename, storage_type)
         self.storage_type = storage_type
         self.storage = initialize_storage(self, storage, storage_type, db_host)
 

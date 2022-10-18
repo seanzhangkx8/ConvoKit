@@ -34,7 +34,7 @@ JSONLIST_BUFFER_SIZE = 1000
 
 
 def get_corpus_id(
-    db_collection_prefix: Optional[str], filename: Optional[str], check_mongodb_compatibility: bool
+    db_collection_prefix: Optional[str], filename: Optional[str], storage_type: str
 ) -> Optional[str]:
     if db_collection_prefix is not None:
         # treat the unique collection prefix as the ID (even if a filename is specified)
@@ -45,7 +45,7 @@ def get_corpus_id(
     else:
         corpus_id = None
 
-    if check_mongodb_compatibility and corpus_id is not None:
+    if storage_type == "db" and corpus_id is not None:
         compatibility_msg = check_id_for_mongodb(corpus_id)
         if compatibility_msg is not None:
             random_id = create_safe_id()
