@@ -1344,11 +1344,11 @@ class Corpus:
         """
 
         speaker = self.get_speaker(speaker_id)
-        if "conversations" not in speaker.meta:
-            speaker.meta["conversations"] = {}
-        if convo_id not in speaker.meta["conversations"]:
-            speaker.meta["conversations"][convo_id] = {}
-        speaker.meta["conversations"][convo_id][key] = value
+        speaker_convos = speaker.meta.get("conversations", {})
+        if convo_id not in speaker_convos:
+            speaker_convos[convo_id] = {}
+        speaker_convos[convo_id][key] = value
+        speaker.meta["conversations"] = speaker_convos
 
     def get_speaker_convo_info(self, speaker_id, convo_id, key=None):
         """
