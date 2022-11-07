@@ -861,7 +861,7 @@ class Corpus:
     @staticmethod
     def _collect_speaker_data(
         utt_sets: Collection[Collection[Utterance]],
-    ) -> Tuple[Dict[str, Dict[str, str]], Dict[str, Dict[str, bool]]]:
+    ) -> Tuple[Dict[str, Speaker], Dict[str, Dict[str, str]], Dict[str, Dict[str, bool]]]:
         """
         Helper function for merge().
 
@@ -1057,10 +1057,14 @@ class Corpus:
             combined_utts = self._merge_utterances(
                 list(self.iter_utterances()), utterances, warnings
             )
-            speakers_meta, speakers_meta_conflict = self._collect_speaker_data(
+            combined_speakers, speakers_meta, speakers_meta_conflict = self._collect_speaker_data(
                 [list(self.iter_utterances()), utterances]
             )
             utterances = [utt for utt in combined_utts if utt.id in added_utt_ids]
+            for utt in utterances:
+                intended_speaker = combined_speakers[utt.speaker.id]
+                if not (utt.speaker is intended_speaker):
+                    utt.speaker = intended_speaker
 
         new_speakers = {u.speaker.id: u.speaker for u in utterances}
         new_utterances = {u.id: u for u in utterances}
