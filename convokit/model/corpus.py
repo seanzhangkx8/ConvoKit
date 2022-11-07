@@ -615,7 +615,7 @@ class Corpus:
         self.reinitialize_index()
 
         # clear all storage entries corresponding to filtered-out components
-        meta_ids = []
+        meta_ids = [self.meta.storage_key]
         for utt in self.iter_utterances():
             meta_ids.append(utt.meta.storage_key)
         for convo in self.iter_conversations():
@@ -875,10 +875,13 @@ class Corpus:
         :return: speaker metadata and the corresponding tracker
         """
         # Collect SPEAKER data and metadata
+        speakers_data = {}
         speakers_meta = defaultdict(lambda: defaultdict(str))
         speakers_meta_conflict = defaultdict(lambda: defaultdict(bool))
         for utt_set in utt_sets:
             for utt in utt_set:
+                if utt.speaker.id not in speakers_data:
+                    speakers_data[utt.speaker.id] = utt.speaker
                 for meta_key, meta_val in utt.speaker.meta.items():
                     curr = speakers_meta[utt.speaker][meta_key]
                     if curr != meta_val:
@@ -886,7 +889,7 @@ class Corpus:
                             speakers_meta_conflict[utt.speaker][meta_key] = True
                         speakers_meta[utt.speaker][meta_key] = meta_val
 
-        return speakers_meta, speakers_meta_conflict
+        return speakers_data, speakers_meta, speakers_meta_conflict
 
     @staticmethod
     def _update_corpus_speaker_data(
@@ -969,12 +972,23 @@ class Corpus:
         """
         utts1 = list(primary.iter_utterances())
         utts2 = list(secondary.iter_utterances())
-        combined_utts = primary._merge_utterances(utts1, utts2, warnings=warnings)
-        new_corpus = Corpus(utterances=list(combined_utts))
+        combined_utts = list(primary._merge_utterances(utts1, utts2, warnings=warnings))
         # Note that we collect Speakers from the utt sets directly instead of the combined utts, otherwise
         # differences in Speaker meta will not be registered for duplicate Utterances (because utts would be discarded
         # during merging)
-        speakers_meta, speakers_meta_conflict = primary._collect_speaker_data([utts1, utts2])
+        combined_speakers, speakers_meta, speakers_meta_conflict = primary._collect_speaker_data(
+            [utts1, utts2]
+        )
+        # Ensure that all attributions of an Utterance to the same speaker ID actually
+        # map to the same Speaker instance. Otherwise, you can end up with two
+        # Utterances that appear to have the same author but actually point to two
+        # identical-but-distinct Speaker objects, which can result in unintuivie
+        # behavior down the line.
+        for utt in combined_utts:
+            intended_speaker = combined_speakers[utt.speaker.id]
+            if not (utt.speaker is intended_speaker):
+                utt.speaker = intended_speaker
+        new_corpus = Corpus(utterances=combined_utts)
         Corpus._update_corpus_speaker_data(
             new_corpus, speakers_meta, speakers_meta_conflict, warnings=warnings
         )
