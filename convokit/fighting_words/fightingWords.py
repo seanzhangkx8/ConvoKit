@@ -1,12 +1,15 @@
-import numpy as np
-from sklearn.feature_extraction.text import CountVectorizer as CV
-from convokit import Transformer
-from convokit.model import Corpus, CorpusComponent
+import warnings
+from collections import defaultdict
 from typing import List, Callable, Tuple
-from matplotlib import pyplot as plt
+
+import numpy as np
 import pandas as pd
 from cleantext import clean
-from collections import defaultdict
+from matplotlib import pyplot as plt
+from sklearn.feature_extraction.text import CountVectorizer as CV
+
+from convokit import Transformer
+from convokit.model import Corpus, CorpusComponent
 
 clean_str = lambda s: clean(
     s,
@@ -188,7 +191,10 @@ class FightingWords(Transformer):
     ):
         """
         Learn the fighting words from a corpus, with an optional selector that selects for corpus components prior to
-            grouping the corpus components into class1 / class2.
+            grouping the corpus components into `class1` / `class2`.
+
+        A warning will be printed if there are components that appear in both `class1` and `class2`, as FightingWords
+            is typically used for disjoint sets of texts.
 
         :param corpus: target Corpus
         :param class1_func: selector function for identifying corpus components that belong to class 1
@@ -202,7 +208,7 @@ class FightingWords(Transformer):
         for obj in corpus.iter_objs(self.obj_type, selector):
             if class1_func(obj):
                 class1.append(obj)
-            elif class2_func(obj):
+            if class2_func(obj):
                 class2.append(obj)
 
         if len(class1) == 0:
@@ -210,9 +216,16 @@ class FightingWords(Transformer):
         if len(class2) == 0:
             raise ValueError("class2_func returned 0 valid corpus components.")
 
+        overlaps_found = set([obj.id for obj in class1]) & set([obj.id for obj in class2])
+        if len(overlaps_found):
+            warnings.warn(
+                "There are components that appear in both classes. "
+                "Note that FightingWords is typically used to compare two disjoint sets of texts."
+            )
+
         print(
-            "class1_func returned {} valid corpus components. "
-            "class2_func returned {} valid corpus components.".format(len(class1), len(class2))
+            f"class1_func returned {len(class1)} valid corpus components. "
+            f"class2_func returned {len(class2)} valid corpus components."
         )
 
         self.ngram_zscores = self._bayes_compare_language(class1, class2)
