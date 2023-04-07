@@ -85,7 +85,6 @@ class SpeakerConvoDiversity(Transformer):
         recompute_tokens=False,
         verbosity=0,
     ):
-
         self.output_field = output_field
         self.surprise_attr_name = f"surprise_{output_field}"
         self.cmp_select_fn = cmp_select_fn

@@ -66,7 +66,6 @@ class ExpectedContextModelPipeline(Transformer):
         random_state=None,
         cluster_random_state=None,
     ):
-
         self.context_field = context_field
         self.output_prefix = output_prefix
 
@@ -320,7 +319,6 @@ class DualContextPipeline(Transformer):
         random_state=None,
         cluster_random_state=None,
     ):
-
         self.vect_field = "col_normed_tfidf"
         self.share_tfidf_models = share_tfidf_models
 

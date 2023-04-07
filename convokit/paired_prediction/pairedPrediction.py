@@ -37,7 +37,6 @@ class PairedPrediction(Transformer):
         label_attribute_name: str = "pair_obj_label",
         pair_orientation_attribute_name: str = "pair_orientation",
     ):
-
         assert obj_type in ["speaker", "utterance", "conversation"]
         self.obj_type = obj_type
         self.clf = (

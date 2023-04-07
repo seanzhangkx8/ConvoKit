@@ -77,7 +77,6 @@ def extract_starter_markers(
 
 
 def extract_regex_strategies(pattern: Pattern, tokens: List[str], sent_idx: int, offset: int = 0):
-
     """
     Extract markers for a given strategy based on regex patterns
     """

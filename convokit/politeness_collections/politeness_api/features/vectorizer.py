@@ -165,7 +165,6 @@ def alphas(s):
 
 
 if __name__ == "__main__":
-
     """
     Extract features from test documents
     """

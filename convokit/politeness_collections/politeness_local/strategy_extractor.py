@@ -36,17 +36,13 @@ def extract_dep_parse_markers(
     parents: Optional[Set] = None,
     relation: Optional[str] = None,
 ):
-
     matched = []
 
     for i, tok in enumerate(sent_parsed):
-
         # tok matches
         if tok["tok"].lower() == child:
-
             # check relation (if applicable)
             if not relation or tok["dep"] == relation:
-
                 # check parent (if applicable)
                 if not parents:
                     matched.append((tok["tok"], sent_idx, i))
@@ -64,7 +60,6 @@ def extract_dep_parse_markers(
 
 
 def actually(sent_parsed: List[Dict], sent_idx: int) -> Dict[str, List]:
-
     # two types of matches
     cond1 = extract_dep_parse_markers(
         sent_parsed, sent_idx, "the", parents={"point", "reality", "truth"}, relation="det"
@@ -91,7 +86,6 @@ def apology(sent_parsed: List[Dict], sent_idx: int) -> Dict[str, List]:
 
 
 def gratitude(sent_parsed: List[Dict], sent_idx: int) -> Dict[str, List]:
-
     return extract_dep_parse_markers(
         sent_parsed, sent_idx, "i", parents={"appreciate"}
     ) + extract_dep_parse_markers(sent_parsed, sent_idx, "we", parents={"appreciate"})
@@ -136,7 +130,6 @@ NAMES = ["Actually", "Adverb.Just", "Apology", "Gratitude", "Swearing"]
 def get_local_politeness_strategy_features(
     parses: List[List],
 ) -> Tuple[Dict[str, int], Dict[str, List[Tuple]]]:
-
     """
     Extract strategies given a parsed utterance
     """

@@ -154,7 +154,6 @@ def download(
             needs_download = True
 
     if needs_download:
-
         print("Downloading {} to {}".format(name, dataset_path))
         # name not in downloaded or \
         #    (use_newest_version and name in cur_version and
@@ -171,7 +170,6 @@ def download(
             url = DatasetURLs[name]
             _download_helper(dataset_path, url, verbose, name, downloadeds_path)
     else:
-
         print("Dataset already exists at {}".format(dataset_path))
         dataset_path = os.path.join(downloaded_paths[name], name)
 
@@ -238,7 +236,6 @@ def download_local(name: str, data_dir: str):
 def _download_helper(
     dataset_path: str, url: str, verbose: bool, name: str, downloadeds_path: str
 ) -> None:
-
     if (
         url.lower().endswith(".corpus")
         or url.lower().endswith(".corpus.zip")
@@ -292,7 +289,6 @@ def corpus_version(filename: str) -> int:
 
 # retrieve grouping and completes the download link for subreddit
 def get_subreddit_info(subreddit_name: str) -> str:
-
     # base directory of subreddit corpuses
     subreddit_base = "http://zissou.infosci.cornell.edu/convokit/datasets/subreddit-corpus/"
     data_dir = subreddit_base + "corpus-zipped/"
@@ -335,7 +331,6 @@ def _get_wikiconv_year_info(year: str) -> str:
 
 
 def _get_supreme_info(year: str) -> str:
-
     supreme_base = "http://zissou.infosci.cornell.edu/convokit/datasets/supreme-corpus/"
     return supreme_base + "supreme-" + year + ".zip"
 

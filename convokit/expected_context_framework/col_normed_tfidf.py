@@ -22,7 +22,6 @@ class ColNormedTfidfTransformer(Transformer):
     """
 
     def __init__(self, input_field, output_field="col_normed_tfidf", model=None, **kwargs):
-
         if model is not None:
             self.tfidf_obj = model.tfidf_obj
         else:

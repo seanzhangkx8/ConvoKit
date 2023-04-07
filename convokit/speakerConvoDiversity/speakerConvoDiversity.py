@@ -114,7 +114,6 @@ class SpeakerConvoDiversity(Transformer):
         recompute_tokens=False,
         verbosity=0,
     ):
-
         self.output_field = output_field
         self.cmp_select_fn = cmp_select_fn
         self.ref_select_fn = ref_select_fn

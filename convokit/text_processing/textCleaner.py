@@ -59,7 +59,6 @@ class TextCleaner(TextProcessor):
         replace_text: bool = True,
         save_original: bool = True,
     ):
-
         if replace_text:
             if save_original:
                 output_field = "original"

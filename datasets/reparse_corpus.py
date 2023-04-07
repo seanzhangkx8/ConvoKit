@@ -16,7 +16,6 @@ INCREMENT_VERSION = False
 PARSE = True
 
 if __name__ == "__main__":
-
     print("downloading corpus")
     corpus_name = sys.argv[1]
     filename = download(corpus_name, data_dir=ROOT_DIR)

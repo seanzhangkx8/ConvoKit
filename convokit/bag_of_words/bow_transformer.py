@@ -36,7 +36,6 @@ class BoWTransformer(Transformer):
         text_func: Callable[[CorpusComponent], str] = None,
         vectorizer=None,
     ):
-
         if vectorizer is None:
             print("Initializing default unigram CountVectorizer...", end="")
             self.vectorizer = CV(
