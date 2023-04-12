@@ -32,6 +32,7 @@ START_QN_PATTERN = re.compile(r"^\W*([为凭]什么\s?|几\s?|哪\s?|多少\s?|�
 CAN_YOU_PATTERN = re.compile(r"[你您]\s?[是可想觉要].+?[吗呢呀？]")
 COULD_YOU_PATTERN = re.compile(r"[你您]\s?(?P<A>[可想觉要])\s?不\s?(?P=A)")
 
+
 # strategy functions (regex)
 def please(sent_parsed: List[Dict], sent_idx: int) -> Dict[str, List]:
     tokens = [x["tok"] for x in sent_parsed]
@@ -94,7 +95,6 @@ MARKER_FNS = [please, start_question, can_you, could_you]
 def get_chinese_politeness_strategy_features(
     parses: List[List],
 ) -> Tuple[Dict[str, int], Dict[str, List[Tuple]]]:
-
     """
     Extract strategies given a parsed utterance
     """

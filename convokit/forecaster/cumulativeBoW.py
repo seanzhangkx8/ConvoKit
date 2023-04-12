@@ -26,7 +26,6 @@ class CumulativeBoW(ForecasterModel):
         forecast_attribute_name: str = "prediction",
         forecast_prob_attribute_name: str = "score",
     ):
-
         super().__init__(
             forecast_attribute_name=forecast_attribute_name,
             forecast_prob_attribute_name=forecast_prob_attribute_name,

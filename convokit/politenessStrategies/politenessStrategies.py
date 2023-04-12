@@ -43,7 +43,6 @@ class PolitenessStrategies(Transformer):
         strategy_collection: str = "politeness_api",
         verbose: int = 0,
     ):
-
         self.parse_attribute_name = parse_attribute_name
         self.strategy_attribute_name = strategy_attribute_name
         self.marker_attribute_name = marker_attribute_name
@@ -76,7 +75,6 @@ class PolitenessStrategies(Transformer):
         total_utts = len(list(corpus.iter_utterances()))
 
         for idx, utt in enumerate(corpus.iter_utterances()):
-
             if self.verbose > 0 and idx > 0 and idx % self.verbose == 0:
                 print("%03d/%03d utterances processed" % (idx, total_utts))
 
@@ -116,7 +114,6 @@ class PolitenessStrategies(Transformer):
             utt = Utterance(text=utt, speaker=Speaker(id="speaker"))
 
         if self.parse_attribute_name not in utt.meta:
-
             if spacy_nlp is None:
                 raise ValueError("spacy object required")
 

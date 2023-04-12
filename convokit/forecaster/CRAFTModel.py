@@ -73,7 +73,6 @@ class CRAFTModel(ForecasterModel):
         forecast_prob_attribute_name: str = "pred_score",
         forecast_prob_feat_name=None,
     ):
-
         super().__init__(
             forecast_attribute_name=forecast_attribute_name,
             forecast_feat_name=forecast_feat_name,
@@ -240,7 +239,6 @@ class CRAFTModel(ForecasterModel):
         batch_size,
         clip,
     ):  # misc arguments
-
         # Zero gradients
         encoder_optimizer.zero_grad()
         context_encoder_optimizer.zero_grad()
@@ -347,7 +345,6 @@ class CRAFTModel(ForecasterModel):
         n_iteration,
         validate_every,
     ):
-
         # create a batch iterator for training data
         batch_iterator = batchIterator(self.voc, train_pairs, self.options["batch_size"])
 

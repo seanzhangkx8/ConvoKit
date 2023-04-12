@@ -113,7 +113,7 @@ class Coordination(Transformer):
                 speaker.meta[self.coordination_attribute_name] = {}
             # Avoid mutability of dict in metadata fields
             temp_dict = {}
-            for (k, v) in speaker.meta[self.coordination_attribute_name]:
+            for k, v in speaker.meta[self.coordination_attribute_name]:
                 temp_dict[k] = v
             speaker.meta[self.coordination_attribute_name] = temp_dict
 

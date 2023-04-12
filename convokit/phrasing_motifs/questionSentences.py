@@ -22,7 +22,6 @@ class QuestionSentences(TextProcessor):
         input_filter=None,
         verbosity=0,
     ):
-
         aux_input = {"input_field": input_field, "filter_field": filter_field, "use_caps": use_caps}
 
         TextProcessor.__init__(
@@ -36,7 +35,6 @@ class QuestionSentences(TextProcessor):
         )
 
     def _get_question_sentences(self, text_entry, aux_input):
-
         text = text_entry[aux_input["input_field"]]
         parse = text_entry[aux_input["filter_field"]]
         sents = []

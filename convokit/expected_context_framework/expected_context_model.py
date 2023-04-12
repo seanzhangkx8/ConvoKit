@@ -491,7 +491,6 @@ class ExpectedContextModel:
         random_state=None,
         cluster_random_state=None,
     ):
-
         self.n_svd_dims = n_svd_dims
         self.snip_first_dim = snip_first_dim
         self.random_state = random_state
@@ -773,7 +772,6 @@ class ClusterWrapper:
     """
 
     def __init__(self, n_clusters, cluster_names=None, random_state=None):
-
         self.n_clusters = n_clusters
         self.random_state = random_state
 
@@ -784,7 +782,6 @@ class ClusterWrapper:
         self.km_df = None
 
     def fit(self, vects, ids=None):
-
         self.km_model.fit(vects)
         self.km_df = self.transform(vects, ids)
 
