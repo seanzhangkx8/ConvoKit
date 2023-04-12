@@ -20,7 +20,7 @@ class TestTextToArcs(unittest.TestCase):
             ],
         ]
         for expected_arc, utterance in zip(expected_arcs, transformed_corpus.iter_utterances()):
-            self.assertListEqual(expected_arc, utterance.meta["arcs"])
+            self.assertListEqual(expected_arc, list(utterance.meta["arcs"]))
 
     def use_start_false(self):
         transformer = TextToArcs(output_field="arcs", use_start=False)
@@ -33,7 +33,7 @@ class TestTextToArcs(unittest.TestCase):
             ["depends_* depends_that that_*", "'s_* asking_'s asking_* asking_who who_*"],
         ]
         for expected_arc, utterance in zip(expected_arcs, transformed_corpus.iter_utterances()):
-            self.assertListEqual(expected_arc, utterance.meta["arcs"])
+            self.assertListEqual(expected_arc, list(utterance.meta["arcs"]))
 
     def root_only(self):
         transformer = TextToArcs(output_field="arcs", root_only=True)
@@ -43,7 +43,7 @@ class TestTextToArcs(unittest.TestCase):
             ["depends_* depends_that that>*", "asking_'s asking_* asking_who who>'s who>*"],
         ]
         for expected_arc, utterance in zip(expected_arcs, transformed_corpus.iter_utterances()):
-            self.assertListEqual(expected_arc, utterance.meta["arcs"])
+            self.assertListEqual(expected_arc, list(utterance.meta["arcs"]))
 
 
 class TestWithDB(TestTextToArcs):

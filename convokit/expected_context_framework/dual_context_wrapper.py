@@ -43,7 +43,6 @@ class DualContextWrapper(Transformer):
         random_state=None,
         cluster_random_state=None,
     ):
-
         self.context_fields = context_fields
         self.output_prefixes = output_prefixes
         self.vect_field = vect_field

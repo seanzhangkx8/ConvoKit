@@ -7,6 +7,7 @@ from convokit.util import warn
 from .convoKitIndex import ConvoKitIndex
 import json
 from typing import Union
+from immutabledict import immutabledict
 
 # See reference: https://stackoverflow.com/questions/7760916/correct-usage-of-a-getter-setter-for-dictionary-values
 
@@ -29,10 +30,26 @@ class ConvoKitMeta(MutableMapping, dict):
     def storage_key(self) -> str:
         return f"{self.obj_type}_{self.owner.id}"
 
+    # casting data to tuple / tuple of tuple if data is list / dict
+    @staticmethod
+    def _cast(data):
+        if isinstance(data, list):
+            return tuple(data)
+        elif isinstance(data, dict):
+            warn("cast to immutable dict")
+            return immutabledict(data)
+        else:
+            pass
+        return data
+
     def __getitem__(self, item):
-        return self._get_storage().get_data(
+        # get a from storage.
+        data = self._get_storage().get_data(
             "meta", self.storage_key, item, self.index.get_index(self.obj_type)
         )
+        # if a is a list, cast it to a tuple
+        data = self._cast(data)
+        return data
 
     def _get_storage(self):
         # special case for Corpus meta since that's the only time owner is not a CorpusComponent
@@ -69,7 +86,6 @@ class ConvoKitMeta(MutableMapping, dict):
         if not isinstance(key, str):
             warn("Metadata attribute keys must be strings. Input key has been casted to a string.")
             key = str(key)
-
         if self.index.type_check:
             ConvoKitMeta._check_type_and_update_index(self.index, self.obj_type, key, value)
         self._get_storage().update_data(
@@ -148,7 +164,12 @@ def _optimized_type_check(val):
         return str(type(val))
     else:
         try:
-            json.dumps(val)
+            if type(val) == immutabledict:
+                json.dumps(dict(val))
+            elif type(val) == tuple:
+                json.dumps(list(val))
+            else:
+                json.dumps(val)
             return str(type(val))
         except (TypeError, OverflowError):
             return "bin"

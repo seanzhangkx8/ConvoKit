@@ -94,7 +94,7 @@ class TestTextParser(unittest.TestCase):
 
         parser = TextParser(spacy_nlp=fake_spacy_nlp, mode="parse")
         actual = [
-            utterance.meta["parsed"]
+            list(utterance.meta["parsed"])
             for utterance in parser.transform(self.corpus).iter_utterances()
         ]
         expected = [
@@ -167,7 +167,7 @@ class TestTextParser(unittest.TestCase):
             spacy_nlp=fake_spacy_nlp, sent_tokenizer=FakeSentenceTokenizer(), mode="tag"
         )
         actual = [
-            utterance.meta["parsed"]
+            list(utterance.meta["parsed"])
             for utterance in parser.transform(self.corpus).iter_utterances()
         ]
         expected = [
@@ -236,7 +236,7 @@ class TestTextParser(unittest.TestCase):
             spacy_nlp=fake_spacy_nlp, sent_tokenizer=FakeSentenceTokenizer(), mode="tokenize"
         )
         actual = [
-            utterance.meta["parsed"]
+            list(utterance.meta["parsed"])
             for utterance in parser.transform(self.corpus).iter_utterances()
         ]
         expected = [

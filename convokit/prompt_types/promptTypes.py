@@ -90,7 +90,6 @@ class PromptTypes(Transformer):
         random_state=None,
         verbosity=0,
     ):
-
         self.prompt_embedding_model = {}
         self.type_models = {}
         self.train_results = {}
@@ -582,7 +581,6 @@ class PromptTypes(Transformer):
             except:
                 continue
             if prompt_selector(prompt_utt) and reference_selector(reference_utt):
-
                 prompt_input = prompt_utt.retrieve_meta(prompt_field)
                 reference_input = reference_utt.retrieve_meta(reference_field)
 

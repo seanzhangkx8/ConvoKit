@@ -59,7 +59,6 @@ class Corpus:
         storage_type: Optional[str] = None,
         storage: Optional[StorageManager] = None,
     ):
-
         self.config = ConvoKitConfig()
         self.corpus_dirpath = get_corpus_dirpath(filename)
 
@@ -1256,7 +1255,6 @@ class Corpus:
             del self._vector_matrices[name]
 
     def dump_vectors(self, name, dir_name=None):
-
         if (self.corpus_dirpath is None) and (dir_name is None):
             raise ValueError("Must specify a directory to read from.")
         if dir_name is None:
@@ -1531,7 +1529,7 @@ class Corpus:
         """
         columns = ["speaker", "id", "timestamp", "conversation_id", "reply_to", "text"]
 
-        for (df_type, df) in [
+        for df_type, df in [
             ("utterances", utterances_df),
             ("conversations", conversations_df),
             ("speakers", speakers_df),

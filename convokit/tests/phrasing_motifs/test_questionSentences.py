@@ -25,7 +25,7 @@ class TestQuestionSentences(unittest.TestCase):
         for utterance, expected_sentences in zip(
             transformed_corpus.iter_utterances(), expected_sentences_list
         ):
-            self.assertListEqual(expected_sentences, utterance.retrieve_meta("questions"))
+            self.assertListEqual(expected_sentences, list(utterance.retrieve_meta("questions")))
 
     def use_caps_false(self):
         transformer = QuestionSentences(
@@ -37,7 +37,7 @@ class TestQuestionSentences(unittest.TestCase):
         for utterance, expected_sentences in zip(
             transformed_corpus.iter_utterances(), expected_sentences_list
         ):
-            self.assertListEqual(expected_sentences, utterance.retrieve_meta("questions"))
+            self.assertListEqual(expected_sentences, list(utterance.retrieve_meta("questions")))
 
 
 class TestWithMem(TestQuestionSentences):

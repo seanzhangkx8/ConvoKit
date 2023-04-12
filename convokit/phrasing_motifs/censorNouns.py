@@ -33,7 +33,6 @@ def _is_noun_ish(tok):
 
 
 def _get_w_det(tok, sent):
-
     if tok["tag"].startswith("W"):
         return tok["tok"]
     if len(tok["dn"]) == 0:

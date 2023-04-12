@@ -66,7 +66,6 @@ class TextToArcs(TextProcessor):
 def _get_arcs_at_root(
     root, sent, use_start=True, root_only=False, follow_deps=("conj",), filter_fn=_use_text
 ):
-
     arcs = set()
     if not filter_fn(root, sent):
         return arcs

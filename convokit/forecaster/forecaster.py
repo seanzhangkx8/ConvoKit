@@ -33,7 +33,6 @@ class Forecaster(Transformer):
         forecast_attribute_name: str = "forecast",
         forecast_prob_attribute_name: str = "forecast_prob",
     ):
-
         assert convo_structure in ["branched", "linear"]
         self.convo_structure = convo_structure
 

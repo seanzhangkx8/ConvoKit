@@ -104,7 +104,6 @@ class PhrasingMotifs(TextProcessor):
         for utterance in corpus.iter_utterances():
             if self.fit_filter(utterance):
                 for idx, sent in enumerate(utterance.retrieve_meta(self.input_field)):
-
                     sent_dict["%s__%d" % (utterance.id, idx)] = sent.split()
         return sent_dict
 
@@ -229,7 +228,6 @@ def _get_mini_powerset(itemset, k):
 def _count_frequent_itemsets(
     set_dict, min_support, max_naive_itemset_size=5, max_itemset_size=100, verbosity=0
 ):
-
     if verbosity > 0:
         print("counting frequent itemsets for %d sets" % len(set_dict))
     itemset_counts = defaultdict(lambda: defaultdict(int))
@@ -319,7 +317,6 @@ def _count_frequent_itemsets(
 
 
 def _make_itemset_tree(itemset_counts, verbosity=0):
-
     if verbosity > 0:
         print("making itemset tree for %d itemsets" % len(itemset_counts))
 
@@ -419,7 +416,6 @@ def extract_phrasing_motifs(
     max_itemset_size=10,
     verbosity=0,
 ):
-
     """
     standalone function to extract phrasings -- i.e., frequently-occurring collections of dependency-parse arcs (or other token-like objects).
 

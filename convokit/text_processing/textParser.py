@@ -55,7 +55,6 @@ class TextParser(TextProcessor):
         sent_tokenizer=None,
         verbosity=0,
     ):
-
         self.mode = mode
         aux_input = {"mode": mode}
 
@@ -72,7 +71,6 @@ class TextParser(TextProcessor):
                     )
 
             except OSError:
-
                 print(
                     "Convokit requires a SpaCy model to be installed. Run `python -m spacy download MODEL_NAME` and retry."
                 )
@@ -81,12 +79,9 @@ class TextParser(TextProcessor):
             aux_input["spacy_nlp"] = spacy_nlp
 
         if mode in ("tag", "tokenize"):
-
             if sent_tokenizer is None:
-
                 # Use NLTK only when an English model is loaded
                 if aux_input["spacy_nlp"].lang == "en":
-
                     try:
                         aux_input["sent_tokenizer"] = nltk.data.load(
                             "tokenizers/punkt/english.pickle"
@@ -167,9 +162,7 @@ def process_text(text, mode="parse", sent_tokenizer=None, spacy_nlp=None):
         # if sent_tokenizer is not provided
         # use spacy's rule-based sentencizer (only for these two modes)
     if mode in ("tag", "tokenize"):
-
         if sent_tokenizer is None:
-
             warnings.warn(
                 "Sentence tokenizer is not provided. Spacy's rule-based sentencizer will be used."
             )

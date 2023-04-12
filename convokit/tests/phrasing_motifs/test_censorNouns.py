@@ -54,7 +54,7 @@ class TestCensorNouns(unittest.TestCase):
         for expected_censored, utterance in zip(
             expected_censored_list, transformed_corpus.iter_utterances()
         ):
-            self.assertListEqual(expected_censored, utterance.retrieve_meta("censored"))
+            self.assertListEqual(expected_censored, list(utterance.retrieve_meta("censored")))
 
 
 class TestWithMem(TestCensorNouns):

@@ -25,7 +25,6 @@ class TextProcessor(Transformer):
         input_filter=None,
         verbosity=0,
     ):
-
         self.proc_fn = proc_fn
         self.aux_input = aux_input if aux_input is not None else {}
         # self.input_filter = input_filter if input_filter is not None else lambda utt, aux: True
@@ -56,7 +55,6 @@ class TextProcessor(Transformer):
         total_utts = len(list(corpus.iter_utterances()))
 
         for idx, utterance in enumerate(corpus.iter_utterances()):
-
             if self._print_output(idx):
                 print("%03d/%03d utterances processed" % (idx, total_utts))
             if not self.input_filter(utterance, self.aux_input):
