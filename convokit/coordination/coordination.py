@@ -111,7 +111,11 @@ class Coordination(Transformer):
         for (speaker, target), score in pair_scores.items():
             if self.coordination_attribute_name not in speaker.meta:
                 speaker.meta[self.coordination_attribute_name] = {}
-            speaker.meta[self.coordination_attribute_name][target.id] = score
+            # Avoid mutability of dict in metadata fields
+            temp_dict = {}
+            for (k, v) in speaker.meta[self.coordination_attribute_name]:
+                temp_dict[k] = v
+            speaker.meta[self.coordination_attribute_name] = temp_dict
 
             assert isinstance(speaker, Speaker)
 
