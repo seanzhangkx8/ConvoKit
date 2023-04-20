@@ -1,5 +1,6 @@
 from collections import defaultdict
 from typing import Callable, Tuple, List, Dict, Optional, Collection, Union
+import copy
 
 import pkg_resources
 
@@ -108,15 +109,21 @@ class Coordination(Transformer):
             utterance_thresh_func=self.utterance_thresh_func,
         )
 
+        # avoiding mutability for the sake of DB corpus
+        todo = {}
+
         for (speaker, target), score in pair_scores.items():
             if self.coordination_attribute_name not in speaker.meta:
                 speaker.meta[self.coordination_attribute_name] = {}
-            # Avoid mutability of dict in metadata fields
-            temp_dict = {}
-            for k, v in speaker.meta[self.coordination_attribute_name]:
-                temp_dict[k] = v
-            speaker.meta[self.coordination_attribute_name] = temp_dict
+            key = (speaker, target.id)
+            todo.update({key: score})
 
+        for key, score in todo.items():
+            speaker = key[0]
+            target = key[1]
+            temp_dict = copy.deepcopy(speaker.meta[self.coordination_attribute_name])
+            temp_dict[target] = score
+            speaker.meta[self.coordination_attribute_name] = temp_dict
             assert isinstance(speaker, Speaker)
 
         return corpus
