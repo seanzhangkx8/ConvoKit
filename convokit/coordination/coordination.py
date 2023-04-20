@@ -109,7 +109,7 @@ class Coordination(Transformer):
             utterance_thresh_func=self.utterance_thresh_func,
         )
 
-        # avoiding mutability for the sake of DB corpus
+        # Keep record of all score update for all (speakers, target) pairs to avoid redundant operations
         todo = {}
 
         for (speaker, target), score in pair_scores.items():
@@ -121,6 +121,7 @@ class Coordination(Transformer):
         for key, score in todo.items():
             speaker = key[0]
             target = key[1]
+            # For avoiding mutability for the sake of DB corpus
             temp_dict = copy.deepcopy(speaker.meta[self.coordination_attribute_name])
             temp_dict[target] = score
             speaker.meta[self.coordination_attribute_name] = temp_dict
