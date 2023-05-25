@@ -62,3 +62,35 @@ and if that doesn't fix the issue, then run:
 >>> open /Applications/Python\ 3.7/Install\ Certificates.command
 
 (Substitute 3.7 in the above command with your current Python version (e.g. 3.8 or 3.9) if necessary.)
+
+Immutability of Metadata Fields
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Starting with 3.0, ConvoKit disallows mutation on Metadata fields to prevent unintended data loss and ensure the integrity of the corpus metadata storage.
+When accessing a Metadata field, a deep copy of the field is returned to prevent mutation changes to the copy from affecting the storage.
+This behavior is intended to ensure consistency between DB and MEM modes, since permitting mutations to mutable metadata fields in DB mode would solely modify the in-memory data without updating the database, thereby risking potential data loss.
+
+Since all mutations to mutable metadata fields only affect the in-memory copy of the data instead of the actual storage, potentially resulting in data loss.
+Thus all metadata values must be treated as *immutable*. This does not really make a difference for primitive values like ints and strings,
+since those are immutable in Python to begin with. However, code that relies on mutating a more complex type like lists or dictionaries may not work as expected.
+For example, suppose the metadata entry ``"foo"`` is a list type, and you access it by saving it to a Python variable as follows:
+
+>>> saved_foo = my_utt.meta["foo"]
+
+Because lists are considered mutable in Python, you might expect the following code to successfully add a new item in the ``foo`` metadata of ``my_utt``:
+
+>>> saved_foo.append("new value")
+
+However, it will not work in the new 3.0 version of ConvoKit; the code will run, but only the variable ``saved_foo`` will be affected, not the actual metadata storage of ``my_utt``.
+This is because ``saved_foo`` only contains a copy of the data from the storage, which has been translated into a Python object.
+Thus, any operations that are done directly on ``saved_foo`` are done only to the Python object, and do not involve any storage writes.
+
+It is therefore necessary to treat *all* metadata objects, regardless of type, as immutable.
+Thus, the way to change metadata is the same way you would change an int or string type metadata entry: that is, by completely overwriting it.
+For example, to achieve the desired effect with the ``"foo"`` metadata entry from above, you should do the following:
+
+>>> temp_foo = my_utt.meta["foo"]
+>>> temp_foo.append("new value")
+>>> my_utt.meta["foo"] = temp_foo
+
+By adding the additional line of code that overwrites the ``"foo"`` metadata entry, you are telling ConvoKit that you want to update the value of ``"foo"`` in the storage’s metadata table with a new value, represented by ``temp_foo`` which contains the new additional item.
+Thus the contents of ``temp_foo`` will get written to the storage as the new value of ``my_utt.meta["foo"]``, hence updating the metadata as desired.
