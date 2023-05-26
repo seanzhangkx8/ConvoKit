@@ -443,6 +443,7 @@ class Corpus:
         self,
         selector: Optional[Callable[[Utterance], bool]] = lambda utt: True,
         exclude_meta: bool = False,
+        mutable: bool = False,
     ):
         """
         Get a DataFrame of the utterances with fields and metadata attributes, with an optional selector that filters
@@ -451,9 +452,10 @@ class Corpus:
         :param exclude_meta: whether to exclude metadata
         :param selector: a (lambda) function that takes a Utterance and returns True or False (i.e. include / exclude).
             By default, the selector includes all Utterances in the Corpus.
+        :param mutable: whether to allow changes to corpus metadata reflecting in already generated dataframe.
         :return: a pandas DataFrame
         """
-        return get_utterances_dataframe(self, selector, exclude_meta)
+        return get_utterances_dataframe(self, selector, exclude_meta, mutable)
 
     def iter_conversations(
         self, selector: Optional[Callable[[Conversation], bool]] = lambda convo: True
@@ -473,6 +475,7 @@ class Corpus:
         self,
         selector: Optional[Callable[[Conversation], bool]] = lambda convo: True,
         exclude_meta: bool = False,
+        mutable: bool = False,
     ):
         """
         Get a DataFrame of the conversations with fields and metadata attributes, with an optional selector that filters
@@ -481,9 +484,10 @@ class Corpus:
         :param exclude_meta: whether to exclude metadata
         :param selector: a (lambda) function that takes a Conversation and returns True or False (i.e. include / exclude).
             By default, the selector includes all Conversations in the Corpus.
+        :param mutable: whether to allow changes to corpus metadata reflecting in already generated dataframe.
         :return: a pandas DataFrame
         """
-        return get_conversations_dataframe(self, selector, exclude_meta)
+        return get_conversations_dataframe(self, selector, exclude_meta, mutable)
 
     def iter_speakers(
         self, selector: Optional[Callable[[Speaker], bool]] = lambda speaker: True
@@ -504,6 +508,7 @@ class Corpus:
         self,
         selector: Optional[Callable[[Speaker], bool]] = lambda utt: True,
         exclude_meta: bool = False,
+        mutable: bool = False,
     ):
         """
         Get a DataFrame of the Speakers with fields and metadata attributes, with an optional selector that filters
@@ -512,9 +517,10 @@ class Corpus:
         :param exclude_meta: whether to exclude metadata
         :param selector: selector: a (lambda) function that takes a Speaker and returns True or False
             (i.e. include / exclude). By default, the selector includes all Speakers in the Corpus.
+        :param mutable: whether to allow changes to corpus metadata reflecting in already generated dataframe.
         :return: a pandas DataFrame
         """
-        return get_speakers_dataframe(self, selector, exclude_meta)
+        return get_speakers_dataframe(self, selector, exclude_meta, mutable)
 
     def iter_objs(
         self,
