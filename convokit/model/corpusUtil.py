@@ -64,7 +64,10 @@ def get_conversations_dataframe(
         if mutable:
             d = convo.to_dict().copy()
         else:
-            d = copy.deepcopy(convo.to_dict())
+            d = {}
+            for k, v in convo.to_dict().items():
+                d[k] = v
+            # d = copy.deepcopy(utt_dict)
         if not exclude_meta:
             for k, v in d["meta"].items():
                 d["meta." + k] = v
@@ -93,7 +96,10 @@ def get_speakers_dataframe(
         if mutable:
             d = spkr.to_dict().copy()
         else:
-            d = copy.deepcopy(spkr.to_dict())
+            d = {}
+            for k, v in spkr.to_dict().items():
+                d[k] = v
+            # d = copy.deepcopy(utt_dict)
         if not exclude_meta:
             for k, v in d["meta"].items():
                 d["meta." + k] = v
