@@ -69,8 +69,7 @@ Starting with 3.0, ConvoKit disallows mutation on Metadata fields to prevent uni
 When accessing a Metadata field, a deep copy of the field is returned to prevent mutation changes to the copy from affecting the storage.
 This behavior is intended to ensure consistency between DB and MEM modes, since permitting mutations to mutable metadata fields in DB mode would solely modify the in-memory data without updating the database, thereby risking potential data loss.
 
-Since all mutations to mutable metadata fields only affect the in-memory copy of the data instead of the actual storage, potentially resulting in data loss.
-Thus all metadata values must be treated as *immutable*. This does not really make a difference for primitive values like ints and strings,
+Therefore, all metadata values must be treated as *immutable*. This does not really make a difference for primitive values like ints and strings,
 since those are immutable in Python to begin with. However, code that relies on mutating a more complex type like lists or dictionaries may not work as expected.
 For example, suppose the metadata entry ``"foo"`` is a list type, and you access it by saving it to a Python variable as follows:
 
@@ -80,9 +79,9 @@ Because lists are considered mutable in Python, you might expect the following c
 
 >>> saved_foo.append("new value")
 
-However, it will not work in the new 3.0 version of ConvoKit; the code will run, but only the variable ``saved_foo`` will be affected, not the actual metadata storage of ``my_utt``.
-This is because ``saved_foo`` only contains a copy of the data from the storage, which has been translated into a Python object.
-Thus, any operations that are done directly on ``saved_foo`` are done only to the Python object, and do not involve any storage writes.
+However, it will not work starting with the 3.0 version of ConvoKit; the code will run, but only the variable ``saved_foo`` will be affected, not the actual metadata storage of ``my_utt``.
+This is because ``saved_foo`` only contains a copy of the data from the storage.
+Thus, any operations that are done directly on ``saved_foo`` are done only to the copy, and do not involve any storage writes.
 
 It is therefore necessary to treat *all* metadata objects, regardless of type, as immutable.
 Thus, the way to change metadata is the same way you would change an int or string type metadata entry: that is, by completely overwriting it.
