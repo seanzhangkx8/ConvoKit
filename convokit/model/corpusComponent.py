@@ -48,7 +48,7 @@ class CorpusComponent:
         self._owner = owner
         if owner is not None:
             # when a new owner Corpus is assigned, we must take the following steps:
-            # (1) transfer this component's data to the new owner's StorageManager
+            # (1) transfer this component's data to the new owner's BackendMapper
             # (2) avoid duplicates by removing the data from the old owner (or temp storage if there was no prior owner)
             # (3) reinitialize the metadata instance
             data_dict = (
@@ -71,7 +71,7 @@ class CorpusComponent:
     def init_meta(self, meta, overwrite=False):
         if self._owner is None:
             # ConvoKitMeta instances are not allowed for ownerless (standalone)
-            # components since they must be backed by a StorageManager. In this
+            # components since they must be backed by a BackendMapper. In this
             # case we must forcibly convert the ConvoKitMeta instance to dict
             if isinstance(meta, ConvoKitMeta):
                 meta = meta.to_dict()
