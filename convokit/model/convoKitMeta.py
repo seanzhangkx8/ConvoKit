@@ -7,6 +7,7 @@ from convokit.util import warn
 from .convoKitIndex import ConvoKitIndex
 import json
 from typing import Union
+import copy
 
 # See reference: https://stackoverflow.com/questions/7760916/correct-usage-of-a-getter-setter-for-dictionary-values
 
@@ -30,9 +31,18 @@ class ConvoKitMeta(MutableMapping, dict):
         return f"{self.obj_type}_{self.owner.id}"
 
     def __getitem__(self, item):
-        return self._get_storage().get_data(
+        # in DB mode, metadata field mutation would not be updated. (ex. mutating dict/list metadata fields)
+        # we align MEM mode behavior and DB mode by making deepcopy of metadata fields, so mutation no longer
+        # affect corpus metadata storage, but only acting on the copy of it.
+        item = self._get_storage().get_data(
             "meta", self.storage_key, item, self.index.get_index(self.obj_type)
         )
+        immutable_types = (int, float, bool, complex, str, tuple, frozenset)
+        if isinstance(item, immutable_types):
+            return item
+        else:
+            # return copy.deepcopy(item) if item is not common python immutable type
+            return copy.deepcopy(item)
 
     def _get_storage(self):
         # special case for Corpus meta since that's the only time owner is not a CorpusComponent
