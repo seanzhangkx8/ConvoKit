@@ -16,7 +16,7 @@ from .conversation import Conversation
 from .convoKitIndex import ConvoKitIndex
 from .convoKitMeta import ConvoKitMeta
 from .speaker import Speaker
-from .backendMapper import BackendMapper, MemMapper, DBMapper
+from .storageManager import StorageManager, MemStorageManager, DBStorageManager
 from .utterance import Utterance
 
 BIN_DELIM_L, BIN_DELIM_R = "<##bin{", "}&&@**>"
@@ -83,17 +83,17 @@ def get_corpus_dirpath(filename: str) -> Optional[str]:
 
 
 def initialize_storage(
-    corpus: "Corpus", storage: Optional[BackendMapper], storage_type: str, db_host: Optional[str]
+    corpus: "Corpus", storage: Optional[StorageManager], storage_type: str, db_host: Optional[str]
 ):
     if storage is not None:
         return storage
     else:
         if storage_type == "mem":
-            return MemMapper()
+            return MemStorageManager()
         elif storage_type == "db":
             if db_host is None:
                 db_host = corpus.config.db_host
-            return DBMapper(corpus.id, db_host)
+            return DBStorageManager(corpus.id, db_host)
         else:
             raise ValueError(
                 f"Unrecognized setting '{storage_type}' for storage type; should be either 'mem' or 'db'."
@@ -886,7 +886,7 @@ def populate_db_from_file(
 ):
     """
     Populate all necessary collections of a MongoDB database so that it can be
-    used by a DBMapper, sourcing data from the valid ConvoKit Corpus
+    used by a DBStorageManager, sourcing data from the valid ConvoKit Corpus
     data pointed to by the filename parameter.
     """
     binary_meta, updated_exclude_meta = load_binary_metadata(
@@ -983,5 +983,5 @@ def init_corpus_from_storage_manager(corpus, utt_ids=None):
     corpus.meta_index.enable_type_check()
     corpus.update_speakers_data()
 
-    # restore the BackendMapper's init behavior to default
+    # restore the StorageManager's init behavior to default
     corpus.storage.bypass_init = False

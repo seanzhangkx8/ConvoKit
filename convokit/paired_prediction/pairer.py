@@ -70,22 +70,10 @@ class Pairer(Transformer):
         pair_feat_to_neg_objs = defaultdict(list)
 
         for obj in pos_objects:
-            if self.pair_mode == "maximize":
-                try:
-                    pair_feat_to_pos_objs[str(self.pairing_func(obj))].append(obj)
-                except Exception as e:
-                    pair_feat_to_pos_objs[self.pairing_func(obj)].append(obj)
-            else:
-                pair_feat_to_pos_objs[self.pairing_func(obj)].append(obj)
+            pair_feat_to_pos_objs[self.pairing_func(obj)].append(obj)
 
         for obj in neg_objects:
-            if self.pair_mode == "maximize":
-                try:
-                    pair_feat_to_neg_objs[str(self.pairing_func(obj))].append(obj)
-                except Exception as e:
-                    pair_feat_to_neg_objs[self.pairing_func(obj)].append(obj)
-            else:
-                pair_feat_to_neg_objs[self.pairing_func(obj)].append(obj)
+            pair_feat_to_neg_objs[self.pairing_func(obj)].append(obj)
 
         valid_pairs = set(pair_feat_to_neg_objs).intersection(set(pair_feat_to_pos_objs))
 

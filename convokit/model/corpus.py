@@ -10,7 +10,7 @@ from convokit.util import create_safe_id
 from .convoKitMatrix import ConvoKitMatrix
 from .corpusUtil import *
 from .corpus_helpers import *
-from .backendMapper import BackendMapper
+from .storageManager import StorageManager
 
 
 class Corpus:
@@ -19,8 +19,6 @@ class Corpus:
 
     :param filename: Path to a folder containing a Corpus or to an utterances.jsonl / utterances.json file to load
     :param utterances: list of utterances to initialize Corpus from
-    :param db_collection_prefix: if a db backend is used, this determines how the database will be named. If not specified, a random name will be used.
-    :param db_host: if specified, and a db backend is used, connect to the database at this URL. If not specified, will default to the db_host in the ConvoKit global configuration file.
     :param preload_vectors: list of names of vectors to be preloaded from directory; by default,
         no vectors are loaded but can be loaded any time after corpus initialization (i.e. vectors are lazy-loaded).
     :param utterance_start_index: if loading from directory and the corpus folder contains utterances.jsonl, specify the
@@ -37,9 +35,6 @@ class Corpus:
         Type-checking ensures that the ConvoKitIndex is initialized correctly. However, it may be unnecessary if the
         index.json is already accurate and disabling it will allow for a faster corpus load. This parameter is set to
         True by default, i.e. type-checking is not carried out.
-
-    :param backend: specify the backend type, either “mem” or “db”, default to “mem”.
-    :param backend_mapper: (advanced usage only) if provided, use this as the BackendMapper instance instead of initializing a new one.
 
     :ivar meta_index: index of Corpus metadata
     :ivar vectors: the vectors stored in the Corpus
@@ -61,24 +56,24 @@ class Corpus:
         exclude_speaker_meta: Optional[List[str]] = None,
         exclude_overall_meta: Optional[List[str]] = None,
         disable_type_check=True,
-        backend: Optional[str] = None,
-        backend_mapper: Optional[BackendMapper] = None,
+        storage_type: Optional[str] = None,
+        storage: Optional[StorageManager] = None,
     ):
         self.config = ConvoKitConfig()
         self.corpus_dirpath = get_corpus_dirpath(filename)
 
         # configure corpus ID (optional for mem mode, required for DB mode)
-        if backend is None:
-            backend = self.config.default_storage_mode
-        if db_collection_prefix is None and filename is None and backend == "db":
+        if storage_type is None:
+            storage_type = self.config.default_storage_mode
+        if db_collection_prefix is None and filename is None and storage_type == "db":
             db_collection_prefix = create_safe_id()
             warn(
                 "You are in DB mode, but no collection prefix was specified and no filename was given from which to infer one."
                 "Will use a randomly generated unique prefix " + db_collection_prefix
             )
-        self.id = get_corpus_id(db_collection_prefix, filename, backend)
-        self.backend = backend
-        self.backend_mapper = initialize_storage(self, backend_mapper, backend, db_host)
+        self.id = get_corpus_id(db_collection_prefix, filename, storage_type)
+        self.storage_type = storage_type
+        self.storage = initialize_storage(self, storage, storage_type, db_host)
 
         self.meta_index = ConvoKitIndex(self)
         self.meta = ConvoKitMeta(self, self.meta_index, "corpus")
@@ -96,10 +91,10 @@ class Corpus:
         if exclude_overall_meta is None:
             exclude_overall_meta = []
 
-        if filename is not None and backend == "db":
+        if filename is not None and storage_type == "db":
             # JSON-to-DB construction mode uses a specialized code branch, which
             # optimizes for this use case by using direct batch insertions into the
-            # DB rather than going through the BackendMapper, hence improving
+            # DB rather than going through the StorageManager, hence improving
             # efficiency.
 
             with open(os.path.join(filename, "index.json"), "r") as f:
@@ -109,7 +104,7 @@ class Corpus:
             # populate the DB with the contents of the source file
             ids_in_db = populate_db_from_file(
                 filename,
-                self.backend_mapper.db,
+                self.storage.db,
                 self.id,
                 self.meta_index,
                 utterance_start_index,
@@ -120,7 +115,7 @@ class Corpus:
                 exclude_overall_meta,
             )
 
-            # with the BackendMapper's DB now populated, initialize the corresponding
+            # with the StorageManager's DB now populated, initialize the corresponding
             # CorpusComponent instances.
             init_corpus_from_storage_manager(self, ids_in_db)
 
@@ -221,8 +216,8 @@ class Corpus:
         resume where you left off.
         """
         # create a blank Corpus that will hold the data
-        result = cls(db_collection_prefix=db_collection_prefix, db_host=db_host, backend="db")
-        # through the constructor, the blank Corpus' BackendMapper is now connected
+        result = cls(db_collection_prefix=db_collection_prefix, db_host=db_host, storage_type="db")
+        # through the constructor, the blank Corpus' StorageManager is now connected
         # to the DB. Next use the DB contents to populate the corpus components.
         init_corpus_from_storage_manager(result)
 
@@ -626,7 +621,7 @@ class Corpus:
             meta_ids.append(convo.meta.storage_key)
         for speaker in self.iter_speakers():
             meta_ids.append(speaker.meta.storage_key)
-        self.backend_mapper.purge_obsolete_entries(
+        self.storage.purge_obsolete_entries(
             self.get_utterance_ids(), self.get_conversation_ids(), self.get_speaker_ids(), meta_ids
         )
 
@@ -650,8 +645,8 @@ class Corpus:
             convo.meta.update(source_corpus.get_conversation(convo.id).meta)
 
         # original Corpus is invalidated and no longer usable; clear all data from
-        # its now-orphaned BackendMapper to avoid having duplicates in memory
-        source_corpus.backend_mapper.clear_all_data()
+        # its now-orphaned StorageManager to avoid having duplicates in memory
+        source_corpus.storage.clear_all_data()
 
         return new_corpus
 
@@ -725,8 +720,8 @@ class Corpus:
                 print(missing_convo_roots)
 
         # original Corpus is invalidated and no longer usable; clear all data from
-        # its now-orphaned BackendMapper to avoid having duplicates in memory
-        source_corpus.backend_mapper.clear_all_data()
+        # its now-orphaned StorageManager to avoid having duplicates in memory
+        source_corpus.storage.clear_all_data()
 
         return new_corpus
 
@@ -1032,10 +1027,10 @@ class Corpus:
         new_corpus.reinitialize_index()
 
         # source corpora are now invalidated and all needed data has been copied
-        # into the new merged corpus; clear the source corpora's backend mapper to
+        # into the new merged corpus; clear the source corpora's storage to
         # prevent having duplicates in memory
-        primary.backend_mapper.clear_all_data()
-        secondary.backend_mapper.clear_all_data()
+        primary.storage.clear_all_data()
+        secondary.storage.clear_all_data()
 
         return new_corpus
 
@@ -1300,9 +1295,9 @@ class Corpus:
         for field in fields:
             # self.aux_info[field] = self.load_jsonlist_to_dict(
             #     os.path.join(dir_name, 'feat.%s.jsonl' % field))
-            if self.backend == "mem":
+            if self.storage_type == "mem":
                 load_info_to_mem(self, dir_name, obj_type, field)
-            elif self.backend == "db":
+            elif self.storage_type == "db":
                 load_info_to_db(self, dir_name, obj_type, field)
 
     def dump_info(self, obj_type, fields, dir_name=None):
