@@ -16,7 +16,6 @@ OUT_DIR = "/convokit_data"
 
 
 def convert_df_to_corpus(df: DataFrame, id_col: str, text_col: str, meta_cols: List[str]) -> Corpus:
-
     """Helper function to convert data to Corpus format
 
     Arguments:
@@ -37,7 +36,6 @@ def convert_df_to_corpus(df: DataFrame, id_col: str, text_col: str, meta_cols: L
 
     utterance_list = []
     for index, row in tqdm(df.iterrows()):
-
         # extracting meta data
         metadata = {}
         for meta_col in meta_cols:
@@ -59,7 +57,6 @@ def convert_df_to_corpus(df: DataFrame, id_col: str, text_col: str, meta_cols: L
 
 
 def prepare_corpus_df(filename, data_dir=DATA_DIR):
-
     df = pd.read_csv(os.path.join(data_dir, filename))
 
     # if Id is not uniquely identifiable, use df index
@@ -85,11 +82,9 @@ def prepare_corpus_df(filename, data_dir=DATA_DIR):
 
 
 if __name__ == "__main__":
-
     parser = TextParser(verbosity=500)
 
     for name in ["wikipedia.annotated.csv", "stack-exchange.annotated.csv"]:
-
         corpus_name = "{}-politeness-corpus".format(name.split(".")[0])
         df = prepare_corpus_df(name)
 
