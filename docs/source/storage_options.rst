@@ -34,11 +34,11 @@ How to Change Backends
 Once you have chosen the backend that best suits your purposes, the next step is to tell ConvoKit to use it.
 This can be done in three ways:
 
-#. Corpus-level: ConvoKit supports specifying a backend on a per-Corpus basis. This is done through the ``storage_type`` parameter when constructing a corpus. You can set this parameter to the string ``"mem"`` for the native Python backend or ``"db"`` for the MongoDB backend. It is possible to mix Python-backed and MongoDB-backed corpora in the same script.
+#. Corpus-level: ConvoKit supports specifying a backend on a per-Corpus basis. This is done through the ``backend`` parameter when constructing a corpus. You can set this parameter to the string ``"mem"`` for the native Python backend or ``"db"`` for the MongoDB backend. It is possible to mix Python-backed and MongoDB-backed corpora in the same script.
 
-#. System-level: If you want to change the *default* backend in all ConvoKit code that runs on your computer (i.e., the backend that gets used when the ``storage_type`` parameter is not given), this is controlled by the ConvoKit system setting ``"default_storage_mode"``. This is set to ``"mem"`` when ConvoKit is first installed, but you can change it to ``"db"`` to tell ConvoKit to use the MongoDB backend by default. Note: ConvoKit system settings are found in the ``config.yml`` file, which is located in the hidden directory ``~/.convokit``.
+#. System-level: If you want to change the *default* backend in all ConvoKit code that runs on your computer (i.e., the backend that gets used when the ``backend`` parameter is not given), this is controlled by the ConvoKit system setting ``"default_backend"``. This is set to ``"mem"`` when ConvoKit is first installed, but you can change it to ``"db"`` to tell ConvoKit to use the MongoDB backend by default. Note: ConvoKit system settings are found in the ``config.yml`` file, which is located in the hidden directory ``~/.convokit``.
 
-#. Script-level: As an in-between option, if you want to change the default storage option used in a specific Python script but not at the whole-system level, you can do this by setting the environment variable ``CONVOKIT_STORAGE_MODE`` before running your script. For example, if you normally run your script as ``python3 myscript.py``, running it instead as ``CONVOKIT_STORAGE_MODE=db python myscript.py`` will set the default storage mode to MongoDB for that run of the script only.
+#. Script-level: As an in-between option, if you want to change the default backend option used in a specific Python script but not at the whole-system level, you can do this by setting the environment variable ``CONVOKIT_BACKEND`` before running your script. For example, if you normally run your script as ``python3 myscript.py``, running it instead as ``CONVOKIT_BACKEND=db python myscript.py`` will set the default backend to MongoDB for that run of the script only.
 
 Differences in Corpus behavior between backends
 ===============================================
@@ -46,7 +46,7 @@ For the most part, the two backends are designed to be interchangeable; that is,
 We made deliberate design choices during implementation to ensure consistent behavior of the code between the two supported backends.
 However, some specifics of MongoDB result in one minor differences in Corpus behavior that you should be aware of when writing your code.
 
-Since the MongoDB backend uses a MongoDB database as its data storage system, it needs to give that database a name.
+Since the MongoDB backend uses a MongoDB database as its data storage backend, it needs to give that database a name.
 Thus, there is an additional parameter in the Corpus constructor, db_collection_prefix, which is only used by the MongoDB backend.
 This parameter determines how the MongoDB database will be named.
 Note that you still have the option of not specifying a name, but in this case a random name will be used.

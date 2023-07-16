@@ -5,4 +5,4 @@ After you import convokit for the first time, a default configuration file will 
 There are currently three variables:
 db_host:
 data_directory:
-default_storage_mode:
+default_backend:

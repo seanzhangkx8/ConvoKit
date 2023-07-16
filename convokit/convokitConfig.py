@@ -4,13 +4,13 @@ from yaml import load, Loader
 
 
 DEFAULT_CONFIG_CONTENTS = (
-    "# Default Storage Parameters\n"
+    "# Default Backend Parameters\n"
     "db_host: localhost:27017\n"
     "data_directory: ~/.convokit/saved-corpora\n"
-    "default_storage_mode: mem"
+    "default_backend: mem"
 )
 
-ENV_VARS = {"db_host": "CONVOKIT_DB_HOST", "default_storage_mode": "CONVOKIT_STORAGE_MODE"}
+ENV_VARS = {"db_host": "CONVOKIT_DB_HOST", "default_backend": "CONVOKIT_BACKEND"}
 
 
 class ConvoKitConfig:
@@ -52,5 +52,5 @@ class ConvoKitConfig:
         return self.config_contents.get("data_directory", "~/.convokit/saved-corpora")
 
     @property
-    def default_storage_mode(self):
-        return self._get_config_from_env_or_file("default_storage_mode", "mem")
+    def default_backend(self):
+        return self._get_config_from_env_or_file("default_backend", "mem")

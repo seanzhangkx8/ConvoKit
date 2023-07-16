@@ -10,33 +10,33 @@ Load a variety of existing (small) corpora to verify that there are no backward 
 """
 
 
-@pytest.mark.parametrize("storage_type", ["mem", "db"])
-def test_load_dump_subreddit(storage_type):
-    corpus = Corpus(download("subreddit-hey"), storage_type=storage_type)
+@pytest.mark.parametrize("backend", ["mem", "db"])
+def test_load_dump_subreddit(backend):
+    corpus = Corpus(download("subreddit-hey"), backend=backend)
     corpus.dump("subreddit")
 
 
-@pytest.mark.parametrize("storage_type", ["mem", "db"])
-def test_load_dump_tennis(storage_type):
-    corpus = Corpus(download("tennis-corpus"), storage_type=storage_type)
+@pytest.mark.parametrize("backend", ["mem", "db"])
+def test_load_dump_tennis(backend):
+    corpus = Corpus(download("tennis-corpus"), backend=backend)
     corpus.dump("tennis-corpus")
 
 
-@pytest.mark.parametrize("storage_type", ["mem", "db"])
-def test_load_dump_politeness(storage_type):
-    corpus = Corpus(download("wikipedia-politeness-corpus"), storage_type=storage_type)
+@pytest.mark.parametrize("backend", ["mem", "db"])
+def test_load_dump_politeness(backend):
+    corpus = Corpus(download("wikipedia-politeness-corpus"), backend=backend)
     corpus.dump("wikipedia-politeness-corpus")
 
 
-@pytest.mark.parametrize("storage_type", ["mem", "db"])
-def test_load_dump_switchboard(storage_type):
-    corpus = Corpus(download("switchboard-corpus"), storage_type=storage_type)
+@pytest.mark.parametrize("backend", ["mem", "db"])
+def test_load_dump_switchboard(backend):
+    corpus = Corpus(download("switchboard-corpus"), backend=backend)
     corpus.dump("switchboard-corpus")
 
 
-@pytest.mark.parametrize("storage_type", ["mem", "db"])
-def test_load_wikiconv(storage_type):
-    corpus = Corpus(download("wikiconv-2004"), storage_type=storage_type)
+@pytest.mark.parametrize("backend", ["mem", "db"])
+def test_load_wikiconv(backend):
+    corpus = Corpus(download("wikiconv-2004"), backend=backend)
     corpus.dump("switchboard-corpus")
 
 

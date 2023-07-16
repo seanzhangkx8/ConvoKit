@@ -17,7 +17,7 @@ class BackendMapper(metaclass=ABCMeta):
     """
 
     def __init__(self):
-        # concrete data storage (i.e., collections) for each component type
+        # concrete data backend (i.e., collections) for each component type
         # this will be assigned in subclasses
         self.data = {"utterance": None, "conversation": None, "speaker": None, "meta": None}
 

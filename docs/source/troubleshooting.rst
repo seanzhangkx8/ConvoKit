@@ -65,8 +65,8 @@ and if that doesn't fix the issue, then run:
 
 Immutability of Metadata Fields
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Starting with 3.0, ConvoKit disallows mutation on Metadata fields to prevent unintended data loss and ensure the integrity of the corpus metadata storage.
-When accessing a Metadata field, a deep copy of the field is returned to prevent mutation changes to the copy from affecting the storage.
+Starting with 3.0, ConvoKit disallows mutation on Metadata fields to prevent unintended data loss and ensure the integrity of the corpus metadata backend storage.
+When accessing a Metadata field, a deep copy of the field is returned to prevent mutation changes to the copy from affecting the backend storage.
 This behavior is intended to ensure consistency between DB and MEM modes, since permitting mutations to mutable metadata fields in DB mode would solely modify the in-memory data without updating the database, thereby risking potential data loss.
 
 Therefore, all metadata values must be treated as *immutable*. This does not really make a difference for primitive values like ints and strings,
@@ -80,8 +80,8 @@ Because lists are considered mutable in Python, you might expect the following c
 >>> saved_foo.append("new value")
 
 However, it will not work starting with the 3.0 version of ConvoKit; the code will run, but only the variable ``saved_foo`` will be affected, not the actual metadata storage of ``my_utt``.
-This is because ``saved_foo`` only contains a copy of the data from the storage.
-Thus, any operations that are done directly on ``saved_foo`` are done only to the copy, and do not involve any storage writes.
+This is because ``saved_foo`` only contains a copy of the data from the backend storage.
+Thus, any operations that are done directly on ``saved_foo`` are done only to the copy, and do not involve any backend storage writes.
 
 It is therefore necessary to treat *all* metadata objects, regardless of type, as immutable.
 Thus, the way to change metadata is the same way you would change an int or string type metadata entry: that is, by completely overwriting it.
@@ -92,4 +92,4 @@ For example, to achieve the desired effect with the ``"foo"`` metadata entry fro
 >>> my_utt.meta["foo"] = temp_foo
 
 By adding the additional line of code that overwrites the ``"foo"`` metadata entry, you are telling ConvoKit that you want to update the value of ``"foo"`` in the storage’s metadata table with a new value, represented by ``temp_foo`` which contains the new additional item.
-Thus the contents of ``temp_foo`` will get written to the storage as the new value of ``my_utt.meta["foo"]``, hence updating the metadata as desired.
+Thus the contents of ``temp_foo`` will get written to the backend storage as the new value of ``my_utt.meta["foo"]``, hence updating the metadata as desired.

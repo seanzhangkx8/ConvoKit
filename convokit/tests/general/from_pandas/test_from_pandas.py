@@ -48,7 +48,7 @@ class CorpusFromPandas(unittest.TestCase):
 
 class TestWithMem(CorpusFromPandas):
     def setUp(self) -> None:
-        self.corpus = Corpus(download("subreddit-hey"), storage_type="mem")
+        self.corpus = Corpus(download("subreddit-hey"), backend="mem")
         self.utt_df = self.corpus.get_utterances_dataframe()
         self.convo_df = self.corpus.get_conversations_dataframe()
         self.speaker_df = self.corpus.get_speakers_dataframe()
@@ -72,7 +72,7 @@ class TestWithMem(CorpusFromPandas):
 
 class TestWithDB(CorpusFromPandas):
     def setUp(self) -> None:
-        self.corpus = Corpus(download("subreddit-hey"), storage_type="db")
+        self.corpus = Corpus(download("subreddit-hey"), backend="db")
         self.utt_df = self.corpus.get_utterances_dataframe()
         self.convo_df = self.corpus.get_conversations_dataframe()
         self.speaker_df = self.corpus.get_speakers_dataframe()

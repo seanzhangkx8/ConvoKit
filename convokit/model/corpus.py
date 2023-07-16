@@ -69,7 +69,7 @@ class Corpus:
 
         # configure corpus ID (optional for mem mode, required for DB mode)
         if backend is None:
-            backend = self.config.default_storage_mode
+            backend = self.config.default_backend
         if db_collection_prefix is None and filename is None and backend == "db":
             db_collection_prefix = create_safe_id()
             warn(
@@ -78,12 +78,12 @@ class Corpus:
             )
         self.id = get_corpus_id(db_collection_prefix, filename, backend)
         self.backend = backend
-        self.backend_mapper = initialize_storage(self, backend_mapper, backend, db_host)
+        self.backend_mapper = initialize_backend(self, backend_mapper, backend, db_host)
 
         self.meta_index = ConvoKitIndex(self)
         self.meta = ConvoKitMeta(self, self.meta_index, "corpus")
 
-        # private storage
+        # private backend
         self._vector_matrices = dict()
 
         convos_data = defaultdict(dict)
@@ -122,7 +122,7 @@ class Corpus:
 
             # with the BackendMapper's DB now populated, initialize the corresponding
             # CorpusComponent instances.
-            init_corpus_from_storage_manager(self, ids_in_db)
+            init_corpus_from_backend_manager(self, ids_in_db)
 
             self.meta_index.enable_type_check()
             # load preload_vectors
@@ -224,7 +224,7 @@ class Corpus:
         result = cls(db_collection_prefix=db_collection_prefix, db_host=db_host, backend="db")
         # through the constructor, the blank Corpus' BackendMapper is now connected
         # to the DB. Next use the DB contents to populate the corpus components.
-        init_corpus_from_storage_manager(result)
+        init_corpus_from_backend_manager(result)
 
         return result
 
@@ -618,14 +618,14 @@ class Corpus:
         self.update_speakers_data()
         self.reinitialize_index()
 
-        # clear all storage entries corresponding to filtered-out components
-        meta_ids = [self.meta.storage_key]
+        # clear all backend entries corresponding to filtered-out components
+        meta_ids = [self.meta.backend_key]
         for utt in self.iter_utterances():
-            meta_ids.append(utt.meta.storage_key)
+            meta_ids.append(utt.meta.backend_key)
         for convo in self.iter_conversations():
-            meta_ids.append(convo.meta.storage_key)
+            meta_ids.append(convo.meta.backend_key)
         for speaker in self.iter_speakers():
-            meta_ids.append(speaker.meta.storage_key)
+            meta_ids.append(speaker.meta.backend_key)
         self.backend_mapper.purge_obsolete_entries(
             self.get_utterance_ids(), self.get_conversation_ids(), self.get_speaker_ids(), meta_ids
         )
