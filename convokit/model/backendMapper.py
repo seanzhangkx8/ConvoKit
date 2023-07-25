@@ -6,17 +6,18 @@ import bson
 import pickle
 
 
-class StorageManager(metaclass=ABCMeta):
+class BackendMapper(metaclass=ABCMeta):
     """
     Abstraction layer for the concrete representation of data and metadata
     within corpus components (e.g., Utterance text and timestamps). All requests
     to access or modify corpusComponent fields (with the exception of ID) are
-    actually routed through one of StorageManager's concrete subclasses. Each
-    subclass implements a storage backend that contains the actual data.
+    actually routed through one of BackendMapper's concrete subclasses. Each
+    subclass implements a concrete backend mapping from ConvoKit operations to actual data.
+    (These mappings are referred to as collections.)
     """
 
     def __init__(self):
-        # concrete data storage (i.e., collections) for each component type
+        # concrete data backend (i.e., collections) for each component type
         # this will be assigned in subclasses
         self.data = {"utterance": None, "conversation": None, "speaker": None, "meta": None}
 
@@ -84,7 +85,7 @@ class StorageManager(metaclass=ABCMeta):
         self, component_type: str, component_id: str, property_name: Optional[str] = None
     ):
         """
-        Delete a data entry from this StorageManager for the component of type
+        Delete a data entry from this BackendMapper for the component of type
         component_type with id component_id. If property_name is specified
         delete only that property, otherwise delete the entire entry.
         """
@@ -93,7 +94,7 @@ class StorageManager(metaclass=ABCMeta):
     @abstractmethod
     def clear_all_data(self):
         """
-        Erase all data from this StorageManager (i.e., reset self.data to its
+        Erase all data from this BackendMapper (i.e., reset self.data to its
         initial empty state; Python will garbage-collect the now-unreferenced
         old data entries). This is used for cleanup after destructive Corpus
         operations.
@@ -104,7 +105,7 @@ class StorageManager(metaclass=ABCMeta):
     def count_entries(self, component_type: str):
         """
         Count the number of entries held for the specified component type by
-        this StorageManager instance
+        this BackendMapper instance
         """
         return NotImplemented
 
@@ -117,7 +118,7 @@ class StorageManager(metaclass=ABCMeta):
 
     def purge_obsolete_entries(self, utterance_ids, conversation_ids, speaker_ids, meta_ids):
         """
-        Compare the entries in this StorageManager to the existing component ids
+        Compare the entries in this BackendMapper to the existing component ids
         provided as parameters, and delete any entries that are not found in the
         parameter ids.
         """
@@ -133,9 +134,9 @@ class StorageManager(metaclass=ABCMeta):
                     self.delete_data(obj_type, obj_id)
 
 
-class MemStorageManager(StorageManager):
+class MemMapper(BackendMapper):
     """
-    Concrete StorageManager implementation for in-memory data storage.
+    Concrete BackendMapper implementation for in-memory data storage.
     Collections are implemented as vanilla Python dicts.
     """
 
@@ -170,7 +171,7 @@ class MemStorageManager(StorageManager):
         collection = self.get_collection(component_type)
         if component_id not in collection:
             raise KeyError(
-                f"This StorageManager does not have an entry for the {component_type} with id {component_id}."
+                f"This BackendMapper does not have an entry for the {component_type} with id {component_id}."
             )
         if property_name is None:
             return collection[component_id]
@@ -190,7 +191,7 @@ class MemStorageManager(StorageManager):
         # CorpusComponent constructor so if the ID is missing that indicates something is wrong
         if component_id not in collection:
             raise KeyError(
-                f"This StorageManager does not have an entry for the {component_type} with id {component_id}."
+                f"This BackendMapper does not have an entry for the {component_type} with id {component_id}."
             )
         collection[component_id][property_name] = new_value
 
@@ -200,7 +201,7 @@ class MemStorageManager(StorageManager):
         collection = self.get_collection(component_type)
         if component_id not in collection:
             raise KeyError(
-                f"This StorageManager does not have an entry for the {component_type} with id {component_id}."
+                f"This BackendMapper does not have an entry for the {component_type} with id {component_id}."
             )
         if property_name is None:
             del collection[component_id]
@@ -215,9 +216,9 @@ class MemStorageManager(StorageManager):
         return len(self.get_collection(component_type))
 
 
-class DBStorageManager(StorageManager):
+class DBMapper(BackendMapper):
     """
-    Concrete StorageManager implementation for database-backed data storage.
+    Concrete BackendMapper implementation for database-backed data storage.
     Collections are implemented as MongoDB collections.
     """
 
@@ -272,7 +273,7 @@ class DBStorageManager(StorageManager):
         all_fields = collection.find_one({"_id": component_id})
         if all_fields is None:
             raise KeyError(
-                f"This StorageManager does not have an entry for the {component_type} with id {component_id}."
+                f"This BackendMapper does not have an entry for the {component_type} with id {component_id}."
             )
         if property_name is None:
             # if some data is known to be binary type, unpack it

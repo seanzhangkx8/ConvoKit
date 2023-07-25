@@ -3,7 +3,7 @@ Installing ConvoKit
 
 System Requirements
 ===================
-ConvoKit requires Python 3.7 or above.
+ConvoKit requires Python 3.8 or above.
 
 Package Installation
 ====================
@@ -30,6 +30,10 @@ For more information on choosing between the two options and setting up the Mong
 
     Choosing a Backend: native Python vs MongoDB <storage_options.rst>
     Setting up MongoDB for ConvoKit <db_setup.rst>
+
+Configuration
+==================
+ConvoKit configurations are stored in "~/.convokit/config.yml", check out our `Configuration Guide <https://convokit.cornell.edu/documentation/config.html>`_ for a list of configuration details.
 
 Troubleshooting
 ===============

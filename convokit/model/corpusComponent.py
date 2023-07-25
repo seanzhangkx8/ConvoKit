@@ -20,12 +20,12 @@ class CorpusComponent:
         self.vectors = vectors if vectors is not None else []
 
         # if the CorpusComponent is initialized with an owner set up an entry
-        # in the owner's storage; if it is not initialized with an owner
-        # (i.e. it is a standalone object) set up a dict-based temp storage
+        # in the owner's backend; if it is not initialized with an owner
+        # (i.e. it is a standalone object) set up a dict-based temp backend
         if self.owner is None:
-            self._temp_storage = initial_data if initial_data is not None else {}
+            self._temp_backend = initial_data if initial_data is not None else {}
         else:
-            self.owner.storage.initialize_data_for_component(
+            self.owner.backend_mapper.initialize_data_for_component(
                 self.obj_type,
                 self._id,
                 initial_value=(initial_data if initial_data is not None else {}),
@@ -42,28 +42,28 @@ class CorpusComponent:
         if owner is self._owner:
             # no action needed
             return
-        # stash the metadata first since reassigning self._owner will break its storage connection
+        # stash the metadata first since reassigning self._owner will break its backend connection
         meta_vals = {k: v for k, v in self.meta.items()}
         previous_owner = self._owner
         self._owner = owner
         if owner is not None:
             # when a new owner Corpus is assigned, we must take the following steps:
-            # (1) transfer this component's data to the new owner's StorageManager
-            # (2) avoid duplicates by removing the data from the old owner (or temp storage if there was no prior owner)
+            # (1) transfer this component's data to the new owner's BackendMapper
+            # (2) avoid duplicates by removing the data from the old owner (or temp backend if there was no prior owner)
             # (3) reinitialize the metadata instance
             data_dict = (
-                dict(previous_owner.storage.get_data(self.obj_type, self.id))
+                dict(previous_owner.backend_mapper.get_data(self.obj_type, self.id))
                 if previous_owner is not None
-                else self._temp_storage
+                else self._temp_backend
             )
-            self.owner.storage.initialize_data_for_component(
+            self.owner.backend_mapper.initialize_data_for_component(
                 self.obj_type, self.id, initial_value=data_dict
             )
             if previous_owner is not None:
-                previous_owner.storage.delete_data(self.obj_type, self.id)
-                previous_owner.storage.delete_data("meta", self.meta.storage_key)
+                previous_owner.backend_mapper.delete_data(self.obj_type, self.id)
+                previous_owner.backend_mapper.delete_data("meta", self.meta.backend_key)
             else:
-                del self._temp_storage
+                del self._temp_backend
             self._meta = self.init_meta(meta_vals)
 
     owner = property(get_owner, set_owner)
@@ -71,7 +71,7 @@ class CorpusComponent:
     def init_meta(self, meta, overwrite=False):
         if self._owner is None:
             # ConvoKitMeta instances are not allowed for ownerless (standalone)
-            # components since they must be backed by a StorageManager. In this
+            # components since they must be backed by a BackendMapper. In this
             # case we must forcibly convert the ConvoKitMeta instance to dict
             if isinstance(meta, ConvoKitMeta):
                 meta = meta.to_dict()
@@ -110,14 +110,14 @@ class CorpusComponent:
 
     def get_data(self, property_name):
         if self._owner is None:
-            return self._temp_storage[property_name]
-        return self.owner.storage.get_data(self.obj_type, self.id, property_name)
+            return self._temp_backend[property_name]
+        return self.owner.backend_mapper.get_data(self.obj_type, self.id, property_name)
 
     def set_data(self, property_name, value):
         if self._owner is None:
-            self._temp_storage[property_name] = value
+            self._temp_backend[property_name] = value
         else:
-            self.owner.storage.update_data(self.obj_type, self.id, property_name, value)
+            self.owner.backend_mapper.update_data(self.obj_type, self.id, property_name, value)
 
     # def __eq__(self, other):
     #     if type(self) != type(other): return False

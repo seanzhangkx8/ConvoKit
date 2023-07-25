@@ -24,7 +24,9 @@ In everyday usage, "metadata" simply refers to information for identifying and o
 
 Each of the four classes in the hierarchy contains a ``.meta`` field, which is a dictionary that maps from metadata name to value. In the previous example, you would want a Speaker-level metadata entry called something like "start-date". So, if ``spkr`` is an instance of Speaker representing a Reddit user who joined on April 1, 2008, ``spkr.meta`` would be a dictionary looking like ``{"start-date": "04-01-2008"}``. While for simplicity we have represented the start date as a string, in practice there are no restrictions on what kinds of objects can be stored as metadata, so you could have chosen a fancier representation, like a Pandas timestamp.
 
-Note that all of the datasets that ship with ConvoKit have some metadata already present, usually related to the task that the dataset was originally designed for. To learn what metadata is present in a Corpus, you can access its ``meta_index`` attribute.
+Note that *all* metadata values should be treated as immutable regardless of type; for more detailed information, refer to `Immutability of Metadata Fields <https://convokit.cornell.edu/documentation/troubleshooting.html#immutability-of-metadata-fields>`_.
+
+All of the datasets that ship with ConvoKit have some metadata already present, usually related to the task that the dataset was originally designed for. To learn what metadata is present in a Corpus, you can access its meta_index attribute.
 
 Vectors
 ^^^^^^^
@@ -35,7 +37,7 @@ Additionally, ConvoKit provides support for adding vector data (e.g. GloVe repre
 Transformer
 -----------
 
-Of course, if we only had Corpus objects (merely large containers of data), we wouldn't really be able to do anything interesting. In practice, we need to manipulate the corpora in some way. This idea is represented in ConvoKit as the Transformer class. 
+Of course, if we only had Corpus objects (merely large containers of data), we wouldn't really be able to do anything interesting. In practice, we need to manipulate the corpora in some way. This idea is represented in ConvoKit as the Transformer class.
 
 At a high level, a Transformer is an object that takes in a Corpus and gives back the same Corpus with some modifications done to it. In almost all cases, these modifications will take the form of changed or added metadata. For example, one kind of Transformer built in to ConvoKit is the TextParser, which is designed to add dependency parses to a Corpus. When you run the TextParser on a Corpus, it adds to each Utterance a metadata entry called "parsed", whose value is the dependency parse of that Utterance's text (represented as a `SpaCy Doc <https://spacy.io/api/doc>`_). The modified Corpus is then returned so you can continue to do other things with it (including running other Transformers).
 
@@ -61,7 +63,7 @@ more complicated task, like named entity recognition. In general, the code for c
 Transformers takes the following form::
 
     # Assume that transformer1,transformer2,... have been previously initialized as instances of Transformer subclasses
-    
+
     base_corpus = Corpus(...)
 
     corpus1 = transformer1.transform(base_corpus)

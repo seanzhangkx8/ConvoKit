@@ -1,4 +1,5 @@
 import unittest
+import copy
 
 from convokit.phrasing_motifs.questionSentences import QuestionSentences
 from convokit.tests.test_utils import small_burr_corpus_parsed, reload_corpus_in_db_mode
@@ -7,10 +8,14 @@ from convokit.tests.test_utils import small_burr_corpus_parsed, reload_corpus_in
 def parsed_burr_sir_corpus_with_lowercase_are():
     corpus = small_burr_corpus_parsed()
     for utterance in corpus.iter_utterances():
-        parsed = utterance.retrieve_meta("parsed")
+        # with new DB mode behavior, mutation to metadata fields is no longer supported.
+        parsed = copy.deepcopy(utterance.retrieve_meta("parsed"))
         for sentence in parsed:
             if sentence["toks"][0]["tok"] == "Are":
+                # trying to mutate here originally.
+                # solve by deepcopying the entire metadata field, modify it, then replace entire original field.
                 sentence["toks"][0]["tok"] = "are"
+        utterance.meta["parsed"] = parsed
     return corpus
 
 

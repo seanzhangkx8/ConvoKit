@@ -267,7 +267,7 @@ def reload_corpus_in_db_mode(corpus):
     corpus_id = "_" + uuid4().hex
     try:
         corpus.dump(corpus_id, base_path=".")
-        db_corpus = Corpus(corpus_id, storage_type="db")
+        db_corpus = Corpus(corpus_id, backend="db")
         return db_corpus
     finally:
         if os.path.exists(corpus_id):

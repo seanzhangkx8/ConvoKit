@@ -34,46 +34,20 @@ How to Change Backends
 Once you have chosen the backend that best suits your purposes, the next step is to tell ConvoKit to use it.
 This can be done in three ways:
 
-#. Corpus-level: ConvoKit supports specifying a backend on a per-Corpus basis. This is done through the ``storage_type`` parameter when constructing a corpus. You can set this parameter to the string ``"mem"`` for the native Python backend or ``"db"`` for the MongoDB backend. It is possible to mix Python-backed and MongoDB-backed corpora in the same script.
+#. Corpus-level: ConvoKit supports specifying a backend on a per-Corpus basis. This is done through the ``backend`` parameter when constructing a corpus. You can set this parameter to the string ``"mem"`` for the native Python backend or ``"db"`` for the MongoDB backend. It is possible to mix Python-backed and MongoDB-backed corpora in the same script.
 
-#. System-level: If you want to change the *default* backend in all ConvoKit code that runs on your computer (i.e., the backend that gets used when the ``storage_type`` parameter is not given), this is controlled by the ConvoKit system setting ``"default_storage_mode"``. This is set to ``"mem"`` when ConvoKit is first installed, but you can change it to ``"db"`` to tell ConvoKit to use the MongoDB backend by default. Note: ConvoKit system settings are found in the ``config.yml`` file, which is located in the hidden directory ``~/.convokit``.
+#. System-level: If you want to change the *default* backend in all ConvoKit code that runs on your computer (i.e., the backend that gets used when the ``backend`` parameter is not given), this is controlled by the ConvoKit system setting ``"default_backend"``. This is set to ``"mem"`` when ConvoKit is first installed, but you can change it to ``"db"`` to tell ConvoKit to use the MongoDB backend by default. Note: ConvoKit system settings are found in the ``config.yml`` file, which is located in the hidden directory ``~/.convokit``.
 
-#. Script-level: As an in-between option, if you want to change the default storage option used in a specific Python script but not at the whole-system level, you can do this by setting the environment variable ``CONVOKIT_STORAGE_MODE`` before running your script. For example, if you normally run your script as ``python3 myscript.py``, running it instead as ``CONVOKIT_STORAGE_MODE=db python myscript.py`` will set the default storage mode to MongoDB for that run of the script only.
+#. Script-level: As an in-between option, if you want to change the default backend option used in a specific Python script but not at the whole-system level, you can do this by setting the environment variable ``CONVOKIT_BACKEND`` before running your script. For example, if you normally run your script as ``python3 myscript.py``, running it instead as ``CONVOKIT_BACKEND=db python myscript.py`` will set the default backend to MongoDB for that run of the script only.
 
 Differences in Corpus behavior between backends
 ===============================================
 For the most part, the two backends are designed to be interchangeable; that is, code written for one backend should work in the other backend out-of-the-box.
-However, some specifics of MongoDB result in two minor differences in Corpus behavior that you should be aware of when writing your code.
+We made deliberate design choices during implementation to ensure consistent behavior of the code between the two supported backends.
+However, some specifics of MongoDB result in one minor differences in Corpus behavior that you should be aware of when writing your code.
 
-First, since the MongoDB backend uses a MongoDB database as its data storage system, it needs to give that database a name.
-Thus, there is an additional parameter in the Corpus constructor, ``db_collection_prefix``, which is only used by the MongoDB backend.
+Since the MongoDB backend uses a MongoDB database as its data storage backend, it needs to give that database a name.
+Thus, there is an additional parameter in the Corpus constructor, db_collection_prefix, which is only used by the MongoDB backend.
 This parameter determines how the MongoDB database will be named.
 Note that you still have the option of not specifying a name, but in this case a random name will be used.
 It is best practice to explicitly supply a name yourself, so you know what database to reconnect to in the event that reconnection is needed after a system crash.
-
-Second, because all operations in MongoDB involve *copying* data from the MongoDB database to the Python process (or vice versa), all metadata values must be treated as *immutable*.
-This does not really make a difference for primitive values like ints and strings, since those are immutable in Python to begin with.
-However, code that relies on mutating a more complex type like a dictionary may not work as expected in the MongoDB backend.
-For example, suppose the metadata entry ``"foo"`` is a list type, and you access it by saving it to a Python variable as follows:
-
->>> saved_foo = my_utt.meta["foo"]
-
-Because lists are considered mutable in Python, you might expect the following code to successfully add a new item in the ``foo`` metadata of ``my_utt``:
-
->>> saved_foo.append("new value")
-
-This will work in the native Python backend.
-However, it will not work in the MongoDB backend; the code will run, but only the variable ``saved_foo`` will be affected, not the actual metadata of ``my_utt``.
-This is because ``saved_foo`` only contains a copy of the data in the MongoDB database, which has been translated into a Python object.
-Thus, any operations that are done directly on ``saved_foo`` are done only to the Python object, and do not involve any database writes.
-
-It is therefore best to treat *all* metadata objects, regardless of type, as immutable when using the MongoDB backend.
-Thus, the correct way to change metadata in MongoDB mode is the same way you would change an int or string type metadata entry: that is, by completely overwriting it.
-For example, to achieve the desired effect with the ``"foo"`` metadata entry from above, you should do the following:
-
->>> temp_foo = my_utt.meta["foo"]
->>> temp_foo.append("new value")
->>> my_utt.meta["foo"] = temp_foo
-
-By adding the additional line of code that overwrites the ``"foo"`` metadata entry, you are telling ConvoKit that you want to update the value of ``"foo"`` in the database-backed metadata table with a new value, represented by ``temp_foo`` which contains the new additional item.
-Thus the contents of ``temp_foo`` will get written to the database as the new value of ``my_utt.meta["foo"]``, hence updating the metadata as desired.

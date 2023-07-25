@@ -16,7 +16,7 @@ from .conversation import Conversation
 from .convoKitIndex import ConvoKitIndex
 from .convoKitMeta import ConvoKitMeta
 from .speaker import Speaker
-from .storageManager import StorageManager, MemStorageManager, DBStorageManager
+from .backendMapper import BackendMapper, MemMapper, DBMapper
 from .utterance import Utterance
 
 BIN_DELIM_L, BIN_DELIM_R = "<##bin{", "}&&@**>"
@@ -34,7 +34,7 @@ JSONLIST_BUFFER_SIZE = 1000
 
 
 def get_corpus_id(
-    db_collection_prefix: Optional[str], filename: Optional[str], storage_type: str
+    db_collection_prefix: Optional[str], filename: Optional[str], backend: str
 ) -> Optional[str]:
     if db_collection_prefix is not None:
         # treat the unique collection prefix as the ID (even if a filename is specified)
@@ -45,7 +45,7 @@ def get_corpus_id(
     else:
         corpus_id = None
 
-    if storage_type == "db" and corpus_id is not None:
+    if backend == "db" and corpus_id is not None:
         compatibility_msg = check_id_for_mongodb(corpus_id)
         if compatibility_msg is not None:
             random_id = create_safe_id()
@@ -82,21 +82,21 @@ def get_corpus_dirpath(filename: str) -> Optional[str]:
         return os.path.dirname(filename)
 
 
-def initialize_storage(
-    corpus: "Corpus", storage: Optional[StorageManager], storage_type: str, db_host: Optional[str]
+def initialize_backend(
+    corpus: "Corpus", backend_mapper: Optional[BackendMapper], backend: str, db_host: Optional[str]
 ):
-    if storage is not None:
-        return storage
+    if backend_mapper is not None:
+        return backend_mapper
     else:
-        if storage_type == "mem":
-            return MemStorageManager()
-        elif storage_type == "db":
+        if backend == "mem":
+            return MemMapper()
+        elif backend == "db":
             if db_host is None:
                 db_host = corpus.config.db_host
-            return DBStorageManager(corpus.id, db_host)
+            return DBMapper(corpus.id, db_host)
         else:
             raise ValueError(
-                f"Unrecognized setting '{storage_type}' for storage type; should be either 'mem' or 'db'."
+                f"Unrecognized setting '{backend}' for backend type; should be either 'mem' or 'db'."
             )
 
 
@@ -820,7 +820,7 @@ def load_info_to_db(corpus, dir_name, obj_type, field, index_key="id", value_key
     its contents into the DB, and updates the Corpus' metadata index
     """
     filename = os.path.join(dir_name, "info.%s.jsonl" % field)
-    meta_collection = corpus.storage.get_collection("meta")
+    meta_collection = corpus.backend_mapper.get_collection("meta")
 
     # attept to use saved type information
     index_file = os.path.join(dir_name, "index.json")
@@ -886,7 +886,7 @@ def populate_db_from_file(
 ):
     """
     Populate all necessary collections of a MongoDB database so that it can be
-    used by a DBStorageManager, sourcing data from the valid ConvoKit Corpus
+    used by a DBMapper, sourcing data from the valid ConvoKit Corpus
     data pointed to by the filename parameter.
     """
     binary_meta, updated_exclude_meta = load_binary_metadata(
@@ -947,19 +947,19 @@ def populate_db_from_file(
     return inserted_utt_ids
 
 
-def init_corpus_from_storage_manager(corpus, utt_ids=None):
+def init_corpus_from_backend_manager(corpus, utt_ids=None):
     """
     Use an already-populated MongoDB database to initialize the components of
     the specified Corpus (which should be empty before this function is called)
     """
     # we will bypass the initialization step when constructing components since
     # we know their necessary data already exists within the db
-    corpus.storage.bypass_init = True
+    corpus.backend_mapper.bypass_init = True
 
     # fetch object ids from the DB and initialize corpus components for them
     # create speakers first so we can refer to them when initializing utterances
     speakers = {}
-    for speaker_doc in corpus.storage.data["speaker"].find(projection=["_id"]):
+    for speaker_doc in corpus.backend_mapper.data["speaker"].find(projection=["_id"]):
         speaker_id = speaker_doc["_id"]
         speakers[speaker_id] = Speaker(owner=corpus, id=speaker_id)
     corpus.speakers = speakers
@@ -967,7 +967,7 @@ def init_corpus_from_storage_manager(corpus, utt_ids=None):
     # next, create utterances
     utterances = {}
     convo_to_utts = defaultdict(list)
-    for utt_doc in corpus.storage.data["utterance"].find(
+    for utt_doc in corpus.backend_mapper.data["utterance"].find(
         projection=["_id", "speaker_id", "conversation_id"]
     ):
         utt_id = utt_doc["_id"]
@@ -983,5 +983,5 @@ def init_corpus_from_storage_manager(corpus, utt_ids=None):
     corpus.meta_index.enable_type_check()
     corpus.update_speakers_data()
 
-    # restore the StorageManager's init behavior to default
-    corpus.storage.bypass_init = False
+    # restore the BackendMapper's init behavior to default
+    corpus.backend_mapper.bypass_init = False

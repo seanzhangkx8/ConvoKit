@@ -29,14 +29,16 @@ class CorpusMerge(unittest.TestCase):
         self.assertEqual(len(list(merged.iter_speakers())), 6)
 
         for utt_id in all_utt_ids:
-            self.assertTrue(merged.storage.has_data_for_component("utterance", utt_id))
+            self.assertTrue(merged.backend_mapper.has_data_for_component("utterance", utt_id))
         for speaker_id in all_speaker_ids:
-            self.assertTrue(merged.storage.has_data_for_component("speaker", speaker_id))
+            self.assertTrue(merged.backend_mapper.has_data_for_component("speaker", speaker_id))
 
-        for component_type in self.base_corpus.storage.data.keys():
-            self.assertEqual(self.base_corpus.storage.count_entries(component_type), 0)
-        for component_type in self.non_overlapping_corpus.storage.data.keys():
-            self.assertEqual(self.non_overlapping_corpus.storage.count_entries(component_type), 0)
+        for component_type in self.base_corpus.backend_mapper.data.keys():
+            self.assertEqual(self.base_corpus.backend_mapper.count_entries(component_type), 0)
+        for component_type in self.non_overlapping_corpus.backend_mapper.data.keys():
+            self.assertEqual(
+                self.non_overlapping_corpus.backend_mapper.count_entries(component_type), 0
+            )
 
     def with_overlap(self):
         """
@@ -55,14 +57,16 @@ class CorpusMerge(unittest.TestCase):
         self.assertEqual(len(list(merged.iter_speakers())), 5)
 
         for utt_id in all_utt_ids:
-            self.assertTrue(merged.storage.has_data_for_component("utterance", utt_id))
+            self.assertTrue(merged.backend_mapper.has_data_for_component("utterance", utt_id))
         for speaker_id in all_speaker_ids:
-            self.assertTrue(merged.storage.has_data_for_component("speaker", speaker_id))
+            self.assertTrue(merged.backend_mapper.has_data_for_component("speaker", speaker_id))
 
-        for component_type in self.base_corpus.storage.data.keys():
-            self.assertEqual(self.base_corpus.storage.count_entries(component_type), 0)
-        for component_type in self.overlapping_corpus.storage.data.keys():
-            self.assertEqual(self.overlapping_corpus.storage.count_entries(component_type), 0)
+        for component_type in self.base_corpus.backend_mapper.data.keys():
+            self.assertEqual(self.base_corpus.backend_mapper.count_entries(component_type), 0)
+        for component_type in self.overlapping_corpus.backend_mapper.data.keys():
+            self.assertEqual(
+                self.overlapping_corpus.backend_mapper.count_entries(component_type), 0
+            )
 
     def overlap_diff_data(self):
         """
@@ -87,19 +91,23 @@ class CorpusMerge(unittest.TestCase):
         self.assertEqual(merged.get_utterance("2").speaker.id, "charlie")
 
         for utt_id in all_utt_ids:
-            self.assertTrue(merged.storage.has_data_for_component("utterance", utt_id))
+            self.assertTrue(merged.backend_mapper.has_data_for_component("utterance", utt_id))
         for speaker_id in all_speaker_ids:
             if (
                 speaker_id == "candace"
             ):  # this speaker shouldn't be present due to overlap prioritization
-                self.assertFalse(merged.storage.has_data_for_component("speaker", speaker_id))
+                self.assertFalse(
+                    merged.backend_mapper.has_data_for_component("speaker", speaker_id)
+                )
             else:
-                self.assertTrue(merged.storage.has_data_for_component("speaker", speaker_id))
+                self.assertTrue(merged.backend_mapper.has_data_for_component("speaker", speaker_id))
 
-        for component_type in self.base_corpus.storage.data.keys():
-            self.assertEqual(self.base_corpus.storage.count_entries(component_type), 0)
-        for component_type in self.overlapping_corpus.storage.data.keys():
-            self.assertEqual(self.overlapping_corpus.storage.count_entries(component_type), 0)
+        for component_type in self.base_corpus.backend_mapper.data.keys():
+            self.assertEqual(self.base_corpus.backend_mapper.count_entries(component_type), 0)
+        for component_type in self.overlapping_corpus.backend_mapper.data.keys():
+            self.assertEqual(
+                self.overlapping_corpus.backend_mapper.count_entries(component_type), 0
+            )
 
     def overlap_diff_metadata(self):
         """
@@ -129,16 +137,22 @@ class CorpusMerge(unittest.TestCase):
         self.assertEqual(merged.get_utterance("2").meta["the"], "ringo")
 
         for utt_id in all_utt_ids:
-            self.assertTrue(merged.storage.has_data_for_component("utterance", utt_id))
-            self.assertTrue(merged.storage.has_data_for_component("meta", f"utterance_{utt_id}"))
+            self.assertTrue(merged.backend_mapper.has_data_for_component("utterance", utt_id))
+            self.assertTrue(
+                merged.backend_mapper.has_data_for_component("meta", f"utterance_{utt_id}")
+            )
         for speaker_id in all_speaker_ids:
-            self.assertTrue(merged.storage.has_data_for_component("speaker", speaker_id))
-            self.assertTrue(merged.storage.has_data_for_component("meta", f"speaker_{speaker_id}"))
+            self.assertTrue(merged.backend_mapper.has_data_for_component("speaker", speaker_id))
+            self.assertTrue(
+                merged.backend_mapper.has_data_for_component("meta", f"speaker_{speaker_id}")
+            )
 
-        for component_type in self.base_corpus.storage.data.keys():
-            self.assertEqual(self.base_corpus.storage.count_entries(component_type), 0)
-        for component_type in self.overlapping_corpus.storage.data.keys():
-            self.assertEqual(self.overlapping_corpus.storage.count_entries(component_type), 0)
+        for component_type in self.base_corpus.backend_mapper.data.keys():
+            self.assertEqual(self.base_corpus.backend_mapper.count_entries(component_type), 0)
+        for component_type in self.overlapping_corpus.backend_mapper.data.keys():
+            self.assertEqual(
+                self.overlapping_corpus.backend_mapper.count_entries(component_type), 0
+            )
 
     def overlap_convo_metadata(self):
         """
@@ -158,24 +172,26 @@ class CorpusMerge(unittest.TestCase):
         self.assertEqual(len(merged.get_conversation("convo1").meta), 3)
         self.assertEqual(merged.get_conversation("convo1").meta["hello"], "food")
 
-        self.assertTrue(merged.storage.has_data_for_component("conversation", "convo1"))
-        self.assertTrue(merged.storage.has_data_for_component("meta", "conversation_convo1"))
+        self.assertTrue(merged.backend_mapper.has_data_for_component("conversation", "convo1"))
+        self.assertTrue(merged.backend_mapper.has_data_for_component("meta", "conversation_convo1"))
 
         self.assertFalse(
-            self.base_corpus_with_convo_id.storage.has_data_for_component("conversation", "convo1")
-        )
-        self.assertFalse(
-            self.overlapping_corpus_with_convo_id.storage.has_data_for_component(
+            self.base_corpus_with_convo_id.backend_mapper.has_data_for_component(
                 "conversation", "convo1"
             )
         )
         self.assertFalse(
-            self.base_corpus_with_convo_id.storage.has_data_for_component(
+            self.overlapping_corpus_with_convo_id.backend_mapper.has_data_for_component(
+                "conversation", "convo1"
+            )
+        )
+        self.assertFalse(
+            self.base_corpus_with_convo_id.backend_mapper.has_data_for_component(
                 "meta", "conversation_convo1"
             )
         )
         self.assertFalse(
-            self.overlapping_corpus_with_convo_id.storage.has_data_for_component(
+            self.overlapping_corpus_with_convo_id.backend_mapper.has_data_for_component(
                 "meta", "conversation_convo1"
             )
         )
@@ -225,7 +241,7 @@ class CorpusMerge(unittest.TestCase):
         self.assertEqual(added.get_utterance("5").speaker.id, "foxtrot")
 
         for utt in added.iter_utterances():
-            self.assertFalse(hasattr(utt, "_temp_storage"))
+            self.assertFalse(hasattr(utt, "_temp_backend"))
 
 
 class TestWithMem(CorpusMerge):
