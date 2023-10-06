@@ -5,6 +5,7 @@ Datasets
    Conversations Gone Awry Dataset (Wikipedia version) <awry.rst>
    Conversations Gone Awry Dataset (Reddit CMV version) <awry_cmv.rst>
    Cornell Movie-Dialogs Corpus <movie.rst>
+   CANDOR Corpus <candor.rst>
    Parliament Question Time Corpus <parliament.rst>
    Wikipedia Talk Pages Corpus <wiki.rst>
    Tennis Interviews <tennis.rst>
