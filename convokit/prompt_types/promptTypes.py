@@ -709,12 +709,12 @@ def fit_prompt_type_model(model, n_types, random_state=None, max_dist=0.9, verbo
     reference_clusters[reference_dists.min(axis=1) >= max_dist] = -1
 
     prompt_df = pd.DataFrame(
-        index=model["prompt_tfidf_model"].get_feature_names(),
+        index=model["prompt_tfidf_model"].get_feature_names_out(),
         data=np.hstack([prompt_dists, prompt_clusters[:, np.newaxis]]),
         columns=list(range(n_types)) + ["type_id"],
     )
     reference_df = pd.DataFrame(
-        index=model["reference_tfidf_model"].get_feature_names(),
+        index=model["reference_tfidf_model"].get_feature_names_out(),
         data=np.hstack([reference_dists, reference_clusters[:, np.newaxis]]),
         columns=list(range(n_types)) + ["type_id"],
     )
