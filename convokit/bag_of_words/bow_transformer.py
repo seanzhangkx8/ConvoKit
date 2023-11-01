@@ -105,7 +105,7 @@ class BoWTransformer(Transformer):
 
         matrix = self.vectorizer.transform(docs)
         try:
-            column_names = self.vectorizer.get_feature_names()
+            column_names = self.vectorizer.get_feature_names_out()
         except AttributeError:
             column_names = np.arange(matrix.shape[1])
         corpus.set_vector_matrix(self.vector_name, matrix=matrix, ids=ids, columns=column_names)
@@ -134,4 +134,4 @@ class BoWTransformer(Transformer):
         """
         Get the vocabulary of the vectorizer object
         """
-        return self.vectorizer.get_feature_names()
+        return self.vectorizer.get_feature_names_out()

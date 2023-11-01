@@ -62,7 +62,7 @@ class ColNormedTfidfTransformer(Transformer):
             docs.append(self.text_func(ut))
             ut.add_vector(self.output_field)
         vects = self.tfidf_obj.transform(docs)
-        column_names = self.tfidf_obj.get_feature_names()
+        column_names = self.tfidf_obj.get_feature_names_out()
         corpus.set_vector_matrix(self.output_field, matrix=vects, ids=ids, columns=column_names)
         n_feats = np.array((vects > 0).sum(axis=1)).flatten()
         for id, n in zip(ids, n_feats):
@@ -93,7 +93,7 @@ class ColNormedTfidfTransformer(Transformer):
         """
         :return: array of feature names
         """
-        return self.tfidf_obj.get_feature_names()
+        return self.tfidf_obj.get_feature_names_out()
 
     def load(self, dirname):
         """
@@ -140,8 +140,8 @@ class ColNormedTfidf(TransformerMixin):
         self.fit(X, y)
         return self.transform(X)
 
-    def get_feature_names(self):
-        return self.tfidf_model.get_feature_names()
+    def get_feature_names_out(self):
+        return self.tfidf_model.get_feature_names_out()
 
     def get_params(self, deep=True):
         return self.tfidf_model.get_params(deep=deep)
