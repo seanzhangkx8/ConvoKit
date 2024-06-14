@@ -9,7 +9,7 @@ Distributed together with: Trouble on the Horizon: Forecasting the Derailment of
 
 Summaries of conversation dynamics described in: How Did We Get Here? Summarizing Conversation Dynamics.  Yilun Hua, Nick Chernogor, Yuzhe Gu, Seoyon Julie Jeong, Miranda Luo, Cristian Danescu-Niculescu-Mizil. NAACL 2024.
 
-Example usage of the corpus and summaries: `SCD and Basic Examples <https://github.com/CornellNLP/ConvoKit/blob/master/examples/conversations-gone-awry-cmv-corpus/scd_example.ipynb>`_
+Example usage of the corpus and summaries: `SCD and Basic Examples <https://github.com/CornellNLP/ConvoKit/blob/master/examples/conversations-gone-awry-cmv/scd-example.ipynb>`_
 
 Dataset details
 ---------------
