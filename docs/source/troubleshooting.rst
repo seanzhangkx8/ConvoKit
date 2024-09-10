@@ -10,6 +10,12 @@ General checks
 Issues
 ^^^^^^
 
+**Error associated with Numpy**
+
+ConvoKit currently requires Numpy 1.x.x, as Numpy 2.x is known to cause compatibility issues. Please verify your Numpy version. We are working on supporting Numpy 2.x and appreciate your understanding.
+
+-----------------------------
+
 **OSError: [E050] Can't find model 'en'. It doesn't seem to be a shortcut link, a Python package or a valid path to a directory.**
 
 As mentioned in the installation instructions, one needs to run "python -m spacy download en" so that a model 'en' exists.
