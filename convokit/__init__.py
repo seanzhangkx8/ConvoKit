@@ -21,6 +21,7 @@ try:
     from .expected_context_framework import *
     from .surprise import *
     from .convokitConfig import *
+    from .balance import *
 except Exception as e:
     print(f"An error occurred: {e}")
     warnings.warn(
