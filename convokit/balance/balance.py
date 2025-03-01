@@ -1,14 +1,7 @@
-from convokit.model import Corpus, Speaker, Conversation
+from convokit.model import Corpus
 from convokit.transformer import Transformer
-from collections import Counter
-from scipy.stats import wilcoxon, mannwhitneyu
-from sklearn.metrics import cohen_kappa_score
 from tqdm import tqdm
-from typing import Callable
-import numpy as np
-import matplotlib.pyplot as plt
 import re
-import random
 
 class Balance(Transformer):
     def __init__(
@@ -18,7 +11,7 @@ class Balance(Transformer):
         window_size=2.5,
         sliding_size=30,
         cur_cut=0,
-        remove_first_last_utt=False,
+        remove_first_last_utt=True,
         convo_filter=lambda convo: True
     ):
         self.primary_threshold = primary_threshold
@@ -33,22 +26,24 @@ class Balance(Transformer):
         self,
         corpus: Corpus
     ):
-        # annotate utt.meta['utt_group'] based on sp.meta['group'] is groupA or groupB
-        if 'utt_group' not in corpus.random_utterance().meta:
-            for utt in tqdm(corpus.iter_utterances(), desc="Annotating utterance group: "):
-                utt.meta['utt_group'] = utt.get_conversation().meta['speaker_group'][utt.speaker.id]
-
-        # Now assume groupA and groupB are annotated for each utterance
-        for convo in tqdm(corpus.iter_conversations(selector=self.convo_filter), desc="Annotating conversation Balance Info: "):
-            primary_speaker = self._get_ps(corpus, convo.get_utterance_ids())
-            convo.meta['primary_speaker'] = primary_speaker
-            convo.meta['secondary_speaker'] = 'groupA' if primary_speaker == 'groupB' else 'groupB'
-
-            balance = self._convo_balance_score(corpus, convo.id)
-            convo.meta['balance_score'] = balance if balance != -1 else None
-            balance_lst = self._convo_balance_lst(corpus, convo.id)
-            convo.meta['balance_lst'], convo.meta['no_speaking_time_count'], convo.meta['all_window_count'] = balance_lst
-
+        ### Annotate utterances with speaker group information
+        if 'utt_group' not in corpus.random_utterance().meta.keys():
+            for convo in tqdm(corpus.iter_conversations(), desc='Annotating speaker groups'):
+                if self.convo_filter(convo):
+                    speaker_groups_dict = convo.meta['speaker_groups']
+                    for utt in convo.iter_utterances():
+                        utt.meta['utt_group'] = speaker_groups_dict[utt.speaker.id]
+        
+        ### Annotate conversations with Balance information
+        for convo in tqdm(corpus.iter_conversations(), desc='Annotating conversation balance'):
+            if self.convo_filter(convo):
+                convo.meta['primary_speaker'] = self._get_ps(corpus, convo)
+                if convo.meta['primary_speaker'] is not None:
+                    convo.meta['secondary_speaker'] = 'groupA' if convo.meta['primary_speaker'] == 'groupB' else 'groupB'
+                else:
+                    convo.meta['secondary_speaker'] = None
+                convo.meta['balance_score'] = self._convo_balance_score(corpus, convo.id)
+                convo.meta['balance_lst'] = self._convo_balance_lst(corpus, convo.id)
 
     def _tokenize(self, text):
         text = text.lower()
@@ -61,27 +56,26 @@ class Balance(Transformer):
         utt = corpus.get_utterance(utt_id)
         return len(self._tokenize(utt.text)) >= x
     
-    def _rhythm_count_utt_time(self, corpus, utt_lst, cur_cut=None):
-        if cur_cut is None:
-            cur_cut = self.cur_cut
+    def _rhythm_count_utt_time(self, corpus, utt_lst):
         valid_utt = [utt_id for utt_id in utt_lst if self._longer_than_xwords(corpus, utt_id)]
         if len(valid_utt) == 0: return 0, 0
-        time_A = 0
-        time_B = 0
+        time_A, time_B = 0, 0
         for utt_id in valid_utt:
             utt = corpus.get_utterance(utt_id)
-            time = utt.meta['stop'] - utt.meta['start']
             if utt.meta['utt_group'] == 'groupA':
-                time_A += time
+                time_A += utt.meta['stop'] - utt.meta['start']
             elif utt.meta['utt_group'] == 'groupB':
-                time_B += time
+                time_B += utt.meta['stop'] - utt.meta['start']
         return time_A, time_B
 
-    def _get_ps(self, corpus, utt_lst, primary_threshold=None):
+    def _get_ps(self, corpus, convo, primary_threshold=None):
         if primary_threshold is None:
             primary_threshold = self.primary_threshold
         assert primary_threshold > 0.5, "Primary Threshold should greater than 0.5"
-        if len(utt_lst) == 0: return None
+        if self.remove_first_last_utt:
+            utt_lst = convo.get_utterance_ids()[1:-1]
+        else:
+            utt_lst = convo.get_utterance_ids()
         time_A, time_B = self._rhythm_count_utt_time(corpus, utt_lst)
         total_speaking_time = time_A + time_B
         if time_A > (total_speaking_time * primary_threshold):
@@ -101,13 +95,12 @@ class Balance(Transformer):
             utt_lst = convo.get_utterance_ids()[1:-1]
         else:
             utt_lst = convo.get_utterance_ids()
-
+        utt_lst = [utt_id for utt_id in utt_lst if self._longer_than_xwords(corpus, utt_id)]
+        all_windows = []
         cur_start_time = corpus.get_utterance(utt_lst[0]).meta['start']
         cur_end_time = cur_start_time + (window_size * 60)
         prev_window_last_utt_id = utt_lst[0]
         convo_end_time = corpus.get_utterance(utt_lst[-1]).meta['stop']
-
-        all_windows = []
 
         while prev_window_last_utt_id != utt_lst[-1] and cur_end_time < convo_end_time:
             cur_window_groupA_speaking_time = 0
@@ -115,14 +108,21 @@ class Balance(Transformer):
 
             for i, utt_id in enumerate(utt_lst):
                 utt = corpus.get_utterance(utt_id)
-                # case 1: utterances in previous windows
+                # case 1: utterances in previous windows and not in current window at all
                 if utt.meta['stop'] < cur_start_time: continue
 
-                # case 2: last utt of the window
+                # case 2: last utt of the current window
                 if utt.meta['stop'] > cur_end_time:
-                    # the entire utt not in the window
+                    # the entire utt not in the window, meaning previous utt is in the window and this one is not
                     if utt.meta['start'] > cur_end_time:
                         prev_window_last_utt_id = utt_lst[i-1]
+                    # special case: the utt span longer than the entire window
+                    elif utt.meta['start'] < cur_start_time:
+                        if utt.meta['utt_group'] == 'groupA':
+                            cur_window_groupA_speaking_time += cur_end_time - cur_start_time
+                        elif utt.meta['utt_group'] == 'groupB':
+                            cur_window_groupB_speaking_time += cur_end_time - cur_start_time
+                        prev_window_last_utt_id = utt_id
                     # part of the utt in the window
                     else:
                         if utt.meta['utt_group'] == 'groupA':
@@ -133,14 +133,11 @@ class Balance(Transformer):
                     # put window data in all_windows only at the terminating point: last utt of the window
                     all_windows.append({'groupA' : cur_window_groupA_speaking_time, 'groupB' : cur_window_groupB_speaking_time})
                     break
-                
-                # case 3: first utt of the window
-                if i == 0:
-                    # entire utt not in window
-                    if utt.meta['stop'] < cur_start_time:
-                        continue
+
+                # case 3: utterances in the window but not the last utterance of the window
+                if utt.meta['stop'] > cur_start_time:
                     # part of the utt in window
-                    elif utt.meta['start'] < cur_start_time and utt.meta['stop'] > utt.meta['start']:
+                    if utt.meta['start'] < cur_start_time and utt.meta['stop'] > utt.meta['start']:
                         if utt.meta['utt_group'] == 'groupA':
                             cur_window_groupA_speaking_time += utt.meta['stop'] - cur_start_time
                         elif utt.meta['utt_group'] == 'groupB':
@@ -152,13 +149,6 @@ class Balance(Transformer):
                         elif utt.meta['utt_group'] == 'groupB':
                             cur_window_groupB_speaking_time += utt.meta['stop'] - utt.meta['start']
 
-                # case 4: utt in middle of the window
-                else:
-                    if utt.meta['utt_group'] == 'groupA':
-                        cur_window_groupA_speaking_time += utt.meta['stop'] - utt.meta['start']
-                    elif utt.meta['utt_group'] == 'groupB':
-                        cur_window_groupB_speaking_time += utt.meta['stop'] - utt.meta['start']
-
             # update window start end time
             cur_start_time += sliding_size
             cur_end_time += sliding_size
@@ -166,46 +156,40 @@ class Balance(Transformer):
         return all_windows
     
     def _convo_balance_score(self, corpus, convo_id):
-        """
-        Annotate with overall time-based measurement.
-        """
+        convo = corpus.get_conversation(convo_id)
         if self.remove_first_last_utt:
-            utt_lst = corpus.get_conversation(convo_id).get_utterance_ids()[1:-1]
+            utt_lst = convo.get_utterance_ids()[1:-1]
         else:
-            utt_lst = corpus.get_conversation(convo_id).get_utterance_ids()
+            utt_lst = convo.get_utterance_ids()
         timeA, timeB = self._rhythm_count_utt_time(corpus, utt_lst)
         total_time = timeA + timeB
-        if total_time == 0:
-            print(convo_id)
-            return -100
         return timeA / total_time if timeA >= timeB else timeB / total_time
 
     def _convo_balance_lst(self, corpus, convo_id):
-        """
-        Annotate individual_conversation_floor_lst
-        """
         groups = self._sliding_window(corpus, convo_id)
         balance_lst = []
         no_speaking_time_count = 0
         all_window_count = 0
+        convo = corpus.get_conversation(convo_id)
         for window in groups:
             all_window_count += 1
-            window_ps_time = window['groupA']
-            window_ss_time = window['groupB']
+            window_ps_time = window[convo.meta['primary_speaker']]
+            window_ss_time = window[convo.meta['secondary_speaker']]
             window_total_time = window_ps_time + window_ss_time
             window_id = 0
-            if window_total_time == 0: # No Speaking Time in the window
+            if window_total_time == 0:
                 window_id = -100
                 no_speaking_time_count += 1
+                continue
             elif window_ps_time >= window_ss_time:
                 window_id = window_ps_time / window_total_time if window_ps_time / window_total_time > self.window_ps_threshold else 0
             elif window_ps_time < window_ss_time:
                 window_id = -1 * window_ss_time / window_total_time if window_ss_time / window_total_time > self.window_ps_threshold else 0
-
             if window_id == 0:
                 balance_lst.append(0)
             elif window_id > 0:
                 balance_lst.append(1)
             else:
                 balance_lst.append(-1)
-        return balance_lst, no_speaking_time_count, all_window_count
+        return balance_lst
+
