@@ -53,10 +53,15 @@ class Balance(Transformer):
         self.remove_first_last_utt = remove_first_last_utt
         self.convo_filter = convo_filter
         
-    def transform(
-        self,
-        corpus: Corpus
-    ):
+    def transform(self, corpus: Corpus):
+        """
+        Computes talk-time balance metrics for each conversation in the corpus. 
+
+        Annotates the corpus with speaker group labels and if utterances `utt_group` metadata is missing, the data
+        is assumed to be labeled in `convo.meta['speaker_groups']`. 
+        Each conversation is then annotated with its primary and secondary speaker groups, an overall conversation level 
+        imbalance score, and a list of windowed imbalance score computed via sliding window analysis.
+        """
         ### Annotate utterances with speaker group information
         if 'utt_group' not in corpus.random_utterance().meta.keys():
             for convo in tqdm(corpus.iter_conversations(), desc='Annotating speaker groups based on `speaker_groups` from conversation metadata'):

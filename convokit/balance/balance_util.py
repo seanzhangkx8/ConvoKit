@@ -8,17 +8,27 @@ from convokit import Corpus
 random.seed(42)
 
 def _tokenize(text):
-        text = text.lower()
-        text = re.findall('[a-z]+', text)
-        return text
+    text = text.lower()
+    text = re.findall('[a-z]+', text)
+    return text
 
 def _longer_than_xwords(corpus, utt_id, min_utt_words, x=None):
+    """
+    Returns True if the utterance has at least x words (defaulting to min_utt_words); 
+    otherwise, returns False.
+    """
     if x is None:
         x = min_utt_words
     utt = corpus.get_utterance(utt_id)
     return len(_tokenize(utt.text)) >= x
 
 def _rhythm_count_utt_time(corpus, utt_lst, min_utt_words):
+    """
+    Calculates total speaking time for each speaker group from a list of utterance IDs.
+
+    Filters out utterances shorter than min_utt_words and returns the cumulative speaking 
+    time (in seconds) for groupA and groupB.
+    """
     valid_utt = [utt_id for utt_id in utt_lst if _longer_than_xwords(corpus, utt_id, min_utt_words)]
     if len(valid_utt) == 0: return 0, 0
     time_A, time_B = 0, 0
@@ -31,6 +41,12 @@ def _rhythm_count_utt_time(corpus, utt_lst, min_utt_words):
     return time_A, time_B
 
 def _get_ps(corpus, convo, remove_first_last_utt, min_utt_words, primary_threshold):
+    """
+    Determines the primary speaker group in a conversation based on speaking time of each speaker group.
+
+    Returns 'groupA' or 'groupB' if one group exceeds the primary_threshold proportion of total speaking time; 
+    otherwise, returns None.
+    """
     assert primary_threshold > 0.5, "Primary Threshold should greater than 0.5"
     if remove_first_last_utt:
         utt_lst = convo.get_utterance_ids()[1:-1]
@@ -46,6 +62,12 @@ def _get_ps(corpus, convo, remove_first_last_utt, min_utt_words, primary_thresho
         return None
     
 def _sliding_window(corpus, convo_id, window_size, sliding_size, remove_first_last_utt, min_utt_words):
+    """ 
+    Computes sliding window segments of a conversation and calculates total speaking time 
+    for each speaker group (groupA and groupB) within each window.
+
+    Returns a list of dictionaries, each containing the speaking time per group for a window.
+    """
     convo = corpus.get_conversation(convo_id)
     if remove_first_last_utt:
         utt_lst = convo.get_utterance_ids()[1:-1]
@@ -112,6 +134,11 @@ def _sliding_window(corpus, convo_id, window_size, sliding_size, remove_first_la
     return all_windows
 
 def _convo_balance_score(corpus, convo_id, remove_first_last_utt, min_utt_words):
+    """
+    Computes the overall balance score of a conversation based on speaking time.
+
+    Returns the proportion of speaking time for the more dominant group (groupA or groupB), or None if total speaking time is zero.
+    """
     convo = corpus.get_conversation(convo_id)
     if remove_first_last_utt:
         utt_lst = convo.get_utterance_ids()[1:-1]
@@ -124,6 +151,12 @@ def _convo_balance_score(corpus, convo_id, remove_first_last_utt, min_utt_words)
     return timeA / total_time if timeA >= timeB else timeB / total_time
 
 def _convo_balance_lst(corpus, convo_id, window_ps_threshold, window_size, sliding_size, remove_first_last_utt, min_utt_words):
+    """
+    Generates a list representing local talk-time sharing dynamics across sliding windows in a conversation.
+
+    Each value in the list is 1 (primary speaker dominance), -1 (secondary speaker dominance), or 0 (balanced), 
+    based on whether the dominant group exceeds the window_ps_threshold within that window.
+    """
     groups = _sliding_window(corpus, convo_id, window_size, sliding_size, remove_first_last_utt, min_utt_words)
     balance_lst = []
     no_speaking_time_count = 0
@@ -152,6 +185,12 @@ def _convo_balance_lst(corpus, convo_id, window_ps_threshold, window_size, slidi
     return balance_lst
 
 def plot_color_blocks(data_dict, block_length=0.5, plot_name=None):
+    """
+    Visualizes conversation dynamics as a horizontal sequence of colored blocks.
+
+    Each block represents a window: blue for primary speaker dominance, red for secondary, and grey for balance.
+    Block opacity reflects the strength of dominance. Optionally saves the plot to a file.
+    """
     convo_id = list(data_dict.keys())[0]
     data = data_dict[convo_id]
     fig, ax = plt.subplots(figsize=(10, 2))
@@ -174,6 +213,10 @@ def plot_color_blocks(data_dict, block_length=0.5, plot_name=None):
     plt.show()
 
 def plot_color_blocks_multi(data_lists, block_length=0.5, plot_name=None):
+    """
+    Plots multiple conversations' windowed talk-time sharing dynamics as side-by-side color block visualizations.
+    Each subplot represents one conversation.
+    """
     num_lists = len(data_lists)
     num_columns = 2
     num_rows = (num_lists + 1) // num_columns
@@ -210,6 +253,12 @@ def plot_color_blocks_multi(data_lists, block_length=0.5, plot_name=None):
     plt.show()
 
 def plot_individual_conversation_floors(corpus, convo_id, window_ps_threshold, window_size, sliding_size, remove_first_last_utt, min_utt_words, plot_name=None):
+    """
+    Visualizes turn-taking dominance in a single conversation using color-coded windowed balance scores.
+
+    Applies a sliding window over the conversation to compute talk-time balance between the primary and 
+    secondary speaker groups, then plots the resulting sequence as colored blocks.
+    """
     groups = _sliding_window(corpus, convo_id, window_size=window_size, sliding_size=sliding_size, remove_first_last_utt=remove_first_last_utt, min_utt_words=min_utt_words)
     convo_plot_lst = []
     score_lst = []
@@ -238,6 +287,12 @@ def plot_individual_conversation_floors(corpus, convo_id, window_ps_threshold, w
       pass
 
 def plot_multi_conversation_floors(corpus, convo_id_lst, window_ps_threshold, window_size, sliding_size, remove_first_last_utt, min_utt_words, plot_name=None):
+    """
+    Generates side-by-side visualizations of turn-taking dynamics across multiple conversations.
+
+    For each conversation, computes sliding window balance scores between primary and secondary speakers, 
+    and plots the results as color-coded block sequences. Optionally saves the combined visualization.
+    """
     result_lst = []
     for convo_id in convo_id_lst:
         groups = _sliding_window(corpus, convo_id, window_size=window_size, sliding_size=sliding_size, remove_first_last_utt=remove_first_last_utt, min_utt_words=min_utt_words)
