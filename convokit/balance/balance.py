@@ -1,14 +1,16 @@
 from convokit.model import Corpus
 from convokit.transformer import Transformer
 from tqdm import tqdm
+from typing import Callable
+from convokit.model.conversation import Conversation
 import re
 
 from .balance_util import (
     _get_ps,
     _convo_balance_score,
     _convo_balance_lst,
-    plot_individual_conversation_floors,
-    plot_multi_conversation_floors,
+    _plot_individual_conversation_floors,
+    _plot_multi_conversation_floors,
 )
 
 
@@ -22,7 +24,7 @@ def plot_single_conversation_balance(
     min_utt_words,
     plot_name=None,
 ):
-    plot_individual_conversation_floors(
+    _plot_individual_conversation_floors(
         corpus,
         convo_id,
         window_ps_threshold,
@@ -44,7 +46,7 @@ def plot_multi_conversation_balance(
     min_utt_words,
     plot_name=None,
 ):
-    plot_multi_conversation_floors(
+    _plot_multi_conversation_floors(
         corpus,
         convo_id_lst,
         window_ps_threshold,
@@ -77,7 +79,6 @@ class Balance(Transformer):
     :param sliding_size: Step size (in seconds) to slide the window forward.
     :param min_utt_words: Exclude utterances shorter than this number of words from the analysis.
     :param remove_first_last_utt: Whether to exclude the first and last utterance.
-    :param convo_filter: Function to select which conversations to be processed.
     """
 
     def __init__(
@@ -88,7 +89,7 @@ class Balance(Transformer):
         sliding_size=30,
         min_utt_words=0,
         remove_first_last_utt=True,
-        convo_filter=lambda convo: True,
+        
     ):
         self.primary_threshold = primary_threshold
         self.window_ps_threshold = window_ps_threshold
@@ -96,9 +97,8 @@ class Balance(Transformer):
         self.sliding_size = sliding_size
         self.min_utt_words = min_utt_words
         self.remove_first_last_utt = remove_first_last_utt
-        self.convo_filter = convo_filter
 
-    def transform(self, corpus: Corpus):
+    def transform(self, corpus: Corpus, selector: Callable[[Conversation], bool] = lambda convo: True):
         """
         Computes talk-time balance metrics for each conversation in the corpus.
 
@@ -106,6 +106,11 @@ class Balance(Transformer):
         is assumed to be labeled in `convo.meta['speaker_groups']`.
         Each conversation is then annotated with its primary and secondary speaker groups, an overall conversation level
         imbalance score, and a list of windowed imbalance score computed via sliding window analysis.
+
+        :param corpus: Corpus to transform
+        :param selector: (lambda) function selecting conversations to include in this accuracy calculation;
+
+        :return: The input corpus where selected data is annotated with talk-time sharing dynamics information
         """
         ### Annotate utterances with speaker group information
         if "utt_group" not in corpus.random_utterance().meta.keys():
@@ -113,7 +118,7 @@ class Balance(Transformer):
                 corpus.iter_conversations(),
                 desc="Annotating speaker groups based on `speaker_groups` from conversation metadata",
             ):
-                if self.convo_filter(convo):
+                if selector(convo):
                     if "speaker_groups" not in convo.meta:
                         raise ValueError(
                             f"Missing 'speaker_groups' metadata in conversation {convo.id}, which is required for annotating utterances."
@@ -124,7 +129,7 @@ class Balance(Transformer):
 
         ### Annotate conversations with Balance information
         for convo in tqdm(corpus.iter_conversations(), desc="Annotating conversation balance"):
-            if self.convo_filter(convo):
+            if selector(convo):
                 convo.meta["primary_speaker"] = _get_ps(
                     corpus,
                     convo,
@@ -150,3 +155,12 @@ class Balance(Transformer):
                     self.remove_first_last_utt,
                     self.min_utt_words,
                 )
+    
+    def fit_transform(self, corpus: Corpus, selector: Callable[[Conversation], bool] = lambda convo: True):
+        """
+        Same as transform.
+
+        :param corpus: Corpus to transform
+        :param selector: (lambda) function selecting conversations to include in this accuracy calculation;
+        """
+        return self.transform(corpus, selector=selector)

@@ -305,7 +305,7 @@ def plot_color_blocks_multi(data_lists, block_length=0.5, plot_name=None):
     plt.show()
 
 
-def plot_individual_conversation_floors(
+def _plot_individual_conversation_floors(
     corpus,
     convo_id,
     window_ps_threshold,
@@ -366,7 +366,7 @@ def plot_individual_conversation_floors(
         pass
 
 
-def plot_multi_conversation_floors(
+def _plot_multi_conversation_floors(
     corpus,
     convo_id_lst,
     window_ps_threshold,
