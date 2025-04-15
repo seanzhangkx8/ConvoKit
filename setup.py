@@ -70,8 +70,8 @@ setup(
         "bitsandbytes",
         "transformers",
         "trl>=0.12.2",
-        # "tensorflow>=2.18.0",
-        # "tf-keras>=2.17.0,<3.0.0",
+        "tensorflow>=2.18.0",
+        "tf-keras>=2.17.0,<3.0.0",
     ],
     extras_require={
         "craft": ["torch>=0.12"],
