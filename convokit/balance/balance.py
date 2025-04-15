@@ -89,7 +89,6 @@ class Balance(Transformer):
         sliding_size=30,
         min_utt_words=0,
         remove_first_last_utt=True,
-        
     ):
         self.primary_threshold = primary_threshold
         self.window_ps_threshold = window_ps_threshold
@@ -98,7 +97,9 @@ class Balance(Transformer):
         self.min_utt_words = min_utt_words
         self.remove_first_last_utt = remove_first_last_utt
 
-    def transform(self, corpus: Corpus, selector: Callable[[Conversation], bool] = lambda convo: True):
+    def transform(
+        self, corpus: Corpus, selector: Callable[[Conversation], bool] = lambda convo: True
+    ):
         """
         Computes talk-time balance metrics for each conversation in the corpus.
 
@@ -155,8 +156,10 @@ class Balance(Transformer):
                     self.remove_first_last_utt,
                     self.min_utt_words,
                 )
-    
-    def fit_transform(self, corpus: Corpus, selector: Callable[[Conversation], bool] = lambda convo: True):
+
+    def fit_transform(
+        self, corpus: Corpus, selector: Callable[[Conversation], bool] = lambda convo: True
+    ):
         """
         Same as transform.
 
