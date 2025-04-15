@@ -3,7 +3,7 @@ from convokit.transformer import Transformer
 from tqdm import tqdm
 import re
 
-from balance_util import (
+from .balance_util import (
     _get_ps,
     _convo_balance_score,
     _convo_balance_lst,
