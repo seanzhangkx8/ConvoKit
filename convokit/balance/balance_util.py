@@ -172,6 +172,7 @@ def _convo_balance_lst(
     corpus,
     convo_id,
     window_ps_threshold,
+    window_ss_threshold,
     window_size,
     sliding_size,
     remove_first_last_utt,
@@ -200,18 +201,11 @@ def _convo_balance_lst(
             window_id = -100
             no_speaking_time_count += 1
             continue
-        elif window_ps_time >= window_ss_time:
-            window_id = (
-                window_ps_time / window_total_time
-                if window_ps_time / window_total_time > window_ps_threshold
-                else 0
-            )
-        elif window_ps_time < window_ss_time:
-            window_id = (
-                -1 * window_ss_time / window_total_time
-                if window_ss_time / window_total_time > window_ps_threshold
-                else 0
-            )
+        elif window_ps_time / window_total_time > window_ps_threshold:
+            window_id = window_ps_time / window_total_time
+        elif window_ss_time / window_total_time > window_ss_threshold:
+            window_id = -1 * window_ss_time / window_total_time
+
         if window_id == 0:
             balance_lst.append(0)
         elif window_id > 0:
@@ -309,6 +303,7 @@ def _plot_individual_conversation_floors(
     corpus,
     convo_id,
     window_ps_threshold,
+    window_ss_threshold,
     window_size,
     sliding_size,
     remove_first_last_utt,
@@ -343,18 +338,11 @@ def _plot_individual_conversation_floors(
             window_id = -100
             continue  # skipping no speaking time windows for now
             # no_speaking_time_count += 1
-        elif window_ps_time >= window_ss_time:
-            window_id = (
-                window_ps_time / window_total_time
-                if window_ps_time / window_total_time > window_ps_threshold
-                else 0
-            )
-        elif window_ps_time < window_ss_time:
-            window_id = (
-                -1 * window_ss_time / window_total_time
-                if window_ss_time / window_total_time > window_ps_threshold
-                else 0
-            )
+        elif window_ps_time / window_total_time > window_ps_threshold:
+            window_id = window_ps_time / window_total_time
+        elif window_ss_time / window_total_time > window_ss_threshold:
+            window_id = -1 * window_ss_time / window_total_time
+
         convo_plot_lst.append(window_id)
         score_lst.append(round(window_id, 2))
     plot_color_blocks({convo_id: convo_plot_lst}, plot_name=plot_name)
@@ -370,6 +358,7 @@ def _plot_multi_conversation_floors(
     corpus,
     convo_id_lst,
     window_ps_threshold,
+    window_ss_threshold,
     window_size,
     sliding_size,
     remove_first_last_utt,
@@ -405,18 +394,11 @@ def _plot_multi_conversation_floors(
                 window_id = -100
                 continue  # skipping no speaking time windows for now
                 # no_speaking_time_count += 1
-            elif window_ps_time >= window_ss_time:
-                window_id = (
-                    window_ps_time / window_total_time
-                    if window_ps_time / window_total_time > window_ps_threshold
-                    else 0
-                )
-            elif window_ps_time < window_ss_time:
-                window_id = (
-                    -1 * window_ss_time / window_total_time
-                    if window_ss_time / window_total_time > window_ps_threshold
-                    else 0
-                )
+            elif window_ps_time / window_total_time > window_ps_threshold:
+                window_id = window_ps_time / window_total_time
+            elif window_ss_time / window_total_time > window_ss_threshold:
+                window_id = -1 * window_ss_time / window_total_time
+
             convo_plot_lst.append(window_id)
         result_lst.append({convo_id: convo_plot_lst})
     plot_color_blocks_multi(result_lst, plot_name=plot_name)

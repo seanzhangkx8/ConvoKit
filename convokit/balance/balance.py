@@ -23,11 +23,15 @@ def plot_single_conversation_balance(
     remove_first_last_utt,
     min_utt_words,
     plot_name=None,
+    window_ss_threshold=None,
 ):
+    if window_ss_threshold is None:
+        window_ss_threshold = window_ps_threshold
     _plot_individual_conversation_floors(
         corpus,
         convo_id,
         window_ps_threshold,
+        window_ss_threshold,
         window_size,
         sliding_size,
         remove_first_last_utt,
@@ -40,16 +44,20 @@ def plot_multi_conversation_balance(
     corpus,
     convo_id_lst,
     window_ps_threshold,
+    window_ss_threshold,
     window_size,
     sliding_size,
     remove_first_last_utt,
     min_utt_words,
     plot_name=None,
 ):
+    if window_ss_threshold is None:
+        window_ss_threshold = window_ps_threshold
     _plot_multi_conversation_floors(
         corpus,
         convo_id_lst,
         window_ps_threshold,
+        window_ss_threshold,
         window_size,
         sliding_size,
         remove_first_last_utt,
@@ -74,7 +82,8 @@ class Balance(Transformer):
     is already presented in the corpus for correct computation.
 
     :param primary_threshold: Minimum talk-time share to label a group as the primary speaker.
-    :param window_ps_threshold: Talk-time share threshold for identifying dominance in a time window.
+    :param window_ps_threshold: Talk-time share threshold for identifying dominance in a time window for primary speaker group.
+    :param window_ss_threshold: Talk-time share threshold for identifying dominance in a time window for secondary speaker group. If not provided, defaults to `window_ps_threshold`.
     :param window_size: Length (in minutes) of each analysis window.
     :param sliding_size: Step size (in seconds) to slide the window forward.
     :param min_utt_words: Exclude utterances shorter than this number of words from the analysis.
@@ -85,6 +94,7 @@ class Balance(Transformer):
         self,
         primary_threshold=0.50001,
         window_ps_threshold=0.6,
+        window_ss_threshold=None,
         window_size=2.5,
         sliding_size=30,
         min_utt_words=0,
@@ -92,6 +102,9 @@ class Balance(Transformer):
     ):
         self.primary_threshold = primary_threshold
         self.window_ps_threshold = window_ps_threshold
+        self.window_ss_threshold = (
+            window_ss_threshold if window_ss_threshold else window_ps_threshold
+        )
         self.window_size = window_size
         self.sliding_size = sliding_size
         self.min_utt_words = min_utt_words
@@ -151,6 +164,7 @@ class Balance(Transformer):
                     corpus,
                     convo.id,
                     self.window_ps_threshold,
+                    self.window_ss_threshold,
                     self.window_size,
                     self.sliding_size,
                     self.remove_first_last_utt,
