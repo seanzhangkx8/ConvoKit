@@ -148,6 +148,9 @@ class BERTCGAModel(ForecasterModel):
             val_convo_ids.add(convo_id)
         val_convo_ids = list(val_convo_ids)
         for cp in checkpoints:
+            # Only look at checkpoints
+            if not cp.startswith("checkpoint"):
+                continue
             full_model_path = os.path.join(self.config["output_dir"], cp)
             finetuned_model = AutoModelForSequenceClassification.from_pretrained(
                 full_model_path
