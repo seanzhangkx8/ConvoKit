@@ -14,7 +14,7 @@ overall, their temporal talk-time dynamics can lead to diverging speaker
 experiences. This framework can be extended to a wide range of dialogue 
 settings, including multi-party and role-asymmetric interactions.  
 
-The present a demo, which first applies the `Balance` transformer to 
+We present a demo, which applies the `Balance` transformer to 
 the `CANDOR corpus <https://convokit.cornell.edu/documentation/candor.html>`_,
 highlighting conversational patterns in video-chat settings. We then extend the 
 analysis to `Supreme Court oral arguments <https://convokit.cornell.edu/documentation/supreme.html>`_ 
