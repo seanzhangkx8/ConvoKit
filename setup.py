@@ -35,6 +35,7 @@ setup(
         "convokit.surprise",
         "convokit.pivotal_framework",
         "convokit.utterance_simulator",
+        "convokit.genai",
     ],
     package_data={
         "convokit": [
@@ -78,6 +79,10 @@ setup(
     extras_require={
         "craft": ["torch>=0.12"],
         "forecaster": ["torch>=0.12", "datasets"],
+        "genai": [
+                    "openai>=1.3.5",
+                    "google-genai",
+                ],
     },
     classifiers=[
         "Programming Language :: Python",

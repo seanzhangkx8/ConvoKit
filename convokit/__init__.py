@@ -24,6 +24,7 @@ try:
     from .redirection import *
     from .pivotal_framework import *
     from .utterance_simulator import *
+    from .genai import *
 except Exception as e:
     print(f"An error occurred: {e}")
     warnings.warn(
