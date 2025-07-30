@@ -18,7 +18,7 @@ class GenAIConfigManager:
             self.path.parent.mkdir(parents=True, exist_ok=True)
             self._data = {}
             self._save()
-
+            
     def _save(self):
         self.path.write_text(yaml.safe_dump(self._data))
 

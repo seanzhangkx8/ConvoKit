@@ -2,7 +2,7 @@ from openai import OpenAI, OpenAIError, RateLimitError, Timeout
 from .base import LLMClient, LLMResponse
 import time
 
-class OpenAIClient(LLMClient):
+class GPTClient(LLMClient):
     def __init__(self, api_key: str, model: str = "gpt-4o-mini-2024-07-18"):
         self.client = OpenAI(api_key=api_key)
         self.model = model
@@ -11,10 +11,21 @@ class OpenAIClient(LLMClient):
         start = time.time()
         retry_after = 10
 
+    # Check prompt type to determine how to format messages
+        if isinstance(prompt, str):
+            messages = [{"role": "user", "content": prompt}]
+        elif isinstance(prompt, list):
+            if all(isinstance(m, dict) and "role" in m and "content" in m for m in prompt):
+                messages = prompt
+            else:
+                raise ValueError("Invalid message format: each message must be a dict with 'role' and 'content'")
+        else:
+            raise TypeError("Prompt must be either a string or a list of message dicts")
+
         try:
             response = self.client.chat.completions.create(
                 model=self.model,
-                messages=prompt,
+                messages=messages,
                 max_tokens=output_max_tokens,
                 temperature=temperature,
             )
@@ -29,3 +40,4 @@ class OpenAIClient(LLMClient):
         content = response.choices[0].message.content
         tokens_used = response.usage.total_tokens if response.usage else -1
         return LLMResponse(text=content, tokens=tokens_used, latency=elapsed, raw=response)
+
