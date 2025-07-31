@@ -191,7 +191,7 @@ class SCDWriter:
         
         :param summary: SCD summary text to convert to SoP
         :return: Dictionary containing SoP patterns
-        :raises Exception if the response cannot be parsed as a dictionary
+        :raises Exception: If the response cannot be parsed as a dictionary
         """
         query = self.BULLETPOINT_PROMPT_TEMPLATE + summary
         response = self.client.generate(query, model=self.model)

@@ -27,7 +27,7 @@ class GPTClient(LLMClient):
         :param temperature: Sampling temperature for generation (default: 0.0)
         :param times_retried: Number of retry attempts made so far (for internal use)
         :return: LLMResponse object containing the generated text and metadata
-        :raises Exception If output error and retry attempts are exhausted
+        :raises Exception: If output error and retry attempts are exhausted
         """
         start = time.time()
         retry_after = 10

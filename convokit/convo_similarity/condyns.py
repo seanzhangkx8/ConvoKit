@@ -120,7 +120,7 @@ class ConDynS:
         
         :param text: Raw model output text
         :return: Parsed dictionary from the model output
-        :raises ValueError if no valid dictionary boundaries are found
+        :raises ValueError: If no valid dictionary boundaries are found
         """
         start = text.find('{')
         end = text.rfind('}')

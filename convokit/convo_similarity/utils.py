@@ -89,7 +89,7 @@ def get_human_summary(corpus, convo_id):
     :param corpus: ConvoKit corpus containing the conversation
     :param convo_id: ID of the conversation to get summary for
     :return: Human written SCD metadata
-    :raises Exception if the conversation does not have a human written summary
+    :raises Exception: If the conversation does not have a human written summary
     """
     convo = corpus.get_conversation(convo_id)
     for summary in convo.meta['summary_meta']:
@@ -104,7 +104,7 @@ def get_machine_summary(corpus, convo_id):
     :param corpus: ConvoKit corpus containing the conversation
     :param convo_id: ID of the conversation to get summary for
     :return: Machine generated SCD metadata
-    :raises Exception if the conversation does not have a machine generated summary
+    :raises Exception: If the conversation does not have a machine generated summary
     """
     convo = corpus.get_conversation(convo_id)
     for summary in convo.meta['summary_meta']:

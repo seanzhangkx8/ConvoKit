@@ -100,14 +100,14 @@ class ConDynSBaselines:
         reason = parsed_response['reason']
         return score, reason
 
-    def get_naive_gpt_compare_score_SCDs(self, x, y):
+    def get_naive_gpt_compare_score_SCDs(self, scd1, scd2):
         """Compare two Summary of Conversation Dynamics (SCD) using GPT.
         
         Compares two SCD summaries and rates their similarity based on persuasion
         trajectory and conversational dynamics, ignoring specific topics or claims.
         
-        :param x: First SCD summary
-        :param y: Second SCD summary
+        :param scd1: First SCD summary
+        :param scd2: Second SCD summary
         :return: Tuple of (similarity_score, reasoning)
         """
         naive_gpt_compare_scd_prompt = """Compare the following two summary of conversation dynamics (SCD) of two online conversations, rate the similarity of the two conversations on a scale from 1 to 100, based on their persuasion trajectory reflected in the SCDs.
@@ -140,17 +140,17 @@ Conversation 1 SCD:
 Conversation 2 SCD:
 {ref}
 """
-        score, reason = self.get_gpt_compare_score(x, y, naive_gpt_compare_scd_prompt)
+        score, reason = self.get_gpt_compare_score(scd1, scd2, naive_gpt_compare_scd_prompt)
         return score, reason
 
-    def get_naive_gpt_compare_score_Transcripts(self, x, y):
+    def get_naive_gpt_compare_score_Transcripts(self, transcript1, transcript2):
         """Compare two conversation transcripts using GPT.
         
         Compares two conversation transcripts and rates their similarity based on
         conversational trajectory and dynamics, ignoring specific topics discussed.
         
-        :param x: First conversation transcript
-        :param y: Second conversation transcript
+        :param transcript1: First conversation transcript
+        :param transcript2: Second conversation transcript
         :return: Tuple of (similarity_score, reasoning)
         """
         naive_gpt_compare_transcript_prompt = """Compare the following two online conversations and rate their similarity on a scale from 1 to 100, based on their trajectory.
@@ -185,5 +185,5 @@ Conversation 1:
 Conversation 2:
 {ref}
 """
-        score, reason = self.get_gpt_compare_score(x, y, naive_gpt_compare_transcript_prompt)
+        score, reason = self.get_gpt_compare_score(transcript1, transcript2, naive_gpt_compare_transcript_prompt)
         return score, reason

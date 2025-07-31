@@ -12,7 +12,7 @@ def get_llm_client(provider: str, config_manager, **kwargs):
     :param config_manager: Configuration manager instance to retrieve API keys
     :param **kwargs: Additional parameters to pass to the client constructor
     :return: Initialized LLM client instance
-    :raises ValueError If the provider is not supported
+    :raises ValueError: If the provider is not supported
     """
     api_key = config_manager.get_api_key(provider)
     if provider.lower() == "gpt":
