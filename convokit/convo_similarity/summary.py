@@ -1,8 +1,12 @@
 import os
 import ast
 import re
-from convokit.genai import get_llm_client
-from convokit.genai.genai_config import GenAIConfigManager
+
+try:
+    from convokit.genai import get_llm_client
+    GENAI_AVAILABLE = True
+except ImportError:
+    GENAI_AVAILABLE = False
 
 
 class SCDWriter:
@@ -38,7 +42,7 @@ class SCDWriter:
             with open(os.path.join(base_path, "prompts/sop_prompt.txt"), "r", encoding="utf-8") as f:
                 cls.BULLETPOINT_PROMPT_TEMPLATE = f.read()
 
-    def __init__(self, model_provider: str, config: GenAIConfigManager, model: str = None, 
+    def __init__(self, model_provider: str, config, model: str = None, 
                  custom_scd_prompt: str = None, custom_sop_prompt: str = None,
                  custom_prompt_dir: str = None):
         """Initialize the SCD processor with a specified model provider and optional model name.
@@ -51,7 +55,11 @@ class SCDWriter:
         :param custom_scd_prompt: Custom text for the summary prompt template
         :param custom_sop_prompt: Custom text for the bulletpoint prompt template
         :param custom_prompt_dir: Directory to save custom prompts (if not provided, overwrites defaults in ./prompts)
+        :raises ImportError: If genai dependencies are not available
         """
+        if not GENAI_AVAILABLE:
+            raise ImportError("GenAI dependencies not available. Please install required packages: pip install openai google-genai")
+        
         self.model_provider = model_provider
         self.config = config
         self.model = model

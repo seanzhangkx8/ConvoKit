@@ -2,8 +2,12 @@ import re
 import json
 from sentence_transformers import SentenceTransformer, util
 from evaluate import load
-from convokit.genai.genai_config import GenAIConfigManager
-from convokit.genai import get_llm_client
+
+try:
+    from convokit.genai import get_llm_client
+    GENAI_AVAILABLE = True
+except ImportError:
+    GENAI_AVAILABLE = False
 
 
 class ConDynSBaselines:
@@ -18,7 +22,7 @@ class ConDynSBaselines:
     :param sentence_transformer_model: Sentence transformer model to use for embeddings (default: "all-MiniLM-L6-v2")
     :param device: Device to use for sentence transformer (default: "cpu")
     """
-    def __init__(self, model_provider: str, config: GenAIConfigManager, 
+    def __init__(self, model_provider: str, config, 
                  model: str = None,
                  sentence_transformer_model: str = "all-MiniLM-L6-v2", 
                  device: str = "cpu"):
@@ -28,7 +32,11 @@ class ConDynSBaselines:
         :param model: Optional specific model name
         :param sentence_transformer_model: Sentence transformer model to use for embeddings
         :param device: Device to use for sentence transformer
+        :raises ImportError: If required dependencies are not available
         """
+        if not GENAI_AVAILABLE:
+            raise ImportError("GenAI dependencies not available. Please install required packages.")
+        
         self.model_provider = model_provider
         self.model = model
         self.sentence_transformer_model = sentence_transformer_model

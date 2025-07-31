@@ -1,15 +1,32 @@
 from .base import LLMClient, LLMResponse
-from .gpt_client import GPTClient
-from .gemini_client import GeminiClient
-from .local_client import LocalClient
-from .factory import get_llm_client
 from .genai_config import GenAIConfigManager
+
+GPTClient = None
+GeminiClient = None
+LocalClient = None
+
+try:
+    from .gpt_client import GPTClient
+except ImportError:
+    pass
+
+try:
+    from .gemini_client import GeminiClient
+except ImportError:
+    pass
+
+try:
+    from .local_client import LocalClient
+except ImportError:
+    pass
+
+from .factory import get_llm_client
 
 __all__ = [
     "LLMClient",
     "LLMResponse",
     "GPTClient",
-    "GeminiClient",
+    "GeminiClient", 
     "LocalClient",
     "get_llm_client",
     "GenAIConfigManager",

@@ -2,8 +2,12 @@ import ast
 import numpy as np
 import os
 import re
-from convokit.genai.genai_config import GenAIConfigManager
-from convokit.genai import get_llm_client
+
+try:
+    from convokit.genai import get_llm_client
+    GENAI_AVAILABLE = True
+except ImportError:
+    GENAI_AVAILABLE = False
 
 
 class ConDynS:
@@ -32,7 +36,7 @@ class ConDynS:
             with open(os.path.join(base_path, "prompts/condyns_prompt.txt"), "r", encoding="utf-8") as f:
                 cls.CONDYNS_PROMPT_TEMPLATE = f.read()
 
-    def __init__(self, model_provider: str, config: GenAIConfigManager, model: str = None, 
+    def __init__(self, model_provider: str, config, model: str = None, 
                  custom_condyns_prompt: str = None, custom_prompt_dir: str = None):
         """Initialize the ConDynS score calculator with a specified model provider and optional model name.
         
@@ -43,7 +47,11 @@ class ConDynS:
         :param model: Optional specific model name
         :param custom_condyns_prompt: Custom text for the condyns prompt template
         :param custom_prompt_dir: Directory to save custom prompts (if not provided, overwrites defaults in ./prompts)
+        :raises ImportError: If genai dependencies are not available
         """
+        if not GENAI_AVAILABLE:
+            raise ImportError("GenAI dependencies not available. Please install required packages.")
+        
         self.model_provider = model_provider
         self.config = config
         self.model = model
