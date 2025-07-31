@@ -6,9 +6,20 @@ from convokit.genai.genai_config import GenAIConfigManager
 
 
 class SCDWriter:
-    """
-    A writer class to generate SCD summaries and SoP bulletpoints
-    from conversation transcripts using GenAI-backed models.
+    """A writer class to generate Summary of Conversation Dynamics (SCD) and 
+    Sequence of Patterns (SoP) using GenAI models.
+    
+    SCDWriter provides functionality to generate Summary of Conversation Dynamics (SCD)
+    from conversation transcripts and extract Sequence of Patterns (SoP) from SCD using LLM models. 
+    We provide a default prompt for the SCD and SoP generation, but users can also provide their 
+    own prompts for the SCD and SoP generation on their own data.
+    
+    :param model_provider: The GenAI provider to use (e.g., "gpt", "gemini")
+    :param config: The GenAIConfigManager instance to use
+    :param model: Optional specific model name
+    :param custom_summary_prompt: Custom text for the summary prompt template
+    :param custom_bulletpoint_prompt: Custom text for the bulletpoint prompt template
+    :param custom_prompt_dir: Directory to save custom prompts (if not provided, overwrites defaults in ./prompts)
     """
 
     SUMMARY_PROMPT_TEMPLATE = None
@@ -16,7 +27,10 @@ class SCDWriter:
 
     @classmethod
     def _load_prompts(cls):
-        """Lazy load prompts into class variables."""
+        """Lazy load prompts into class variables.
+        
+        Loads the SCD and SoP prompt templates from the prompts directory if not already loaded.
+        """
         if cls.SUMMARY_PROMPT_TEMPLATE is None or cls.BULLETPOINT_PROMPT_TEMPLATE is None:
             base_path = os.path.dirname(__file__)
             with open(os.path.join(base_path, "prompts/scd_prompt.txt"), "r", encoding="utf-8") as f:
@@ -24,21 +38,22 @@ class SCDWriter:
             with open(os.path.join(base_path, "prompts/sop_prompt.txt"), "r", encoding="utf-8") as f:
                 cls.BULLETPOINT_PROMPT_TEMPLATE = f.read()
 
-    def __init__(self, model_provider: str, model: str = None, 
-                 custom_summary_prompt: str = None, custom_bulletpoint_prompt: str = None,
+    def __init__(self, model_provider: str, config: GenAIConfigManager, model: str = None, 
+                 custom_scd_prompt: str = None, custom_sop_prompt: str = None,
                  custom_prompt_dir: str = None):
-        """
-        Initialize the SCD processor with a specified model provider and optional model name. 
+        """Initialize the SCD processor with a specified model provider and optional model name.
+        
         If no model is specified, defaults to our selected default model.
         
-        Args:
-            model_provider: The GenAI provider to use (e.g., "gpt", "gemini")
-            model: Optional specific model name
-            custom_summary_prompt: Custom text for the summary prompt template
-            custom_bulletpoint_prompt: Custom text for the bulletpoint prompt template
-            custom_prompt_dir: Directory to save custom prompts (if not provided, overwrites defaults in ./prompts)
+        :param model_provider: The GenAI provider to use (e.g., "gpt", "gemini")
+        :param config: The GenAIConfigManager instance to use
+        :param model: Optional specific model name
+        :param custom_scd_prompt: Custom text for the summary prompt template
+        :param custom_sop_prompt: Custom text for the bulletpoint prompt template
+        :param custom_prompt_dir: Directory to save custom prompts (if not provided, overwrites defaults in ./prompts)
         """
         self.model_provider = model_provider
+        self.config = config
         self.model = model
         self.custom_prompt_dir = custom_prompt_dir
 
@@ -46,30 +61,27 @@ class SCDWriter:
         self._load_prompts()
         
         # Override with custom prompts if provided
-        if custom_summary_prompt is not None:
-            self.SUMMARY_PROMPT_TEMPLATE = custom_summary_prompt
+        if custom_scd_prompt is not None:
+            self.SUMMARY_PROMPT_TEMPLATE = custom_scd_prompt
             if custom_prompt_dir:
-                self._save_custom_prompt("scd_prompt.txt", custom_summary_prompt)
+                self._save_custom_prompt("scd_prompt.txt", custom_scd_prompt)
             else:
-                self._save_custom_prompt_to_default("scd_prompt.txt", custom_summary_prompt)
+                self._save_custom_prompt_to_default("scd_prompt.txt", custom_scd_prompt)
         
-        if custom_bulletpoint_prompt is not None:
-            self.BULLETPOINT_PROMPT_TEMPLATE = custom_bulletpoint_prompt
+        if custom_sop_prompt is not None:
+            self.BULLETPOINT_PROMPT_TEMPLATE = custom_sop_prompt
             if custom_prompt_dir:
-                self._save_custom_prompt("sop_prompt.txt", custom_bulletpoint_prompt)
+                self._save_custom_prompt("sop_prompt.txt", custom_sop_prompt)
             else:
-                self._save_custom_prompt_to_default("sop_prompt.txt", custom_bulletpoint_prompt)
+                self._save_custom_prompt_to_default("sop_prompt.txt", custom_sop_prompt)
 
-        config = GenAIConfigManager()
         self.client = get_llm_client(model_provider, config, model=model)
     
     def _save_custom_prompt(self, filename: str, prompt_content: str):
-        """
-        Save custom prompt to the specified directory.
+        """Save custom prompt to the specified directory.
         
-        Args:
-            filename: Name of the file to save
-            prompt_content: Content of the prompt to save
+        :param filename: Name of the file to save
+        :param prompt_content: Content of the prompt to save
         """
         if self.custom_prompt_dir:
             os.makedirs(self.custom_prompt_dir, exist_ok=True)
@@ -78,25 +90,21 @@ class SCDWriter:
                 f.write(prompt_content)
     
     def _save_custom_prompt_to_default(self, filename: str, prompt_content: str):
-        """
-        Save custom prompt to the default prompts directory.
+        """Save custom prompt to the default prompts directory.
         
-        Args:
-            filename: Name of the file to save
-            prompt_content: Content of the prompt to save
+        :param filename: Name of the file to save
+        :param prompt_content: Content of the prompt to save
         """
         base_path = os.path.dirname(__file__)
         filepath = os.path.join(base_path, "prompts", filename)
         with open(filepath, "w", encoding="utf-8") as f:
             f.write(prompt_content)
     
-    def set_custom_summary_prompt(self, prompt_text: str, save_to_file: bool = True):
-        """
-        Set a custom summary prompt template.
+    def set_custom_scd_prompt(self, prompt_text: str, save_to_file: bool = True):
+        """Set a custom SCD prompt template.
         
-        Args:
-            prompt_text: The custom prompt text
-            save_to_file: Whether to save the prompt to file in custom_prompt_dir or default prompts directory
+        :param prompt_text: The custom prompt text
+        :param save_to_file: Whether to save the prompt to file in custom_prompt_dir or default prompts directory
         """
         self.SUMMARY_PROMPT_TEMPLATE = prompt_text
         if save_to_file:
@@ -105,13 +113,11 @@ class SCDWriter:
             else:
                 self._save_custom_prompt_to_default("scd_prompt.txt", prompt_text)
     
-    def set_custom_bulletpoint_prompt(self, prompt_text: str, save_to_file: bool = True):
-        """
-        Set a custom bulletpoint prompt template.
+    def set_custom_sop_prompt(self, prompt_text: str, save_to_file: bool = True):
+        """Set a custom SoP prompt template.
         
-        Args:
-            prompt_text: The custom prompt text
-            save_to_file: Whether to save the prompt to file in custom_prompt_dir or default prompts directory
+        :param prompt_text: The custom prompt text
+        :param save_to_file: Whether to save the prompt to file in custom_prompt_dir or default prompts directory
         """
         self.BULLETPOINT_PROMPT_TEMPLATE = prompt_text
         if save_to_file:
@@ -121,11 +127,9 @@ class SCDWriter:
                 self._save_custom_prompt_to_default("sop_prompt.txt", prompt_text)
     
     def load_custom_prompts_from_directory(self, prompt_dir: str):
-        """
-        Load custom prompts from a specified directory.
+        """Load custom prompts from a specified directory.
         
-        Args:
-            prompt_dir: Directory containing custom prompt files
+        :param prompt_dir: Directory containing custom prompt files
         """
         scd_path = os.path.join(prompt_dir, "scd_prompt.txt")
         sop_path = os.path.join(prompt_dir, "sop_prompt.txt")
@@ -139,8 +143,13 @@ class SCDWriter:
                 self.BULLETPOINT_PROMPT_TEMPLATE = f.read()
     
     def _convert_to_single_quote_dict_string(self, response: str) -> str:
-        """
-        Clean and normalize GenAI output for safe ast.literal_eval parsing.
+        """Clean and normalize model output for safe ast.literal_eval parsing.
+        
+        Handles common formatting issues in LLM responses to ensure they can be
+        safely parsed as Python dictionaries.
+        
+        :param response: Raw response text from LLM
+        :return: Cleaned string suitable for ast.literal_eval
         """
         response = response.strip()
 
@@ -162,16 +171,27 @@ class SCDWriter:
         return response
 
     def get_scd_summary(self, transcript: str) -> str:
-        """
-        Generate the SCD summary from a transcript.
+        """Generate the SCD summary from a transcript.
+        
+        Uses the LLM to generate a Summary of Conversation Dynamics (SCD) from
+        a conversation transcript.
+        
+        :param transcript: Conversation transcript to summarize
+        :return: SCD summary text
         """
         query = self.SUMMARY_PROMPT_TEMPLATE.format(transcript=transcript)
         response = self.client.generate(query, model=self.model)
         return response.text
 
     def get_sop_from_summary(self, summary: str) -> dict:
-        """
-        Generate SoP bulletpoints from an SCD summary.
+        """Generate SoP bulletpoints from an SCD summary.
+        
+        Uses the LLM to generate Sequence of Patterns (SoP) bulletpoints from
+        an SCD summary.
+        
+        :param summary: SCD summary text to convert to SoP
+        :return: Dictionary containing SoP patterns
+        :raises Exception if the response cannot be parsed as a dictionary
         """
         query = self.BULLETPOINT_PROMPT_TEMPLATE + summary
         response = self.client.generate(query, model=self.model)
@@ -191,9 +211,14 @@ class SCDWriter:
 
 
     def get_scd_and_sop(self, transcript: str) -> tuple[str, dict]:
+        """Generate both the SCD summary and the SoP patterns in one call.
+        
+        Convenience method that generates both SCD summary and SoP patterns
+        from a transcript in a single operation.
+        
+        :param transcript: Conversation transcript to process
+        :return: Tuple of (SCD summary, SoP patterns)
         """
-        Generate both the SCD summary and the SoP bulletpoints in one call.
-        """
-        summary_text = self.get_scd_summary(transcript)
-        bulletpoints = self.get_sop_from_summary(summary_text)
-        return summary_text, bulletpoints
+        scd = self.get_scd_summary(transcript)
+        sop = self.get_sop_from_summary(scd)
+        return scd, sop

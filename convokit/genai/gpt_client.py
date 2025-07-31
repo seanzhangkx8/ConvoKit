@@ -3,11 +3,32 @@ from .base import LLMClient, LLMResponse
 import time
 
 class GPTClient(LLMClient):
+    """Client for interacting with OpenAI GPT models.
+    
+    Provides an interface to generate text using OpenAI's GPT models through their API.
+    Handles authentication, request formatting, and error retry logic.
+    
+    :param api_key: OpenAI API key for authentication
+    :param model: Name of the GPT model to use (default: "gpt-4o-mini-2024-07-18")
+    """
     def __init__(self, api_key: str, model: str = "gpt-4o-mini-2024-07-18"):
         self.client = OpenAI(api_key=api_key)
         self.model = model
 
     def generate(self, prompt, output_max_tokens=512, temperature=0.0, times_retried=0) -> LLMResponse:
+        """Generate text using the GPT model.
+        
+        Sends a prompt to the GPT model and returns the generated response. Handles
+        different input formats (string or message list) and includes retry logic for
+        API errors.
+        
+        :param prompt: Input prompt for generation. Can be a string or list of message dicts
+        :param output_max_tokens: Maximum number of tokens to generate (default: 512)
+        :param temperature: Sampling temperature for generation (default: 0.0)
+        :param times_retried: Number of retry attempts made so far (for internal use)
+        :return: LLMResponse object containing the generated text and metadata
+        :raises Exception If output error and retry attempts are exhausted
+        """
         start = time.time()
         retry_after = 10
 

@@ -2,7 +2,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def format_wiki_transcript_from_convokit(corpus, convo_id, truncated_by = 0, start_at = 0): 
-    """Format a wiki transcript from a convokit corpus."""
+    """Format a wiki conversation from convokit Wikipedia corpus.
+    
+    Converts a conversation from a ConvoKit corpus into a formatted transcript
+    suitable for wiki-style conversations, handling personal attacks and truncation.
+    
+    :param corpus: ConvoKit corpus containing the conversation
+    :param convo_id: ID of the conversation to format
+    :param truncated_by: Number of utterances to truncate from the end (default: 0)
+    :param start_at: Index to start from in the utterance list (default: 0)
+    :return: List of formatted transcript lines
+    """
     convo = corpus.get_conversation(convo_id)
     utt_list = convo.get_chronological_utterance_list()
     transcription = []
@@ -19,7 +29,17 @@ def format_wiki_transcript_from_convokit(corpus, convo_id, truncated_by = 0, sta
 
 
 def format_transcript_from_convokit(corpus, convo_id, truncated_by = 3, start_at = 0): 
-    """Format a Reddit transcript from a convokit corpus."""
+    """Format a Reddit conversation from convokit Redditcorpus.
+    
+    Converts a conversation from a ConvoKit corpus into a formatted transcript
+    suitable for Reddit-style conversations, handling removed comments and truncation.
+    
+    :param corpus: ConvoKit corpus containing the conversation
+    :param convo_id: ID of the conversation to format
+    :param truncated_by: Number of utterances to truncate from the end (default: 3)
+    :param start_at: Index to start from in the utterance list (default: 0)
+    :return: List of formatted transcript lines
+    """
     convo = corpus.get_conversation(convo_id)
     utt_list = convo.get_chronological_utterance_list()
     transcription = []
@@ -36,7 +56,17 @@ def format_transcript_from_convokit(corpus, convo_id, truncated_by = 3, start_at
 
 
 def format_transcript_from_convokit_delta(corpus, convo_id, truncate_first_op_utt=True, truncate_last_op_utt=False): 
-    """Format a Reddit delta transcript from a convokit corpus."""
+    """Format a Reddit delta conversation from convokit Reddit corpus.
+    
+    Converts a conversation from a ConvoKit corpus into a formatted transcript
+    suitable for Reddit delta conversations, with options to truncate first/last utterances.
+    
+    :param corpus: ConvoKit corpus containing the conversation
+    :param convo_id: ID of the conversation to format
+    :param truncate_first_op_utt: Whether to remove the first utterance (default: True)
+    :param truncate_last_op_utt: Whether to remove the last utterance if it's from the same speaker (default: False)
+    :return: List of formatted transcript lines
+    """
     convo = corpus.get_conversation(convo_id)
     utt_list = convo.get_chronological_utterance_list()
     transcription = []
@@ -54,7 +84,13 @@ def format_transcript_from_convokit_delta(corpus, convo_id, truncate_first_op_ut
 
 
 def get_human_summary(corpus, convo_id):
-    """Get the human written summary of a conversation from a convokit corpus, if it exists."""
+    """Get the human written SCD of a conversation from a convokit corpus, if it exists.
+    
+    :param corpus: ConvoKit corpus containing the conversation
+    :param convo_id: ID of the conversation to get summary for
+    :return: Human written SCD metadata
+    :raises Exception if the conversation does not have a human written summary
+    """
     convo = corpus.get_conversation(convo_id)
     for summary in convo.meta['summary_meta']:
         if summary["summary_type"] == "human_written_SCD":
@@ -63,7 +99,13 @@ def get_human_summary(corpus, convo_id):
 
 
 def get_machine_summary(corpus, convo_id):
-    """Get the machine generated summary of a conversation from a convokit corpus, if it exists."""
+    """Get the machine generated SCD of a conversation from a convokit corpus, if it exists.
+    
+    :param corpus: ConvoKit corpus containing the conversation
+    :param convo_id: ID of the conversation to get summary for
+    :return: Machine generated SCD metadata
+    :raises Exception if the conversation does not have a machine generated summary
+    """
     convo = corpus.get_conversation(convo_id)
     for summary in convo.meta['summary_meta']:
         if summary["summary_type"] == "machine_generated_SCD":
@@ -72,7 +114,14 @@ def get_machine_summary(corpus, convo_id):
 
 
 def get_human_summary_pair_lst(corpus):
-    """Get the list of paired conversations and their human written summaries."""
+    """Get the list of paired conversations and their human written SCDs.
+    
+    Finds all conversations in the corpus that have human written SCDs
+    and returns them as pairs.
+    
+    :param corpus: ConvoKit corpus to search for conversations with SCDs
+    :return: List of conversation pairs with human SCDs
+    """
     human_summary_ids = corpus.get_conversation_ids(selector=lambda conversation: conversation.meta["summary_meta"] != []
         and any(summary_meta["summary_type"] == "human_written_SCD" for summary_meta in conversation.meta["summary_meta"]))
     human_summary_pair = [] # (calm, awry) 
@@ -89,7 +138,13 @@ def get_human_summary_pair_lst(corpus):
 
 
 def get_pair_id(corpus, convo_id):
-    """Get the paired conversation's id of a conversation from a convokit corpus."""
+    """Get the paired conversation's id of a conversation from a convokit corpus.
+    
+    :param corpus: ConvoKit corpus containing the conversation
+    :param convo_id: ID of the conversation to find pair for
+    :return: ID of the paired conversation
+    :raises Exception: If the conversation is not found in pairings
+    """
     human_summary_pair = get_human_summary_pair_lst(corpus)
     for pair in human_summary_pair:
         if convo_id in pair:
@@ -98,14 +153,24 @@ def get_pair_id(corpus, convo_id):
     
 
 def count_yes_no(data):
-    """Count the number of yes and no judgements in a dictionary."""
+    """Count the number of yes and no judgements in a dictionary.
+    
+    :param data: Dictionary containing judgement data
+    :return: Tuple of (yes_count, no_count)
+    """
     yes_count = sum(1 for item in data.values() if item['judgement'] == 'Yes')
     no_count = sum(1 for item in data.values() if item['judgement'] == 'No')
     return yes_count, no_count
 
 
 def measure_score(data):
-    """Measure the score of a conversation from a convokit corpus."""
+    """Measure the score of a conversation from a convokit corpus.
+    
+    Calculates the mean score from similarity analysis results.
+    
+    :param data: Dictionary containing similarity analysis results
+    :return: Mean score across all events
+    """
     sum_score = []
     for item in data.values():
         sum_score.append(item['score'])
@@ -113,7 +178,13 @@ def measure_score(data):
     
 
 def summarize_statistics(lst, label):
-    """Summarize the statistics of a list of scores."""
+    """Summarize the statistics of a list of scores.
+    
+    Prints mean, median, and percentile statistics for a list of scores.
+    
+    :param lst: List of scores to analyze
+    :param label: Label to print before the statistics
+    """
     print(f"{label}")
     print(f"  Mean: {np.mean(lst):.2f}")
     print(f"  Median: {np.median(lst):.2f}")
@@ -122,7 +193,13 @@ def summarize_statistics(lst, label):
 
 
 def plot_numerical_summary(data_self, data_pair):
-    """Plot the numerical summary of a list of scores."""
+    """Plot the numerical summary of a list of scores.
+    
+    Creates a scatter plot comparing two groups of scores with summary statistics.
+    
+    :param data_self: List of scores for the self group
+    :param data_pair: List of scores for the pair group
+    """
     summary_self = {
         'mean': np.mean(data_self),
         'median': np.median(data_self),
@@ -153,7 +230,14 @@ def plot_numerical_summary(data_self, data_pair):
 
 
 def evaluate(result):
-    """Evaluate the similarity of a conversation from a convokit corpus."""
+    """Evaluate the similarity of a conversation from a convokit corpus.
+    
+    Compares self-similarity and pair-similarity scores and provides statistical
+    analysis and visualization.
+    
+    :param result: Dictionary containing similarity results for conversations
+    :return: Tuple of (count, tied, total, convo_self_judgement_percent, convo_pair_judgement_percent)
+    """
     convo_self_judgement_percent = []
     convo_pair_judgement_percent = []
 
@@ -184,7 +268,15 @@ def evaluate(result):
 
 
 def evaluate_two(result1, result2):
-    """Evaluate the similarity of two conversations from a convokit corpus."""
+    """Evaluate the similarity of two conversations from a convokit corpus.
+    
+    Compares self-similarity and pair-similarity scores from two different results
+    and provides statistical analysis and visualization.
+    
+    :param result1: First dictionary containing similarity results for conversations
+    :param result2: Second dictionary containing similarity results for conversations
+    :return: Tuple of (count, tied, total, convo_self_judgement_percent, convo_pair_judgement_percent)
+    """
     convo_self_judgement_percent = []
     convo_pair_judgement_percent = []
 
