@@ -24,18 +24,119 @@ class SCDWriter:
             with open(os.path.join(base_path, "prompts/sop_prompt.txt"), "r", encoding="utf-8") as f:
                 cls.BULLETPOINT_PROMPT_TEMPLATE = f.read()
 
-    def __init__(self, model_provider: str, model: str = None):
+    def __init__(self, model_provider: str, model: str = None, 
+                 custom_summary_prompt: str = None, custom_bulletpoint_prompt: str = None,
+                 custom_prompt_dir: str = None):
         """
         Initialize the SCD processor with a specified model provider and optional model name. 
         If no model is specified, defaults to our selected default model.
+        
+        Args:
+            model_provider: The GenAI provider to use (e.g., "gpt", "gemini")
+            model: Optional specific model name
+            custom_summary_prompt: Custom text for the summary prompt template
+            custom_bulletpoint_prompt: Custom text for the bulletpoint prompt template
+            custom_prompt_dir: Directory to save custom prompts (if not provided, overwrites defaults in ./prompts)
         """
         self.model_provider = model_provider
         self.model = model
+        self.custom_prompt_dir = custom_prompt_dir
 
+        # Load default prompts first
         self._load_prompts()
+        
+        # Override with custom prompts if provided
+        if custom_summary_prompt is not None:
+            self.SUMMARY_PROMPT_TEMPLATE = custom_summary_prompt
+            if custom_prompt_dir:
+                self._save_custom_prompt("scd_prompt.txt", custom_summary_prompt)
+            else:
+                self._save_custom_prompt_to_default("scd_prompt.txt", custom_summary_prompt)
+        
+        if custom_bulletpoint_prompt is not None:
+            self.BULLETPOINT_PROMPT_TEMPLATE = custom_bulletpoint_prompt
+            if custom_prompt_dir:
+                self._save_custom_prompt("sop_prompt.txt", custom_bulletpoint_prompt)
+            else:
+                self._save_custom_prompt_to_default("sop_prompt.txt", custom_bulletpoint_prompt)
 
         config = GenAIConfigManager()
         self.client = get_llm_client(model_provider, config, model=model)
+    
+    def _save_custom_prompt(self, filename: str, prompt_content: str):
+        """
+        Save custom prompt to the specified directory.
+        
+        Args:
+            filename: Name of the file to save
+            prompt_content: Content of the prompt to save
+        """
+        if self.custom_prompt_dir:
+            os.makedirs(self.custom_prompt_dir, exist_ok=True)
+            filepath = os.path.join(self.custom_prompt_dir, filename)
+            with open(filepath, "w", encoding="utf-8") as f:
+                f.write(prompt_content)
+    
+    def _save_custom_prompt_to_default(self, filename: str, prompt_content: str):
+        """
+        Save custom prompt to the default prompts directory.
+        
+        Args:
+            filename: Name of the file to save
+            prompt_content: Content of the prompt to save
+        """
+        base_path = os.path.dirname(__file__)
+        filepath = os.path.join(base_path, "prompts", filename)
+        with open(filepath, "w", encoding="utf-8") as f:
+            f.write(prompt_content)
+    
+    def set_custom_summary_prompt(self, prompt_text: str, save_to_file: bool = True):
+        """
+        Set a custom summary prompt template.
+        
+        Args:
+            prompt_text: The custom prompt text
+            save_to_file: Whether to save the prompt to file in custom_prompt_dir or default prompts directory
+        """
+        self.SUMMARY_PROMPT_TEMPLATE = prompt_text
+        if save_to_file:
+            if self.custom_prompt_dir:
+                self._save_custom_prompt("scd_prompt.txt", prompt_text)
+            else:
+                self._save_custom_prompt_to_default("scd_prompt.txt", prompt_text)
+    
+    def set_custom_bulletpoint_prompt(self, prompt_text: str, save_to_file: bool = True):
+        """
+        Set a custom bulletpoint prompt template.
+        
+        Args:
+            prompt_text: The custom prompt text
+            save_to_file: Whether to save the prompt to file in custom_prompt_dir or default prompts directory
+        """
+        self.BULLETPOINT_PROMPT_TEMPLATE = prompt_text
+        if save_to_file:
+            if self.custom_prompt_dir:
+                self._save_custom_prompt("sop_prompt.txt", prompt_text)
+            else:
+                self._save_custom_prompt_to_default("sop_prompt.txt", prompt_text)
+    
+    def load_custom_prompts_from_directory(self, prompt_dir: str):
+        """
+        Load custom prompts from a specified directory.
+        
+        Args:
+            prompt_dir: Directory containing custom prompt files
+        """
+        scd_path = os.path.join(prompt_dir, "scd_prompt.txt")
+        sop_path = os.path.join(prompt_dir, "sop_prompt.txt")
+        
+        if os.path.exists(scd_path):
+            with open(scd_path, "r", encoding="utf-8") as f:
+                self.SUMMARY_PROMPT_TEMPLATE = f.read()
+        
+        if os.path.exists(sop_path):
+            with open(sop_path, "r", encoding="utf-8") as f:
+                self.BULLETPOINT_PROMPT_TEMPLATE = f.read()
     
     def _convert_to_single_quote_dict_string(self, response: str) -> str:
         """
