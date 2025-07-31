@@ -4,25 +4,27 @@ from google.genai.types import GenerateContentConfig, HttpOptions
 from .base import LLMClient, LLMResponse
 import time
 
+
 class GeminiClient(LLMClient):
     """Client for interacting with Google Gemini models.
-    
+
     Provides an interface to generate text using Google's Gemini models through their API.
     Supports both Vertex AI and direct API access, with configurable project and location settings.
-    
+
     :param api_key: Google API key for authentication
     :param model: Name of the Gemini model to use (default: "gemini-2.0-flash-001")
     :param google_cloud_project: Google Cloud project ID (optional)
     :param google_cloud_location: Google Cloud location (optional)
     :param use_vertex_ai: Whether to use Vertex AI (default: True)
     """
+
     def __init__(
         self,
         api_key: str,
         model: str = "gemini-2.0-flash-001",
         google_cloud_project: str = None,
         google_cloud_location: str = None,
-        use_vertex_ai: bool = True
+        use_vertex_ai: bool = True,
     ):
         os.environ["GOOGLE_API_KEY"] = api_key
         if use_vertex_ai:
@@ -36,10 +38,10 @@ class GeminiClient(LLMClient):
 
     def generate(self, prompt, temperature=0.0, times_retried=0) -> LLMResponse:
         """Generate text using the Gemini model.
-        
+
         Sends a prompt to the Gemini model and returns the generated response. The function includes
         retry logic for API errors and handles different input formats.
-        
+
         :param prompt: Input prompt for generation
         :param temperature: Sampling temperature for generation (default: 0.0)
         :param times_retried: Number of retry attempts made so far (for internal use)

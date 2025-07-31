@@ -26,7 +26,7 @@ __all__ = [
     "LLMClient",
     "LLMResponse",
     "GPTClient",
-    "GeminiClient", 
+    "GeminiClient",
     "LocalClient",
     "get_llm_client",
     "GenAIConfigManager",

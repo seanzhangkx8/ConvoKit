@@ -5,6 +5,7 @@ from evaluate import load
 
 try:
     from convokit.genai import get_llm_client
+
     GENAI_AVAILABLE = True
 except ImportError:
     GENAI_AVAILABLE = False
@@ -12,22 +13,27 @@ except ImportError:
 
 class ConDynSBaselines:
     """A class providing baseline methods for computing conversation similarity to compare with ConDynS.
-    
+
     This class provides various baseline methods for comparing conversations including
     BERTScore, cosine similarity using sentence embeddings, and GPT-based comparison methods.
-    The baseline methods are used to compare with ConDynS. 
-    
+    The baseline methods are used to compare with ConDynS.
+
     :param model_provider: The GenAI provider to use (e.g., "gpt", "gemini")
     :param model: Optional specific model name
     :param sentence_transformer_model: Sentence transformer model to use for embeddings (default: "all-MiniLM-L6-v2")
     :param device: Device to use for sentence transformer (default: "cpu")
     """
-    def __init__(self, model_provider: str, config, 
-                 model: str = None,
-                 sentence_transformer_model: str = "all-MiniLM-L6-v2", 
-                 device: str = "cpu"):
+
+    def __init__(
+        self,
+        model_provider: str,
+        config,
+        model: str = None,
+        sentence_transformer_model: str = "all-MiniLM-L6-v2",
+        device: str = "cpu",
+    ):
         """Initialize the ConDynSBaselines with specified models and configurations.
-        
+
         :param model_provider: The GenAI provider to use (e.g., "gpt", "gemini")
         :param model: Optional specific model name
         :param sentence_transformer_model: Sentence transformer model to use for embeddings
@@ -36,7 +42,7 @@ class ConDynSBaselines:
         """
         if not GENAI_AVAILABLE:
             raise ImportError("GenAI dependencies not available. Please install required packages.")
-        
+
         self.model_provider = model_provider
         self.model = model
         self.sentence_transformer_model = sentence_transformer_model
@@ -46,26 +52,27 @@ class ConDynSBaselines:
         self.util = util
         self.bertscore = load("bertscore")
 
-    
     def get_bertscore(self, pred, ref):
         """Compute BERTScore between prediction and reference texts.
-        
+
         Uses the BERTScore metric to evaluate semantic similarity between two texts.
-        
+
         :param pred: Prediction text to evaluate
         :param ref: Reference text to compare against
         :return: BERTScore computation results
         """
         a = [pred]
         b = [ref]
-        return self.bertscore.compute(predictions=a, references=b, model_type="distilbert-base-uncased")
+        return self.bertscore.compute(
+            predictions=a, references=b, model_type="distilbert-base-uncased"
+        )
 
     def get_cosine_similarity(self, pred, ref):
         """Compute cosine similarity between two texts using sentence embeddings.
-        
+
         Uses the SentenceTransformer model to generate embeddings and computes
         cosine similarity between them.
-        
+
         :param pred: First text for comparison
         :param ref: Second text for comparison
         :return: Cosine similarity score between 0 and 1
@@ -76,10 +83,10 @@ class ConDynSBaselines:
 
     def _parse_gpt_responses(self, response):
         """Parse and clean model responses containing JSON.
-        
+
         Extracts JSON content from model responses that may contain markdown formatting
         and handles potential parsing errors.
-        
+
         :param response: Raw response text from model
         :return: Parsed JSON data as dictionary
         """
@@ -92,10 +99,10 @@ class ConDynSBaselines:
 
     def get_gpt_compare_score(self, pred, ref, prompt):
         """Compare two texts using GPT model with a custom prompt.
-        
+
         Sends a formatted prompt to GPT model to compare two texts and returns
         similarity score and reasoning.
-        
+
         :param pred: First text for comparison
         :param ref: Second text for comparison
         :param prompt: Prompt template to use for comparison
@@ -104,16 +111,16 @@ class ConDynSBaselines:
         gpt_prompt = prompt.format(pred=pred, ref=ref)
         response = self.client.generate(gpt_prompt)
         parsed_response = self._parse_gpt_responses(response)
-        score = parsed_response['sim_score']
-        reason = parsed_response['reason']
+        score = parsed_response["sim_score"]
+        reason = parsed_response["reason"]
         return score, reason
 
     def get_naive_gpt_compare_score_SCDs(self, scd1, scd2):
         """Compare two Summary of Conversation Dynamics (SCD) using GPT.
-        
+
         Compares two SCD summaries and rates their similarity based on persuasion
         trajectory and conversational dynamics, ignoring specific topics or claims.
-        
+
         :param scd1: First SCD summary
         :param scd2: Second SCD summary
         :return: Tuple of (similarity_score, reasoning)
@@ -153,10 +160,10 @@ Conversation 2 SCD:
 
     def get_naive_gpt_compare_score_Transcripts(self, transcript1, transcript2):
         """Compare two conversation transcripts using GPT.
-        
+
         Compares two conversation transcripts and rates their similarity based on
         conversational trajectory and dynamics, ignoring specific topics discussed.
-        
+
         :param transcript1: First conversation transcript
         :param transcript2: Second conversation transcript
         :return: Tuple of (similarity_score, reasoning)
@@ -193,5 +200,7 @@ Conversation 1:
 Conversation 2:
 {ref}
 """
-        score, reason = self.get_gpt_compare_score(transcript1, transcript2, naive_gpt_compare_transcript_prompt)
+        score, reason = self.get_gpt_compare_score(
+            transcript1, transcript2, naive_gpt_compare_transcript_prompt
+        )
         return score, reason

@@ -5,8 +5,8 @@ from .baseline import ConDynSBaselines
 from .utils import *
 
 __all__ = [
-    'SCDWriter',
-    'ConDynS', 
-    'NaiveConDynS',
-    'ConDynSBaselines',
+    "SCDWriter",
+    "ConDynS",
+    "NaiveConDynS",
+    "ConDynSBaselines",
 ]

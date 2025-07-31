@@ -5,6 +5,7 @@ import re
 
 try:
     from convokit.genai import get_llm_client
+
     GENAI_AVAILABLE = True
 except ImportError:
     GENAI_AVAILABLE = False
@@ -12,12 +13,12 @@ except ImportError:
 
 class NaiveConDynS:
     """A class to compute naive ConDynS score between two Sequences of Patterns.
-    
+
     NaiveConDynS computes similarity scores between conversations by directly
     comparing their Sequences of Patterns (SoP) without
     using conversation transcripts. This provides a simpler approach to measuring
     conversation dynamics similarity.
-    
+
     :param model_provider: The LLM provider to use (e.g., "gpt", "gemini")
     :param config: The GenAIConfigManager instance to use
     :param model: Optional specific model name
@@ -30,20 +31,28 @@ class NaiveConDynS:
     @classmethod
     def _load_prompts(cls):
         """Lazy load prompts into class variables.
-        
+
         Loads the NaiveConDynS prompt template from the prompts directory if not already loaded.
         """
         if cls.NAIVE_CONDYNS_PROMPT_TEMPLATE is None:
             base_path = os.path.dirname(__file__)
-            with open(os.path.join(base_path, "prompts/naive_condyns_prompt.txt"), "r", encoding="utf-8") as f:
+            with open(
+                os.path.join(base_path, "prompts/naive_condyns_prompt.txt"), "r", encoding="utf-8"
+            ) as f:
                 cls.NAIVE_CONDYNS_PROMPT_TEMPLATE = f.read()
 
-    def __init__(self, model_provider: str, config, model: str = None, 
-                 custom_naive_condyns_prompt: str = None, custom_prompt_dir: str = None):
+    def __init__(
+        self,
+        model_provider: str,
+        config,
+        model: str = None,
+        custom_naive_condyns_prompt: str = None,
+        custom_prompt_dir: str = None,
+    ):
         """Initialize the NaiveConDynS score computer with a specified model provider and optional model name.
-        
+
         If no model is specified, defaults to our selected default model.
-        
+
         :param model_provider: The LLM provider to use (e.g., "gpt", "gemini")
         :param config: The GenAIConfigManager instance to use
         :param model: Optional specific model name
@@ -60,23 +69,25 @@ class NaiveConDynS:
 
         # Load default prompts first
         self._load_prompts()
-        
+
         # Override with custom prompts if provided
         if custom_naive_condyns_prompt is not None:
             self.NAIVE_CONDYNS_PROMPT_TEMPLATE = custom_naive_condyns_prompt
             if custom_prompt_dir:
                 self._save_custom_prompt("naive_condyns_prompt.txt", custom_naive_condyns_prompt)
             else:
-                self._save_custom_prompt_to_default("naive_condyns_prompt.txt", custom_naive_condyns_prompt)
+                self._save_custom_prompt_to_default(
+                    "naive_condyns_prompt.txt", custom_naive_condyns_prompt
+                )
 
         if model is not None:
             self.client = get_llm_client(model_provider, config, model=model)
         else:
             self.client = get_llm_client(model_provider, config)
-    
+
     def _save_custom_prompt(self, filename: str, prompt_content: str):
         """Save custom prompt to the specified directory.
-        
+
         :param filename: Name of the file to save
         :param prompt_content: Content of the prompt to save
         """
@@ -85,10 +96,10 @@ class NaiveConDynS:
             filepath = os.path.join(self.custom_prompt_dir, filename)
             with open(filepath, "w", encoding="utf-8") as f:
                 f.write(prompt_content)
-    
+
     def _save_custom_prompt_to_default(self, filename: str, prompt_content: str):
         """Save custom prompt to the default prompts directory.
-        
+
         :param filename: Name of the file to save
         :param prompt_content: Content of the prompt to save
         """
@@ -96,10 +107,10 @@ class NaiveConDynS:
         filepath = os.path.join(base_path, "prompts", filename)
         with open(filepath, "w", encoding="utf-8") as f:
             f.write(prompt_content)
-    
+
     def set_custom_naive_condyns_prompt(self, prompt_text: str, save_to_file: bool = True):
         """Set a custom naive condyns prompt template.
-        
+
         :param prompt_text: The custom prompt text
         :param save_to_file: Whether to save the prompt to file in custom_prompt_dir or default prompts directory
         """
@@ -109,34 +120,34 @@ class NaiveConDynS:
                 self._save_custom_prompt("naive_condyns_prompt.txt", prompt_text)
             else:
                 self._save_custom_prompt_to_default("naive_condyns_prompt.txt", prompt_text)
-    
+
     def load_custom_prompts_from_directory(self, prompt_dir: str):
         """Load custom prompts from a specified directory.
-        
+
         :param prompt_dir: Directory containing custom prompt files
         """
         naive_condyns_path = os.path.join(prompt_dir, "naive_condyns_prompt.txt")
-        
+
         if os.path.exists(naive_condyns_path):
             with open(naive_condyns_path, "r", encoding="utf-8") as f:
                 self.NAIVE_CONDYNS_PROMPT_TEMPLATE = f.read()
 
     def _clean_model_output_to_dict(self, text: str) -> dict:
         """Clean and parse model output into a dictionary.
-        
+
         Extracts dictionary content from model responses and handles common
         formatting issues for safe parsing.
-        
+
         :param text: Raw model output text
         :return: Parsed dictionary from the model output
         :raises ValueError: If no valid dictionary boundaries are found
         """
-        start = text.find('{')
-        end = text.rfind('}')
+        start = text.find("{")
+        end = text.rfind("}")
         if start == -1 or end == -1 or end <= start:
             raise ValueError("No valid dictionary boundaries found.")
-        
-        dict_str = text[start:end+1]
+
+        dict_str = text[start : end + 1]
         dict_str = re.sub(r"'s\b", "s", dict_str)
         dict_str = re.sub(r"'t\b", "t", dict_str)
         dict_str = re.sub(r"'ve\b", "ve", dict_str)
@@ -144,17 +155,17 @@ class NaiveConDynS:
 
     def compute_unidirectional_naive_condyns(self, sop1, sop2):
         """Compute unidirectional naive conditional dynamics similarity between two Sequences of Patterns.
-        
+
         Compares the SoPs from one conversation against another to measure how well
         the dynamics of one conversation match those of another.
-        
+
         :param sop1: Dictionary of patterns from the first conversation with ordered keys ('0', '1', etc.)
         :param sop2: Dictionary of patterns from the second conversation with ordered keys ('0', '1', etc.)
         :return: Dictionary with analysis and scores for each pattern in sop1
         """
         # Format the prompt with the two sequences of patterns
         full_prompt = self.NAIVE_CONDYNS_PROMPT_TEMPLATE.format(sop1=sop1, sop2=sop2)
-        
+
         response = self.client.generate(full_prompt)
         try:
             response_dict = self._clean_model_output_to_dict(response.text)
@@ -163,13 +174,13 @@ class NaiveConDynS:
             print("Error parsing output:", e)
             raise Exception("error parsing")
         return response_dict
-        
+
     def compute_bidirectional_naive_condyns(self, sop1, sop2):
         """Compute bidirectional naive conditional dynamics similarity between two Sequences of Patterns.
-        
+
         Computes similarity in both directions: sop1 vs sop2 and sop2 vs sop1
         to capture the full dynamics of both conversations.
-        
+
         :param sop1: Dictionary of patterns from the first conversation with ordered keys ('0', '1', etc.)
         :param sop2: Dictionary of patterns from the second conversation with ordered keys ('0', '1', etc.)
         :return: List of [response_dict1, response_dict2] where each dict contains
@@ -181,18 +192,18 @@ class NaiveConDynS:
 
     def measure_score(self, data):
         """Calculate the mean score from a similarity result dictionary.
-        
+
         :param data: Dictionary containing similarity analysis results
         :return: Mean score across all patterns
         """
         sum_score = []
         for item in data.values():
-            sum_score.append(item['score'])
+            sum_score.append(item["score"])
         return np.mean(sum_score)
-        
+
     def compute_score_from_results(self, results):
         """Compute scores from bidirectional similarity results.
-        
+
         :param results: List of bidirectional similarity results
         :return: List of mean scores for each direction
         """
