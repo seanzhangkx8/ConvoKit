@@ -21,6 +21,7 @@ except ImportError:
     pass
 
 from .factory import get_llm_client
+from .llm_transformer import LLM
 
 __all__ = [
     "LLMClient",
@@ -30,4 +31,5 @@ __all__ = [
     "LocalClient",
     "get_llm_client",
     "GenAIConfigManager",
+    "LLM",
 ]
