@@ -51,7 +51,7 @@ class SCD(Transformer):
         self.scd_metadata_name = scd_metadata_name
         self.sop_metadata_name = sop_metadata_name
         self.conversation_formatter = conversation_formatter
-        
+
         # Initialize the SCDWriter
         self.scd_writer = SCDWriter(
             model_provider=model_provider,
@@ -71,17 +71,15 @@ class SCD(Transformer):
         """
         utterances = conversation.get_chronological_utterance_list()
         transcript_parts = []
-        
+
         for utt in utterances:
             speaker_name = f"Speaker_{utt.speaker.id}"
             transcript_parts.append(f"{speaker_name}: {utt.text}")
-        
+
         return "\n".join(transcript_parts)
 
     def transform(
-        self, 
-        corpus: Corpus, 
-        selector: Callable[[Conversation], bool] = lambda x: True
+        self, corpus: Corpus, selector: Callable[[Conversation], bool] = lambda x: True
     ) -> Corpus:
         """
         Transform the corpus by generating SCD and/or SoP for selected conversations.
@@ -93,13 +91,13 @@ class SCD(Transformer):
         """
         # Get the conversation formatter
         formatter = self.conversation_formatter or self._default_conversation_formatter
-        
+
         # Process selected conversations
         for conversation in corpus.iter_conversations(selector):
             try:
                 # Format the conversation
                 transcript = formatter(conversation)
-                
+
                 # Generate SCD and/or SoP
                 if self.generate_scd and self.generate_sop:
                     scd, sop = self.scd_writer.get_scd_and_sop(transcript)
@@ -113,9 +111,9 @@ class SCD(Transformer):
                     scd = self.scd_writer.get_scd_summary(transcript)
                     sop = self.scd_writer.get_sop_from_summary(scd)
                     conversation.add_meta(self.sop_metadata_name, sop)
-                
+
             except Exception as e:
                 print(f"Error processing conversation {conversation.id}: {str(e)}")
                 continue
-        
+
         return corpus

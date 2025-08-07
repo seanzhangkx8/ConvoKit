@@ -7,10 +7,10 @@ from .genai_config import GenAIConfigManager
 class LLM(Transformer):
     """
     A ConvoKit Transformer that uses LLM clients to process prompts and record outputs as metadata.
-    
+
     This transformer can apply LLM prompts to different levels of the corpus (conversation, speaker, utterance, corpus)
     and store the LLM responses as metadata attributes.
-    
+
     :param provider: LLM provider name ("gpt", "gemini", "local")
     :param model: LLM model name
     :param prompt_template: Template string for the prompt.
@@ -21,7 +21,7 @@ class LLM(Transformer):
     :param llm_kwargs: Additional keyword arguments to pass to the LLM client
     :param input_filter: Optional function to filter which objects to process
     """
-    
+
     def __init__(
         self,
         provider: str,
@@ -46,18 +46,20 @@ class LLM(Transformer):
 
         if model is not None:
             self.llm_kwargs["model"] = model
-        
+
         # Validate level
         if level not in ["conversation", "speaker", "utterance", "corpus"]:
-            raise ValueError(f"Invalid level: {level}. Must be one of: conversation, speaker, utterance, corpus")
-        
+            raise ValueError(
+                f"Invalid level: {level}. Must be one of: conversation, speaker, utterance, corpus"
+            )
+
         # Initialize LLM client
         self.llm_client = get_llm_client(provider, self.config_manager, **self.llm_kwargs)
-    
+
     def _format_prompt(self, context: Dict[str, Any]) -> str:
         """
         Format the prompt template with context variables.
-        
+
         :param context: Dictionary of context variables
         :return: Formatted prompt string
         """
@@ -65,22 +67,22 @@ class LLM(Transformer):
             return self.prompt_template.format(**context)
         except KeyError as e:
             raise ValueError(f"Missing context variable in prompt template: {e}")
-    
+
     def _should_process(self, obj) -> bool:
         """
         Check if the object should be processed based on the input filter.
-        
+
         :param obj: Object to check
         :return: True if object should be processed
         """
         if self.input_filter is None:
             return True
         return self.input_filter(obj)
-    
+
     def transform(self, corpus: Corpus, context_func: Optional[Callable] = None) -> Corpus:
         """
         Apply the LLM transformer to the corpus.
-        
+
         :param corpus: The corpus to transform
         :return: The transformed corpus with LLM responses added as metadata
         """
@@ -89,49 +91,49 @@ class LLM(Transformer):
                 if self._should_process(utterance):
                     context = context_func(corpus, utterance)
                     prompt = self._format_prompt(context)
-                    
+
                     try:
                         response = self.llm_client.generate(prompt)
                         utterance.add_meta(self.output_field, response.text)
                     except Exception as e:
                         print(f"Error processing utterance {utterance.id}: {e}")
                         utterance.add_meta(self.output_field, None)
-                        
+
         elif self.level == "conversation":
             for conversation in corpus.iter_conversations():
                 if self._should_process(conversation):
                     context = context_func(corpus, conversation)
                     prompt = self._format_prompt(context)
-                    
+
                     try:
                         response = self.llm_client.generate(prompt)
                         conversation.add_meta(self.output_field, response.text)
                     except Exception as e:
                         print(f"Error processing conversation {conversation.id}: {e}")
                         conversation.add_meta(self.output_field, None)
-                        
+
         elif self.level == "speaker":
             for speaker in corpus.iter_speakers():
                 if self._should_process(speaker):
                     context = context_func(corpus, speaker)
                     prompt = self._format_prompt(context)
-                    
+
                     try:
                         response = self.llm_client.generate(prompt)
                         speaker.add_meta(self.output_field, response.text)
                     except Exception as e:
                         print(f"Error processing speaker {speaker.id}: {e}")
                         speaker.add_meta(self.output_field, None)
-                        
+
         elif self.level == "corpus":
             context = context_func(corpus, corpus)
             prompt = self._format_prompt(context)
-            
+
             try:
                 response = self.llm_client.generate(prompt)
                 corpus.add_meta(self.output_field, response.text)
             except Exception as e:
                 print(f"Error processing corpus: {e}")
                 corpus.add_meta(self.output_field, None)
-        
+
         return corpus
