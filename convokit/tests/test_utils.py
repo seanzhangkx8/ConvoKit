@@ -277,7 +277,7 @@ def reload_corpus_in_db_mode(corpus):
 def unsloth_available():
     """
     Check if unsloth and related dependencies are available.
-
+    
     Returns:
         bool: True if unsloth and required dependencies are available, False otherwise.
     """
@@ -286,7 +286,6 @@ def unsloth_available():
         import torch
         import transformers
         import trl
-
         return True
     except ImportError:
         return False
@@ -295,13 +294,12 @@ def unsloth_available():
 def skip_if_no_unsloth(reason="Unsloth not available"):
     """
     Decorator to skip tests when unsloth is not available.
-
+    
     Args:
         reason (str): Reason for skipping the test.
-
+        
     Returns:
         function: Decorator function.
     """
     from unittest import skipIf
-
     return skipIf(not unsloth_available(), reason)
