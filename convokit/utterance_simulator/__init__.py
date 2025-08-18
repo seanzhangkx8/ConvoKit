@@ -14,7 +14,7 @@ except ImportError as e:
         )
     elif "not currently installed" in str(e):
         print(
-            "UnslothUtteranceSimulatorModel: ML dependencies are not currently installed. Run 'pip install convokit[llm]' to install them (or 'pip install convokit[llmmac]' for macOS users)."
+            "UnslothUtteranceSimulatorModel: LLM dependencies are not currently installed. Run 'pip install convokit[llm]' to install them (or 'pip install convokit[llmmac]' for macOS users)."
         )
     else:
         raise
