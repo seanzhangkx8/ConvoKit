@@ -12,9 +12,13 @@ try:
 except (ModuleNotFoundError, ImportError) as e:
     if "Unsloth GPU requirement not met" in str(e):
         raise ImportError("Unsloth GPU requirement not met") from e
+    elif "unsloth" in str(e).lower():
+        raise ModuleNotFoundError(
+            "UnslothUtteranceSimulatorModel: If you are a mac user, unsloth is currently not available on macOS. For other users, please use 'pip install convokit[llm]' to install LLM related dependencies."
+        ) from e
     else:
         raise ModuleNotFoundError(
-            "unsloth, torch, trl, transformers, or datasets is not currently installed. Run 'pip install convokit[llm]' if you would like to use the UnslothUtteranceSimulatorModel."
+            "UnslothUtteranceSimulatorModel: torch, trl, or transformers is not currently installed. Run 'pip install convokit[llm]' if you would like to use the UnslothUtteranceSimulatorModel."
         ) from e
 
 from typing import Callable, Optional, Union, Any, List, Iterator

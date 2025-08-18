@@ -13,7 +13,7 @@ try:
     TRANSFORMERS_AVAILABLE = True
 except (ModuleNotFoundError, ImportError) as e:
     raise ModuleNotFoundError(
-        "torch, transformers, or datasets is not currently installed. Run 'pip install convokit[llm]' if you would like to use the TransformerEncoderModel."
+        "TransformerEncoderModel: torch or transformers is not currently installed. Run 'pip install convokit[llm]' if you would like to use the TransformerEncoderModel (or 'pip install convokit[llmmac]' for macOS users)."
     ) from e
 
 import os

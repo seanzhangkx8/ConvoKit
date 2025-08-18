@@ -11,9 +11,13 @@ try:
 except (ModuleNotFoundError, ImportError) as e:
     if "Unsloth GPU requirement not met" in str(e):
         raise ImportError("Unsloth GPU requirement not met") from e
+    elif "unsloth" in str(e).lower():
+        raise ModuleNotFoundError(
+            "TransformerDecoderModel: If you are a mac user, unsloth is currently not available on macOS. For other users, please use 'pip install convokit[llm]' to install LLM related dependencies."
+        ) from e
     else:
         raise ModuleNotFoundError(
-            "unsloth, torch, trl, or datasets is not currently installed. Run 'pip install convokit[llm]' if you would like to use the TransformerDecoderModel."
+            "TransformerDecoderModel: torch or trl is not currently installed. Run 'pip install convokit[llm]' if you would like to use the TransformerDecoderModel (or 'pip install convokit[llmmac]' for macOS users)."
         ) from e
 
 import json
