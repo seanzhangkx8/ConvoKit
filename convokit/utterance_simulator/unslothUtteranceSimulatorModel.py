@@ -1,3 +1,5 @@
+import warnings
+
 try:
     import unsloth
     from unsloth import FastLanguageModel
@@ -9,17 +11,18 @@ try:
     from transformers import TrainingArguments, DataCollatorForSeq2Seq
 
     UNSLOTH_AVAILABLE = True
-except (ModuleNotFoundError, ImportError) as e:
+except (ModuleNotFoundError, ImportError, ValueError) as e:
+    UNSLOTH_AVAILABLE = False
     if "Unsloth GPU requirement not met" in str(e):
-        raise ImportError("Unsloth GPU requirement not met") from e
+        warnings.warn("UnslothUtteranceSimulatorModel: Unsloth GPU requirement not met")
     elif "unsloth" in str(e).lower():
-        raise ModuleNotFoundError(
+        warnings.warn(
             "UnslothUtteranceSimulatorModel: If you are a mac user, unsloth is currently not available on macOS. For other users, please use 'pip install convokit[llm]' to install LLM related dependencies."
-        ) from e
+        )
     else:
-        raise ModuleNotFoundError(
+        warnings.warn(
             "UnslothUtteranceSimulatorModel: torch, trl, or transformers is not currently installed. Run 'pip install convokit[llm]' if you would like to use the UnslothUtteranceSimulatorModel."
-        ) from e
+        )
 
 from typing import Callable, Optional, Union, Any, List, Iterator
 from tqdm import tqdm
