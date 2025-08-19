@@ -62,12 +62,20 @@ class UnslothUtteranceSimulatorModel(UtteranceSimulatorModel):
         model_name="unsloth/Meta-Llama-3.1-8B-bnb-4bit",
         chat_template=DEFAULT_LLAMA_CHAT_TEMPLATE,
         chat_template_mapping=DEFAULT_LLAMA_CHAT_TEMPLATE_MAPPING,
-        device="cuda" if torch.cuda.is_available() else "cpu",
+        device=None,
         model_config=DEFAULT_MODEL_CONFIG,
         train_config=DEFAULT_TRAIN_CONFIG,
         num_simulations=DEFAULT_NUM_SIMULATIONS,
         prompt_fn=default_prompt_fn,
     ):
+        # Set default device based on torch availability
+        if device is None:
+            try:
+                import torch
+
+                device = "cuda" if torch.cuda.is_available() else "cpu"
+            except ImportError:
+                device = "cpu"
         self.model, self.tokenizer = FastLanguageModel.from_pretrained(
             model_name=model_name,
             max_seq_length=model_config["max_seq_length"],
