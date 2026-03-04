@@ -17,7 +17,7 @@ jobs:
       uses: ammaraskar/sphinx-action@master
       with:
         docs-folder: "website/"
-        build-command: "sphinx-build -b html ./source ./build"
+        build-command: "sphinx-build -b html ./docs/source ./build"
     - name: rsync homepage files
       uses: burnett01/rsync-deployments@master
       with:
