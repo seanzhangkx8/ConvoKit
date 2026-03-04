@@ -9,15 +9,14 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - name: Install Dependencies
-      run: |
-        pip install sphinx shibuya m2r2
-    - name: Sphinx Build
-      uses: ammaraskar/sphinx-action@master
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
       with:
-        docs-folder: "website/docs/"
-        build-command: "sphinx-build -b html ./source ./build"
+        python-version: "3.12"
+    - name: Install Dependencies
+      run: pip install -r website/docs/requirements.txt
+    - name: Sphinx Build
+      run: cd website/docs && sphinx-build -b html ./source ./build
     - name: rsync homepage files
       uses: burnett01/rsync-deployments@master
       with:

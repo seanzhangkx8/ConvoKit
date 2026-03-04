@@ -1,3 +1,6 @@
-sphinx
+# Pin Sphinx and docutils so CI image upgrades from default 2.4.4/0.16.
+# Shibuya theme requires document.findall() (docutils >= 0.18). m2r2 needs docutils >= 0.19.
+sphinx>=5.0
+docutils>=0.19
 shibuya
 m2r2
